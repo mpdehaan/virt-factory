@@ -6,6 +6,7 @@
 |
 | Change state to:   { stopped    }           !Change!
 | Migrate to:        { acmelabs1  }           !Migrate!
+| Image update policy:   { automatic|off }    !Change!
 |
 | Configuration:
 |     [       INSERT VENDOR SUPPLIED CONFIGURATION PANELS HERE  ]
@@ -46,3 +47,14 @@ is displayed where it's relevant, as information about events may affect
 migration or start/stop decisions, for instance.  Humans also have relatively
 limited short term memory, so having more data available in one place is 
 a good thing.
+
+The update policy is tricky.  If the vendor of an appliance (which could
+be in-house, maybe not) updates an image and wants to roll out a new
+one, updating that image (especially if it's a disk image with important
+data inside) seems somewhat tricky.  However if all data is stored
+on a SAN, that isn't so tricky, but means saving configuration in the
+database (not just in the image) and reapplying that change later.  Still
+this is pretty complicated without knowing how ISV's are going to create
+images and what the update system is.  Thoughts?
+
+

@@ -2,17 +2,18 @@
 | RedHat Shadow Manager                                                     |
 +---------------------------------------------------------------------------+
 | (Events)    (Machines)    (Instances)    Images    (Accounts)   (Setup) |
-| (List)      (Add)       
+| Viewing and Editing image record:  virtual-foo       
 |
+| Name:   virtual foo
+| Description:  manages vertical aspects of graphical-oriented
+|               business oriented control systems to leverage enterprise
+|               thought patterns in the federated supply chain
+| Version:  2.5.6
+| From:     AcmeCorp <http://thiscompanydoesnotexistatall.com>
+| 
+| !Update The Image!
 |
-|
-|
-|
-|
-|
-|
-|
-|
+| User Comments:  [ This was installed because ... lorem ipsum dolor set ]
 |
 |
 |
@@ -21,7 +22,10 @@
 |
 +--------------------------------------------------------------------------+
 
-Deployments basically map images to the machines they on.
+This is a record of an image that Shadow Manager can provision.
+This includes version info and so forth, though what actions can be
+performed on this image need to be expanded a LOT.
 
-It's only by coincidence that I put them between Machines and Images in the
-UI, but that seems to fit.
+Maybe the image can be updated here, or maybe there is a web servicey
+way to do that that lives on another panel.  What else needs to be done
+to an image definition?  What kind of queries into it need to be provided?
