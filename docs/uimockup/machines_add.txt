@@ -1,0 +1,31 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    Machines    (Deployments)    (Images)    (Accounts)   (Setup) |
+| (List)      Add        
+|
+|
+| Name          [--------------------------------------------------]
+| Description   [--------------------------------------------------]
+| Architecture  {---------}   CPUs  [------]   Speed [------]
+| Lorem         [---------------------]
+| Ipsum         [---------------------]
+| IP Address    [---------------------]
+| MAC Address   [---------------------]
+|
+| Registration Options:
+|         <Configure for PXE and reboot>  
+|         <I'll install the software manually>
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+The Machine Addition Page
+
+This is how a new machine is added to the network.   Most likely this
+sets the machine up in the database and configures cobbler to be able
+to provision it to our dom0 environ of choice.  ***OR** we might want
+to support letting existing machines be added.  Not sure.  Personally
+I think we want the dom0 machines to be exclusively devoted to us.
