@@ -1,8 +1,8 @@
 +---------------------------------------------------------------------------+
 | RedHat Shadow Manager                                                     |
 +---------------------------------------------------------------------------+
-| Events    (Machines)    (Instances)    (Images)    (Accounts)   (Setup) |
-|
+| (Events)    (Machines)    (Instances)    (Images)    Accounts   (Setup) |
+| (List)        (Add)
 |
 |
 |
@@ -20,4 +20,22 @@
 |
 |
 +--------------------------------------------------------------------------+
+
+Accounts are required to log into the box.
+
+Most likely we want to enable setting up things like tying into kerberos
+in setup, though for really small shops, we might want to do that
+some other way.  Just keeping accounts manually might not be all that
+bad, especially if only need admin only access -- if so, that feature
+almost goes away.
+
+One reason for keeping track of accounts though is the audit log.
+We can have accounts for multiple sys admins (SAs) and when the SA
+makes a change, that change shows up in the event log (see events.txt)
+under that SA's name.  This allows some accountable and it's obvious for
+other SA's to see who moved something around.  Otherwise it seems like
+there could be some tendancy to move things back and forth.  One
+concept that ties into this is the idea of being able to leave
+a comment for most actions that cause a configuration change.  This comment
+can be left in the audit log (event log, same thing) to explain the action.
 

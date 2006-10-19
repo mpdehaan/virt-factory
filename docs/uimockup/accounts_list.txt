@@ -1,0 +1,25 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    (Machines)    (Instances)    (Images)    Accounts   (Setup) |
+| List      (Add)
+|
+| 
+| <Username>     <Last>   <First>   <Middle>   <Role>
+| (JoeUser)      User     Joe       D.         IT Admin
+| (BobUser)      User     Bob       D.         Helpdesk
+| (mdehaan)      DeHaan   Michael   P.         Other
+| (admin)        --       --        --         Default Admin Account
+|
+|
+|
+|
+|
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+A sortable list of accounts.  Clicking on an account name brings the user
+to the edit page for that account.
