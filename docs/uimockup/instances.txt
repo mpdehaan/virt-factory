@@ -1,8 +1,7 @@
 +---------------------------------------------------------------------------+
 | RedHat Shadow Manager                                                     |
 +---------------------------------------------------------------------------+
-| (Events)    Machines    Instances    (Images)    (Accounts)   (Setup) |
-| (List)     (Add)        
+| (Events)    (Machines)    Instances    (Images)    (Accounts)   (Setup) |
 |
 |
 |
@@ -22,10 +21,7 @@
 |
 +--------------------------------------------------------------------------+
 
-The Machines Page
+Deployments basically map images to the machines they on.
 
-This is a category containing subpages.  The machines page is where you
-provision machines or "enslave" existing machines to put them on your
-virtual farm.
-
-By default it comes up to the GUI in "machine_list.txt"
+It's only by coincidence that I put them between Machines and Images in the
+UI, but that seems to fit.

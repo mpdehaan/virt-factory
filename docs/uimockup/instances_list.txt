@@ -1,0 +1,30 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    (Machines)    Instances    (Images)    (Accounts)   (Setup) |
+| List        (Add)
+|
+|
+|  <Image Name>      <Instances>
+|  (virtual-foo)     on (box42) as (virtual-foo1)
+|                    on (box42) as (virtual-foo3)
+|                    on (server45) as (virtual-foo2)
+|
+|  (virtual-bar)     on (box37) as (virtual-foo2)
+|
+|  (virtual-baz)     on (box48) as (virtual-baz)
+|
+|  (virtual-narf)    not deployed
+|
+|
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+The instances screen maps images to the machines they on.
+
+It's sortable.  Clicking on a machine goes to the machines_edit_machine.txt
+page, clicking on an instance to instances_edit_instance.txt and clicking
+on a image to images_edit_image.txt

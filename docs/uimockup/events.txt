@@ -1,7 +1,7 @@
 +---------------------------------------------------------------------------+
 | RedHat Shadow Manager                                                     |
 +---------------------------------------------------------------------------+
-| Events    (Machines)    (Deployments)    (Images)    (Accounts)   (Setup) |
+| Events    (Machines)    (Instances)    (Images)    (Accounts)   (Setup) |
 |
 |   Show Severity:  {All }                  User:   {All }
 |   Time Frame:     {Last 7 Days }          

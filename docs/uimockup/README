@@ -20,9 +20,9 @@ login.txt            the login screen
    machines.txt           
        machines_list.txt 
        machines_add.txt
-   deployments.txt
-       deployments_list.txt
-       deployments_deploy.txt
+   instances.txt
+       instances.txt
+       instances_add.txt
    images.txt
        images_list.txt
        images_add.txt
