@@ -6,8 +6,8 @@ CREATE TABLE users (
    last VARCHAR (255) NOT NULL,
    description VARCHAR (255),
    email VARCHAR (255) NOT NULL,
-   role_id INT NOT NULL,
-   auth_how VARCHAR (255)
+   role_id INT,
+   auth_how VARCHAR (255) NOT NULL
 );
 
 CREATE TABLE roles (
@@ -31,8 +31,8 @@ CREATE TABLE permissions (
 CREATE TABLE audits (
    id INTEGER PRIMARY KEY,
    time           VARCHAR (255),
-   user_id        INT NOT NULL,
-   feature_id     INT NOT NULL,
+   user_id        INT,
+   feature_id     INT,
    action         VARCHAR (255),
    user_comment   VARCHAR (255)
 );
