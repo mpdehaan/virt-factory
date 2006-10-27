@@ -1,0 +1,2 @@
+class ImageFieldTypesController < ApplicationController
+end

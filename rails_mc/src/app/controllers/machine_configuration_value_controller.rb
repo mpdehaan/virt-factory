@@ -1,0 +1,2 @@
+class MachineConfigurationValueController < ApplicationController
+end

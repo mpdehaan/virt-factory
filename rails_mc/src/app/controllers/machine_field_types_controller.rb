@@ -1,0 +1,2 @@
+class MachineFieldTypesController < ApplicationController
+end

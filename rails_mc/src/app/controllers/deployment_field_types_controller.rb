@@ -1,0 +1,2 @@
+class DeploymentFieldTypesController < ApplicationController
+end

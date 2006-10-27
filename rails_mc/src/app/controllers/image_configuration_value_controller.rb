@@ -1,0 +1,2 @@
+class ImageConfigurationValueController < ApplicationController
+end

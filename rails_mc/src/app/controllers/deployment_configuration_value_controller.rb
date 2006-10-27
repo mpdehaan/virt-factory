@@ -1,0 +1,2 @@
+class DeploymentConfigurationValueController < ApplicationController
+end
