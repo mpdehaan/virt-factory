@@ -1,2 +1,2 @@
 #!/bin/sh
-ruby src/script/server
+(cd src; ruby script/server)
