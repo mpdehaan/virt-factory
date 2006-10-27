@@ -72,28 +72,28 @@ CREATE TABLE metrics (
    time VARCHAR(255)
 );
 
-CREATE TABLE imagevalues (
+CREATE TABLE image_values (
    id INTEGER PRIMARY KEY,
    image_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE deploymentvalues (
+CREATE TABLE deployment_values (
    id INTEGER PRIMARY_KEY,
    deployment_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE machinevalues (
+CREATE TABLE machine_values (
    id INTEGER PRIMARY_KEY,
    machine_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE fieldtypes (
+CREATE TABLE field_types (
    id INTEGER PRIMARY KEY,
    namespace VARCHAR(255),
    field VARCHAR(255),
