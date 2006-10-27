@@ -72,30 +72,30 @@ CREATE TABLE metrics (
    time VARCHAR(255)
 );
 
-CREATE TABLE image_configuration_values (
+CREATE TABLE imagevalues (
    id INTEGER PRIMARY KEY,
    image_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE deployment_configuration_values (
+CREATE TABLE deploymentvalues (
    id INTEGER PRIMARY_KEY,
    deployment_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE machine_configuration_values (
+CREATE TABLE machinevalues (
    id INTEGER PRIMARY_KEY,
    machine_id INT,
    field VARCHAR(255),
    value VARCHAR(255)
 );
 
-CREATE TABLE image_types (
+CREATE TABLE fieldtypes (
    id INTEGER PRIMARY KEY,
-   image_id INT,
+   namespace VARCHAR(255),
    field VARCHAR(255),
    datatype INT,
    display_hint INT,
@@ -103,26 +103,3 @@ CREATE TABLE image_types (
    upper_bound VARCHAR(255),
    step VARCHAR(255)
 );
-
-CREATE TABLE deployment_types (
-   id INTEGER PRIMARY KEY,
-   deployment_id INT,
-   field VARCHAR(255),
-   datatype INT,
-   display_hint INT,
-   lower_bound VARCHAR(255),
-   upper_bound VARCHAR(255),
-   step VARCHAR(255)
-);
-
-CREATE TABLE machine_types (
-   id INTEGER PRIMARY KEY,
-   machine_id INT,
-   field VARCHAR(255),
-   datatype INT,
-   display_hint INT,
-   lower_bound VARCHAR(255),
-   upper_bound VARCHAR(255),
-   step VARCHAR(255)
-);
-
