@@ -1,0 +1,11 @@
+<html>
+   <head>
+      <title>Shadow Manager</title>
+   </head>
+   <body>
+      <% @items.each do |item| %>
+         <%= link_to item, :controller=>"#{item}", :action=>"list" %>
+         </br>
+      <% end %>
+   </body>
+</html>
