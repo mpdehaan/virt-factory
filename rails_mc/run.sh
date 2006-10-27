@@ -1,0 +1,1 @@
+ruby mc/script/server
