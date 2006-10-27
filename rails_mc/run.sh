@@ -1,1 +1,2 @@
-ruby mc/script/server
+#!/bin/sh
+ruby src/script/server
