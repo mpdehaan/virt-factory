@@ -1,0 +1,6 @@
+CREATE TABLE audit_log (
+   user_id   VARCHAR(255),
+   component VARCHAR(255),
+   action    VARCHAR(255),
+   comment   VARCHAR(255)
+);
