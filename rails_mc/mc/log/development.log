@@ -4,3 +4,9 @@ Processing MainController#index (for 127.0.0.1 at 2006-10-27 13:09:28) [GET]
   Session ID: 9666a596a10af27a8f9c5e171cc79799
   Parameters: {"action"=>"index", "controller"=>"main"}
 Completed in 0.00084 (1195 reqs/sec) | 200 OK [http://127.0.0.1/main]
+
+
+Processing MainController#index (for 127.0.0.1 at 2006-10-27 13:14:05) [GET]
+  Session ID: c8d4343c9ae2dadc4f9d9ae47c183d6a
+  Parameters: {"action"=>"index", "controller"=>"main"}
+Completed in 0.00083 (1207 reqs/sec) | 200 OK [http://127.0.0.1/main]
