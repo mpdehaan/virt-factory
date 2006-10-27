@@ -1,4 +1,4 @@
-CREATE TABLE audit (
+CREATE TABLE audits (
    username VARCHAR (255),
    category VARCHAR (255),
    action   VARCHAR (255),
