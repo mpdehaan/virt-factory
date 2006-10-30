@@ -1,11 +1,33 @@
-<html>
-   <head>
-      <title>Shadow Manager</title>
-   </head>
-   <body>
+<html xmlns="http://ww.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+  <head>
+     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+     <title>ShadowManager</title>
+     <link rel="stylesheet" href="/style.css" type="text/css" />
+  </head>
+  <body>
+      <div id="topbar">
+      <div id="page-title">
+      <h1 id="product-name">ShadowManager
+      </h1>
+      </div>
+ 
+      <div class="topbar-line">
+      </div>
+      
+      <div id="content-main">
       <% @items.each do |item| %>
          <%= link_to item, :controller=>"#{item}", :action=>"list" %>
          </br>
       <% end %>
-   </body>
+      </div>
+
+      <div class="content-right">
+      <div class="callout-1">
+      Most of these pages are just database scaffolding.  This will grow
+      more later.
+      </div>
+      </div> 
+
+
+  </body>
 </html>
