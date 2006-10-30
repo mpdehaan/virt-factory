@@ -1,14 +1,43 @@
-<html>
+<html xmlns="http://ww.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
   <head>
+     <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
      <title>ShadowManager :: Login</title>
+     <link rel="stylesheet" href="/style.css" type="text/css" />
   </head>
   <body>
-      Developers!  make your own ID, it's wide open: :3000/user
-
+      <div id="topbar">
+      <div id="page-title">
+      <h1 id="product-name">ShadowManager
+      </h1>
+      </div>
+ 
+      <div class="topbar-line">
+      </div>
+      
+      <div id="content-main">
       <form name="form" action="submit">
-      <%= text_field("form", "username") %>   
-      <%= text_field("form", "password") %>             
-      <input type="submit" value="go">
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Login</TD>
+            <TD><%= text_field("form", "username") %></TD>
+         </TR>
+         <TR> 
+            <TD>Password</TD>
+            <TD><%= text_field("form", "password") %></TD>            
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
       </form>
+      </div>
+
+      <div class="content-right">
+      <div class="callout-1">
+      Developers!  make your own ID, it's wide open: $host:3000/user
+      </div>
+      </div> 
+
+
   </body>
 </html>
