@@ -1,3 +1,6 @@
+require "xmlrpc/client"
+@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
+
 class LoginController < ApplicationController
 
    def index
@@ -11,17 +14,13 @@ class LoginController < ApplicationController
    def submit
       f_username = @params["form"]["username"]
       f_password = @params["form"]["password"]
-      item = User.find_by_username(f_username)
-      if item.nil?
+      item = @@server.call("login",f_username,f_password)
+      if item.nil? or item < 0
           redirect_to :action => "input"
-          return
-      end
-      if item.password == f_password
-          @session[:login] = f_username
-          redirect_to :controller => "demo", :action => "list"
           return
       else
-          redirect_to :action => "input"
+          @session[:login] = item.id
+          redirect_to :controller => 'demo', :action => 'list'
           return
       end
    end
