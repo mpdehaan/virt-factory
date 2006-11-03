@@ -9,10 +9,9 @@ class DemoController < ApplicationController
 
    def list
       require_permission(0)
-      @items = ["audit","event","deployment","deployment_value",
-                "event","feature","field_type","image","image_value",
-                "machine","machine_value","metric","permission",
-                "role","user"].sort
+      @items = ["audit","event","deployment",
+                "event","feature","image",
+                "machine","metric", "user"].sort
    end
 
 end

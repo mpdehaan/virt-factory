@@ -7,26 +7,6 @@ CREATE TABLE users (
    last VARCHAR (255) NOT NULL,
    description VARCHAR (255),
    email VARCHAR (255) NOT NULL,
-   role_id INT,
-   auth_how VARCHAR (255) NOT NULL
-);
-
-CREATE TABLE roles (
-   id INTEGER PRIMARY KEY,
-   rolename VARCHAR (255),
-   description TEXT
-);
-
-CREATE TABLE features (
-   id INTEGEGER PRIMARY KEY,
-   description VARCHAR (255)
-);
-
-CREATE TABLE permissions (
-   id INTEGER PRIMARY KEY,
-   role_id INT,
-   feature_id INT,
-   parameters VARCHAR (255)
 );
 
 CREATE TABLE audits (
@@ -42,7 +22,8 @@ CREATE TABLE images (
    id INTEGER PRIMARY KEY,
    name       VARCHAR (255),
    version    VARCHAR (255),
-   filename   VARCHAR (255)
+   filename   VARCHAR (255),
+   specfile   VARCHAR (255)
 );
 
 CREATE TABLE deployments (
@@ -70,37 +51,8 @@ CREATE TABLE metrics (
    id INTEGER PRIMARY KEY,
    deployment_id INT,
    category VARCHAR(255),
-   time VARCHAR(255)
+   time VARCHAR(255),
+   value VARCHAR(255),
+   type VARCHAR(255)
 );
 
-CREATE TABLE image_values (
-   id INTEGER PRIMARY KEY,
-   image_id INT,
-   field VARCHAR(255),
-   value VARCHAR(255)
-);
-
-CREATE TABLE deployment_values (
-   id INTEGER PRIMARY_KEY,
-   deployment_id INT,
-   field VARCHAR(255),
-   value VARCHAR(255)
-);
-
-CREATE TABLE machine_values (
-   id INTEGER PRIMARY_KEY,
-   machine_id INT,
-   field VARCHAR(255),
-   value VARCHAR(255)
-);
-
-CREATE TABLE field_types (
-   id INTEGER PRIMARY KEY,
-   namespace VARCHAR(255),
-   field VARCHAR(255),
-   datatype INT,
-   display_hint INT,
-   lower_bound VARCHAR(255),
-   upper_bound VARCHAR(255),
-   step VARCHAR(255)
-);
