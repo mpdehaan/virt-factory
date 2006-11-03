@@ -36,6 +36,11 @@
       <div class="callout-1">
       Developers!  make your own ID, it's wide open: $host:3000/user
       </div>
+      <% if @flash[:notice] %>
+         <div class="callout-2">
+         <%= @flash[:notice] %>
+         </div>
+      <% end %>
       </div> 
 
 

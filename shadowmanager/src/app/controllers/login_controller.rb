@@ -16,6 +16,7 @@ class LoginController < ApplicationController
       f_password = @params["form"]["password"]
       item = @@server.call("login",f_username,f_password)
       if item.nil? or item < 0
+          @flash[:notice] = "Login failed."
           redirect_to :action => "input"
           return
       else
