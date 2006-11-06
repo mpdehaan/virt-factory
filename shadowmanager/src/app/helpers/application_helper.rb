@@ -26,12 +26,6 @@ module ApplicationHelper
        "image" => "Images"
    }
 
-   def ApplicationHelper.require_auth()
-      unless @session.nil? or @session[:login]
-         redirect_to :controller => "login", :action => "input"
-      end
-   end
-
    def ApplicationHelper.menubar(primary,secondary)
        html = ApplicationHelper.top_menubar(primary)
        html += ApplicationHelper.bottom_menubar(primary,secondary)
