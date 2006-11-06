@@ -150,3 +150,45 @@ div.content-right h2 {
 hr {
   background-image: url('img/black-red/hr.png');
 }
+
+/* Navigational menus */
+div#navigation {
+}
+
+/* Top level menu, corresponds to controller */
+
+div#primary_menu {
+  background-color: #c00;
+  color: #ccc;
+}
+
+/* Second level menu, responds to controller action */
+
+div#secondary_menu {
+  background-color: #a00;
+  color: #ccc;
+}
+
+/* Active controller name */
+
+span#primary_menu_selected {
+  font-weight: bold;
+}
+
+/* Inactive controller names */
+
+span#primary_menu_unselected {
+}
+
+/* Active controller action name */
+
+span#secondary_menu_selected {
+  font-weight: bold;
+}
+
+/* Inactive controller action names */
+
+span#secondary_menu_unselected {
+}
+
+
