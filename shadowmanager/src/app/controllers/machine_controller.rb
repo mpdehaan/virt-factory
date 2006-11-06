@@ -1,3 +1,7 @@
+require 'xmlrpc/client'
+@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
+
+
 class MachineController < ApplicationController
     include ApplicationHelper
 
@@ -7,8 +11,7 @@ class MachineController < ApplicationController
 
     def list
         ApplicationHelper.require_auth()
-        # fixme: read from WS.
-        @items = []
+        @items = @@server.call("get_machines")
     end
 
     def add

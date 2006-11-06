@@ -1,3 +1,6 @@
+require 'xmlrpc/client'
+@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
+
 class UserController < ApplicationController
    include ApplicationHelper
    
@@ -7,8 +10,7 @@ class UserController < ApplicationController
 
    def list
        ApplicationHelper.require_auth()
-       # FIXME: read from WS.
-       @items = []
+       @items = @@server.call("get_users")
    end
 
    def logout
