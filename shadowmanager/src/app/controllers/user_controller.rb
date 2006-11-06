@@ -11,4 +11,9 @@ class UserController < ApplicationController
        @items = []
    end
 
+   def logout
+       @session[:login] = nil
+       redirect_to :controller => "login", :action => "index"
+   end
+
 end

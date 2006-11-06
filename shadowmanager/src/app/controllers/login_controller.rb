@@ -21,7 +21,7 @@ class LoginController < ApplicationController
           return
       else
           @session[:login] = item.id
-          redirect_to :controller => 'demo', :action => 'list'
+          redirect_to :controller => 'machine', :action => 'list'
           return
       end
    end
