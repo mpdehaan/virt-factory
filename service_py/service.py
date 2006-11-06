@@ -17,6 +17,29 @@ class XmlRpcInterface:
        else:
            return -1
 
+   # FIXME: these are rather inefficient for large result sets and will need upgrading later.
+   # the API needs to be a lot smarter than this, this is mainly here to get things bootstrapped.
+   def get_users(self):
+       self.cursor.execute("SELECT * FROM users")
+       results = self.cursor.fetchall()
+       return results
+
+   def get_machines(self):
+       self.cursor.execute("SELECT * FROM machines")
+       results = self.cursor.fetchall()
+       return results
+
+   def get_images(self):
+       self.cursor.execute("SELECT * FROM images")
+       results = self.cursor.fetchall()
+       return results
+
+   def get_deployments(self):
+       self.cursor.execute("SELECT * FROM deployments")
+       results = self.cursor.fetchall()
+       return results
+
+
 xmlrpc_interface = XmlRpcInterface()
 server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
 server.register_instance(xmlrpc_interface)
