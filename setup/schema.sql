@@ -29,7 +29,8 @@ CREATE TABLE images (
 CREATE TABLE deployments (
    id INTEGER PRIMARY KEY,
    machine_id INT,
-   image_id INT
+   image_id INT,
+   state INT
 );
 
 CREATE TABLE machines (
