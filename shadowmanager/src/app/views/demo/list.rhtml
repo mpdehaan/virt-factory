@@ -13,7 +13,9 @@
  
       <div class="topbar-line">
       </div>
-      
+
+      <%= ApplicationHelper.menubar("demo","list") %>
+     
       <div id="content-main">
       <% @items.each do |item| %>
          <%= link_to item, :controller=>"#{item}", :action=>"list" %>

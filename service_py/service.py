@@ -18,6 +18,6 @@ class XmlRpcInterface:
            return -1
 
 xmlrpc_interface = XmlRpcInterface()
-server = SimpleXMLRPCServer.SimpleXMLRPCServer(("localhost", 5150))
+server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
 server.register_instance(xmlrpc_interface)
 server.serve_forever()

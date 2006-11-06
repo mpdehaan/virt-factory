@@ -8,7 +8,7 @@ class DemoController < ApplicationController
    end
 
    def list
-      require_permission(0)
+      ApplicationHelper.require_auth()
       @items = ["audit","event","deployment",
                 "event","feature","image",
                 "machine","metric", "user"].sort
