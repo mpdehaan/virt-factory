@@ -21,9 +21,6 @@ class ImageController < ApplicationController
    def delete
    end
 
-   def delete_submit
-   end
-
    def viewedit
    end
 
