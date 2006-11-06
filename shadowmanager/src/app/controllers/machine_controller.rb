@@ -8,6 +8,7 @@ class MachineController < ApplicationController
     def list
         ApplicationHelper.require_auth()
         # fixme: read from WS.
+        @items = []
     end
 
 end

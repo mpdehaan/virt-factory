@@ -2,6 +2,7 @@
 
 require 'rubygems'
 require_gem 'rails'
+require 'erb'
 
 module ApplicationHelper
 
@@ -34,43 +35,57 @@ module ApplicationHelper
    end
 
    def ApplicationHelper.menubar(primary,secondary)
-       # shortcut, as we always want a permission check whenever
-       # we display a menu bar.
-       html = "<DIV ID='menus'>"
-       html += "<DIV ID='primary_menu'><TABLE><TR><TD>"
-       # draw top menubar, with links to all but the active category
-       @NAVIGATION.each do |toplevel|
-           html += "<TD>"
-           if primary == toplevel[0]
-              html += primary
-           else
-              puts toplevel[0]
-              html += "<A HREF='../../#{toplevel[0]}/index'>#{toplevel[0]}</A>"
-           end
-           html += "</TD>" 
-       end
-       html += "</TR></TABLE></DIV>"
-       html += "<DIV ID='secondary_menu'><TABLE><TR>"
-       # draw bottom menubar, with links to all but the active action
-       @NAVIGATION.each do |toplevel|
-           if toplevel[0] == primary
-               toplevel[1].each do |secondlevel|
-                   html += "<TD>"
-                   if secondlevel == secondary
-                      html += secondary
-                   else
-                      puts primary
-                      puts secondary
-                      html += "<A HREF='../../#{primary}/#{secondary}'>#{secondary}</A>"
-                   end
-                   html += "</TD>"
-               end
-               break
-           end
-       end
-       html += "</TR></TABLE></DIV>"
-       html += "</DIV>
-       return html
+       html = ApplicationHelper.top_menubar(primary)
+       puts "done"
+       html += ApplicationHelper.bottom_menubar(primary,secondary)
    end
+
+   def ApplicationHelper.top_menubar(primary)
+       template = <<-EOF
+              <DIV ID="primary_menu">
+                  <TABLE>
+                      <TR>
+                         <% @NAVIGATION.each do |con| %>
+                            <% if con[0] == primary %>
+                               <SPAN ID="primary_menu_selected">
+                                  <%= primary %>
+                               </SPAN>
+                            <% else %>
+                               <SPAN ID="primary_menu_unselected">
+                                  <%= "<A HREF='../../" + con[0] + "/list'>" + con[0] + "</A>" %>
+                               </SPAN>
+                            <% end %>
+                         <% end %>
+                      </TR>
+                 </TABLE>
+             </DIV>
+       EOF
+       return ERB.new(template, 0, '%').result(binding)
+   end
+
+   def ApplicationHelper.bottom_menubar(primary,secondary)
+       items = @NAVIGATION.find { |a| a[0] == primary }[1]
+       template = <<-EOF
+              <DIV ID="secondary_menu">
+                  <TABLE>
+                      <TR>
+                         <% items.each do |second| %>
+                            <% if secondary == second %>
+                               <SPAN ID="secondary_menu_selected">
+                                  <%= second %>
+                               </SPAN>
+                            <% else %>
+                               <SPAN ID="secondary_menu_unselected">
+                                  <%= "<A HREF='../../#{primary}/" + second + "'>" + second + "</A>" %>
+                               </SPAN>
+                            <% end %>
+                         <% end %>
+                      </TR>
+                 </TABLE>
+              </DIV>
+       EOF
+       return ERB.new(template,0,'%').result(binding)
+   end
+
 
 end

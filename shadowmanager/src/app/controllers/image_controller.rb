@@ -8,6 +8,7 @@ class ImageController < ApplicationController
    def list
        ApplicationHelper.require_auth()
        # FIXME: read from WS.
+       @items = []
    end
 
 end
