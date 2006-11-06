@@ -36,8 +36,8 @@ module ApplicationHelper
 
    def ApplicationHelper.menubar(primary,secondary)
        html = ApplicationHelper.top_menubar(primary)
-       puts "done"
        html += ApplicationHelper.bottom_menubar(primary,secondary)
+       return "<DIV ID='navigation'>" + html + "</DIV>"
    end
 
    def ApplicationHelper.top_menubar(primary)
@@ -46,6 +46,7 @@ module ApplicationHelper
                   <TABLE>
                       <TR>
                          <% @NAVIGATION.each do |con| %>
+                            <TD>
                             <% if con[0] == primary %>
                                <SPAN ID="primary_menu_selected">
                                   <%= primary %>
@@ -55,6 +56,7 @@ module ApplicationHelper
                                   <%= "<A HREF='../../" + con[0] + "/list'>" + con[0] + "</A>" %>
                                </SPAN>
                             <% end %>
+                            </TD>
                          <% end %>
                       </TR>
                  </TABLE>
@@ -70,6 +72,7 @@ module ApplicationHelper
                   <TABLE>
                       <TR>
                          <% items.each do |second| %>
+                            <TD>
                             <% if secondary == second %>
                                <SPAN ID="secondary_menu_selected">
                                   <%= second %>
@@ -79,6 +82,7 @@ module ApplicationHelper
                                   <%= "<A HREF='../../#{primary}/" + second + "'>" + second + "</A>" %>
                                </SPAN>
                             <% end %>
+                            </TD>
                          <% end %>
                       </TR>
                  </TABLE>
