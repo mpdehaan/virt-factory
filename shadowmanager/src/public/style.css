@@ -158,14 +158,14 @@ div#navigation {
 /* Top level menu, corresponds to controller */
 
 div#primary_menu {
-  background-color: #c00;
+  background-color: #caa;
   color: #ccc;
 }
 
 /* Second level menu, responds to controller action */
 
 div#secondary_menu {
-  background-color: #a00;
+  background-color: #aaa;
   color: #ccc;
 }
 
