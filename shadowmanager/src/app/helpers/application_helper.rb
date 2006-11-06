@@ -9,7 +9,6 @@ module ApplicationHelper
    # mapping between primary/secondary menu items
    # and controller/action pages
    @NAVIGATION = [
-      [ "demo" , [ "list" ] ],
       [ "machine" , [ "list", "add" ] ],
       [ "image" , [ "list", "add" ] ],
       [ "deployment" , [ "list", "add" ] ],
@@ -18,14 +17,13 @@ module ApplicationHelper
 
    # FIXME: use better stringification
    @STRINGS = {
-       "machines" => "Machines",
-       "demo" => "Demo",
+       "machine" => "Machines",
        "add" => "Add",
        "list" => "List",
-       "deployments" => "Deployments",
-       "user" => "User",
+       "deployment" => "Deployments",
+       "user" => "Users",
        "logout" => "Logout",
-       "images" => "Images"
+       "image" => "Images"
    }
 
    def ApplicationHelper.require_auth()
@@ -49,11 +47,11 @@ module ApplicationHelper
                             <TD>
                             <% if con[0] == primary %>
                                <SPAN ID="primary_menu_selected">
-                                  <%= primary %>
+                                  <%= @STRINGS[primary] %>
                                </SPAN>
                             <% else %>
                                <SPAN ID="primary_menu_unselected">
-                                  <%= "<A HREF='../../" + con[0] + "/list'>" + con[0] + "</A>" %>
+                                  <%= "<A HREF='../../" + con[0] + "/list'>" + @STRINGS[con[0]] + "</A>" %>
                                </SPAN>
                             <% end %>
                             </TD>
@@ -75,11 +73,11 @@ module ApplicationHelper
                             <TD>
                             <% if secondary == second %>
                                <SPAN ID="secondary_menu_selected">
-                                  <%= second %>
+                                  <%= @STRINGS[second] %>
                                </SPAN>
                             <% else %>
                                <SPAN ID="secondary_menu_unselected">
-                                  <%= "<A HREF='../../#{primary}/" + second + "'>" + second + "</A>" %>
+                                  <%= "<A HREF='../../#{primary}/" + second + "'>" + @STRINGS[second] + "</A>" %>
                                </SPAN>
                             <% end %>
                             </TD>
