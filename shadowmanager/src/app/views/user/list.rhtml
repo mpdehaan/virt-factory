@@ -32,14 +32,14 @@
       <% @items.map{|x| x["baseObj"]}.each do |item| %>
          <TR>
              
-             <TD> <%= item[0] %> </TD>
-             <TD> <%= item[2] %> </TD>
+             <TD> <%= item[1] %> </TD>
              <TD> <%= item[3] %> </TD>
              <TD> <%= item[4] %> </TD>
              <TD> <%= item[5] %> </TD>
              <TD> <%= item[6] %> </TD>
+             <TD> <%= item[7] %> </TD>
              <%# fixme: make this use link_to :controller=>user :action=>delete on the userid %>
-             <TD> X </TD>
+             <TD> <%= link_to "X", :controller => "user", :action=> "delete", :id=> item[0] %></TD>
          </TR>
       <% end %>
       </TABLE>
@@ -49,6 +49,11 @@
       <div class="callout-1">
       This is the user list.
       </div>
+      <% if @flash[:notice] %>
+      <div class = "callout-2">
+         <%= @flash[:notice] %>
+      </div>
+      <% end %>
       </div> 
 
 

@@ -24,9 +24,10 @@ class UserController < ApplicationController
    end
 
    def delete
-   end
-
-   def delete_submit
+       # FIXME: make WS call to perform actual delete here.  Right here, actually.
+       # and show an appropriate message in flash.
+       @flash[:notice] = "We pretended to delete user #{@params[:id]}"
+       redirect_to :controller => "user", :action => "list"
    end
 
    def viewedit
