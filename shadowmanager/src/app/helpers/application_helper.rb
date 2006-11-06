@@ -12,7 +12,7 @@ module ApplicationHelper
       [ "machine" , [ "list", "add" ] ],
       [ "image" , [ "list", "add" ] ],
       [ "deployment" , [ "list", "add" ] ],
-      [ "user" , [ "logout" ] ]
+      [ "user" , [ "list", "add", "logout" ] ]
    ]
 
    # FIXME: use better stringification
