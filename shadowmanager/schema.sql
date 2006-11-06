@@ -6,7 +6,7 @@ CREATE TABLE users (
    middle VARCHAR (255),
    last VARCHAR (255) NOT NULL,
    description VARCHAR (255),
-   email VARCHAR (255) NOT NULL,
+   email VARCHAR (255) NOT NULL
 );
 
 CREATE TABLE audits (
