@@ -9,7 +9,6 @@ class UserController < ApplicationController
    end
 
    def list
-       ApplicationHelper.require_auth()
        @items = @@server.call("get_users")
    end
 
@@ -19,27 +18,21 @@ class UserController < ApplicationController
    end
 
    def add
-       ApplicationHelper.require_auth()
    end
 
    def add_submit
-       ApplicationHelper.require_auth()
    end
 
    def delete
-       ApplicationHelper.require_auth()
    end
 
    def delete_submit
-       ApplicationHelper.require_auth()
    end
 
    def viewedit
-       ApplicationHelper.require_auth()
    end
 
    def viewedit_submit
-       ApplicationHelper.require_auth()
    end
 
 
