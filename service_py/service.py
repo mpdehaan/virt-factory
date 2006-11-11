@@ -24,6 +24,24 @@ class XmlRpcInterface:
        results = self.cursor.fetchall()
        return results
 
+   def add_user(self, username, password, first, middle, last, description, email):
+      try: 
+           self.cursor.execute("INSERT INTO USERS " 
+                               "(username, password, first, middle, last, description, email) " 
+                               " values ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % 
+                               (username, password, first, middle, last, description, email))
+           self.cursor.fetchall()
+           return get_users(self)
+      except Exception, e:
+           return -1
+       
+   def delete_user(self, id):
+      try: 
+           self.cursor.execute("DELETE FROM USERS WHERE id = " % (id))
+           return self.cursor.fetchall()
+      except Exception, e:
+           return str(e)
+       
    def get_machines(self):
        self.cursor.execute("SELECT * FROM machines")
        results = self.cursor.fetchall()
