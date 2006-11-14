@@ -1,13 +1,9 @@
 from sqlalchemy import *
 
-def make_table(creator, meta):
-    return creator(Image, Table('images', meta,
-        Column('id', Integer, primary_key=True),
-        Column('name', String(255)),
-        Column('version', String(255)),
-        Column('filename', String(255)),
-        Column('specfile', String(255)),
-    ))
+def make_table(meta):
+    tbl = Table('images', meta, autoload=True)
+    mapper(Image,tbl)
+    return tbl
 
 class Image(object):
 

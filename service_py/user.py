@@ -1,17 +1,24 @@
-from sqlalchemy import *
 import time
+from sqlalchemy import *
 
-def make_table(creator, meta):
-    return creator(User, Table('users', meta,
-        Column('id', Integer, primary_key=True),
-        Column('username', String(255)),
-        Column('password', String(255)),
-        Column('first', String(255)),
-        Column('middle', String(255)),
-        Column('last', String(255)),
-        Column('description', String(255)),
-        Column('email', String(255))
-     ))
+
+class User(object):
+
+    def to_datastruct(self):
+        return {
+            "id"          : self.id,
+            "username"    : self.username,
+            "first"       : self.first,
+            "middle"      : self.middle,
+            "last"        : self.last,
+            "description" : self.description,
+            "email"       : self.email
+        }
+
+def make_table(meta):
+    tbl = Table('users', meta, autoload=True)
+    mapper(User, tbl)
+    return tbl
    
 def user_login(session,user,password):
      query = session.query(User)
@@ -34,7 +41,9 @@ def user_add(session,args):
      user.email = args["email"]
      # FIXME: we'd want to do validation here (actually in the User class) 
      session.save(user)
-     return user in session
+     success = user in session
+     session.flush()
+     return success
 
 def user_delete(session,id):
      query = session.query(User)
@@ -42,7 +51,9 @@ def user_delete(session,id):
      if user is None:
         return False
      session.delete(user)
-     return not user in session
+     success =  not user in session
+     session.flush()
+     return success
 
 def user_list(session):
      query = session.query(User)
@@ -55,17 +66,4 @@ def register_rpc(handlers):
      handlers["user_add"]    = user_add
      handlers["user_delete"] = user_delete
      handlers["user_list"]   = user_list
-
-class User(object):
-
-   def to_datastruct(self):
-      return {
-         "id"          : self.id,
-         "username"    : self.username,
-         "first"       : self.first,
-         "middle"      : self.middle,
-         "last"        : self.last,
-         "description" : self.description,
-         "email"       : self.email
-      }
 

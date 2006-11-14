@@ -1,13 +1,8 @@
 from sqlalchemy import *
 
-
-def make_table(creator, meta):
-    return creator(Deployment, Table('deployments', meta,
-         Column("id", Integer, primary_key=True),
-         Column("machine_id", Integer),
-         Column("image_id", Integer),
-         Column("state", Integer)
-    ))
+def make_table(meta):
+    tbl = Table('deployments', meta, autoload=True)
+    return tbl
 
 class Deployment(object):
 

@@ -1,6 +1,7 @@
 from sqlalchemy import *
 import SimpleXMLRPCServer
 import os
+import traceback
 
 # FIXME: write a dispatcher to move API's into categories based on class
 # FIXME: all API's should require a login token that is *not* the user id. (session table, likely).
@@ -35,28 +36,19 @@ class XmlRpcInterface:
        raise "stop"
 
    def __setup_tables(self):
-       m = self.__create_table
+       m = self.meta
        self.tables = {
-           "users"       : user.make_table(m,self.meta),
-           "events"      : event.make_table(m,self.meta),
-           "images"      : image.make_table(m,self.meta),
-           "deployments" : deployment.make_table(m,self.meta),
-           "machines"    : machine.make_table(m,self.meta)
+           "users"       : user.make_table(m),
+           "events"      : event.make_table(m),
+           "images"      : image.make_table(m),
+           "deployments" : deployment.make_table(m),
+           "machines"    : machine.make_table(m)
        } 
 
    def __setup_handlers(self):
        self.handlers = {}
        user.register_rpc(self.handlers)
        # others ...
-
-   def __create_table(self,mapclass,table):
-       try:
-           table.create()
-       except exceptions.SQLError:
-           pass
-       if mapclass is not None:
-           mapper(mapclass, table)
-       return table
 
    # FIXME: find some more elegant way to surface the handlers?
    # FIXME: aforementioned login/session token requirement

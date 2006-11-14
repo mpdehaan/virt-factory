@@ -1,13 +1,10 @@
 from sqlalchemy import *
 
 
-def make_table(creator, meta):
-    return creator(Machine, Table('machine', meta,
-         Column("id", Integer, primary_key=True),
-         Column("architecture", String(255)),
-         Column("processors", String(255)),
-         Column("memory", String(255))
-    ))
+def make_table(meta):
+    tbl = Table('machine', meta, autoload=True)
+    mapper(Machine, tbl)
+    return tbl
 
 class Machine(object):
 

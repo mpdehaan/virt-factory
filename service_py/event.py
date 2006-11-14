@@ -15,16 +15,8 @@ class Audit(object):
            "comment"       : self.comment
        }
 
-def make_table(creator,meta):
-   return creator(Audit, Table("audits", meta,
-       Column('id', Integer, primary_key=True),
-       Column('time', Integer),
-       Column('machine_id', Integer),
-       Column('deployment_id', Integer),
-       Column('image_id', Integer),
-       Column('severity', Integer),
-       Column('category', VARCHAR(255)),
-       Column('action', VARCHAR(255)),
-       Column('comment', VARCHAR(255))
-   ))
+def make_table(meta):
+   tbl = Table("audits", meta, autoload=True)
+   mapper(Audit,tbl)
+   return tbl
 
