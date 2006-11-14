@@ -9,11 +9,15 @@ CREATE TABLE users (
    email VARCHAR (255) NOT NULL
 );
 
-CREATE TABLE audits (
+CREATE TABLE events (
    id INTEGER PRIMARY KEY,
-   time           VARCHAR (255),
+   time           INT,
    user_id        INT,
-   feature_id     INT,
+   machine_id     INT,
+   deployment_id  INT,
+   image_id       INT,
+   severity       INT,
+   category       VARCHAR (255),
    action         VARCHAR (255),
    user_comment   VARCHAR (255)
 );
@@ -42,10 +46,6 @@ CREATE TABLE machines (
 
 CREATE TABLE events (
    id INTEGER PRIMARY KEY,
-   deployment_id INT,
-   category VARCHAR (255),
-   severity INT,
-   time VARCHAR(255)
 );
 
 CREATE TABLE metrics (
