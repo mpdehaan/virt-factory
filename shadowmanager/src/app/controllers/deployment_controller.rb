@@ -9,7 +9,7 @@ class DeploymentController < ApplicationController
    end
 
    def list
-       @items = @@server.call("get_deployments")
+       @items = @@server.call("deployment_list")
    end
 
    def add

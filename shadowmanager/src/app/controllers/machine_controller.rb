@@ -10,7 +10,7 @@ class MachineController < ApplicationController
     end
 
     def list
-        @items = @@server.call("get_machines")
+        @items = @@server.call("machine_list")
     end
 
     def add

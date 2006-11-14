@@ -90,7 +90,7 @@ def testmode():
     raise "stop"
 
 if __name__ == "__main__":
-    testmode() # temporary ...
+    # testmode() # temporary ...
     serve()
 
 

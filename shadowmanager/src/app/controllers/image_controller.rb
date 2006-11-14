@@ -9,7 +9,7 @@ class ImageController < ApplicationController
    end
 
    def list
-       @items = @@server.call("get_images")
+       @items = @@server.call("image_list")
    end
 
    def add

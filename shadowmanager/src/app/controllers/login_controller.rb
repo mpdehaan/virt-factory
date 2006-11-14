@@ -14,8 +14,8 @@ class LoginController < ApplicationControllerUnlocked
    def submit
       f_username = @params["form"]["username"]
       f_password = @params["form"]["password"]
-      item = @@server.call("login",f_username,f_password)
-      if item.nil? or item < 0
+      item = @@server.call("user_login",f_username,f_password)
+      if not item
           @flash[:notice] = "Login failed."
           redirect_to :action => "input"
           return

@@ -9,7 +9,7 @@ class UserController < ApplicationController
    end
 
    def list
-       @items = @@server.call("get_users")
+       @items = @@server.call("user_list")
    end
 
    def logout
@@ -21,21 +21,13 @@ class UserController < ApplicationController
    end
 
    def add_submit
-      f_username = @params["form"]["username"]
-      f_password = @params["form"]["password"]
-      f_first = @params["form"]["first"]
-      f_middle = @params["form"]["middle"]
-      f_last = @params["form"]["last"]
-      f_description = @params["form"]["description"]
-      f_email = @params["form"]["email"]
-      results = @@server.call("add_user", f_username, f_password, f_first, 
-                           f_middle, f_last, f_description, f_email)
-      if  results.nil? or (results == -1)
+      results = @@server.call("user_add", @params["form"])
+      if not results
           @flash[:notice] = "User creation failed."
           redirect_to :action => "input"
           return
       else
-          @flash[:notice] = "User #{f_username} created: #{results}."
+          @flash[:notice] = "User #{@params["form"]["username"]} created: #{results}."
           redirect_to :action => 'list'
           return
       end
@@ -44,12 +36,12 @@ class UserController < ApplicationController
    def delete
        # FIXME: make WS call to perform actual delete here.  Right here, actually.
        # and show an appropriate message in flash.
-       results = @@server.call("delete_user", @params[:id])
+       results = @@server.call("user_delete", @params[:id])
        @flash[:notice] = "Deleted user #{@params[:id]}"
-       if  results.nil? or (results == -1)
+       if not results
           @flash[:notice] = "User #{@params[:id]} deletion failed.  #{results}"
        else
-           @flash[:notice] = "User #{@params[:id]} deleted: #{results}., #{results.class}"
+          @flash[:notice] = "User #{@params[:id]} deleted: #{results}., #{results.class}"
        end
        redirect_to :action => "list"
        return
