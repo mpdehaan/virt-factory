@@ -22,18 +22,6 @@ class XmlRpcInterface:
        self.__setup_tables()
        self.__setup_handlers()
        self.session = create_session()
-       # testing only ...
-       print self.user_login("guest","guest") 
-       print self.user_add({
-          "username" : "x",
-          "first" : "x",
-          "middle" : "x",
-          "last" : "x",
-          "description" : "x",
-          "email" : "x",
-          "password" : "x"
-       })
-       raise "stop"
 
    def __setup_tables(self):
        m = self.meta
@@ -80,7 +68,29 @@ def serve():
     server.register_instance(xmlrpc_interface)
     server.serve_forever()
 
+def testmode():
+    intf = XmlRpcInterface()
+    print intf.user_login("guest","guest")
+    print intf.user_add({
+          "username" : "x",
+          "first" : "x",
+          "middle" : "x",
+          "last" : "x",
+          "description" : "x",
+          "email" : "x",
+          "password" : "x"
+    })
+    users = intf.user_list()
+    print users
+    for x in users:
+       if x["username"] != "guest":
+           intf.user_delete(x["id"])
+    users = intf.user_list()
+    print users
+    raise "stop"
+
 if __name__ == "__main__":
+    testmode() # temporary ...
     serve()
 
 
