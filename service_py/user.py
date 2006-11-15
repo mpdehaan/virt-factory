@@ -88,8 +88,8 @@ def user_get(session,id):
      query = session.query(User)
      user = query.get_by(User.c.id.in_(id))
      if user is None:
-        return None
-     return user.to_datastruct()
+        return result(ERR_NO_SUCH_OBJECT)
+     return result(ERR_SUCCESS, user.to_datastruct())
 
 def register_rpc(handlers):
      handlers["user_login"]  = user_login
