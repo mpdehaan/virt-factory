@@ -32,6 +32,16 @@ def user_add(session,args):
      user = User()
      # FIXME: input should be a hash, not a long list of vars
      user.id = int(time.time()) # FIXME
+     return user_save(session,user,args)
+
+def user_edit(session,args):
+     query = session.query(User)
+     user = query.get_by(User.c.id.in_(args["id"]))
+     if user is None:
+        return False
+     return user_save(session,user,args)
+
+def user_save(session,user,args):
      user.username = args["username"]
      user.password = args["password"]
      user.first = args["first"]
@@ -60,10 +70,18 @@ def user_list(session):
      sel = query.select()
      return [x.to_datastruct() for x in sel]
 
+def user_get(session,id):
+     query = session.query(User)
+     user = query.get_by(User.c.id.in_(id))
+     if user is None:
+        return None
+     return user.to_datastruct()
 
 def register_rpc(handlers):
      handlers["user_login"]  = user_login
      handlers["user_add"]    = user_add
      handlers["user_delete"] = user_delete
      handlers["user_list"]   = user_list
+     handlers["user_get"]    = user_get
+     handlers["user_edit"]   = user_edit
 

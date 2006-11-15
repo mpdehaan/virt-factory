@@ -47,8 +47,14 @@ class XmlRpcInterface:
    def user_list(self):
        return self.handlers["user_list"](self.session)
 
+   def user_get(self, id):
+       return self.handlers["user_get"](self.session,id)
+
    def user_add(self, args):
        return self.handlers["user_add"](self.session,args)
+ 
+   def user_edit(self, args):
+       return self.handlers["user_edit"](self.session,args)
  
    def user_delete(self, id):
        return self.handlers["user_delete"](self.session,id)

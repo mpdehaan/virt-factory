@@ -9,6 +9,7 @@
             <TD>Last</TD>
             <TD>Description</TD>
             <TD>Email</TD>
+            <TD>Edit</TD>
             <TD>Delete?</TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
@@ -16,13 +17,14 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= item["username"] %> </TD>
-             <TD> <%= item["first"] %> </TD>
-             <TD> <%= item["middle"] %> </TD>
-             <TD> <%= item["last"] %> </TD>
-             <TD> <%= item["description"] %> </TD>
-             <TD> <%= item["email"] %> </TD>
-             <TD> <%= link_to "X", :controller => "user", :action=> "delete", :id=> item["id"] %></TD>
+             <TD> <%= item.username %> </TD>
+             <TD> <%= item.first %> </TD>
+             <TD> <%= item.middle %> </TD>
+             <TD> <%= item.last %> </TD>
+             <TD> <%= item.description %> </TD>
+             <TD> <%= item.email %> </TD>
+             <TD> <%= link_to "edit", :controller => "user", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "X", :controller => "user", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
       </TABLE>
