@@ -1,5 +1,3 @@
-require "xmlrpc/client"
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
 class LoginController < ApplicationControllerUnlocked
 
@@ -22,7 +20,7 @@ class LoginController < ApplicationControllerUnlocked
           return
       else
           @session[:login] = token
-          redirect_to :controller => 'machine', :action => 'list'
+          redirect_to :controller => 'user', :action => 'list'
           return
       end
    end

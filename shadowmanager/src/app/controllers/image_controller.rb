@@ -1,6 +1,3 @@
-require 'xmlrpc/client'
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
-
 class ImageController < ApplicationController
    include ApplicationHelper
    
@@ -9,7 +6,8 @@ class ImageController < ApplicationController
    end
 
    def list
-       (success, rc, @items) = @@server.call("image_list",@session[:login])
+       @items = []
+       # (success, rc, @items) = @@server.call("image_list",@session[:login])
    end
 
    def add

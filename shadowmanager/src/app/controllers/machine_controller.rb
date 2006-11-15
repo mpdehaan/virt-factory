@@ -1,6 +1,3 @@
-require 'xmlrpc/client'
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
-
 
 class MachineController < ApplicationController
     include ApplicationHelper
@@ -10,7 +7,8 @@ class MachineController < ApplicationController
     end
 
     def list
-        (success, rc, @items) = @@server.call("machine_list",@session[:login])
+        # (success, rc, @items) = @@server.call("machine_list",@session[:login])
+        @items = []
     end
 
     def add

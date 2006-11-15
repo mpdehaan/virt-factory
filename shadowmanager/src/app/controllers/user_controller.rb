@@ -1,5 +1,3 @@
-require 'xmlrpc/client'
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
 class UserController < ApplicationController
    include ApplicationHelper
@@ -29,7 +27,8 @@ class UserController < ApplicationController
            @item = User.new
            @operation = "Add"
        else
-           (success, rc, item_hash) = @@server.call("user_get", @session[:login], @params[:id])
+           plist = { "id" => @params[:id] } 
+           (success, rc, item_hash) = @@server.call("user_get", @session[:login], plist)
            @item = User.from_hash(item_hash)
            @operation = "Edit"
        end
@@ -56,12 +55,12 @@ class UserController < ApplicationController
    end
 
    def delete
-       (success, rc, data) = @@server.call("user_delete", @session[:login], @params[:id])
-       @flash[:notice] = "Deleted user #{@params[:id]}"
+       plist = { "id" => @params[:id] } 
+       (success, rc, data) = @@server.call("user_delete", @session[:login], plist)
        if not success
           @flash[:notice] = "User #{@params[:id]} deletion failed (#{rc})"
        else
-          @flash[:notice] = "User #{@params[:id]} deleted."
+          @flash[:notice] = "User #{@params[:id]} deleted (#{success},#{rc},#{data})."
        end
        redirect_to :action => "list"
        return
