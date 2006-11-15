@@ -14,7 +14,7 @@ class UserController < ApplicationController
            @items = []
            @flash[:notice] = "Error: No users found (#{rc})."
        else
-           @items = results.collect {|hash| User.new(hash)}
+           @items = results.collect {|hash| User.from_hash(hash)}
        end
    end
 
@@ -23,39 +23,36 @@ class UserController < ApplicationController
        redirect_to :controller => "login", :action => "index"
    end
 
-   def add
-   end
-
-   def add_submit
-      (success, rc, data) = @@server.call("user_add", @session[:login], @params["form"])
-      if not success
-          @flash[:notice] = "User creation failed #{rc}."
-          redirect_to :action => "input"
-          return
-      else
-          @flash[:notice] = "User #{@params["form"]["username"]} created: #{results}."
-          redirect_to :action => 'list'
-          return
-      end
-   end
-
    def edit
        # FIXME: error handling on "success"
-       (success, rc, @item) = @@server.call("user_get", @session[:login], @params[:id]) 
-       @item = User.new(@item)
+       if @params[:id].nil?
+           @item = User.new
+           @operation = "Add"
+       else
+           (success, rc, item_hash) = @@server.call("user_get", @session[:login], @params[:id])
+           @item = User.from_hash(item_hash)
+           @operation = "Edit"
+       end
    end
 
    def edit_submit
-      (success, rc, data) = @@server.call("user_edit", @session[:login], @params["form"])
-      if not success
-          @flash[:notice] = "User edit failed (#{rc})."
-          redirect_to :action => "input"
+       id = @params["form"]["id"]
+       if id.nil? || id.empty?
+           operation = "add"
+       else
+           operation = "edit"
+       end
+       print "#{operation}, id: #{@params["form"]["id"]} #{@params["form"]["id"].class} \n" 
+       (success, rc, data) = @@server.call("user_#{operation}", @session[:login], @params["form"])
+       if not success
+           @flash[:notice] = "User #{operation} failed (#{rc})."
+          redirect_to :action => "edit"
           return
       else
-          @flash[:notice] = "User #{@params["form"]["username"]} modified."
-          redirect_to :action => 'list'
-          return
-      end
+           @flash[:notice] = "User #{@params["form"]["username"]} #{operation} succeeded."
+           redirect_to :action => 'list'
+           return
+       end
    end
 
    def delete
@@ -77,17 +74,18 @@ class UserController < ApplicationController
    end
 
    class User
-       attr_accessor :id, :username, :password, :first, :middle, :last, :description, :email
+       ATTR_LIST = [:id, :username, :password, :first, :middle, :last, :description, :email]
+       ATTR_LIST.each {|x| attr_accessor x}
 
-       def initialize(hash)
-           @id = hash["id"]
-           @username = hash["username"]
-           @password = hash["password"]
-           @first = hash["first"]
-           @middle = hash["middle"]
-           @last = hash["last"]
-           @description = hash["description"]
-           @email = hash["email"]
+       def self.from_hash(hash)
+           user = User.new
+           ATTR_LIST.each { |attr| user.method(attr.to_s+"=").call(hash[attr.to_s]) }
+           user
+       end
+       def to_hash
+           hash = Hash.new
+           ATTR_LIST.each { |attr| hash[attr.to_s] = self.method(attr).call }
+           hash
        end
    end
 end

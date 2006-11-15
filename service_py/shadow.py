@@ -75,6 +75,11 @@ class XmlRpcInterface:
        if not check[0]: return check
        return self.handlers["user_add"](self.session,args)
 
+   def user_edit(self, token, args):
+       check = self.__token_check(token)
+       if not check[0]: return check
+       return self.handlers["user_edit"](self.session,args)
+ 
    def user_get(self, token, id):
        check = self.token_check(token)
        if not check[0]: return check
@@ -83,7 +88,7 @@ class XmlRpcInterface:
    def user_delete(self, token, id):
        check = self.token_check(token)
        if not check[0]: return check
-       return self.handlers["user_edit"](self.session,args)
+       return self.handlers["user_delete"](self.session,id)
  
    def machine_list(self, token):
        check = self.token_check(token)
