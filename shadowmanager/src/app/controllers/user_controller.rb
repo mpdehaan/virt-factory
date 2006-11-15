@@ -41,7 +41,7 @@ class UserController < ApplicationController
 
    def edit
        # FIXME: error handling on "success"
-       (success, rc, @item) = User.new(@@server.call("user_get", @session[:login], @params[:id])) 
+       (success, rc, User.new(@item)) = @@server.call("user_get", @session[:login], @params[:id]) 
    end
 
    def edit_submit
