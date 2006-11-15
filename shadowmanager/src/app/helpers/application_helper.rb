@@ -9,16 +9,16 @@ module ApplicationHelper
    # mapping between primary/secondary menu items
    # and controller/action pages
    @NAVIGATION = [
-      [ "machine" , [ "list", "add" ] ],
-      [ "image" , [ "list", "add" ] ],
-      [ "deployment" , [ "list", "add" ] ],
-      [ "user" , [ "list", "add", "logout" ] ]
+      [ "machine" , [ "list", "edit" ] ],
+      [ "image" , [ "list", "edit" ] ],
+      [ "deployment" , [ "list", "edit" ] ],
+      [ "user" , [ "list", "edit", "logout" ] ]
    ]
 
    # FIXME: use better stringification
    @STRINGS = {
        "machine" => "Machines",
-       "add" => "Add",
+       "edit" => "Add",
        "list" => "List",
        "deployment" => "Deployments",
        "user" => "Users",

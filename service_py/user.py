@@ -44,7 +44,7 @@ def user_edit(session,args):
      query = session.query(User)
      user = query.get_by(User.c.id.in_(args["id"]))
      if user is None:
-        return False
+        return result(ERR_NO_SUCH_OBJECT)
      return user_save(session,user,args)
 
 def user_save(session,user,args):
