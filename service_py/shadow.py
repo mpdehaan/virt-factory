@@ -51,7 +51,7 @@ class XmlRpcInterface:
            self.tokens.append([data,time.time()])
        return (success, rc, data)
 
-   def __token_check(self,token):
+   def token_check(self,token):
        now = time.time()
        for t in self.tokens:
            # remove tokens older than 1/2 hour
@@ -66,37 +66,37 @@ class XmlRpcInterface:
 
    def user_list(self,token):
        # FIXME: avoid duplication of these next 2 lines.
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return self.handlers["user_list"](self.session)
 
    def user_add(self, token, args):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return self.handlers["user_add"](self.session,args)
 
    def user_get(self, token, id):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return self.handlers["user_get"](self.session,id)
  
    def user_delete(self, token, id):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return self.handlers["user_edit"](self.session,args)
  
    def machine_list(self, token):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return []
 
    def image_list(self, token):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return []
 
    def deployment_list(self, token):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return []
 

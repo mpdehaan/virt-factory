@@ -1,3 +1,5 @@
+require "xmlrpc/client"
+@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
 class ApplicationController < ActionController::Base
 
@@ -9,6 +11,14 @@ class ApplicationController < ActionController::Base
          redirect_to :controller => "login", :action => "input"
          return false
       end
+      (success, rc, data) = @@server.call("token_check", @session[:login])
+      unless success
+         # token has timed out, so redirect here and get a new one
+         # rather than having to do a lot of duplicate error handling in other places
+         @flash[:notice] = "Session timeout (#{rc})."
+         redirect_to :controller => "login", :action => "input"
+         return false
+      end
    end
 
 end
@@ -17,3 +27,5 @@ class ApplicationControllerUnlocked < ActionController::Base
    layout "shadowmanager-layout"
 
 end
+
+
