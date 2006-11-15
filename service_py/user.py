@@ -51,8 +51,8 @@ def user_delete(session,id):
      if user is None:
         return False
      session.delete(user)
-     success =  not user in session
      session.flush()
+     success =  not user in session
      return success
 
 def user_list(session):

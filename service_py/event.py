@@ -16,7 +16,7 @@ class Audit(object):
        }
 
 def make_table(meta):
-   tbl = Table("audits", meta, autoload=True)
+   tbl = Table("events", meta, autoload=True)
    mapper(Audit,tbl)
    return tbl
 

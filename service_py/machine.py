@@ -2,7 +2,7 @@ from sqlalchemy import *
 
 
 def make_table(meta):
-    tbl = Table('machine', meta, autoload=True)
+    tbl = Table('machines', meta, autoload=True)
     mapper(Machine, tbl)
     return tbl
 

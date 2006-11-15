@@ -44,10 +44,6 @@ CREATE TABLE machines (
    memory VARCHAR (255)
 );
 
-CREATE TABLE events (
-   id INTEGER PRIMARY KEY,
-);
-
 CREATE TABLE metrics (
    id INTEGER PRIMARY KEY,
    deployment_id INT,
