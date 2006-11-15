@@ -9,7 +9,7 @@ class DeploymentController < ApplicationController
    end
 
    def list
-       @items = @@server.call("deployment_list")
+       (success, rc, @items) = @@server.call("deployment_list",@session[:login])
    end
 
    def add

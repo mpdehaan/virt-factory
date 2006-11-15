@@ -9,7 +9,7 @@ class ImageController < ApplicationController
    end
 
    def list
-       @items = @@server.call("image_list")
+       (success, rc, @items) = @@server.call("image_list",@session[:login])
    end
 
    def add

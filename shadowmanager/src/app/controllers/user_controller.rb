@@ -9,7 +9,8 @@ class UserController < ApplicationController
    end
 
    def list
-       @items = @@server.call("user_list").collect {|hash| User.new(hash)}
+       (success, rc, results) = @@server.call("user_list",@session[:login])
+       @items = results.collect {|hash| User.new(hash)}
    end
 
    def logout
@@ -21,9 +22,9 @@ class UserController < ApplicationController
    end
 
    def add_submit
-      results = @@server.call("user_add", @params["form"])
-      if not results
-          @flash[:notice] = "User creation failed."
+      (success, rc, data) = @@server.call("user_add", @session[:login], @params["form"])
+      if not success
+          @flash[:notice] = "User creation failed #{rc}."
           redirect_to :action => "input"
           return
       else
@@ -34,29 +35,30 @@ class UserController < ApplicationController
    end
 
    def edit
-       @item = User.new(@@server.call("user_get", @params[:id]))
-   end
+       # FIXME: error handling on "success"
+       (success, rc, @item) = User.new(@@server.call("user_get", @session[:login], @params[:id])) 
+  end
 
    def edit_submit
-      results = @@server.call("user_edit", @params["form"])
-      if not results
-          @flash[:notice] = "User edit failed."
+      (success, rc, data) = @@server.call("user_edit", @session[:login], @params["form"])
+      if not success
+          @flash[:notice] = "User edit failed (#{rc})."
           redirect_to :action => "input"
           return
       else
-          @flash[:notice] = "User #{@params["form"]["username"]} modified: #{results}."
+          @flash[:notice] = "User #{@params["form"]["username"]} modified."
           redirect_to :action => 'list'
           return
       end
    end
 
    def delete
-       results = @@server.call("user_delete", @params[:id])
+       (success, rc, data) = @@server.call("user_delete", @session[:login], @params[:id])
        @flash[:notice] = "Deleted user #{@params[:id]}"
-       if not results
-          @flash[:notice] = "User #{@params[:id]} deletion failed.  #{results}"
+       if not success
+          @flash[:notice] = "User #{@params[:id]} deletion failed (#{rc})"
        else
-          @flash[:notice] = "User #{@params[:id]} deleted: #{results}., #{results.class}"
+          @flash[:notice] = "User #{@params[:id]} deleted."
        end
        redirect_to :action => "list"
        return
@@ -69,8 +71,7 @@ class UserController < ApplicationController
    end
 
    class User
-       attr_reader :id, :username, :password, :first, :middle, :last, :description, :email
-       attr_writer :id, :username, :password, :first, :middle, :last, :description, :email
+       attr_accessor :id, :username, :password, :first, :middle, :last, :description, :email
 
        def initialize(hash)
            @id = hash["id"]

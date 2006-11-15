@@ -10,7 +10,7 @@ class MachineController < ApplicationController
     end
 
     def list
-        @items = @@server.call("machine_list")
+        (success, rc, @items) = @@server.call("machine_list",@session[:login])
     end
 
     def add

@@ -1,6 +1,7 @@
 import time
+import base64
 from sqlalchemy import *
-
+from codes import *
 
 class User(object):
 
@@ -23,10 +24,15 @@ def make_table(meta):
 def user_login(session,user,password):
      query = session.query(User)
      sel = query.select(User.c.username.in_(user))
-     if len(sel) == 0 or sel[0].password != password:
-         return -1
+     if len(sel) == 0:
+         return result(ERR_USER_INVALID)
+     elif sel[0].password != password:
+         return result(ERR_PASSWORD_INVALID)
      else:
-         return sel[0].id
+         urandom = open("/dev/urandom")
+         token = base64.b64encode(urandom.read(100)) 
+         urandom.close()
+         return result(ERR_SUCCESS, token)
 
 def user_add(session,args):
      user = User()
@@ -53,22 +59,30 @@ def user_save(session,user,args):
      session.save(user)
      success = user in session
      session.flush()
-     return success
+     if success:
+         return result(ERR_SUCCESS)
+     else:
+         return result(ERR_INTERNAL_ERROR)
 
 def user_delete(session,id):
      query = session.query(User)
      user = query.get_by(User.c.id.in_(id))
      if user is None:
-        return False
+        return result(ERR_NO_SO_OBJECT)
      session.delete(user)
      session.flush()
      success =  not user in session
-     return success
+     session.flush()
+     if success:
+         return result(ERR_SUCCESS)
+     else:
+         return result(ERR_INTERNAL_ERROR)
 
 def user_list(session):
      query = session.query(User)
      sel = query.select()
-     return [x.to_datastruct() for x in sel]
+     list = [x.to_datastruct() for x in sel]
+     return result(ERR_SUCCESS, list)
 
 def user_get(session,id):
      query = session.query(User)
