@@ -1,11 +1,12 @@
 from sqlalchemy import *
 import codes
+import baseobj
 
 def make_table(meta):
     tbl = Table('deployments', meta, autoload=True)
     return tbl
 
-class Deployment(object):
+class Deployment(baseobj.BaseObject):
 
    def to_datastruct(self):
       return {

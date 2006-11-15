@@ -1,12 +1,13 @@
 from sqlalchemy import *
 import codes
+import baseobj
 
 def make_table(meta):
     tbl = Table('images', meta, autoload=True)
     mapper(Image,tbl)
     return tbl
 
-class Image(object):
+class Image(baseobj.BaseObject):
 
 
    def to_datastruct(self):

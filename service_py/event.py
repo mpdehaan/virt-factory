@@ -1,6 +1,7 @@
 from sqlalchemy import *
+import baseobj
 
-class Audit(object):
+class Audit(baseobj.BaseObject):
 
    def to_datastruct(self):
        return {

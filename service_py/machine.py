@@ -1,5 +1,6 @@
 from sqlalchemy import *
 import codes
+import baseobj
 
 def make_table(meta):
     tbl = Table('machines', meta, autoload=True)

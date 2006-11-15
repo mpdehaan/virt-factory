@@ -8,6 +8,7 @@ import time
 # FIXME: all API's should require a login token that is *not* the user id. (session table, likely).
 
 from codes import *
+from errors import *
 import user
 import event
 import image
@@ -46,10 +47,13 @@ class XmlRpcInterface:
    # FIXME: aforementioned login/session token requirement
 
    def user_login(self,user,password):
-       (success, rc, data) = self.handlers["user_login"](self.session,user,password)
-       if success:
-           self.tokens.append([data,time.time()])
-       return (success, rc, data)
+       try:
+           (success, rc, data) = self.handlers["user_login"](self.session,user,password)
+           if success:
+               self.tokens.append([data,time.time()])
+           return (success, rc, data)
+       except ShadowManagerException, e:
+           return from_exception(e)
 
    def token_check(self,token):
        now = time.time()
@@ -57,53 +61,47 @@ class XmlRpcInterface:
            # remove tokens older than 1/2 hour
            if (now - t[1]) > 1800:
                self.tokens.remove(t)
-               return result(ERR_TOKEN_EXPIRED)
+               raise ExpiredTokenException()
            if t[0] == token:
                # update the expiration counter
                t[1] = time.time()
-               return result(ERR_SUCCESS)
-       return result(ERR_TOKEN_INVALID)
+               return SuccessException()
+       raise TokenInvalidException()
 
    def user_list(self,token):
-       # FIXME: avoid duplication of these next 2 lines.
-       check = self.token_check(token)
-       if not check[0]: return check
-       return self.handlers["user_list"](self.session)
+       return self.__dispatch("user_list",token,{})
 
    def user_add(self, token, args):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return self.handlers["user_add"](self.session,args)
+       return self.__dispatch("user_add",token,args)
 
    def user_edit(self, token, args):
-       check = self.__token_check(token)
-       if not check[0]: return check
-       return self.handlers["user_edit"](self.session,args)
- 
-   def user_get(self, token, id):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return self.handlers["user_get"](self.session,id)
- 
-   def user_delete(self, token, id):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return self.handlers["user_delete"](self.session,id)
+       return self.__dispatch("user_edit",token,args)
+
+   def user_get(self, token, args):
+       return self.__dispatch("user_get",token,args)
+
+   def user_delete(self, token, args):
+       return self.__dispatch("user_delete",token,args)
  
    def machine_list(self, token):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return []
+       # FIXME
+       raise SuccessException([])
 
    def image_list(self, token):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return []
+       # FIXME
+       raise SuccessException([])
 
    def deployment_list(self, token):
-       check = self.token_check(token)
-       if not check[0]: return check
-       return []
+       # FIXME
+       return SuccessException([])
+
+   def __dispatch(self, method, token, args=[]):
+       try:
+           self.token_check(token)
+           return self.handlers[method](self.session,args)
+       except ShadowManagerException, e:
+           return from_exception(e)
+           
 
 def serve():
     xmlrpc_interface = XmlRpcInterface()
@@ -114,7 +112,9 @@ def serve():
 def testmode():
     intf = XmlRpcInterface()
     (success, rc, token) = intf.user_login("guest","guest")
+    print 1 
     print (success, rc, token)
+    print 2 
     print intf.user_add(token,{
           "username" : "x",
           "first" : "x",
@@ -124,12 +124,17 @@ def testmode():
           "email" : "x",
           "password" : "x"
     })
+    print 3
     users = intf.user_list(token)
+    print 4
     print users
+    print 5
     for x in users[2]:
        if x["username"] != "guest":
-           intf.user_delete(token,x["id"])
+           intf.user_delete(token,x)
+    print 6 
     users = intf.user_list(token)
+    print 7
     print users
 
 if __name__ == "__main__":
