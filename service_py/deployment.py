@@ -1,4 +1,5 @@
 from sqlalchemy import *
+import codes
 
 def make_table(meta):
     tbl = Table('deployments', meta, autoload=True)

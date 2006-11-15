@@ -1,5 +1,5 @@
 from sqlalchemy import *
-
+import codes
 
 def make_table(meta):
     tbl = Table('machine', meta, autoload=True)

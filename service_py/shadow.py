@@ -2,15 +2,18 @@ from sqlalchemy import *
 import SimpleXMLRPCServer
 import os
 import traceback
+import time
 
 # FIXME: write a dispatcher to move API's into categories based on class
 # FIXME: all API's should require a login token that is *not* the user id. (session table, likely).
 
+from codes import *
 import user
 import event
 import image
 import deployment
 import machine
+
 
 class XmlRpcInterface:
 
@@ -21,6 +24,7 @@ class XmlRpcInterface:
        self.tables = {}
        self.__setup_tables()
        self.__setup_handlers()
+       self.tokens = []
        self.session = create_session()
 
    def __setup_tables(self):
@@ -42,24 +46,53 @@ class XmlRpcInterface:
    # FIXME: aforementioned login/session token requirement
 
    def user_login(self,user,password):
-       return self.handlers["user_login"](self.session,user,password)
+       (success, rc, data) = self.handlers["user_login"](self.session,user,password)
+       if success:
+           self.tokens.append([data,time.time()])
+       return (success, rc, data)
 
-   def user_list(self):
+   def __token_check(self,token):
+       now = time.time()
+       for t in self.tokens:
+           # remove tokens older than 1/2 hour
+           if (now - t[1]) > 1800:
+               self.tokens.remove(t)
+               return result(ERR_TOKEN_EXPIRED)
+           if t[0] == token:
+               # update the expiration counter
+               t[1] = time.time()
+               return result(ERR_SUCCESS)
+       return result(ERR_TOKEN_INVALID)
+
+   def user_list(self,token):
+       # FIXME: avoid duplication of these next 2 lines.
+       check = self.__token_check(token)
+       if not check[0]: return check
        return self.handlers["user_list"](self.session)
 
-   def user_add(self, args):
+   def user_add(self, token, args):
+       check = self.__token_check(token)
+       if not check[0]: return check
        return self.handlers["user_add"](self.session,args)
  
-   def user_delete(self, id):
+   def user_delete(self, token, id):
+       check = self.__token_check(token)
+       if not check[0]: return check
        return self.handlers["user_delete"](self.session,id)
  
-   def machine_list(self):
+   def machine_list(self, token):
+       check = self.__token_check(token)
+       if not check[0]: return check
        return []
 
-   def image_list(self):
+   def image_list(self, token):
+       check = self.__token_check(token)
+       if not check[0]: return check
        return []
 
-   def deployment_list(self):
+   def deployment_list(self, token):
+       check = self.__token_check(token)
+       if not check[0]: return check
        return []
 
 def serve():
@@ -70,8 +103,9 @@ def serve():
 
 def testmode():
     intf = XmlRpcInterface()
-    print intf.user_login("guest","guest")
-    print intf.user_add({
+    (success, rc, token) = intf.user_login("guest","guest")
+    print (success, rc, token)
+    print intf.user_add(token,{
           "username" : "x",
           "first" : "x",
           "middle" : "x",
@@ -80,17 +114,16 @@ def testmode():
           "email" : "x",
           "password" : "x"
     })
-    users = intf.user_list()
+    users = intf.user_list(token)
     print users
-    for x in users:
+    for x in users[2]:
        if x["username"] != "guest":
-           intf.user_delete(x["id"])
-    users = intf.user_list()
+           intf.user_delete(token,x["id"])
+    users = intf.user_list(token)
     print users
-    raise "stop"
 
 if __name__ == "__main__":
-    # testmode() # temporary ...
+    testmode() # temporary ...
     serve()
 
 
