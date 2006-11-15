@@ -64,6 +64,9 @@ def user_save(session,user,args):
      else:
          return result(ERR_INTERNAL_ERROR)
 
+# FIXME: don't allow delete if only 1 user left.
+# FIXME: consider an undeletable but modifiable admin user
+
 def user_delete(session,id):
      query = session.query(User)
      user = query.get_by(User.c.id.in_(id))

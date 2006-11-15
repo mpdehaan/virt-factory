@@ -10,7 +10,12 @@ class UserController < ApplicationController
 
    def list
        (success, rc, results) = @@server.call("user_list",@session[:login])
-       @items = results.collect {|hash| User.new(hash)}
+       if not success
+           @items = []
+           @flash[:notice] = "Error: No users found (#{rc})."
+       else
+           @items = results.collect {|hash| User.new(hash)}
+       end
    end
 
    def logout
@@ -37,7 +42,7 @@ class UserController < ApplicationController
    def edit
        # FIXME: error handling on "success"
        (success, rc, @item) = User.new(@@server.call("user_get", @session[:login], @params[:id])) 
-  end
+   end
 
    def edit_submit
       (success, rc, data) = @@server.call("user_edit", @session[:login], @params["form"])
