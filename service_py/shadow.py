@@ -76,7 +76,7 @@ class XmlRpcInterface:
        return self.handlers["user_add"](self.session,args)
 
    def user_edit(self, token, args):
-       check = self.__token_check(token)
+       check = self.token_check(token)
        if not check[0]: return check
        return self.handlers["user_edit"](self.session,args)
  
