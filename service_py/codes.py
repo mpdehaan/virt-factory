@@ -20,6 +20,7 @@ ERR_PASSWORD_INVALID = 4
 ERR_INTERNAL_ERROR = 5 
 ERR_INVALID_ARGUMENTS = 6
 ERR_NO_SUCH_OBJECT = 7
+ERR_UNCAUGHT_EXCEPTION = 999
 
 def result(rc, variables=[]):
    return (rc == 0, rc, variables)

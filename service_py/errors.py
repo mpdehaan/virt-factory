@@ -32,5 +32,6 @@ class InvalidArgumentsException(ShadowManagerException):
 class NoSuchObjectException(ShadowManagerException):
    error_code = ERR_NO_SUCH_OBJECT
 
-
+class UncaughtException(ShadowManagerException):
+   error_code = ERR_UNCAUGHT_EXCEPTION
 

@@ -3,6 +3,7 @@ import SimpleXMLRPCServer
 import os
 import traceback
 import time
+import logging
 
 # FIXME: write a dispatcher to move API's into categories based on class
 # FIXME: all API's should require a login token that is *not* the user id. (session table, likely).
@@ -27,6 +28,12 @@ class XmlRpcInterface:
        self.__setup_handlers()
        self.tokens = []
        self.session = create_session()
+       self.logger = logging.getLogger("svc")
+       handler = logging.FileHandler("svclog")
+       handler.setLevel(logging.DEBUG)
+       formatter = logging.Formatter("%(asctime)s - %s(levelname)s - %(message)s")
+       handler.setFormatter(formatter)
+       self.logger.addHandler(handler)
 
    def __setup_tables(self):
        m = self.meta
@@ -47,6 +54,7 @@ class XmlRpcInterface:
    # FIXME: aforementioned login/session token requirement
 
    def user_login(self,user,password):
+       self.logger.debug("login attempt: %s" % user)
        try:
            (success, rc, data) = self.handlers["user_login"](self.session,user,password)
            if success:
@@ -56,6 +64,7 @@ class XmlRpcInterface:
            return from_exception(e)
 
    def token_check(self,token):
+       self.logger.debug("token check")
        now = time.time()
        for t in self.tokens:
            # remove tokens older than 1/2 hour
@@ -96,12 +105,16 @@ class XmlRpcInterface:
        return SuccessException([])
 
    def __dispatch(self, method, token, args=[]):
+       self.logger.debug("calling %s, args=%s" % (method,args))
        try:
            self.token_check(token)
            return self.handlers[method](self.session,args)
        except ShadowManagerException, e:
            return from_exception(e)
-           
+       except Exception, e2:
+           # FIXME: use python logging here and elsewhere
+           self.logger.error(type(e2))
+           return from_exception(UncaughtException("python"))    
 
 def serve():
     xmlrpc_interface = XmlRpcInterface()
