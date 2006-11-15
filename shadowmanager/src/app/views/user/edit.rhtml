@@ -1,0 +1,51 @@
+      <%= ApplicationHelper.menubar("user","list") %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Login</TD>
+            <TD><%= f.text_field :username %></TD>
+         </TR>
+         <TR> 
+            <TD>Password</TD>
+            <TD><%= f.text_field :password %></TD>
+         </TR>
+         <TR> 
+            <TD>First name</TD>
+            <TD><%= f.text_field :first %></TD>
+         </TR>
+         <TR> 
+            <TD>Middle name</TD>
+            <TD><%= f.text_field :middle %></TD>
+         </TR>
+         <TR> 
+            <TD>Last name</TD>
+            <TD><%= f.text_field :last %></TD>
+         </TR>
+         <TR> 
+            <TD>Description</TD>
+            <TD><%= f.text_area :description %></TD>
+         </TR>
+         <TR> 
+            <TD>email</TD>
+            <TD><%= f.text_field :email %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+
+      <div class="content-right">
+      <div class="callout-1">
+      <%= @operation %> a user
+      </div>
+      <% if @flash[:notice] %>
+         <div class="callout-2">
+         <%= @flash[:notice] %>
+         </div>
+      <% end %>
+      </div> 
