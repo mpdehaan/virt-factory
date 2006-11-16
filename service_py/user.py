@@ -10,7 +10,7 @@ class User(baseobj.BaseObject):
     def _produce(clss, args,operation=None):
         self = User()
         self.from_datastruct(args)
-        self.validate()
+        self.validate(operation)
         return self
     produce = classmethod(_produce)
 
@@ -34,9 +34,9 @@ class User(baseobj.BaseObject):
             "email"       : self.email
         }
 
-    def validate(self):
-        self.id = int(self.id)
-
+    def validate(self,operation):
+        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
+            self.id = int(self.id)
 
 def make_table(meta):
      tbl = Table('users', meta, autoload=True)
