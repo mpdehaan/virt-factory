@@ -5,8 +5,8 @@ import traceback
 import time
 import logging
 
-# FIXME: write a dispatcher to move API's into categories based on class
-# FIXME: all API's should require a login token that is *not* the user id. (session table, likely).
+# FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
+# FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
 
 from codes import *
 from errors import *
