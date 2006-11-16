@@ -1,28 +1,18 @@
-class ImageController < ApplicationController
-   include ApplicationHelper
-   
-   def index
-       redirect_to :action => 'list'
+
+class ImageController < ObjectController
+
+   def object_class
+       Image
    end
 
-   def list
-       @items = []
-       # (success, rc, @items) = @@server.call("image_list",@session[:login])
-   end
+   class Image < ManagedObject
+       ATTR_LIST = [:id, :name, :version, :filename, :specfile]
+       ATTR_LIST.each {|x| attr_accessor x}
+       METHOD_PREFIX = "image"
 
-   def add
-   end
-
-   def add_submit
-   end
-
-   def delete
-   end
-
-   def viewedit
-   end
-
-   def viewedit_submit
+       def objname
+           name
+       end
    end
 
 end

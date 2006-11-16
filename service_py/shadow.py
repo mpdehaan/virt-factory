@@ -76,6 +76,8 @@ class XmlRpcInterface:
        """
        self.handlers = {}
        user.register_rpc(self.handlers)
+       machine.register_rpc(self.handlers)
+       image.register_rpc(self.handlers)
        # others ...
 
    # FIXME: find some more elegant way to surface the handlers?
@@ -127,26 +129,48 @@ class XmlRpcInterface:
    def user_list(self,token):
        return self.__dispatch("user_list",token,{})
 
+   def user_get(self, token, args):
+       return self.__dispatch("user_get",token,args)
+
    def user_add(self, token, args):
        return self.__dispatch("user_add",token,args)
 
    def user_edit(self, token, args):
        return self.__dispatch("user_edit",token,args)
 
-   def user_get(self, token, args):
-       return self.__dispatch("user_get",token,args)
-
    def user_delete(self, token, args):
        return self.__dispatch("user_delete",token,args)
  
-   def machine_list(self, token):
-       # FIXME
-       raise SuccessException([])
+   def machine_list(self,token):
+       return self.__dispatch("machine_list",token,{})
 
-   def image_list(self, token):
-       # FIXME
-       raise SuccessException([])
+   def machine_get(self, token, args):
+       return self.__dispatch("machine_get",token,args)
 
+   def machine_add(self, token, args):
+       return self.__dispatch("machine_add",token,args)
+
+   def machine_edit(self, token, args):
+       return self.__dispatch("machine_edit",token,args)
+
+   def machine_delete(self, token, args):
+       return self.__dispatch("machine_delete",token,args)
+ 
+   def image_list(self,token):
+       return self.__dispatch("image_list",token,{})
+
+   def image_get(self, token, args):
+       return self.__dispatch("image_get",token,args)
+
+   def image_add(self, token, args):
+       return self.__dispatch("image_add",token,args)
+
+   def image_edit(self, token, args):
+       return self.__dispatch("image_edit",token,args)
+
+   def image_delete(self, token, args):
+       return self.__dispatch("image_delete",token,args)
+ 
    def deployment_list(self, token):
        # FIXME
        return SuccessException([])

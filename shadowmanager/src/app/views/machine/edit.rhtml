@@ -1,0 +1,35 @@
+      <%= ApplicationHelper.menubar("machine","list") %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Architecture</TD>
+            <TD><%= f.text_field :architecture %></TD>
+         </TR>
+         <TR> 
+            <TD>Procesors</TD>
+            <TD><%= f.text_field :processors %></TD>
+         </TR>
+         <TR> 
+            <TD>Memory</TD>
+            <TD><%= f.text_field :memory %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+
+      <div class="content-right">
+      <div class="callout-1">
+      <%= @operation %> a machine
+      </div>
+      <% if @flash[:notice] %>
+         <div class="callout-2">
+         <%= @flash[:notice] %>
+         </div>
+      <% end %>
+      </div> 

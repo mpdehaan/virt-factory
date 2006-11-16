@@ -1,12 +1,28 @@
       <%= ApplicationHelper.menubar("image","list") %>
      
       <div id="content-main">
-      <TABLE CLASS="listing">
-         <TD>
-            <% @items.each do |item | %>
-            
-             <% end %>
-         </TD>
+      <TABLE class='listing'>
+         <TR>
+            <TD>ID</TD>
+            <TD>Name</TD>
+            <TD>Version</TD>
+            <TD>Filename</TD>
+            <TD>Specfile</TD>
+         </TR>
+      <%# FIXME: this may be a result of what objects are being sent over from Python. %>
+      <%# FIXME: web svc should return a hash not a list %>
+      <% @items.each do |item| %>
+         <TR>
+             
+             <TD> <%= item.id %> </TD>
+             <TD> <%= item.name %> </TD>
+             <TD> <%= item.version %> </TD>
+             <TD> <%= item.filename %> </TD>
+             <TD> <%= item.specfile %> </TD>
+             <TD> <%= link_to "edit", :controller => "image", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "X", :controller => "image", :action=> "delete", :id=> item.id %></TD>
+         </TR>
+      <% end %>
       </TABLE>
       </div>
 
@@ -14,4 +30,9 @@
       <div class="callout-1">
       This page lists images that can be deployed.
       </div>
+      <% if @flash[:notice] %>
+      <div class = "callout-2">
+         <%= @flash[:notice] %>
+      </div>
+      <% end %>
       </div> 
