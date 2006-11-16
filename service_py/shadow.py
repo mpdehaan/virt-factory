@@ -13,7 +13,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-
 from sqlalchemy import *
 import SimpleXMLRPCServer
 import os
@@ -36,6 +35,9 @@ import machine
 class XmlRpcInterface:
 
    def __init__(self):
+       """
+       Constructor sets up SQLAlchemy (database ORM) and logging.
+       """
        os.chdir("/opt/shadowmanager")
        self.db = create_engine("sqlite:///primary_db")
        self.meta = BoundMetaData(self.db)
@@ -52,6 +54,9 @@ class XmlRpcInterface:
        self.logger.setLevel(logging.DEBUG)
 
    def __setup_tables(self):
+       """
+       This function creates SQLAlchemy table objects for each managed table.
+       """
        m = self.meta
        self.tables = {
            "users"       : user.make_table(m),
@@ -62,6 +67,10 @@ class XmlRpcInterface:
        } 
 
    def __setup_handlers(self):
+       """
+       Add RPC functions from each class to the global list so they can be called.
+       FIXME: eventually calling most functions should go from here through getattr.
+       """
        self.handlers = {}
        user.register_rpc(self.handlers)
        # others ...
@@ -70,6 +79,10 @@ class XmlRpcInterface:
    # FIXME: aforementioned login/session token requirement
 
    def user_login(self,user,password):
+       """
+       Wrapper around the user login code in user.py.
+       If login succeeds, create a token and return it to the caller.
+       """
        self.logger.debug("login attempt: %s" % user)
        try:
            (success, rc, data) = self.handlers["user_login"](self.session,user,password)
@@ -80,6 +93,13 @@ class XmlRpcInterface:
            return from_exception(e)
 
    def token_check(self,token):
+       """
+       Validate that the token passed in to any method call other than user_login
+       is correct, and if not, raise an Exception.  Note that all exceptions are
+       caught in dispatch, so methods give failing return codes rather than XMLRPCFaults.
+       This is a feature, mainly since Rails (and other language bindings) can better
+       grok tracebacks this way.
+       """
        self.logger.debug("token check")
        now = time.time()
        for t in self.tokens:
@@ -92,6 +112,14 @@ class XmlRpcInterface:
                t[1] = time.time()
                return SuccessException()
        raise TokenInvalidException()
+
+   #======================================================
+   # lots of wrappers to API functions.  See __dispatch for details.
+   # eventually this should be mapped to use getattr so this
+   # will not be required.  user_login and token_check are notable
+   # exceptions.  Also note that some XMLRPC functions take 2 arguments here
+   # but in the modules, they all consistantly take 3.  This may possibly
+   # benefit from cleanup later.
 
    def user_list(self,token):
        return self.__dispatch("user_list",token,{})
@@ -121,6 +149,19 @@ class XmlRpcInterface:
        return SuccessException([])
 
    def __dispatch(self, method, token, args=[]):
+       """
+       Dispatch is a wrapper around all API functions other
+       than user_login and token_check.  It is intended that
+       there be no other exceptions to this rule.
+
+       This function calls the registered API method and catches
+       all exceptions, turing them (if subclassed from ShadowManagerException)
+       into the proper return codes.  Uncaught exceptions are returned
+       with an UNCAUGHT_EXCEPTION return code. For security reasons
+       tracebacks are not sent over the wire.
+
+       Tracebacks *ARE* logged in the configured log location.
+       """ 
        self.logger.debug("calling %s, args=%s" % (method,args))
        try:
            self.token_check(token)
@@ -133,12 +174,20 @@ class XmlRpcInterface:
            return from_exception(UncaughtException("python"))    
 
 def serve():
+    """
+    Code for starting the XMLRPC service. 
+    FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
+    """
     xmlrpc_interface = XmlRpcInterface()
     server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
     server.register_instance(xmlrpc_interface)
     server.serve_forever()
 
 def testmode():
+    """
+    This is just a throw-away function for testing outside of XMLRPC context.
+    It can be deleted or mangled however needed.
+    """
     intf = XmlRpcInterface()
     (success, rc, token) = intf.user_login("guest","guest")
     print 1 
@@ -167,6 +216,9 @@ def testmode():
     print users
 
 if __name__ == "__main__":
+    """
+    Start things up.
+    """
     # testmode() # temporary ...
     serve()
 
