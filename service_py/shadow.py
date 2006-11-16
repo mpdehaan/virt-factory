@@ -160,10 +160,12 @@ class XmlRpcInterface:
        This function calls the registered API method and catches
        all exceptions, turing them (if subclassed from ShadowManagerException)
        into the proper return codes.  Uncaught exceptions are returned
-       with an UNCAUGHT_EXCEPTION return code. For security reasons
-       tracebacks are not sent over the wire.
+       with an UNCAUGHT_EXCEPTION return code. 
 
-       Tracebacks *ARE* logged in the configured log location.
+       Since we are already logged in, we can send tracebacks to Ruby
+       (the user is already valid, so it's not a security problem).
+
+       Tracebacks are also logged in the configured log location.
        """ 
        self.logger.debug("calling %s, args=%s" % (method,args))
        try:
@@ -172,9 +174,9 @@ class XmlRpcInterface:
        except ShadowManagerException, e:
            return from_exception(e)
        except Exception, e2:
-           # FIXME: use python logging here and elsewhere
-           self.logger.error(traceback.format_exc())
-           return from_exception(UncaughtException("python"))    
+           tb = traceback.format_exc()
+           self.logger.error(tb)
+           return from_exception(UncaughtException(tb))    
 
 def serve():
     """
