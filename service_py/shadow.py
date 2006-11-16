@@ -22,6 +22,9 @@ import logging
 
 # FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
 # FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
+# FIXME: /opt/shadowmanager/svclog should be /var/log/shadowmanager/svc.log
+# FIXME: /opt/shadowmanager/primary_db should be /var/lib/shadowmanager/primary_db
+
 
 from codes import *
 from errors import *
