@@ -70,7 +70,22 @@ class User(baseobj.BaseObject):
         Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
         if there are any problems.  Note that validation is operation specific, for instance
         there is no ID for an "add" command because the add command generates the ID.
+
+        Note that getting python exception errors during a cast here is technically good enough
+        to prevent GIGO, but really InvalidArgumentsExceptions should be raised.  That's what
+        we want.
+
+        NOTE: API currently gives names of invalid fields but does not list reasons.  
+        i.e. (FALSE, INVALID_ARGUMENTS, ["foo,"bar"].  By making the 3rd argument a hash
+        it could, but these would also need to be codes.  { "foo" : OUT_OF_RANGE, "bar" : ... }
+        Up for consideration, but probably not needed at this point.  Can be added later. 
         """
+        # FIXME: validation thoughts: (more can be added later)
+        #  check for duplicate usernames (but maybe in "add" instead)
+        #  don't delete the admin user (also maybe in the "delete" method)
+        #  email regex check (tricky, RFC modules only if available, don't do it ourselves)
+        #  certain fields required to *not* be blank in certain cases?
+        #  username is printable
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
