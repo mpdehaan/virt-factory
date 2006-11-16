@@ -29,11 +29,11 @@ class XmlRpcInterface:
        self.tokens = []
        self.session = create_session()
        self.logger = logging.getLogger("svc")
-       handler = logging.FileHandler("svclog")
-       handler.setLevel(logging.DEBUG)
-       formatter = logging.Formatter("%(asctime)s - %s(levelname)s - %(message)s")
+       handler = logging.FileHandler("svclog", "a")
+       formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
        handler.setFormatter(formatter)
        self.logger.addHandler(handler)
+       self.logger.setLevel(logging.DEBUG)
 
    def __setup_tables(self):
        m = self.meta
@@ -113,7 +113,7 @@ class XmlRpcInterface:
            return from_exception(e)
        except Exception, e2:
            # FIXME: use python logging here and elsewhere
-           self.logger.error(type(e2))
+           self.logger.error(traceback.format_exc())
            return from_exception(UncaughtException("python"))    
 
 def serve():
