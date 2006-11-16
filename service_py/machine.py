@@ -37,20 +37,25 @@ class Machine(baseobj.BaseObject):
 
     def from_datastruct(self,args):
         self.id           = self.load(args,"id",-1)
+        self.machine      = self.load(args,"machine",-1)
         self.architecture = self.load(args,"architecture",-1)
-        self.processors   = self.load(args,"processors",-1)
+        self.processors   = self.load(args,"processor_speed",-1)
+        self.processors   = self.load(args,"processor_count",-1)
         self.memory       = self.load(args,"memory",-1)
 
 
     def to_datastruct(self):
         return {
-            "id"           : self.id,
-            "architecture" : self.architecture,
-            "processors"   : self.processors,
-            "memory"       : self.memory
+            "id"                : self.id,
+            "machine"           : self.machine,
+            "architecture"      : self.architecture,
+	    "processor_speed"   : self.processors,
+            "processor_count"   : self.processors,
+            "memory"            : self.memory
         }
 
     def validate(self, operation):
+        # FIXME
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
@@ -70,7 +75,9 @@ def machine_edit(session,args):
 def machine_save(session,machine,args):
      # validation already done in methods calling this helper
      machine.architecture = args["architecture"]
-     machine.processors = args["processors"]
+     machine.processor_speed = args["processor_speed"]
+     machine.processor_count = args["processor_count"]
+     machine.address = args["address"]
      machine.memory = args["memory"]
      # FIXME: we'd want to do validation here (actually in the Machine class) 
      session.save(machine)

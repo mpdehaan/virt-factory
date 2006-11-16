@@ -39,9 +39,11 @@ CREATE TABLE deployments (
 
 CREATE TABLE machines (
    id INTEGER PRIMARY KEY,
-   architecture VARCHAR (255),
-   processors  VARCHAR (255),
-   memory VARCHAR (255)
+   address VARCHAR(255),
+   architecture INT,
+   processor_speed INT,
+   processor_count INT,
+   memory INT
 );
 
 CREATE TABLE metrics (
