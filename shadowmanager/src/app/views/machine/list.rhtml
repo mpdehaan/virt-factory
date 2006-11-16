@@ -1,11 +1,36 @@
       <%= ApplicationHelper.menubar("machine","list") %>
      
       <div id="content-main">
-      <!-- FIXME -->
+      <TABLE class='listing'>
+         <TR>
+            <TD>ID</TD>
+            <TD>Architecture</TD>
+            <TD>Processors</TD>
+            <TD>Memory</TD>
+         </TR>
+      <%# FIXME: this may be a result of what objects are being sent over from Python. %>
+      <%# FIXME: web svc should return a hash not a list %>
+      <% @items.each do |item| %>
+         <TR>
+             
+             <TD> <%= item.id %> </TD>
+             <TD> <%= item.architecture %> </TD>
+             <TD> <%= item.processors %> </TD>
+             <TD> <%= item.memory %> </TD>
+             <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
+         </TR>
+      <% end %>
+      </TABLE>
       </div>
 
       <div class="content-right">
       <div class="callout-1">
       This page lists machines that can run appliances.
       </div>
+      <% if @flash[:notice] %>
+      <div class = "callout-2">
+         <%= @flash[:notice] %>
+      </div>
+      <% end %>
       </div> 

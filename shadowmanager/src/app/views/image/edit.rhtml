@@ -1,0 +1,39 @@
+      <%= ApplicationHelper.menubar("image","list") %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Name</TD>
+            <TD><%= f.text_field :name %></TD>
+         </TR>
+         <TR> 
+            <TD>Version</TD>
+            <TD><%= f.text_field :version %></TD>
+         </TR>
+         <TR> 
+            <TD>Filename</TD>
+            <TD><%= f.text_field :filename %></TD>
+         </TR>
+         <TR>
+            <TD>Specfile</TD>
+            <TD><%= f.text_field :specfile %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+
+      <div class="content-right">
+      <div class="callout-1">
+      <%= @operation %> an image
+      </div>
+      <% if @flash[:notice] %>
+         <div class="callout-2">
+         <%= @flash[:notice] %>
+         </div>
+      <% end %>
+      </div> 

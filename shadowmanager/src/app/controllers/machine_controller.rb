@@ -1,29 +1,14 @@
 
-class MachineController < ApplicationController
-    include ApplicationHelper
+class MachineController < ObjectController
 
-    def index
-        redirect_to :action => 'list'
-    end
+   def object_class
+       Machine
+   end
 
-    def list
-        # (success, rc, @items) = @@server.call("machine_list",@session[:login])
-        @items = []
-    end
-
-    def add
-    end
-
-    def add_submit
-    end
-
-    def delete
-    end
-
-    def viewedit
-    end
-
-    def viewedit_submit
-    end
+   class Machine < ManagedObject
+       ATTR_LIST = [:id, :architecture, :processors, :memory]
+       ATTR_LIST.each {|x| attr_accessor x}
+       METHOD_PREFIX = "machine"
+   end
 
 end
