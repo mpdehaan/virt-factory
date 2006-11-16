@@ -1,3 +1,18 @@
+"""
+ShadowManager backend code.
+
+Copyright 2006, Red Hat, Inc
+Michael DeHaan <mdehaan@redhat.com>
+Scott Seago <sseago@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
+
 
 # used for specifying types of validation required, and so forth.
 # internal to python code and of no concern to clients of the service.
@@ -10,7 +25,7 @@ OP_METHOD = 5
 OP_GET = 6
 
 # error codes for the web service.
-# eventually __main__ will autogenerate a Ruby version
+# FIXME: eventually __main__ will autogenerate a Ruby version
 
 ERR_SUCCESS = 0
 ERR_TOKEN_EXPIRED = 1

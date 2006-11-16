@@ -1,3 +1,19 @@
+"""
+ShadowManager backend code.
+
+Copyright 2006, Red Hat, Inc
+Michael DeHaan <mdehaan@redhat.com>
+Scott Seago <sseago@redhat.com>
+
+This software may be freely redistributed under the terms of the GNU
+general public license.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+"""
+
+
 import time
 import base64
 from sqlalchemy import *
@@ -8,6 +24,11 @@ import baseobj
 class User(baseobj.BaseObject):
 
     def _produce(clss, args,operation=None):
+        """
+        Factory method.  Create a user object from input data, optionally
+        running it through validation, which will vary depending on what
+        operation is creating the user object.
+        """
         self = User()
         self.from_datastruct(args)
         self.validate(operation)
@@ -15,6 +36,13 @@ class User(baseobj.BaseObject):
     produce = classmethod(_produce)
 
     def from_datastruct(self,args):
+        """
+        Helper method to fill in the object's internal variables from
+        a hash.  Note that we *don't* want to do this and then call
+        session.save on the user as the junk fields like the "-1" would be 
+        propogated.  It's best to use this for validation and build a *second*
+        user object for interaction with the ORM.  See methods below for examples.
+        """
         self.id          = self.load(args,"id",-1)
         self.username    = self.load(args,"username",-1)
         self.first       = self.load(args,"first",-1)
@@ -24,6 +52,9 @@ class User(baseobj.BaseObject):
         self.email       = self.load(args,"email",-1)
 
     def to_datastruct(self):
+        """
+        Serialize the object for transmission over WS.
+        """
         return {
             "id"          : self.id,
             "username"    : self.username,
@@ -35,15 +66,28 @@ class User(baseobj.BaseObject):
         }
 
     def validate(self,operation):
+        """
+        Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
+        if there are any problems.  Note that validation is operation specific, for instance
+        there is no ID for an "add" command because the add command generates the ID.
+        """
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
 def make_table(meta):
+     """
+     This method is called to hand the table object to sqlalchemy. SQLA can actually
+     create the table but for upgrade reasons, we're letting it just read the metadata.
+     """
      tbl = Table('users', meta, autoload=True)
      mapper(User, tbl)
      return tbl
    
 def user_login(session,user,password):
+     """
+     Try to log in user with (user,password) and return a token, or raise
+     UserInvalidException or PasswordInvalidException on error.
+     """
      # this method is the exception to the rule and doesn't do object validation.
      # login is the only special method like this in the whole API.  It's also
      # the only method that doesn't take a hash for a parameter, though this
@@ -61,11 +105,22 @@ def user_login(session,user,password):
          return success(token)
 
 def user_add(session,args):
+     """
+     Create a user.  args should contain all user fields except ID.
+     """
      user = User.produce(args,OP_ADD) # force validation
      user.id = int(time.time()) # FIXME (?)
      return user_save(session,user,args)
 
 def user_edit(session,args):
+     """
+     Edit a user.  args should contain all user fields that need to
+     be changed.
+     """
+     # FIXME: allow the password field to NOT be sent, therefore not
+     #        changing it.  (OR) just always do XMLRPC/HTTPS and use a 
+     #        HTML password field.  Either way.  (We're going to be
+     #        wanting HTTPS anyhow).
      temp_user = User.produce(args,OP_EDIT) # force validation
      query = session.query(User)
      user = query.get_by(User.c.id.in_(temp_user.id))
@@ -74,6 +129,9 @@ def user_edit(session,args):
      return user_save(session,user,args)
 
 def user_save(session,user,args):
+     """
+     Helper method used by user_add and user_save.
+     """
      # validation already done in methods calling this helper
      user.username = args["username"]
      user.password = args["password"]
@@ -94,6 +152,9 @@ def user_save(session,user,args):
 # FIXME: consider an undeletable but modifiable admin user
 
 def user_delete(session,args):
+     """
+     Deletes a user.  The args must only contain the id field.
+     """
      temp_user = User.produce(args,OP_DELETE) # force validation
      query = session.query(User)
      user = query.get_by(User.c.id.in_(temp_user.id))
@@ -107,6 +168,11 @@ def user_delete(session,args):
      return success()
 
 def user_list(session,args):
+     """
+     Return a list of users.  The args list is currently *NOT*
+     used.  Ideally we need to include LIMIT information here for
+     GUI pagination when we start worrying about hundreds of systems.
+     """
      # no validation required
      query = session.query(User)
      sel = query.select()
@@ -114,6 +180,9 @@ def user_list(session,args):
      return success(list)
 
 def user_get(session,args):
+     """
+     Return a specific user record.  Only the "id" is required in args.
+     """
      temp_user = User.produce(args,OP_GET) # force validation
      query = session.query(User)
      user = query.get_by(User.c.id.in_(temp_user.id))
@@ -122,6 +191,9 @@ def user_get(session,args):
      return success(user.to_datastruct())
 
 def register_rpc(handlers):
+     """
+     This adds RPC functions to the global list of handled functions.
+     """
      handlers["user_login"]  = user_login
      handlers["user_add"]    = user_add
      handlers["user_delete"] = user_delete
