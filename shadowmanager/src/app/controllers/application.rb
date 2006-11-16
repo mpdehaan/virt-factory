@@ -11,7 +11,14 @@ class ApplicationController < ActionController::Base
          redirect_to :controller => "login", :action => "input"
          return false
       end
-      (success, rc, data) = @@server.call("token_check", @session[:login])
+      begin
+         (success, rc, data) = @@server.call("token_check", @session[:login])
+      rescue RuntimeError
+         # internal server error (500) likely here if connection to web svc was
+         # severed by a restart of the web service during development.
+         redirect_to :controller => "login", :action => "input"
+         return false 
+      end
       unless success
          # token has timed out, so redirect here and get a new one
          # rather than having to do a lot of duplicate error handling in other places
