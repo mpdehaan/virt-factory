@@ -13,6 +13,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import sys
 
 # used for specifying types of validation required, and so forth.
 # internal to python code and of no concern to clients of the service.
@@ -53,3 +54,9 @@ def success(variables=0):
       variables = 0 # (paranoid?) prevent XMLRPC marshalling errors
    return (True, ERR_SUCCESS, variables)
 
+if __name__ == "__main__":
+   module = sys.modules[__name__]
+   for x in sorted(module.__dict__.keys()):
+       obj = module.__dict__[x]
+       if type(obj) == int:
+           print "%s = %s" % (x, obj)
