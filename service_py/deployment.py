@@ -132,7 +132,7 @@ def deployment_list(websvc,args):
      if args.has_key("limit"):
         limit = args["limit"]
      st = """
-     SELECT id,address,architecture,processor_speed,processor_count,memory
+     SELECT id,machine_id,image_id,state
      FROM users LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
@@ -154,7 +154,7 @@ def deployment_get(websvc,args):
      """
      u = Deployment.produce(args,OP_GET) # force validation
      st = """
-     SELECT id,address,architecture,processor_speed,processor_count,memory
+     SELECT id,machine_id,image_id,state
      FROM deployments WHERE id=?
      """
      websvc.cursor.execute(st,{ "id" : u.id })
