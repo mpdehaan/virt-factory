@@ -260,7 +260,7 @@ if __name__ == "__main__":
     """
     Start things up.
     """
-    testmode() # temporary ...
-    # serve()
+    # testmode() # temporary ...
+    serve()
 
 
