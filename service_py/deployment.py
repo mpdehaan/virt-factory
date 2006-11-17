@@ -86,6 +86,7 @@ def deployment_add(websvc,args):
      INSERT INTO deployments (id,machine_id,image_id,state)
      VALUES (:id,:machine_id,:image_id,:state)
      """
+     # FIXME: validate that machine_id and image_id are valid?
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.id)
@@ -102,6 +103,7 @@ def deployment_edit(websvc,args):
      deployments.state=:state,
      WHERE deployments.id=:id
      """
+     # FIXME: validate that machine_id and image_id are valid?
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct())
@@ -135,6 +137,7 @@ def deployment_list(websvc,args):
      SELECT id,machine_id,image_id,state
      FROM users LIMIT ?,?
      """ 
+     # FIXME: nest machine,image info
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
      deployments = []
@@ -157,6 +160,7 @@ def deployment_get(websvc,args):
      SELECT id,machine_id,image_id,state
      FROM deployments WHERE id=?
      """
+     # FIXME nest machine,image info
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      data = {
