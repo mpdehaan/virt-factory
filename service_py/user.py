@@ -16,7 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import time
 import base64
-from sqlalchemy import *
+import sqlite
 from codes import *
 from errors import *
 import baseobj
@@ -45,6 +45,7 @@ class User(baseobj.BaseObject):
         """
         self.id          = self.load(args,"id",-1)
         self.username    = self.load(args,"username",-1)
+        self.password    = self.load(args,"password",-1)
         self.first       = self.load(args,"first",-1)
         self.middle      = self.load(args,"middle",-1)
         self.last        = self.load(args,"last",-1)
@@ -58,6 +59,7 @@ class User(baseobj.BaseObject):
         return {
             "id"          : self.id,
             "username"    : self.username,
+            "password"    : self.password,
             "first"       : self.first,
             "middle"      : self.middle,
             "last"        : self.last,
@@ -89,16 +91,7 @@ class User(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def make_table(meta):
-     """
-     This method is called to hand the table object to sqlalchemy. SQLA can actually
-     create the table but for upgrade reasons, we're letting it just read the metadata.
-     """
-     tbl = Table('users', meta, autoload=True)
-     mapper(User, tbl)
-     return tbl
-   
-def user_login(session,user,password):
+def user_login(websvc,username,password):
      """
      Try to log in user with (user,password) and return a token, or raise
      UserInvalidException or PasswordInvalidException on error.
@@ -107,11 +100,14 @@ def user_login(session,user,password):
      # login is the only special method like this in the whole API.  It's also
      # the only method that doesn't take a hash for a parameter, though this
      # should probably change for consistancy.
-     query = session.query(User)
-     sel = query.select(User.c.username.in_(user))
-     if len(sel) == 0:
+     st = """
+     SELECT id, password FROM users WHERE username=:username
+     """
+     websvc.cursor.execute(st, { "username" : username })
+     results = websvc.cursor.fetchone()
+     if results is None:
          raise UserInvalidException()
-     elif sel[0].password != password:
+     elif results[1] != password:
          raise PasswordInvalidException()
      else:
          urandom = open("/dev/urandom")
@@ -119,15 +115,21 @@ def user_login(session,user,password):
          urandom.close()
          return success(token)
 
-def user_add(session,args):
+def user_add(websvc,args):
      """
      Create a user.  args should contain all user fields except ID.
      """
-     user = User.produce(args,OP_ADD) # force validation
-     user.id = int(time.time()) # FIXME (?)
-     return user_save(session,user,args)
+     u = User.produce(args,OP_ADD)
+     u.id = int(time.time())
+     st = """
+     INSERT INTO users (id,username,password,first,middle,last,description,email)
+     VALUES (:id,:username,:password,:first,:middle,:last,:description,:email)
+     """
+     websvc.cursor.execute(st, u.to_datastruct())
+     websvc.connection.commit()
+     return success(u.id)
 
-def user_edit(session,args):
+def user_edit(websvc,args):
      """
      Edit a user.  args should contain all user fields that need to
      be changed.
@@ -136,74 +138,91 @@ def user_edit(session,args):
      #        changing it.  (OR) just always do XMLRPC/HTTPS and use a 
      #        HTML password field.  Either way.  (We're going to be
      #        wanting HTTPS anyhow).
-     temp_user = User.produce(args,OP_EDIT) # force validation
-     query = session.query(User)
-     user = query.get_by(User.c.id.in_(temp_user.id))
-     if user is None:
-        raise NoSuchObjectException()
-     return user_save(session,user,args)
-
-def user_save(session,user,args):
+     u = User.produce(args,OP_EDIT) # force validation
+     st = """
+     UPDATE users 
+     SET users.password=:password,
+     users.first=:first,
+     users.middle=:middle,
+     users.last=:last,
+     users.description=:description,
+     users.email=:email
+     WHERE users.id=:id
      """
-     Helper method used by user_add and user_save.
-     """
-     # validation already done in methods calling this helper
-     user.username = args["username"]
-     user.password = args["password"]
-     user.first = args["first"]
-     user.middle = args["middle"]
-     user.last = args["last"]
-     user.description = args["description"]
-     user.email = args["email"]
-     # FIXME: we'd want to do validation here (actually in the User class) 
-     session.save(user)
-     session.flush()
-     ok = user in session
-     if not ok:
-         raise InternalErrorException()
-     return success()
+     websvc.cursor.execute(st, u.to_datastruct())
+     websvc.connection.commit()
+     return success(u.to_datastruct())
 
 # FIXME: don't allow delete if only 1 user left.
 # FIXME: consider an undeletable but modifiable admin user
 
-def user_delete(session,args):
+def user_delete(websvc,args):
      """
      Deletes a user.  The args must only contain the id field.
      """
-     temp_user = User.produce(args,OP_DELETE) # force validation
-     query = session.query(User)
-     user = query.get_by(User.c.id.in_(temp_user.id))
-     if user is None:
-        return result(ERR_NO_SO_OBJECT)
-     session.delete(user)
-     session.flush()
-     ok = not user in session
-     if not ok:
-         raise InternalErrorException()
+     u = User.produce(args,OP_DELETE) # force validation
+     st = """
+     DELETE FROM users WHERE users.id=:id
+     """
+     websvc.cursor.execute(st, { "id" : u.id })
+     websvc.connection.commit()
+     # FIXME: failure based on existance
      return success()
 
-def user_list(session,args):
+def user_list(websvc,args):
      """
      Return a list of users.  The args list is currently *NOT*
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
-     # no validation required
-     query = session.query(User)
-     sel = query.select()
-     list = [x.to_datastruct() for x in sel]
-     return success(list)
+     # FIXME: limit query support
+     offset = 0
+     limit  = 100
+     if args.has_key("offset"):
+        offset = args["offset"]
+     if args.has_key("limit"):
+        limit = args["limit"]
+     st = """
+     SELECT id,username,password,first,middle,last,description,email FROM users LIMIT ?,?
+     """ 
+     results = websvc.cursor.execute(st, (offset,limit))
+     results = websvc.cursor.fetchall()
+     users = []
+     for x in results:
+         data = {         
+            "id"          : x[0],
+            "username"    : x[1],
+            "password"    : x[2],
+            "first"       : x[3],
+            "middle"      : x[4],
+            "last"        : x[5],
+            "description" : x[6],
+            "email"       : x[7]
+         }
+         users.append(User.produce(data).to_datastruct())
+     return success(users)
 
-def user_get(session,args):
+def user_get(websvc,args):
      """
      Return a specific user record.  Only the "id" is required in args.
      """
-     temp_user = User.produce(args,OP_GET) # force validation
-     query = session.query(User)
-     user = query.get_by(User.c.id.in_(temp_user.id))
-     if user is None:
-        raise NoSuchObjectException()
-     return success(user.to_datastruct())
+     u = User.produce(args,OP_GET) # force validation
+     st = """
+     SELECT id,username,password,first,middle,last,description,email from users where users.id=:id
+     """
+     websvc.cursor.execute(st,{ "id" : u.id })
+     x = websvc.cursor.fetchone()
+     data = {
+            "id"          : x[0],
+            "username"    : x[1],
+            "password"    : x[2],
+            "first"       : x[3],
+            "middle"      : x[4],
+            "last"        : x[5],
+            "description" : x[6],
+            "email"       : x[7]
+     }
+     return success(User.produce(data).to_datastruct())
 
 def register_rpc(handlers):
      """

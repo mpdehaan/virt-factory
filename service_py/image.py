@@ -21,11 +21,6 @@ from codes import *
 from errors import *
 import baseobj
 
-def make_table(meta):
-    tbl = Table('images', meta, autoload=True)
-    mapper(Image, tbl)
-    return tbl
-
 class Image(baseobj.BaseObject):
 
     def _produce(clss, args,operation=None):

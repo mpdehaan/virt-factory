@@ -33,7 +33,8 @@ import event
 import image
 import deployment
 import machine
-
+#import sqlite
+from pysqlite2 import dbapi2 as sqlite
 
 class XmlRpcInterface:
 
@@ -45,29 +46,16 @@ class XmlRpcInterface:
        self.db = create_engine("sqlite:///primary_db")
        self.meta = BoundMetaData(self.db)
        self.tables = {}
-       self.__setup_tables()
        self.__setup_handlers()
        self.tokens = []
-       self.session = create_session()
+       self.connection = sqlite.connect("/opt/shadowmanager/primary_db")
+       self.cursor = self.connection.cursor()
        self.logger = logging.getLogger("svc")
        handler = logging.FileHandler("svclog", "a")
        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
        handler.setFormatter(formatter)
        self.logger.addHandler(handler)
        self.logger.setLevel(logging.DEBUG)
-
-   def __setup_tables(self):
-       """
-       This function creates SQLAlchemy table objects for each managed table.
-       """
-       m = self.meta
-       self.tables = {
-           "users"       : user.make_table(m),
-           "events"      : event.make_table(m),
-           "images"      : image.make_table(m),
-           "deployments" : deployment.make_table(m),
-           "machines"    : machine.make_table(m)
-       } 
 
    def __setup_handlers(self):
        """
@@ -90,7 +78,7 @@ class XmlRpcInterface:
        """
        self.logger.debug("login attempt: %s" % user)
        try:
-           (success, rc, data) = self.handlers["user_login"](self.session,user,password)
+           (success, rc, data) = self.handlers["user_login"](self,user,password)
            if success:
                self.tokens.append([data,time.time()])
            return (success, rc, data)
@@ -170,10 +158,21 @@ class XmlRpcInterface:
 
    def image_delete(self, token, args):
        return self.__dispatch("image_delete",token,args)
- 
-   def deployment_list(self, token):
-       # FIXME
-       return SuccessException([])
+   
+   def deployment_list(self,token):
+       return self.__dispatch("deployment_list",token,{})
+
+   def deployment_get(self, token, args):
+       return self.__dispatch("deployment_get",token,args)
+
+   def deployment_add(self, token, args):
+       return self.__dispatch("deployment_add",token,args)
+
+   def deployment_edit(self, token, args):
+       return self.__dispatch("deployment_edit",token,args)
+   
+   def deployment_delete(self, token, args):
+       return self.__dispatch("deployment_delete",token,args)
 
    def __dispatch(self, method, token, args=[]):
        """
@@ -194,7 +193,8 @@ class XmlRpcInterface:
        self.logger.debug("calling %s, args=%s" % (method,args))
        try:
            self.token_check(token)
-           return self.handlers[method](self.session,args)
+           rc = self.handlers[method](self,args)
+           return rc
        except ShadowManagerException, e:
            return from_exception(e)
        except Exception, e2:
@@ -224,12 +224,12 @@ def testmode():
     print 2 
     print intf.user_add(token,{
           "username" : "x",
+          "password" : "x",
           "first" : "x",
           "middle" : "x",
           "last" : "x",
           "description" : "x",
-          "email" : "x",
-          "password" : "x"
+          "email" : "x"
     })
     print 3
     users = intf.user_list(token)
@@ -237,18 +237,30 @@ def testmode():
     print users
     print 5
     for x in users[2]:
-       if x["username"] != "guest":
+       if not x["username"].startswith("guest"):
+           print "5a"
            intf.user_delete(token,x)
-    print 6 
-    users = intf.user_list(token)
+    print 6
+    results = intf.user_get(token,{"id": 200})
+    print results[2]
+    results[2]["email"] = "edited@redhat.com"
     print 7
+    intf.user_edit(token,results[2])    
+    print intf.user_get(token, ({"id":200}))
+    print 8 
+    users = intf.user_list(token)
+    print 9
     print users
+
+    # OK, test the new stuff...
+
+    print intf.deployment_list(token)
 
 if __name__ == "__main__":
     """
     Start things up.
     """
-    # testmode() # temporary ...
-    serve()
+    testmode() # temporary ...
+    # serve()
 
 

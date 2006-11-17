@@ -21,11 +21,6 @@ from codes import *
 from errors import *
 import baseobj
 
-def make_table(meta):
-    tbl = Table('machines', meta, autoload=True)
-    mapper(Machine, tbl)
-    return tbl
-
 class Machine(baseobj.BaseObject):
 
     def _produce(clss, args,operation=None):

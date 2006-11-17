@@ -67,17 +67,6 @@ class Deployment(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def make_table(meta):
-     """
-     This method is called to hand the table object to sqlalchemy. SQLA can actually
-     create the table but for upgrade reasons, we're letting it just read the metadata.
-     """
-     tbl = Table('deployments', meta, autoload=True)
-     map = mapper(Deployment, tbl)
-     map.add_property('machine_id', relation(machine.Machine))
-     map.add_property('image_id', relation(image.Image))
-     return tbl
-   
 def deployment_add(session,args):
      """
      Create a deployment.
