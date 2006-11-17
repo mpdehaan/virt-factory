@@ -144,6 +144,8 @@ def machine_list(websvc,args):
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
+     if results is None:
+         return success([])
      machines = []
      for x in results:
          data = {         
