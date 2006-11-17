@@ -141,8 +141,14 @@ def deployment_list(websvc,args):
      if args.has_key("limit"):
         limit = args["limit"]
      st = """
-     SELECT id,machine_id,image_id,state
-     FROM users LIMIT ?,?
+     SELECT users.id,users.machine_id,users.image_id,users.state
+     machines.id, machines.address, machines.architecture,
+        machines.processor_speed, machines.processor_count
+     images.id, images.name, images.version, images.filename, images.specfile,
+     FROM users,machines,images 
+     WHERE images.id = deployments.image_id AND
+     machines.id = deployments.machine_id
+     LIMIT ?,?
      """ 
      # FIXME: nest machine,image info
      results = websvc.cursor.execute(st, (offset,limit))
@@ -153,7 +159,21 @@ def deployment_list(websvc,args):
             "id"               : x[0],
             "machine_id"       : x[1],
             "image_id"         : x[2],
-            "state"            : x[3]
+            "state"            : x[3],
+            "machine"          : {
+                "id"              : x[3]
+                "address"         : x[4],
+                "architecture"    : x[5],
+                "processor_speed" : x[6],
+                "processor_ct"    : x[7]
+            },
+            "image"            : {
+                "id"              : x[8]
+                "name"            : x[9],
+                "version"         : x[10],
+                "filename"        : x[11],
+                "specfile"        : x[12]
+            }
          }
          deployments.append(Deployment.produce(data).to_datastruct())
      return success(deployments)
@@ -170,10 +190,16 @@ def deployment_get(websvc,args):
      # FIXME nest machine,image info
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
+     machine_rc = machine.machine_get(websvc,x["machine_id"])
+     if not machine_rc[0]:
+         raise InternalErrorException("machine_id")
+     image_rc   = image.image_get(websvc,x["image_rc"])
+     if not image_rc[0]:
+         raise InternalErrorException("image_id")
      data = {
             "id"              : x[0],
-            "machine_id"      : x[1],
-            "image_id"        : x[2],
+            "machine_id"      : machine_rc[2],
+            "image_id"        : image_rc[2],
             "state"           : x[3]
      }
      return success(Deployment.produce(data).to_datastruct())
