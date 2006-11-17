@@ -121,6 +121,19 @@ def machine_delete(websvc,args):
      st = """
      DELETE FROM machines WHERE users.id=:id
      """
+     st2 = """
+     SELECT machines.id FROM deployments,machines where deployments.machine_id = machines.id
+     AND machines.id=:id
+     """
+     # check to see that what we are deleting exists
+     rc = machine_get(websvc,args)
+     if not rc:
+        raise InvalidArgumentsException(["id"])
+     websvc.cursor.execute(st2, { "id" : u.id })
+     results = cursor.fetchall()
+     if x is not None and len(x) != 0:
+        raise OrphanedObjectException("deployment")
+
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
      # FIXME: failure based on existance
