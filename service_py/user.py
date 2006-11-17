@@ -16,14 +16,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import time
 import base64
-import sqlite
 from codes import *
 from errors import *
 import baseobj
 
 class User(baseobj.BaseObject):
 
-    def _produce(clss, args,operation=None):
+    def _produce(klass, args,operation=None):
         """
         Factory method.  Create a user object from input data, optionally
         running it through validation, which will vary depending on what

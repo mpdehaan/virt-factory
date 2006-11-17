@@ -15,15 +15,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 import time
-import base64
-from sqlalchemy import *
 from codes import *
 from errors import *
 import baseobj
 
 class Image(baseobj.BaseObject):
 
-    def _produce(clss, args,operation=None):
+    def _produce(klass, args,operation=None):
         self = Image()
         self.from_datastruct(args)
         self.validate(operation)
