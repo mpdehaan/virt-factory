@@ -89,11 +89,11 @@ def deployment_add(websvc,args):
      try:
          machine.machine_get(websvc,u.machine_id)
      except errors.ShadowManagerException:
-        raise InvalidArgumentsException("machine_id")
+        raise InvalidArgumentsException(["machine_id"])
      try:
         image.image_get(websvc,u.image_id)
      except errors.ShadowManagerException:
-        raise InvalidArgumentsException("image_id")
+        raise InvalidArgumentsException(["image_id"])
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.id)

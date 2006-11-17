@@ -168,6 +168,8 @@ def machine_get(websvc,args):
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
+     if x is None:
+         raise InvalidArgumentsException(["id"])
      data = {
             "id"              : x[0],
             "address"         : x[1],
