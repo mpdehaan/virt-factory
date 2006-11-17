@@ -15,22 +15,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 import time
-import base64
-from sqlalchemy import *
 from codes import *
 from errors import *
 import baseobj
 
-import image
-import machine
-
 class Deployment(baseobj.BaseObject):
 
-    def _produce(clss, args,operation=None):
+    def _produce(klass, args,operation=None):
         """
-        Factory method.  Create a object from input data, optionally
+        Factory method.  Create a deployment object from input data, optionally
         running it through validation, which will vary depending on what
-        operation is creating the object.
+        operation is creating the deployment object.
         """
         self = Deployment()
         self.from_datastruct(args)
@@ -41,12 +36,15 @@ class Deployment(baseobj.BaseObject):
     def from_datastruct(self,args):
         """
         Helper method to fill in the object's internal variables from
-        a hash.  
+        a hash.  Note that we *don't* want to do this and then call
+        session.save on the deployment as the junk fields like the "-1" would be 
+        propogated.  It's best to use this for validation and build a *second*
+        deployment object for interaction with the ORM.  See methods below for examples.
         """
-        self.id          = self.load(args,"id",-1)
-        self.machine_id  = self.load(args,"machine_id",-1)
-        self.image_id    = self.load(args,"image_id",-1)
-        self.state       = self.load(args,"state",-1)
+        self.id           = self.load(args,"id",-1)
+        self.machine_id   = self.load(args,"machine_id",-1)
+        self.image_id     = self.load(args,"image_id",-1)
+        self.state        = self.load(args,"state",-1)
 
     def to_datastruct(self):
         """
@@ -54,97 +52,120 @@ class Deployment(baseobj.BaseObject):
         """
         return {
             "id"          : self.id,
-            "machine"     : self.machine.to_datastruct(),
-            "image"       : self.image.to_datastruct(),
-            "state"       : self.middle,
+            "machine_id"  : self.machine_id,
+            "image_id"    : self.image_id,
+            "state"       : self.state,
         }
 
     def validate(self,operation):
         """
-        Clean up input and throw exceptions on bad args.
+        Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
+        if there are any problems.  Note that validation is operation specific, for instance
+        there is no ID for an "add" command because the add command generates the ID.
+
+        Note that getting python exception errors during a cast here is technically good enough
+        to prevent GIGO, but really InvalidArgumentsExceptions should be raised.  That's what
+        we want.
+
+        NOTE: API currently gives names of invalid fields but does not list reasons.  
+        i.e. (FALSE, INVALID_ARGUMENTS, ["foo,"bar"].  By making the 3rd argument a hash
+        it could, but these would also need to be codes.  { "foo" : OUT_OF_RANGE, "bar" : ... }
+        Up for consideration, but probably not needed at this point.  Can be added later. 
         """
         # FIXME
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def deployment_add(session,args):
+def deployment_add(websvc,args):
      """
-     Create a deployment.
+     Create a deployment.  args should contain all fields except ID.
      """
-     dep = Deployment.produce(args,OP_ADD) # force validation
-     dep.id = int(time.time()) # FIXME (?)
-     return deployment_save(session,dep,args)
+     u = Deployment.produce(args,OP_ADD)
+     u.id = int(time.time())
+     st = """
+     INSERT INTO deployments (id,machine_id,image_id,state)
+     VALUES (:id,:machine_id,:image_id,:state)
+     """
+     websvc.cursor.execute(st, u.to_datastruct())
+     websvc.connection.commit()
+     return success(u.id)
 
-def deployment_edit(session,args):
+def deployment_edit(websvc,args):
      """
-     Edit a deployment
+     Edit a deployment.  args should contain all fields that need to
+     be changed.  For deployments, (image_id can't be changed, machine_id can)
      """
-     # FIXME: allow the password field to NOT be sent, therefore not
-     #        changing it.  (OR) just always do XMLRPC/HTTPS and use a 
-     #        HTML password field.  Either way.  (We're going to be
-     #        wanting HTTPS anyhow).
-     temp_dep = Deployment.produce(args,OP_EDIT) # force validation
-     query = session.query(Deployment)
-     dep = query.get_by(Deployment.c.id.in_(temp_dep.id))
-     if dep is None:
-        raise NoSuchObjectException()
-     return deployment_save(session,dep,args)
+     u = Deployment.produce(args,OP_EDIT) # force validation
+     st = """
+     UPDATE deployments 
+     SET deployments.machine_id=:machine_id,
+     deployments.state=:state,
+     WHERE deployments.id=:id
+     """
+     websvc.cursor.execute(st, u.to_datastruct())
+     websvc.connection.commit()
+     return success(u.to_datastruct())
 
-def deployment_save(session,dep,args):
-     """
-     Helper method used by _add and _save.
-     """
-     # validation already done in methods calling this helper
-     dep.id = args["id"]
-     # FIXME: doesn't look right with join stuff (?)
-     dep.machine_id = args["machine"]
-     dep.image_id   = args["image"]
-     dep.state = args["state"]
-     session.save(dep)
-     session.flush()
-     ok = dep in session
-     if not ok:
-         raise InternalErrorException()
-     return success()
-
-def deployment_delete(session,args):
+def deployment_delete(websvc,args):
      """
      Deletes a deployment.  The args must only contain the id field.
      """
-     # FIXME: doesn't apply to this module but does for others.
-     # when deleting machines and images, think about orphan deployments
-     temp_dep = Deployment.produce(args,OP_DELETE) # force validation
-     query = session.query(Deployment)
-     dep = query.get_by(Deployment.c.id.in_(temp_dep.id))
-     if dep is None:
-        return result(ERR_NO_SO_OBJECT)
-     session.delete(dep)
-     session.flush()
-     ok = not dep in session
-     if not ok:
-         raise InternalErrorException()
+     u = Deployment.produce(args,OP_DELETE) # force validation
+     st = """
+     DELETE FROM deployments WHERE users.id=:id
+     """
+     websvc.cursor.execute(st, { "id" : u.id })
+     websvc.connection.commit()
+     # FIXME: failure based on existance
      return success()
 
-def deployment_list(session,args):
+def deployment_list(websvc,args):
      """
-     Return a list of deployments. 
+     Return a list of deployments.  The args list is currently *NOT*
+     used.  Ideally we need to include LIMIT information here for
+     GUI pagination when we start worrying about hundreds of systems.
      """
-     # no validation required
-     query = session.query(Deployment)
-     sel = query.select()
-     list = [x.to_datastruct() for x in sel]
-     return success(list)
+     offset = 0
+     limit  = 100
+     if args.has_key("offset"):
+        offset = args["offset"]
+     if args.has_key("limit"):
+        limit = args["limit"]
+     st = """
+     SELECT id,address,architecture,processor_speed,processor_count,memory
+     FROM users LIMIT ?,?
+     """ 
+     results = websvc.cursor.execute(st, (offset,limit))
+     results = websvc.cursor.fetchall()
+     deployments = []
+     for x in results:
+         data = {         
+            "id"               : x[0],
+            "machine_id"       : x[1],
+            "image_id"         : x[2],
+            "state"            : x[3]
+         }
+         deployments.append(Deployment.produce(data).to_datastruct())
+     return success(deployments)
 
-def deployment_get(session,args):
+def deployment_get(websvc,args):
      """
-     Return a specific dep record.  Only the "id" is required in args.
+     Return a specific deployment record.  Only the "id" is required in args.
      """
-     temp_dep = Deployment.produce(args,OP_GET) # force validation
-     query = session.query(Deployment)
-     dep = query.get_by(Deployment.c.id.in_(temp_dep.id))
-     if dep is None:
-        raise NoSuchObjectException()
-     return success(dep.to_datastruct())
+     u = Deployment.produce(args,OP_GET) # force validation
+     st = """
+     SELECT id,address,architecture,processor_speed,processor_count,memory
+     FROM deployments WHERE id=?
+     """
+     websvc.cursor.execute(st,{ "id" : u.id })
+     x = websvc.cursor.fetchone()
+     data = {
+            "id"              : x[0],
+            "machine_id"      : x[1],
+            "image_id"        : x[2],
+            "state"           : x[3]
+     }
+     return success(Deployment.produce(data).to_datastruct())
 
 def register_rpc(handlers):
      """
