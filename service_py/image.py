@@ -115,9 +115,23 @@ def image_delete(websvc,args):
      Deletes a image.  The args must only contain the id field.
      """
      u = Image.produce(args,OP_DELETE) # force validation
+ 
      st = """
      DELETE FROM images WHERE images.id=:id
      """
+     st2 = """
+     SELECT images.id FROM deployments,images where deployments.image_id = images.id
+     AND images.id=:id
+     """
+     # check to see that what we are deleting exists
+     rc = image_get(websvc,args)
+     if not rc:
+        raise InvalidArgumentsException(["id"])
+     # check to see that deletion won't orphan a deployment
+     websvc.cursor.execute(st2, { "id" : u.id })
+     results = cursor.fetchall()
+     if x is not None and len(x) != 0:
+        raise OrphanedObjectException("deployment")
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
      # FIXME: failure based on existance

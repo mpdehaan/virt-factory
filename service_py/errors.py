@@ -48,5 +48,7 @@ class NoSuchObjectException(ShadowManagerException):
    error_code = ERR_NO_SUCH_OBJECT
 
 class UncaughtException(ShadowManagerException):
-   error_code = ERR_UNCAUGHT_EXCEPTION
+   error_code = ERR_UNCAUGHT
 
+class OrphanedObjectException(ShadowManagerException):
+   error_code = ERR_ORPHANED_OBJECT
