@@ -66,7 +66,7 @@ class XmlRpcInterface:
        user.register_rpc(self.handlers)
        machine.register_rpc(self.handlers)
        image.register_rpc(self.handlers)
-       # others ...
+       # TODO: others ...
 
    # FIXME: find some more elegant way to surface the handlers?
    # FIXME: aforementioned login/session token requirement
@@ -217,6 +217,7 @@ def testmode():
     This is just a throw-away function for testing outside of XMLRPC context.
     It can be deleted or mangled however needed.
     """
+    # FIXME: replace all of this with an actual python test class.
     intf = XmlRpcInterface()
     (success, rc, token) = intf.user_login("guest","guest")
     print 1 

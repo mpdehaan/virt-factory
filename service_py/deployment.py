@@ -18,6 +18,8 @@ import time
 from codes import *
 from errors import *
 import baseobj
+import machine
+import image
 
 class Deployment(baseobj.BaseObject):
 
