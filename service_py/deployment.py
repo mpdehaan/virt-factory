@@ -86,7 +86,14 @@ def deployment_add(websvc,args):
      INSERT INTO deployments (id,machine_id,image_id,state)
      VALUES (:id,:machine_id,:image_id,:state)
      """
-     # FIXME: validate that machine_id and image_id are valid?
+     try:
+         machine.machine_get(websvc,u.machine_id)
+     except errors.ShadowManagerException:
+        raise InvalidArgumentsException("machine_id")
+     try:
+        image.image_get(websvc,u.image_id)
+     except errors.ShadowManagerException:
+        raise InvalidArgumentsException("image_id")
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.id)
