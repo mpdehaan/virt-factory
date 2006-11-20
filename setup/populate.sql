@@ -1,4 +1,4 @@
-INSERT INTO users VALUES(200, "guest", "guest", "first", "middle", "last", "something", "guest@redhat.com");
+INSERT INTO users VALUES(200, "admin", "fedora", "first", "middle", "last", "something", "guest@redhat.com");
 
 INSERT INTO images VALUES(100, "image-foo", "1.00", "", "/tmp/foo.spec");
 INSERT INTO images VALUES(101, "image-bar", "1.00", "", "/tmp/foo.spec");

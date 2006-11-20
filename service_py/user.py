@@ -177,6 +177,7 @@ def user_list(websvc,args):
      # FIXME: limit query support
      offset = 0
      limit  = 100
+     print args # FIXME: temporary
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
