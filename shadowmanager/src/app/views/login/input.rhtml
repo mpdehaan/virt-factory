@@ -16,13 +16,4 @@
       </form>
       </div>
 
-      <div class="content-right">
-      <div class="callout-1">
-      Developers!  run populate.sh and try 'guest'/'guest'
-      </div>
-      <% if @flash[:notice] %>
-         <div class="callout-2">
-         <%= @flash[:notice] %>
-         </div>
-      <% end %>
-      </div> 
+      <% @callout_1 = "Developers!  run populate.sh and try 'admin'/'fedora'" %>

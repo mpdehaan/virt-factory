@@ -153,7 +153,7 @@ def machine_list(websvc,args):
         limit = args["limit"]
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory
-     FROM users LIMIT ?,?
+     FROM machines LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
