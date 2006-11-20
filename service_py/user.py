@@ -143,15 +143,16 @@ def user_edit(websvc,args):
      u = User.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE users 
-     SET users.password=:password,
-     users.first=:first,
-     users.middle=:middle,
-     users.last=:last,
-     users.description=:description,
-     users.email=:email
-     WHERE users.id=:id
+     SET password=:password,
+     first=:first,
+     middle=:middle,
+     last=:last,
+     description=:description,
+     email=:email
+     WHERE id=:id
      """
-     websvc.cursor.execute(st, u.to_datastruct())
+     ds = u.to_datastruct()
+     websvc.cursor.execute(st, ds)
      websvc.connection.commit()
      return success(u.to_datastruct())
 
@@ -180,7 +181,6 @@ def user_list(websvc,args):
      # FIXME: limit query support
      offset = 0
      limit  = 100
-     print args # FIXME: temporary
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
@@ -215,7 +215,8 @@ def user_get(websvc,args):
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
-     print "here is a : %s" % x
+     if x is None:
+         raise NoSuchObjectException()
      data = {
             "id"          : x[0],
             "username"    : x[1],
