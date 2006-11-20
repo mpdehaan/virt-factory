@@ -1,3 +1,4 @@
+      <% @page_title = "Images" %>
       <%= ApplicationHelper.menubar("image","list") %>
      
       <div id="content-main">
@@ -26,13 +27,4 @@
       </TABLE>
       </div>
 
-      <div class="content-right">
-      <div class="callout-1">
-      This page lists images that can be deployed.
-      </div>
-      <% if @flash[:notice] %>
-      <div class = "callout-2">
-         <%= @flash[:notice] %>
-      </div>
-      <% end %>
-      </div> 
+      <% @callout_1 = "This page lists images that can be deployed." %>

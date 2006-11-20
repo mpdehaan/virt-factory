@@ -1,3 +1,4 @@
+      <% @page_title = @operation + " Image" %>
       <%= ApplicationHelper.menubar("image","list") %>
 
       <div id="content-main">
@@ -27,13 +28,4 @@
       <% end %>
       </div>
 
-      <div class="content-right">
-      <div class="callout-1">
-      <%= @operation %> an image
-      </div>
-      <% if @flash[:notice] %>
-         <div class="callout-2">
-         <%= @flash[:notice] %>
-         </div>
-      <% end %>
-      </div> 
+      <% @callout_1 = @operation + " an image" %>

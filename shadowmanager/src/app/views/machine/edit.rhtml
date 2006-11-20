@@ -1,3 +1,4 @@
+      <% @page_title = @operation + " Machine" %>
       <%= ApplicationHelper.menubar("machine","list") %>
 
       <div id="content-main">
@@ -22,14 +23,5 @@
       </TABLE>
       <% end %>
       </div>
+      <% @callout_1 = @operation + " a machine" %>
 
-      <div class="content-right">
-      <div class="callout-1">
-      <%= @operation %> a machine
-      </div>
-      <% if @flash[:notice] %>
-         <div class="callout-2">
-         <%= @flash[:notice] %>
-         </div>
-      <% end %>
-      </div> 

@@ -43,6 +43,7 @@ class ObjectController < ApplicationController
        if not success
            @items = []
            @flash[:notice] = "Error: No #{object_class::METHOD_PREFIX}s found (#{rc})."
+           @flash[:errmsg] = results
        else
            @items = results.collect {|hash| ManagedObject.from_hash(object_class,hash)}
        end
@@ -77,6 +78,7 @@ class ObjectController < ApplicationController
        (success, rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_#{operation}", @session[:login], obj.to_hash)
        if not success
            @flash[:notice] = "#{object_class::METHOD_PREFIX} #{operation} failed (#{rc})."
+           @flash[:errmsg] = data
           redirect_to :action => "edit"
           return
       else
@@ -92,6 +94,7 @@ class ObjectController < ApplicationController
        @flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{@params[:id]}"
        if not success
           @flash[:notice] = "#{object_class::METHOD_PREFIX} #{@params[:id]} deletion failed (#{rc})"
+          @flash[:errmsg] = data
        else
           @flash[:notice] = "#{object_class::METHOD_PREFIX} #{@params[:id]} deleted."
        end
