@@ -119,13 +119,16 @@ def user_add(websvc,args):
      Create a user.  args should contain all user fields except ID.
      """
      u = User.produce(args,OP_ADD)
-     u.id = int(time.time())
+     u.id = int(100 * time.time())
      st = """
      INSERT INTO users (id,username,password,first,middle,last,description,email)
      VALUES (:id,:username,:password,:first,:middle,:last,:description,:email)
      """
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+     try:
+         websvc.cursor.execute(st, u.to_datastruct())
+         websvc.connection.commit()
+     except Exception, e:
+         raise SQLException()
      return success(u.id)
 
 def user_edit(websvc,args):
@@ -212,6 +215,7 @@ def user_get(websvc,args):
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
+     print "here is a : %s" % x
      data = {
             "id"          : x[0],
             "username"    : x[1],

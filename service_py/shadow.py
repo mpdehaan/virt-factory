@@ -210,7 +210,6 @@ def database_reset():
     except:
         pass
     
-    print os.getcwd()
     p = DATABASE_PATH
     p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
     p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
