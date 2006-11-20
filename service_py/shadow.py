@@ -19,6 +19,9 @@ import os
 import traceback
 import time
 import logging
+import subprocess
+
+DATABASE_PATH = "/opt/shadowmanager/primary_db"
 
 # FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
 # FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
@@ -33,7 +36,6 @@ import event
 import image
 import deployment
 import machine
-#import sqlite
 from pysqlite2 import dbapi2 as sqlite
 
 class XmlRpcInterface:
@@ -42,13 +44,10 @@ class XmlRpcInterface:
        """
        Constructor sets up SQLAlchemy (database ORM) and logging.
        """
-       os.chdir("/opt/shadowmanager")
-       self.db = create_engine("sqlite:///primary_db")
-       self.meta = BoundMetaData(self.db)
        self.tables = {}
-       self.__setup_handlers()
        self.tokens = []
-       self.connection = sqlite.connect("/opt/shadowmanager/primary_db")
+       self.__setup_handlers()
+       self.connection = sqlite.connect(DATABASE_PATH)
        self.cursor = self.connection.cursor()
        self.logger = logging.getLogger("svc")
        handler = logging.FileHandler("svclog", "a")
@@ -114,8 +113,8 @@ class XmlRpcInterface:
    # but in the modules, they all consistantly take 3.  This may possibly
    # benefit from cleanup later.
 
-   def user_list(self,token):
-       return self.__dispatch("user_list",token,{})
+   def user_list(self,token,args={}):
+       return self.__dispatch("user_list",token,args)
 
    def user_get(self, token, args):
        return self.__dispatch("user_get",token,args)
@@ -129,8 +128,8 @@ class XmlRpcInterface:
    def user_delete(self, token, args):
        return self.__dispatch("user_delete",token,args)
  
-   def machine_list(self,token):
-       return self.__dispatch("machine_list",token,{})
+   def machine_list(self,token,args={}):
+       return self.__dispatch("machine_list",token,args)
 
    def machine_get(self, token, args):
        return self.__dispatch("machine_get",token,args)
@@ -144,8 +143,8 @@ class XmlRpcInterface:
    def machine_delete(self, token, args):
        return self.__dispatch("machine_delete",token,args)
  
-   def image_list(self,token):
-       return self.__dispatch("image_list",token,{})
+   def image_list(self,token,args={}):
+       return self.__dispatch("image_list",token,args)
 
    def image_get(self, token, args):
        return self.__dispatch("image_get",token,args)
@@ -159,8 +158,8 @@ class XmlRpcInterface:
    def image_delete(self, token, args):
        return self.__dispatch("image_delete",token,args)
    
-   def deployment_list(self,token):
-       return self.__dispatch("deployment_list",token,{})
+   def deployment_list(self,token,args):
+       return self.__dispatch("deployment_list",token,args={})
 
    def deployment_get(self, token, args):
        return self.__dispatch("deployment_get",token,args)
@@ -201,6 +200,24 @@ class XmlRpcInterface:
            tb = traceback.format_exc()
            self.logger.error(tb)
            return from_exception(UncaughtException(tb))    
+
+def database_reset():
+    """
+    Used for testing.  Not callable from the web service.
+    """
+    try:
+        os.remove(DATABASE_PATH)
+    except:
+        pass
+    
+    print os.getcwd()
+    p = DATABASE_PATH
+    p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
+    print p2.communicate()[0]
+    p3 = subprocess.Popen(["cat","../setup/populate.sql"], stdout=subprocess.PIPE)
+    p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
+    print p4.communicate()[0]
 
 def serve():
     """
