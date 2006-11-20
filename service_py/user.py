@@ -119,13 +119,16 @@ def user_add(websvc,args):
      Create a user.  args should contain all user fields except ID.
      """
      u = User.produce(args,OP_ADD)
-     u.id = int(time.time())
+     u.id = int(100 * time.time())
      st = """
      INSERT INTO users (id,username,password,first,middle,last,description,email)
      VALUES (:id,:username,:password,:first,:middle,:last,:description,:email)
      """
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+     try:
+         websvc.cursor.execute(st, u.to_datastruct())
+         websvc.connection.commit()
+     except Exception, e:
+         raise SQLException()
      return success(u.id)
 
 def user_edit(websvc,args):
@@ -140,15 +143,16 @@ def user_edit(websvc,args):
      u = User.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE users 
-     SET users.password=:password,
-     users.first=:first,
-     users.middle=:middle,
-     users.last=:last,
-     users.description=:description,
-     users.email=:email
-     WHERE users.id=:id
+     SET password=:password,
+     first=:first,
+     middle=:middle,
+     last=:last,
+     description=:description,
+     email=:email
+     WHERE id=:id
      """
-     websvc.cursor.execute(st, u.to_datastruct())
+     ds = u.to_datastruct()
+     websvc.cursor.execute(st, ds)
      websvc.connection.commit()
      return success(u.to_datastruct())
 
@@ -177,7 +181,6 @@ def user_list(websvc,args):
      # FIXME: limit query support
      offset = 0
      limit  = 100
-     print args # FIXME: temporary
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
@@ -212,6 +215,8 @@ def user_get(websvc,args):
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
+     if x is None:
+         raise NoSuchObjectException()
      data = {
             "id"          : x[0],
             "username"    : x[1],

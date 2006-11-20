@@ -52,3 +52,6 @@ class UncaughtException(ShadowManagerException):
 
 class OrphanedObjectException(ShadowManagerException):
    error_code = ERR_ORPHANED_OBJECT
+
+class SQLException(ShadowManagerException):
+   error_code = ERR_SQL

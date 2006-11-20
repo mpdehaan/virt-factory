@@ -42,7 +42,6 @@ class BaseTest(unittest.TestCase):
            if rc != 0:
                self.fail("default user account missing: %s" % rc)
            self.TOKEN = token
-           print "TOKEN = %s" % token
 
    def tearDown(self):
        pass
@@ -102,6 +101,7 @@ class UserTests(BaseTest):
        for user_obj in data2:
           if user_obj["username"] == "test_add":
               id = user_obj["id"]
+       self.failUnlessEqual(data1, id, "returned UID not equal to found")
        (rc3, data3) = self.call(self.api.user_get, { "id" : id })
        self.failUnlessEqual(rc3,0, "user get ok")
        self.failUnlessEqual(data3["username"],"test_add","retrieval")
@@ -111,8 +111,9 @@ class UserTests(BaseTest):
        user = self.sample_user.copy()
        user["username"] = "admin"
        (rc1, data) = self.call(self.api.user_add, user)
-       # FIXME: the following code does not fail and needs fixing in SW
-       # self.failUnlessEqual(rc1, codes.ERR_INVALID_ARGUMENTS, "duplicate user")
+       # FIXME: the following code does not fail and needs fixing ...
+       # second primary key?
+       self.failUnlessEqual(rc1, codes.ERR_SQL, "duplicate user: %s, %s" % (rc1,data))
        # FIXME: as more validation gets added, add more here
        # or rather, add them here now and fix the tests later
 
@@ -126,8 +127,7 @@ class UserTests(BaseTest):
        user4 = self.sample_user.copy()
        user4["username"] = "u4"
 
-       # FIXME: this uncovers an interesting bug in that multiple ads per
-       # second don't work.  This needs to be fixed (use SQL counters).
+       # FIXME: SQL adds need to catch errors, i.e. duplicate inserts
        (rc1, data1) = self.call(self.api.user_add, user1)
        time.sleep(2) # temporary: FIXME
        (rc2, data2) = self.call(self.api.user_add, user2)
@@ -143,10 +143,44 @@ class UserTests(BaseTest):
        self.failUnlessEqual(len(d5), 2, "correct number of results")
        (rc6, d6) = self.call(self.api.user_list, { "offset" : 1, "limit" : 3 })
        self.failUnlessEqual(rc, 0, "limit query 2 ok")
-       self.failUnlessEqual(len(d5), 3, "correct number of results")
+       self.failUnlessEqual(len(d6), 3, "correct number of results: %s" % len(d6))
        (rc7, d7) = self.call(self.api.user_list, {})
        self.failUnlessEqual(rc, 0, "standard query ok")
        self.failUnlessEqual(len(d7),5, "all results returned")  
+
+   def test_edit(self):
+       user1 = self.sample_user.copy()
+       (rc1, id) = self.call(self.api.user_add, user1)
+       self.failUnlessEqual(rc1,0,"add: %s" % rc1)
+       user1["description"] = "blahblahblah"
+       user1["id"] = id
+       (rc2, data2) = self.call(self.api.user_edit, user1)
+       self.failUnlessEqual(rc2,0,"edit: %s, %s" % (rc2, data2))
+       (rc3, data3) = self.call(self.api.user_get, { "id" : id })
+       self.failUnlessEqual(rc3,0,"get")
+       self.failUnlessEqual(data3["description"],"blahblahblah","changed")
+       self.failUnlessEqual(data3,user1,"totally correct 3")
+       self.failUnlessEqual(data2,user1,"totally correct 2")
+
+   def test_delete(self):
+       # get # of records
+       (rc0, data0) = self.call(self.api.user_list)
+       self.failUnlessEqual(rc0, 0, "list ok")
+       user1 = self.sample_user.copy()
+       (rc1, data1) = self.call(self.api.user_add, user1)
+       self.failUnlessEqual(rc1, 0, "add ok")
+       (rc2, data2) = self.call(self.api.user_list)
+       self.failUnlessEqual(rc2, 0, "list ok")
+       self.failUnlessEqual(len(data2)-len(data0),1,"working add")
+       (rc3, data3) = self.call(self.api.user_get, { "id" : data1 })
+       self.failUnlessEqual(rc3, 0, "working get: %s" % rc3)
+       self.failUnlessEqual(type(data3),dict,"got a dict: %s" % type(data3))
+       (rc4, data4) = self.call(self.api.user_delete, { "id" : data1 })
+       self.failUnlessEqual(rc4, 0, "working delete")
+       (rc5, data5) = self.call(self.api.user_list)
+       self.failUnlessEqual(len(data5),len(data0),"back to initial size")
+       (rc6, data6) = self.call(self.api.user_get, { "id" : data1 })
+       self.failUnlessEqual(rc6, codes.ERR_NO_SUCH_OBJECT,"deleted: %s, %s" % (rc6,data6))
  
 class ImageTests(BaseTest):
    # similar tests to user plus ...
