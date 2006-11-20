@@ -196,10 +196,12 @@ class XmlRpcInterface:
            return rc
        except ShadowManagerException, e:
            return from_exception(e)
-       except Exception, e2:
-           tb = traceback.format_exc()
-           self.logger.error(tb)
-           return from_exception(UncaughtException(tb))    
+       # this is nice in theory but I really want the real TB's now
+       # may reconsider for later.
+       #except Exception, e2:
+       #    tb = traceback.format_exc()
+       #    self.logger.error(tb)
+       #    return from_exception(UncaughtException(tb))    
 
 def database_reset():
     """
