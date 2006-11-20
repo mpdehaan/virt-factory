@@ -163,14 +163,14 @@ def deployment_list(websvc,args):
             "image_id"         : x[2],
             "state"            : x[3],
             "machine"          : {
-                "id"              : x[3]
+                "id"              : x[3],
                 "address"         : x[4],
                 "architecture"    : x[5],
                 "processor_speed" : x[6],
                 "processor_ct"    : x[7]
             },
             "image"            : {
-                "id"              : x[8]
+                "id"              : x[8],
                 "name"            : x[9],
                 "version"         : x[10],
                 "filename"        : x[11],
