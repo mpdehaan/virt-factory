@@ -85,7 +85,7 @@ def image_add(websvc,args):
      u = Image.produce(args,OP_ADD)
      u.id = int(time.time())
      st = """
-     INSERT INTO images (id,iname,version,filename,specfile)
+     INSERT INTO images (id,name,version,filename,specfile)
      VALUES (:id,:name,:version,:filename,:specfile)
      """
      websvc.cursor.execute(st, u.to_datastruct())
@@ -151,7 +151,7 @@ def image_list(websvc,args):
         limit = args["limit"]
      st = """
      SELECT id,name,version,filename,specfile
-     FROM users LIMIT ?,?
+     FROM images LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
