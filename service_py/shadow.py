@@ -77,10 +77,10 @@ class XmlRpcInterface:
        """
        self.logger.debug("login attempt: %s" % user)
        try:
-           (success, rc, data) = self.handlers["user_login"](self,user,password)
-           if success:
+           (rc, data) = self.handlers["user_login"](self,user,password)
+           if rc == 0:
                self.tokens.append([data,time.time()])
-           return (success, rc, data)
+           return (rc, data)
        except ShadowManagerException, e:
            return from_exception(e)
 
@@ -254,16 +254,16 @@ def testmode():
     print 4
     print users
     print 5
-    for x in users[2]:
+    for x in users[1]:
        if not x["username"].startswith("guest"):
            print "5a"
            intf.user_delete(token,x)
     print 6
     results = intf.user_get(token,{"id": 200})
-    print results[2]
-    results[2]["email"] = "edited@redhat.com"
+    print results[1]
+    results[1]["email"] = "edited@redhat.com"
     print 7
-    intf.user_edit(token,results[2])    
+    intf.user_edit(token,results[1])    
     print intf.user_get(token, ({"id":200}))
     print 8 
     users = intf.user_list(token)

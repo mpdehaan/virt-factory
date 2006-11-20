@@ -28,7 +28,7 @@ OP_GET = 6
 # error codes for the web service.
 # FIXME: eventually __main__ will autogenerate a Ruby version
 
-ERR_SUCCESS = 0
+SUCCESS = ERR_SUCCESS = 0
 ERR_TOKEN_EXPIRED = 1
 ERR_TOKEN_INVALID = 2
 ERR_USER_INVALID  = 3
@@ -47,13 +47,13 @@ def from_exception(exc):
       exc.error_code = 0
    if exc.additional_data is None:
       exc.additional_data = 0
-   return (exc.error_code == 0, exc.error_code, exc.additional_data)
+   return (exc.error_code, exc.additional_data)
 
 
 def success(variables=0):
    if variables is None:
       variables = 0 # (paranoid?) prevent XMLRPC marshalling errors
-   return (True, ERR_SUCCESS, variables)
+   return (ERR_SUCCESS, variables)
 
 if __name__ == "__main__":
    module = sys.modules[__name__]
