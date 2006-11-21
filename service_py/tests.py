@@ -208,6 +208,7 @@ class BaseCrudTests(BaseTest):
           "get_func"    : None
    }
    name_field = "name"
+   change_test_field = "name"
    initial_rows = 0 
 
    def _test_add(self):
@@ -235,13 +236,13 @@ class BaseCrudTests(BaseTest):
 
    def _test_list(self):
        s1 = self.sample.copy()
-       s1["name"] = "1"
+       s1[self.name_field] = "1"
        s2 = self.sample.copy()
-       s2["name"] = "2"
+       s2[self.name_field] = "2"
        s3 = self.sample.copy()
-       s3["name"] = "3"
+       s3[self.name_field] = "3"
        s4 = self.sample.copy()
-       s4["name"] = "4"
+       s4[self.name_field] = "4"
 
        (rc1, data1) = self.call(self.funcs["add_func"], s1)
        (rc2, data2) = self.call(self.funcs["add_func"], s2)
@@ -264,13 +265,13 @@ class BaseCrudTests(BaseTest):
        s1 = self.sample.copy()
        (rc1, id) = self.call(self.funcs["add_func"], s1)
        self.failUnlessEqual(rc1,0,"add: %s" % rc1)
-       s1[self.name_field] = "blahblahblah"
+       s1[self.change_test_field] = "blahblahblah"
        s1["id"] = id
        (rc2, data2) = self.call(self.funcs["edit_func"], s1)
        self.failUnlessEqual(rc2,0,"edit: %s, %s" % (rc2, data2))
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0,"get")
-       self.failUnlessEqual(data3[self.name_field],"blahblahblah","changed: %s" % (data3))
+       self.failUnlessEqual(data3[self.change_test_field],"blahblahblah","changed: %s" % (data3))
        self.failUnlessEqual(data3,s1,"modified 1")
        self.failUnlessEqual(data2,s1,"modified 2")
 
@@ -310,6 +311,7 @@ class ImageTests(BaseCrudTests):
          "delete_func" : self.api.image_delete
       }
       self.name_field = "name"
+      self.change_test_field = "name"
 
    def test_image_list(self):   self._test_list()
    def test_image_edit(self):   self._test_edit()
@@ -335,6 +337,7 @@ class UserTests(BaseCrudTests):
           "delete_func" : self.api.user_delete
       }
       self.name_field = "username"
+      self.change_test_field = "description"
       self.initial_rows = 1  
  
    def test_user_list(self):   self._test_list()
@@ -344,7 +347,7 @@ class UserTests(BaseCrudTests):
 
    # FIXME: additional tests, such as "can't delete admin"
    # FIXME: validation that is user-centric
-
+   # can't change username, etc
 
 class MachineTests(BaseTest):
    # similar tests to machine plus ...
