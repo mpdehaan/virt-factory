@@ -14,11 +14,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-import time
 import base64
 from codes import *
 from errors import *
 import baseobj
+import traceback
 
 class User(baseobj.BaseObject):
 
@@ -119,7 +119,7 @@ def user_add(websvc,args):
      Create a user.  args should contain all user fields except ID.
      """
      u = User.produce(args,OP_ADD)
-     u.id = int(100 * time.time())
+     u.id = websvc.get_uid()
      st = """
      INSERT INTO users (id,username,password,first,middle,last,description,email)
      VALUES (:id,:username,:password,:first,:middle,:last,:description,:email)
@@ -128,7 +128,7 @@ def user_add(websvc,args):
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception, e:
-         raise SQLException()
+         raise SQLException(traceback.format_exc())
      return success(u.id)
 
 def user_edit(websvc,args):

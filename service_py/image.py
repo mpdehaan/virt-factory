@@ -18,6 +18,7 @@ import time
 from codes import *
 from errors import *
 import baseobj
+import traceback
 
 class Image(baseobj.BaseObject):
 
@@ -83,13 +84,17 @@ def image_add(websvc,args):
      Create a image.  args should contain all fields except ID.
      """
      u = Image.produce(args,OP_ADD)
-     u.id = int(time.time())
+     u.id = websvc.get_uid()
      st = """
      INSERT INTO images (id,name,version,filename,specfile)
      VALUES (:id,:name,:version,:filename,:specfile)
      """
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+     try:
+         websvc.cursor.execute(st, u.to_datastruct())
+         websvc.connection.commit()
+     except Exception, e:
+         # FIXME: be more fined grained (find where IntegrityError is defined)
+         raise SQLException(traceback.format_exc())
      return success(u.id)
 
 def image_edit(websvc,args):
@@ -100,11 +105,8 @@ def image_edit(websvc,args):
      u = Image.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE images 
-     SET images.name=:name
-     images.version=:version,
-     images.filename=:filename,
-     images.specfile=:specfile
-     WHERE images.id=:id
+     SET name=:name, version=:version, filename=:filename, specfile=:specfile
+     WHERE id=:id
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
@@ -126,11 +128,11 @@ def image_delete(websvc,args):
      # check to see that what we are deleting exists
      rc = image_get(websvc,args)
      if not rc:
-        raise InvalidArgumentsException(["id"])
+        raise NoSuchObjectException()
      # check to see that deletion won't orphan a deployment
      websvc.cursor.execute(st2, { "id" : u.id })
-     results = cursor.fetchall()
-     if x is not None and len(x) != 0:
+     results = websvc.cursor.fetchall()
+     if results is not None and len(results) != 0:
         raise OrphanedObjectException("deployment")
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
@@ -176,12 +178,12 @@ def image_get(websvc,args):
      u = Image.produce(args,OP_GET) # force validation
      st = """
      SELECT id,name,version,filename,specfile
-     FROM images WHERE id=?
+     FROM images WHERE id=:id
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise InvalidArgumentsException(["id"])
+         raise NoSuchObjectException()
      data = {
             "id"       : x[0],
             "name"     : x[1],

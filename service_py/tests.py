@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
        call_this = lambda: self.call(function,args)
        failUnlessRaises(exc_class, call_this)
 
-   def custom_setup():
+   def custom_setup(self):
        pass
 
    def setUp(self):
@@ -71,6 +71,7 @@ class LoginTests(BaseTest):
       self.failUnlessEqual(rc,codes.ERR_TOKEN_INVALID,"invalid token")
 
 
+OBSOLETE = """
 
 class UserTests(BaseTest):
    # list
@@ -183,15 +184,15 @@ class UserTests(BaseTest):
        self.failUnlessEqual(len(data5),len(data0),"back to initial size")
        (rc6, data6) = self.call(self.api.user_get, { "id" : data1 })
        self.failUnlessEqual(rc6, codes.ERR_NO_SUCH_OBJECT,"deleted: %s, %s" % (rc6,data6))
- 
-class BasicCRUDTests(BaseTest):
-   # list
-   # add (passing + cardinality)
-   # add duplicate should fail
-   # delete should pass
-   # delete nonexisting should fail
-   # edit (should pass)
-   # edit shouldn't be allowed to change certain fields
+
+""" 
+
+class BaseCrudTests(BaseTest):
+
+   """ 
+   Defines the GUTS of what is needed to test basic database and API
+   functionality.  Join tables will get more interesting.
+   """
 
    sample = {
           "name"        : "foo", 
@@ -200,37 +201,39 @@ class BasicCRUDTests(BaseTest):
           "specfile"    : "/tmp/bar"
    }
    funcs = {
-          "add_func"    : None
-          "delete_func" : None
-          "list_func"   : None
-          "edit_func"   : None
+          "add_func"    : None,
+          "delete_func" : None,
+          "list_func"   : None,
+          "edit_func"   : None,
           "get_func"    : None
    }
    name_field = "name"
-   
-   def test_image_adds_that_will_pass(self):
+   initial_rows = 0 
+
+   def _test_add(self):
+       (rc0, data0) = self.call(self.funcs["list_func"])
        (rc1, data1) = self.call(self.funcs["add_func"], self.sample)
        self.failUnlessEqual(rc1, 0, "add ok")
        (rc2, data2) = self.call(self.funcs["list_func"])
        self.failUnlessEqual(rc2, 0, "list ok")
-       self.failUnlessEqual(len(data2),1,"successful add")
+       self.failUnlessEqual(len(data2),len(data0)+1,"successful add")
        id = -1
        for obj in data2:
           if obj[self.name_field] == "foo":
               id = obj["id"]
        self.failUnlessEqual(data1, id, "returned UID not equal to found")
-       (rc3, data3) = self.call(self.api.image_get, { "id" : id })
+       (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0, "get ok")
        self.failUnlessEqual(data3[self.name_field],"foo","retrieval")
        self.failUnlessEqual(id,data1,"function returned UID")
 
-   def test_image_adds_that_will_fail(self):
+       # similar ad tests that will fail
        user = self.sample.copy()
        user[self.name_field] = "foo"
        (rc1, data) = self.call(self.funcs["add_func"], user)
        self.failUnlessEqual(rc1, codes.ERR_SQL, "duplicate object: %s, %s" % (rc1,data))
 
-   def test_image_limit_query(self):
+   def _test_list(self):
        s1 = self.sample.copy()
        s1["name"] = "1"
        s2 = self.sample.copy()
@@ -240,13 +243,12 @@ class BasicCRUDTests(BaseTest):
        s4 = self.sample.copy()
        s4["name"] = "4"
 
-       # FIXME: SQL adds need to catch errors, i.e. duplicate inserts
        (rc1, data1) = self.call(self.funcs["add_func"], s1)
        (rc2, data2) = self.call(self.funcs["add_func"], s2)
        (rc3, data3) = self.call(self.funcs["add_func"], s3)
        (rc4, data4) = self.call(self.funcs["add_func"], s4)
        for (rc,data) in zip([rc1,rc2,rc3,rc4],[data1,data2,data3,data4]):
-          self.failUnlessEqual(rc, 0, "addition ok: %s" % data)
+          self.failUnlessEqual(rc, 0, "addition ok: %s, %s" % (rc,data))
 
        (rc5, d5) = self.call(self.funcs["list_func"], { "offset" : 1, "limit" : 2 })
        self.failUnlessEqual(rc, 0, "limit query 1 ok")
@@ -256,24 +258,23 @@ class BasicCRUDTests(BaseTest):
        self.failUnlessEqual(len(d6), 3, "correct number of results: %s" % len(d6))
        (rc7, d7) = self.call(self.funcs["list_func"], {})
        self.failUnlessEqual(rc, 0, "standard query ok")
-       self.failUnlessEqual(len(d7),5, "all results returned")  
+       self.failUnlessEqual(len(d7),4+self.initial_rows, "all results returned")  
 
-   def test_image_edit(self):
+   def _test_edit(self):
        s1 = self.sample.copy()
        (rc1, id) = self.call(self.funcs["add_func"], s1)
        self.failUnlessEqual(rc1,0,"add: %s" % rc1)
-       user1[self.name_field] = "blahblahblah"
-       user1["id"] = id
-       (rc2, data2) = self.call(self.funcs["edit_func"], user1)
+       s1[self.name_field] = "blahblahblah"
+       s1["id"] = id
+       (rc2, data2) = self.call(self.funcs["edit_func"], s1)
        self.failUnlessEqual(rc2,0,"edit: %s, %s" % (rc2, data2))
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0,"get")
-       self.failUnlessEqual(data3[self.name_field],"blahblahblah","changed")
-       self.failUnlessEqual(data3,user1,"modified 1")
-       self.failUnlessEqual(data2,user1,"modified 2")
+       self.failUnlessEqual(data3[self.name_field],"blahblahblah","changed: %s" % (data3))
+       self.failUnlessEqual(data3,s1,"modified 1")
+       self.failUnlessEqual(data2,s1,"modified 2")
 
-   def test_image_delete(self):
-       # get # of records
+   def _test_delete(self):
        (rc0, data0) = self.call(self.funcs["list_func"])
        self.failUnlessEqual(rc0, 0, "list ok")
        s1 = self.sample.copy()
@@ -291,6 +292,59 @@ class BasicCRUDTests(BaseTest):
        self.failUnlessEqual(len(data5),len(data0),"back to initial size")
        (rc6, data6) = self.call(self.funcs["get_func"], { "id" : data1 })
        self.failUnlessEqual(rc6, codes.ERR_NO_SUCH_OBJECT,"deleted: %s, %s" % (rc6,data6))
+
+class ImageTests(BaseCrudTests):
+
+   def custom_setup(self):
+      self.sample = {
+         "name" : "foo",
+         "version" : "1.01",
+         "filename" : "/tmp/foo",
+         "specfile" : "/tmp/bar"
+      } 
+      self.funcs = {
+         "add_func"    : self.api.image_add,
+         "edit_func"   : self.api.image_edit,
+         "list_func"   : self.api.image_list, 
+         "get_func"    : self.api.image_get,
+         "delete_func" : self.api.image_delete
+      }
+      self.name_field = "name"
+
+   def test_image_list(self):   self._test_list()
+   def test_image_edit(self):   self._test_edit()
+   def test_image_delete(self): self._test_delete()
+   def test_image_add(self):    self._test_add()
+
+class UserTests(BaseCrudTests):
+   def custom_setup(self):
+      self.sample = {
+          "username"    : "foo",
+          "password"    : "pass", 
+          "first"       : "F",
+          "middle"      : "M",
+          "last"        : "L",
+          "description" : "...",
+          "email"       : "testemail@redhat.com"
+      } 
+      self.funcs = {
+          "add_func"    : self.api.user_add,
+          "edit_func"   : self.api.user_edit,
+          "list_func"   : self.api.user_list,
+          "get_func"    : self.api.user_get,
+          "delete_func" : self.api.user_delete
+      }
+      self.name_field = "username"
+      self.initial_rows = 1  
+ 
+   def test_user_list(self):   self._test_list()
+   def test_user_edit(self):   self._test_edit()
+   def test_user_delete(self): self._test_delete()
+   def test_user_add(self):    self._test_add()
+
+   # FIXME: additional tests, such as "can't delete admin"
+   # FIXME: validation that is user-centric
+
 
 class MachineTests(BaseTest):
    # similar tests to machine plus ...
