@@ -24,7 +24,7 @@ CREATE TABLE events (
 
 CREATE TABLE images (
    id INTEGER PRIMARY KEY,
-   name       VARCHAR (255),
+   name       VARCHAR (255) UNIQUE,
    version    VARCHAR (255),
    filename   VARCHAR (255),
    specfile   VARCHAR (255)
@@ -39,7 +39,7 @@ CREATE TABLE deployments (
 
 CREATE TABLE machines (
    id INTEGER PRIMARY KEY,
-   address VARCHAR(255),
+   address VARCHAR(255) UNIQUE,
    architecture INT,
    processor_speed INT,
    processor_count INT,
