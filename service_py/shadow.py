@@ -102,7 +102,8 @@ class XmlRpcInterface:
            if t[0] == token:
                # update the expiration counter
                t[1] = time.time()
-               return SuccessException()
+               #return SuccessException()
+               return ERR_SUCCESS
        raise TokenInvalidException()
 
    #======================================================

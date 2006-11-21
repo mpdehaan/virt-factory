@@ -12,17 +12,17 @@ class ApplicationController < ActionController::Base
          return false
       end
       begin
-         (success, rc, data) = @@server.call("token_check", @session[:login])
+         (rc, data) = @@server.call("token_check", @session[:login])
       rescue RuntimeError
          # internal server error (500) likely here if connection to web svc was
          # severed by a restart of the web service during development.
          redirect_to :controller => "login", :action => "input"
          return false 
       end
-      unless success
+      unless rc == ERR_SUCCESS
          # token has timed out, so redirect here and get a new one
          # rather than having to do a lot of duplicate error handling in other places
-         @flash[:notice] = "Session timeout (#{rc})."
+         @flash[:notice] = "Session timeout (#{rc.class})."
          redirect_to :controller => "login", :action => "input"
          return false
       end
@@ -39,8 +39,8 @@ class ObjectController < ApplicationController
    end
 
    def list
-       (success, rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",@session[:login])
-       if not success
+       (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",@session[:login])
+       unless rc == ERR_SUCCESS
            @items = []
            @flash[:notice] = "Error: No #{object_class::METHOD_PREFIX}s found (#{rc})."
            @flash[:errmsg] = results
@@ -61,7 +61,7 @@ class ObjectController < ApplicationController
            @operation = "Add"
        else
            plist = { "id" => @params[:id] }
-           (success, rc, item_hash) = @@server.call("#{object_class::METHOD_PREFIX}_get", @session[:login], plist)
+           (rc, item_hash) = @@server.call("#{object_class::METHOD_PREFIX}_get", @session[:login], plist)
            @item = ManagedObject.from_hash(object_class,item_hash)
            @operation = "Edit"
        end
@@ -75,8 +75,9 @@ class ObjectController < ApplicationController
        else
            operation = "edit"
        end
-       (success, rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_#{operation}", @session[:login], obj.to_hash)
-       if not success
+       print "#{object_class::METHOD_PREFIX}_#{operation}, #{obj.to_hash}\n"
+       (rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_#{operation}", @session[:login], obj.to_hash)
+       unless rc == ERR_SUCCESS
            @flash[:notice] = "#{object_class::METHOD_PREFIX} #{operation} failed (#{rc})."
            @flash[:errmsg] = data
           redirect_to :action => "edit"
@@ -90,9 +91,9 @@ class ObjectController < ApplicationController
 
    def delete
            plist = { "id" => @params[:id] }
-       (success, rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_delete", @session[:login], plist)
+       (rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_delete", @session[:login], plist)
        @flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{@params[:id]}"
-       if not success
+       unless rc == ERR_SUCCESS
           @flash[:notice] = "#{object_class::METHOD_PREFIX} #{@params[:id]} deletion failed (#{rc})"
           @flash[:errmsg] = data
        else
