@@ -221,10 +221,10 @@ def database_reset():
     p = DATABASE_PATH
     p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
     p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
-    print p2.communicate()[0]
+    p2.communicate()[0]
     p3 = subprocess.Popen(["cat","../setup/populate.sql"], stdout=subprocess.PIPE)
     p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
-    print p4.communicate()[0]
+    p4.communicate()[0]
 
 def serve():
     """
@@ -235,51 +235,6 @@ def serve():
     server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
     server.register_instance(xmlrpc_interface)
     server.serve_forever()
-
-def testmode():
-    """
-    This is just a throw-away function for testing outside of XMLRPC context.
-    It can be deleted or mangled however needed.
-    """
-    # FIXME: replace all of this with an actual python test class.
-    intf = XmlRpcInterface()
-    (success, rc, token) = intf.user_login("guest","guest")
-    print 1 
-    print (success, rc, token)
-    print 2 
-    print intf.user_add(token,{
-          "username" : "x",
-          "password" : "x",
-          "first" : "x",
-          "middle" : "x",
-          "last" : "x",
-          "description" : "x",
-          "email" : "x"
-    })
-    print 3
-    users = intf.user_list(token)
-    print 4
-    print users
-    print 5
-    for x in users[1]:
-       if not x["username"].startswith("guest"):
-           print "5a"
-           intf.user_delete(token,x)
-    print 6
-    results = intf.user_get(token,{"id": 200})
-    print results[1]
-    results[1]["email"] = "edited@redhat.com"
-    print 7
-    intf.user_edit(token,results[1])    
-    print intf.user_get(token, ({"id":200}))
-    print 8 
-    users = intf.user_list(token)
-    print 9
-    print users
-
-    # OK, test the new stuff...
-
-    print intf.deployment_list(token)
 
 if __name__ == "__main__":
     """

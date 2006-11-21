@@ -213,8 +213,9 @@ class BaseCrudTests(BaseTest):
 
    def _test_add(self):
        (rc0, data0) = self.call(self.funcs["list_func"])
+       self.failUnlessEqual(rc0, 0, "list ok: %s" % rc0)
        (rc1, data1) = self.call(self.funcs["add_func"], self.sample)
-       self.failUnlessEqual(rc1, 0, "add ok")
+       self.failUnlessEqual(rc1, 0, "add ok: %s" % rc1)
        (rc2, data2) = self.call(self.funcs["list_func"])
        self.failUnlessEqual(rc2, 0, "list ok")
        self.failUnlessEqual(len(data2),len(data0)+1,"successful add")
@@ -229,10 +230,11 @@ class BaseCrudTests(BaseTest):
        self.failUnlessEqual(id,data1,"function returned UID")
 
        # similar ad tests that will fail
-       user = self.sample.copy()
-       user[self.name_field] = "foo"
-       (rc1, data) = self.call(self.funcs["add_func"], user)
-       self.failUnlessEqual(rc1, codes.ERR_SQL, "duplicate object: %s, %s" % (rc1,data))
+       obj = self.sample.copy()
+       obj[self.name_field] = "somethingsomething"
+       (rc3, data3) = self.call(self.funcs["add_func"], obj)
+       (rc4, data4) = self.call(self.funcs["add_func"], obj)
+       self.failUnlessEqual(rc4, codes.ERR_SQL, "duplicate object: %s, %s" % (rc4,data4))
 
    def _test_list(self):
        s1 = self.sample.copy()
@@ -318,6 +320,33 @@ class ImageTests(BaseCrudTests):
    def test_image_delete(self): self._test_delete()
    def test_image_add(self):    self._test_add()
 
+class MachineTests(BaseCrudTests):
+
+   def custom_setup(self):
+      self.sample = {
+         "address" : "foo",
+         "architecture" : 1,
+         "processor_speed" : 2200,
+         "processor_count" : 2,
+         "memory" : 1024
+      } 
+      self.funcs = {
+         "add_func"    : self.api.machine_add,
+         "edit_func"   : self.api.machine_edit,
+         "list_func"   : self.api.machine_list, 
+         "get_func"    : self.api.machine_get,
+         "delete_func" : self.api.machine_delete
+      }
+      self.name_field = "address"
+      self.change_test_field = "address"
+      self.initial_rows = 0
+
+   def test_machine_list(self):   self._test_list()
+   def test_machine_edit(self):   self._test_edit()
+   def test_machine_delete(self): self._test_delete()
+   def test_machine_add(self):    self._test_add()
+
+
 class UserTests(BaseCrudTests):
    def custom_setup(self):
       self.sample = {
@@ -348,11 +377,6 @@ class UserTests(BaseCrudTests):
    # FIXME: additional tests, such as "can't delete admin"
    # FIXME: validation that is user-centric
    # can't change username, etc
-
-class MachineTests(BaseTest):
-   # similar tests to machine plus ...
-   # can't delete an image if used for a deployment
-   pass
 
 class DeploymentTests(BaseTest):
    # similar tests to user plus...

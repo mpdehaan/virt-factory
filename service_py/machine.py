@@ -14,10 +14,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-import time
 from codes import *
 from errors import *
 import baseobj
+import traceback
 
 class Machine(baseobj.BaseObject):
 
@@ -85,13 +85,17 @@ def machine_add(websvc,args):
      Create a machine.  args should contain all fields except ID.
      """
      u = Machine.produce(args,OP_ADD)
-     u.id = int(time.time())
+     u.id = websvc.get_uid()
      st = """
      INSERT INTO machines (id,address,architecture,processor_speed,processor_count,memory)
      VALUES (:id,:address,:architecture,:processor_speed,:processor_count,:memory)
      """
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+     try:
+         websvc.cursor.execute(st, u.to_datastruct())
+         websvc.connection.commit()
+     except Exception, e:
+         # FIXME: be more fined grained (IntegrityError only)
+         raise SQLException(traceback.format_exc())
      return success(u.id)
 
 def machine_edit(websvc,args):
@@ -102,12 +106,12 @@ def machine_edit(websvc,args):
      u = Machine.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE machines 
-     SET machines.address=:address,
-     machines.architecture=:architecture,
-     machines.processor_speed=:processor_speed,
-     machines.processor_count=:processor_count,
-     machines.memory=:memory
-     WHERE machines.id=:id
+     SET address=:address,
+     architecture=:architecture,
+     processor_speed=:processor_speed,
+     processor_count=:processor_count,
+     memory=:memory
+     WHERE id=:id
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
@@ -119,7 +123,7 @@ def machine_delete(websvc,args):
      """
      u = Machine.produce(args,OP_DELETE) # force validation
      st = """
-     DELETE FROM machines WHERE users.id=:id
+     DELETE FROM machines WHERE machines.id=:id
      """
      st2 = """
      SELECT machines.id FROM deployments,machines where deployments.machine_id = machines.id
@@ -128,10 +132,10 @@ def machine_delete(websvc,args):
      # check to see that what we are deleting exists
      rc = machine_get(websvc,args)
      if not rc:
-        raise InvalidArgumentsException(["id"])
+        raise NoSuchObjectException()
      websvc.cursor.execute(st2, { "id" : u.id })
-     results = cursor.fetchall()
-     if x is not None and len(x) != 0:
+     results = websvc.cursor.fetchall()
+     if results is not None and len(results) != 0:
         raise OrphanedObjectException("deployment")
 
      websvc.cursor.execute(st, { "id" : u.id })
@@ -179,12 +183,12 @@ def machine_get(websvc,args):
      u = Machine.produce(args,OP_GET) # force validation
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory
-     FROM machines WHERE id=?
+     FROM machines WHERE id=:id
      """
-     websvc.cursor.execute(st,{ "id" : u.id })
+     websvc.cursor.execute(st,u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is None:
-         raise InvalidArgumentsException(["id"])
+         raise NoSuchObjectException()
      data = {
             "id"              : x[0],
             "address"         : x[1],
