@@ -127,7 +127,7 @@ def user_add(websvc,args):
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
-     except Exception, e:
+     except Exception:
          raise SQLException(traceback.format_exc())
      return success(u.id)
 

@@ -14,7 +14,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-import time
 from codes import *
 from errors import *
 import baseobj
@@ -92,7 +91,7 @@ def image_add(websvc,args):
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
-     except Exception, e:
+     except Exception:
          # FIXME: be more fined grained (find where IntegrityError is defined)
          raise SQLException(traceback.format_exc())
      return success(u.id)

@@ -93,7 +93,7 @@ def machine_add(websvc,args):
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
-     except Exception, e:
+     except Exception:
          # FIXME: be more fined grained (IntegrityError only)
          raise SQLException(traceback.format_exc())
      return success(u.id)
