@@ -14,10 +14,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-import time
 from codes import *
 from errors import *
 import baseobj
+import traceback
+
 import machine
 import image
 
@@ -43,20 +44,20 @@ class Deployment(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         deployment object for interaction with the ORM.  See methods below for examples.
         """
-        self.id           = self.load(args,"id",-1)
-        self.machine_id   = self.load(args,"machine_id",-1)
-        self.image_id     = self.load(args,"image_id",-1)
-        self.state        = self.load(args,"state",-1)
+        self.id            = self.load(args,"id",-1)
+        self.machine_id    = self.load(args,"machine_id",-1)
+        self.image_id      = self.load(args,"image_id",-1)
+        self.state         = self.load(args,"state",-1)
 
     def to_datastruct(self):
         """
         Serialize the object for transmission over WS.
         """
         return {
-            "id"          : self.id,
-            "machine_id"  : self.machine_id,
-            "image_id"    : self.image_id,
-            "state"       : self.state,
+            "id"           : self.id,
+            "machine_id"   : self.machine_id,
+            "image_id"     : self.image_id,
+            "state"        : self.state,
         }
 
     def validate(self,operation):
@@ -83,36 +84,30 @@ def deployment_add(websvc,args):
      Create a deployment.  args should contain all fields except ID.
      """
      u = Deployment.produce(args,OP_ADD)
-     u.id = int(time.time())
+     u.id = websvc.get_uid()
      st = """
      INSERT INTO deployments (id,machine_id,image_id,state)
      VALUES (:id,:machine_id,:image_id,:state)
      """
      try:
-         machine.machine_get(websvc,u.machine_id)
-     except errors.ShadowManagerException:
-        raise InvalidArgumentsException(["machine_id"])
-     try:
-        image.image_get(websvc,u.image_id)
-     except errors.ShadowManagerException:
-        raise InvalidArgumentsException(["image_id"])
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+         websvc.cursor.execute(st, u.to_datastruct())
+         websvc.connection.commit()
+     except Exception:
+         # FIXME: be more fined grained (find where IntegrityError is defined)
+         raise SQLException(traceback.format_exc())
      return success(u.id)
 
 def deployment_edit(websvc,args):
      """
      Edit a deployment.  args should contain all fields that need to
-     be changed.  For deployments, (image_id can't be changed, machine_id can)
+     be changed.
      """
      u = Deployment.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE deployments 
-     SET deployments.machine_id=:machine_id,
-     deployments.state=:state,
-     WHERE deployments.id=:id
+     SET machine_id=:machine_id, state=:state
+     WHERE id=:id
      """
-     # FIXME: validate that machine_id and image_id are valid?
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct())
@@ -122,10 +117,15 @@ def deployment_delete(websvc,args):
      Deletes a deployment.  The args must only contain the id field.
      """
      u = Deployment.produce(args,OP_DELETE) # force validation
+ 
      st = """
-     DELETE FROM deployments WHERE users.id=:id
+     DELETE FROM deployments WHERE deployments.id=:id
      """
-     websvc.cursor.execute(st, { "id" : u.id })
+     # check to see that what we are deleting exists
+     rc = deployment_get(websvc,args)
+     if not rc:
+        raise NoSuchObjectException()
+     websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      # FIXME: failure based on existance
      return success()
@@ -143,41 +143,54 @@ def deployment_list(websvc,args):
      if args.has_key("limit"):
         limit = args["limit"]
      st = """
-     SELECT users.id,users.machine_id,users.image_id,users.state
-     machines.id, machines.address, machines.architecture,
-        machines.processor_speed, machines.processor_count
-     images.id, images.name, images.version, images.filename, images.specfile,
-     FROM users,machines,images 
+     SELECT 
+     deployments.id,
+     deployments.machine_id,
+     deployments.image_id,
+     deployments.state,
+     images.id,
+     images.name,
+     images.version,
+     images.filename,
+     images.specfile,
+     machines.id,
+     machines.address, 
+     machines.architecture,
+     machines.processor_speed,
+     machines.processor_count
+     FROM deployments,images,machines 
      WHERE images.id = deployments.image_id AND
      machines.id = deployments.machine_id
      LIMIT ?,?
      """ 
-     # FIXME: nest machine,image info
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
+     if results is None:
+         return success([])
      deployments = []
      for x in results:
          data = {         
-            "id"               : x[0],
-            "machine_id"       : x[1],
-            "image_id"         : x[2],
-            "state"            : x[3],
-            "machine"          : {
-                "id"              : x[3],
-                "address"         : x[4],
-                "architecture"    : x[5],
-                "processor_speed" : x[6],
-                "processor_ct"    : x[7]
+            "id"           : x[0],
+            "machine_id"   : x[1],
+            "image_id"     : x[2],
+            "state"        : x[3],
+            "machine"      : {
+                "id"       : x[4],
+                "name"     : x[5],
+                "version"  : x[6],
+                "filename" : x[7],
+                "specfile" : x[8]
             },
-            "image"            : {
-                "id"              : x[8],
-                "name"            : x[9],
-                "version"         : x[10],
-                "filename"        : x[11],
-                "specfile"        : x[12]
+            "image"        : {
+                "id"              : x[9],
+                "address"         : x[10],
+                "architecture"    : x[11],
+                "processor_speed" : x[12],
+                "processor_count" : x[13],
+                "memory"          : x[14]
             }
          }
-         deployments.append(Deployment.produce(data).to_datastruct())
+         deployments.append(data)
      return success(deployments)
 
 def deployment_get(websvc,args):
@@ -186,25 +199,24 @@ def deployment_get(websvc,args):
      """
      u = Deployment.produce(args,OP_GET) # force validation
      st = """
-     SELECT id,machine_id,image_id,state
-     FROM deployments WHERE id=?
+     SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
+     image.id, machine.id
+     FROM deployments WHERE deployments.id=:id AND 
+     AND image.id = deployments.image_id AND machines.id = deployments.machine_id
      """
-     # FIXME nest machine,image info
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
-     machine_rc = machine.machine_get(websvc,x["machine_id"])
-     if not machine_rc[0]:
-         raise InternalErrorException("machine_id")
-     image_rc   = image.image_get(websvc,x["image_rc"])
-     if not image_rc[0]:
-         raise InternalErrorException("image_id")
+     if x is None:
+         raise NoSuchObjectException()
      data = {
-            "id"              : x[0],
-            "machine_id"      : machine_rc[2],
-            "image_id"        : image_rc[2],
-            "state"           : x[3]
+            "id"         : x[0],
+            "machine_id" : x[1],
+            "image_id"   : x[2],
+            "state"      : x[3],
+            "machine"    : machine.machine_get(websvc, x[1]),
+            "image"      : image.image_get(websvc, x[2])
      }
-     return success(Deployment.produce(data).to_datastruct())
+     return success(data)
 
 def register_rpc(handlers):
      """
