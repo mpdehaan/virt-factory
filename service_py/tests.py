@@ -113,7 +113,6 @@ class BaseCrudTests(BaseTest):
        self.failUnlessEqual(data3[self.name_field],"foo","retrieval")
        self.failUnlessEqual(id,data1,"function returned UID")
 
-       # similar ad tests that will fail
        obj = self.sample.copy()
        obj[self.name_field] = "somethingsomething"
        (rc3, data3) = self.call(self.funcs["add_func"], obj)
@@ -199,6 +198,8 @@ class ImageTests(BaseCrudTests):
       self.name_field = "name"
       self.change_test_field = "name"
 
+   # FIXME: more tests of image specific validation
+
    def test_image_list(self):   self._test_list()
    def test_image_edit(self):   self._test_edit()
    def test_image_delete(self): self._test_delete()
@@ -224,6 +225,8 @@ class MachineTests(BaseCrudTests):
       self.name_field = "address"
       self.change_test_field = "address"
       self.initial_rows = 0
+   
+   # FIXME: more tests of machine specific validation
 
    def test_machine_list(self):   self._test_list()
    def test_machine_edit(self):   self._test_edit()
@@ -282,6 +285,22 @@ class DeploymentTests(BaseTest):
        self.failUnlessEqual(type(data2), list, "list returned")
        self.failUnlessEqual(len(data2), 0, "empty list")
 
+   def test_orphan_prevention(self):
+       self.test_add_one()
+       (rc0, data0) = self.call(self.api.deployment_list)
+       obj = data0[0]
+       (rc1, data1) = self.call(self.api.image_delete, { "id" : obj["image_id"] })
+       self.failUnlessEqual(rc1, codes.ERR_ORPHANED_OBJECT)
+       (rc2, data2) = self.call(self.api.image_get, { "id" : obj["image_id"] })
+       self.failUnlessEqual(rc2, 0, "image get ok")
+       self.failUnlessEqual(data2, obj["image"], "image unchanged")
+       (rc3, data3) = self.call(self.api.machine_delete, { "id" : obj["machine_id"] })
+       self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT)
+       (rc4, data4) = self.call(self.api.machine_get, { "id" : obj["machine_id"] })
+       self.failUnlessEqual(rc4, 0, "machine get ok")
+       self.failUnlessEqual(data4, obj["machine"], "machine unchanged") 
+
+
    def test_add_one(self):
        sample_image = {
            "name"     : "dep_image",
@@ -330,11 +349,7 @@ class DeploymentTests(BaseTest):
        self.failUnlessEqual(cmp(data4["image"], sample_image), 0, "image equal")
        
        # FIXME: test limit queries
-       # FIXME: test deletes
-       # FIXME: test additions
        # FIXME: test edits
-       # FIXME: test "image_delete" orphaning deployment
-       # FIXME: test "machine_delete" orphaning deployment
 
 
 
