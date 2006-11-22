@@ -18,6 +18,7 @@ from codes import *
 from errors import *
 import baseobj
 import traceback
+import threading
 
 class Image(baseobj.BaseObject):
 
@@ -83,18 +84,22 @@ def image_add(websvc,args):
      Create a image.  args should contain all fields except ID.
      """
      u = Image.produce(args,OP_ADD)
-     u.id = websvc.get_uid()
      st = """
-     INSERT INTO images (id,name,version,filename,specfile)
-     VALUES (:id,:name,:version,:filename,:specfile)
+     INSERT INTO images (name,version,filename,specfile)
+     VALUES (:name,:version,:filename,:specfile)
      """
+     lock = threading.Lock()
+     lock.acquire()
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception:
+         lock.release()
          # FIXME: be more fined grained (find where IntegrityError is defined)
          raise SQLException(traceback.format_exc())
-     return success(u.id)
+     id = websvc.cursor.lastrowid
+     lock.release()
+     return success(id)
 
 def image_edit(websvc,args):
      """
