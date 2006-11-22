@@ -27,7 +27,13 @@ CREATE TABLE images (
    name       VARCHAR (255) UNIQUE,
    version    VARCHAR (255),
    filename   VARCHAR (255),
-   specfile   VARCHAR (255)
+   specfile   VARCHAR (255),
+   provision_virt_storage_size INT,
+   provision_virt_ram INT,
+   provision_kernel_options VARCHAR(255),
+   provision_initrd_path VARCHAR(255),
+   provision_kernel_path VARCHAR(255),
+   provision_metadata VARCHAR(255)
 );
 
 CREATE TABLE deployments (
@@ -43,7 +49,12 @@ CREATE TABLE machines (
    architecture INT,
    processor_speed INT,
    processor_count INT,
-   memory INT
+   memory INT,
+   provision_kernel_options VARCHAR(255),
+   provision_initrd_path VARCHAR(255),
+   provision_kernel_path VARCHAR(255),
+   provision_kickstart_path VARCHAR(255),
+   provision_metadata VARCHAR(255)
 );
 
 CREATE TABLE metrics (
