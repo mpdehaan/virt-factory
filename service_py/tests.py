@@ -107,7 +107,7 @@ class BaseCrudTests(BaseTest):
        for obj in data2:
           if obj[self.name_field] == "foo":
               id = obj["id"]
-       self.failUnlessEqual(data1, id, "returned UID not equal to found")
+       self.failUnlessEqual(data1, id, "returned UID not equal to found: %s,%s" % (data1,id))
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0, "get ok")
        self.failUnlessEqual(data3[self.name_field],"foo","retrieval")
