@@ -24,6 +24,7 @@ class ApplicationController < ActionController::Base
         rescue RuntimeError
             # internal server error (500) likely here if connection to web svc was
             # severed by a restart of the web service during development.
+            @flash[:notice] = "Internal Server Error"
             redirect_to :controller => "login", :action => "input"
             return false 
         end
