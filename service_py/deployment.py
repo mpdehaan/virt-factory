@@ -90,6 +90,14 @@ def deployment_add(websvc,args):
      VALUES (:id,:machine_id,:image_id,:state)
      """
      try:
+         machine.machine_get(websvc, { "id" : args["machine_id"]})
+     except ShadowManagerException:
+         raise OrphanedObjectException('machine_id')
+     try:
+         image.image_get(websvc, { "id" : args["image_id"]})
+     except ShadowManagerException:
+         raise OrphanedObjectException('image_id')
+     try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception:
@@ -108,6 +116,14 @@ def deployment_edit(websvc,args):
      SET machine_id=:machine_id, state=:state
      WHERE id=:id
      """
+     try:
+         machine.machine_get(websvc, { "id" : args["machine_id"]})
+     except ShadowManagerException:
+         raise InvalidArgumentsException('machine_id')
+     try:
+         image.image_get(websvc, { "id" : args["image_id"]})
+     except ShadowManagerException:
+         raise InvalidArgumentsException('image_id')
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct())

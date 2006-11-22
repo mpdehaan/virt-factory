@@ -300,6 +300,44 @@ class DeploymentTests(BaseTest):
        self.failUnlessEqual(rc4, 0, "machine get ok")
        self.failUnlessEqual(data4, obj["machine"], "machine unchanged") 
 
+   def test_edit(self):
+       self.test_add_one()
+       (rc0, data0) = self.call(self.api.deployment_list)
+       self.failUnlessEqual(rc0, 0, "list ok")
+       obj = data0[0]
+       obj["state"] = 12345678
+       (rc1, data1) = self.call(self.api.deployment_edit, obj)
+       self.failUnlessEqual(rc1, 0, "edit ok")
+       (rc2, data2) = self.call(self.api.deployment_get, { "id" : obj["id"] })
+       self.failUnlessEqual(rc2, 0, "get ok")
+       self.failUnlessEqual(data2, obj, "edited as expected")
+       # now check to make sure integrity is preserved across join
+       # machines and images
+       machine_id = obj["machine_id"]
+       image_id = obj["image_id"]
+       obj["machine_id"] = -1
+       (rc3, data3) = self.call(self.api.deployment_edit, obj)
+       self.failUnlessEqual(rc3, codes.ERR_INVALID_ARGUMENTS, "edit fail: %s" % rc3)
+       self.failUnlessEqual(data3, "machine_id", "listed the arg")
+       obj["machine_id"] = machine_id
+       obj["image_id"] = -2 
+       (rc4, data4) = self.call(self.api.deployment_edit, obj)
+       self.failUnlessEqual(rc4, codes.ERR_INVALID_ARGUMENTS, "invalid id")
+       self.failUnlessEqual(data4, "image_id", "listed the arg: %s" % data3)
+       (rc5, data5) = self.call(self.api.deployment_get, { "id" : obj["id"]})
+       obj["image_id"] = image_id
+       self.failUnlessEqual(obj["image"], data5["image"], "no changes made")
+       self.failUnlessEqual(obj["machine"], data5["machine"], "no changes made")
+
+   def test_add_with_orphans(self):
+       dep2 = {
+           "state" : 27,
+           "image_id" : 8675309,
+           "machine_id" : 8675309
+       }
+       (rc0, data0) = self.call(self.api.deployment_add, dep2)
+       self.failUnlessEqual(rc0, codes.ERR_ORPHANED_OBJECT, "orphans")
+
 
    def test_add_one(self):
        sample_image = {
