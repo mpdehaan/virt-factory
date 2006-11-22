@@ -19,6 +19,7 @@ from codes import *
 from errors import *
 import baseobj
 import traceback
+import threading
 
 class User(baseobj.BaseObject):
 
@@ -119,17 +120,22 @@ def user_add(websvc,args):
      Create a user.  args should contain all user fields except ID.
      """
      u = User.produce(args,OP_ADD)
-     u.id = websvc.get_uid()
+     # u.id = websvc.get_uid()
      st = """
-     INSERT INTO users (id,username,password,first,middle,last,description,email)
-     VALUES (:id,:username,:password,:first,:middle,:last,:description,:email)
+     INSERT INTO users (username,password,first,middle,last,description,email)
+     VALUES (:username,:password,:first,:middle,:last,:description,:email)
      """
+     lock = threading.Lock()
+     lock.acquire()
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception:
+         lock.release()
          raise SQLException(traceback.format_exc())
-     return success(u.id)
+     id = websvc.cursor.lastrowid
+     lock.release()
+     return success(id)
 
 def user_edit(websvc,args):
      """
