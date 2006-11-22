@@ -18,6 +18,7 @@ import codes
 import unittest
 import traceback
 import time
+import sys
 
 class BaseTest(unittest.TestCase):
 
@@ -69,123 +70,6 @@ class LoginTests(BaseTest):
       (rc, data) = self.api.user_login("admin","foosball")
       (rc, data) = self.api.user_list(data) 
       self.failUnlessEqual(rc,codes.ERR_TOKEN_INVALID,"invalid token")
-
-
-OBSOLETE = """
-
-class UserTests(BaseTest):
-   # list
-   # add (passing + cardinality)
-   # add duplicate should fail
-   # delete should pass
-   # delete of "admin" should fail
-   # delete nonexisting should fail
-   # edit (should pass)
-   # edit shouldn't be allowed to change certain fields
-
-   def test_list_default_user(self):
-       (rc, users) = self.call(self.api.user_list)
-       self.failUnlessEqual(rc, codes.ERR_SUCCESS, "return codes")
-       self.failUnlessEqual(len(users),1,"only 1 user out of the box")
-
-   sample_user = {
-          "username"    : "test_add", 
-          "password"    : "pw123456",
-          "first"       : "first",
-          "middle"      : "middle",
-          "last"        : "last",
-          "description" : "description",
-          "email"       : "email"
-   }
-   
-   def test_user_adds_that_will_pass(self):
-       (rc1, data1) = self.call(self.api.user_add, self.sample_user)
-       self.failUnlessEqual(rc1, 0, "user add ok")
-       (rc2, data2) = self.call(self.api.user_list)
-       self.failUnlessEqual(rc2, 0, "user list ok")
-       self.failUnlessEqual(len(data2),2,"now there are two, two wugs")
-       id = -1
-       for user_obj in data2:
-          if user_obj["username"] == "test_add":
-              id = user_obj["id"]
-       self.failUnlessEqual(data1, id, "returned UID not equal to found")
-       (rc3, data3) = self.call(self.api.user_get, { "id" : id })
-       self.failUnlessEqual(rc3,0, "user get ok")
-       self.failUnlessEqual(data3["username"],"test_add","retrieval")
-       self.failUnlessEqual(id,data1,"function returned UID")
-
-   def test_user_adds_that_will_fail(self):
-       user = self.sample_user.copy()
-       user["username"] = "admin"
-       (rc1, data) = self.call(self.api.user_add, user)
-       # FIXME: the following code does not fail and needs fixing ...
-       # second primary key?
-       self.failUnlessEqual(rc1, codes.ERR_SQL, "duplicate user: %s, %s" % (rc1,data))
-       # FIXME: as more validation gets added, add more here
-       # or rather, add them here now and fix the tests later
-
-   def test_user_limit_query(self):
-       user1 = self.sample_user.copy()
-       user1["username"] = "u1"
-       user2 = self.sample_user.copy()
-       user2["username"] = "u2"
-       user3 = self.sample_user.copy()
-       user3["username"] = "u3"
-       user4 = self.sample_user.copy()
-       user4["username"] = "u4"
-
-       # FIXME: SQL adds need to catch errors, i.e. duplicate inserts
-       (rc1, data1) = self.call(self.api.user_add, user1)
-       (rc2, data2) = self.call(self.api.user_add, user2)
-       (rc3, data3) = self.call(self.api.user_add, user3)
-       (rc4, data4) = self.call(self.api.user_add, user4)
-       for (rc,data) in zip([rc1,rc2,rc3,rc4],[data1,data2,data3,data4]):
-          self.failUnlessEqual(rc, 0, "addition ok: %s" % data)
-
-       (rc5, d5) = self.call(self.api.user_list, { "offset" : 1, "limit" : 2 })
-       self.failUnlessEqual(rc, 0, "limit query 1 ok")
-       self.failUnlessEqual(len(d5), 2, "correct number of results")
-       (rc6, d6) = self.call(self.api.user_list, { "offset" : 1, "limit" : 3 })
-       self.failUnlessEqual(rc, 0, "limit query 2 ok")
-       self.failUnlessEqual(len(d6), 3, "correct number of results: %s" % len(d6))
-       (rc7, d7) = self.call(self.api.user_list, {})
-       self.failUnlessEqual(rc, 0, "standard query ok")
-       self.failUnlessEqual(len(d7),5, "all results returned")  
-
-   def test_user_edit(self):
-       user1 = self.sample_user.copy()
-       (rc1, id) = self.call(self.api.user_add, user1)
-       self.failUnlessEqual(rc1,0,"add: %s" % rc1)
-       user1["description"] = "blahblahblah"
-       user1["id"] = id
-       (rc2, data2) = self.call(self.api.user_edit, user1)
-       self.failUnlessEqual(rc2,0,"edit: %s, %s" % (rc2, data2))
-       (rc3, data3) = self.call(self.api.user_get, { "id" : id })
-       self.failUnlessEqual(rc3,0,"get")
-       self.failUnlessEqual(data3["description"],"blahblahblah","changed")
-       self.failUnlessEqual(data3,user1,"totally correct 3")
-       self.failUnlessEqual(data2,user1,"totally correct 2")
-
-   def test_user_delete(self):
-       (rc0, data0) = self.call(self.api.user_list)
-       self.failUnlessEqual(rc0, 0, "list ok")
-       user1 = self.sample_user.copy()
-       (rc1, data1) = self.call(self.api.user_add, user1)
-       self.failUnlessEqual(rc1, 0, "add ok")
-       (rc2, data2) = self.call(self.api.user_list)
-       self.failUnlessEqual(rc2, 0, "list ok")
-       self.failUnlessEqual(len(data2)-len(data0),1,"working add")
-       (rc3, data3) = self.call(self.api.user_get, { "id" : data1 })
-       self.failUnlessEqual(rc3, 0, "working get: %s" % rc3)
-       self.failUnlessEqual(type(data3),dict,"got a dict: %s" % type(data3))
-       (rc4, data4) = self.call(self.api.user_delete, { "id" : data1 })
-       self.failUnlessEqual(rc4, 0, "working delete")
-       (rc5, data5) = self.call(self.api.user_list)
-       self.failUnlessEqual(len(data5),len(data0),"back to initial size")
-       (rc6, data6) = self.call(self.api.user_get, { "id" : data1 })
-       self.failUnlessEqual(rc6, codes.ERR_NO_SUCH_OBJECT,"deleted: %s, %s" % (rc6,data6))
-
-""" 
 
 class BaseCrudTests(BaseTest):
 
@@ -383,7 +267,62 @@ class DeploymentTests(BaseTest):
    # add: image and machine must preexist
    # edit: orphan detection also applies
    # list: verify that image and machine data are nested
-   pass
+
+   def test_add_one(self):
+       sample_image = {
+           "name"     : "dep_image",
+           "version"  : "5150.812",
+           "filename" : "/dev/null", 
+           "specfile" : "/dev/true"
+       }
+       sample_machine = {
+           "address"         : "foo.example.com",
+           "architecture"    : 1,
+           "processor_speed" : 3000,
+           "processor_count" : 1,
+           "memory"          : 4096
+       }
+       sample_deployment = {
+           "machine_id"      : None,
+           "image_id"        : None,
+           "state"           : 0
+       }
+       (rc0, data0) = self.call(self.api.image_add, sample_image)
+       self.failUnlessEqual(rc0, 0, "image add")
+       (rc1, data1) = self.call(self.api.machine_add, sample_machine)
+       self.failUnlessEqual(rc0, 0, "machine add")
+       dep = sample_deployment.copy()
+       dep["machine_id"] = data1 
+       dep["image_id"] = data0
+       (rc2, data2) = self.call(self.api.deployment_add, dep)
+       self.failUnlessEqual(rc2, 0, "deployment add")
+       sample_image["id"] = data0
+       sample_machine["id"] = data1
+       (rc3, data3) = self.call(self.api.deployment_list)
+       self.failUnlessEqual(rc3, 0, "deployment list")
+       self.failUnlessEqual(len(data3), 1, "one machine")
+       self.failUnlessEqual(type(data3), list, "returns a list")
+       # test nested data in "list"
+       self.failUnlessEqual(type(data3[0]), dict, "first element is a dict")
+       self.failUnlessEqual(data3[0].has_key("machine"), True, "machine filled out")
+       self.failUnlessEqual(type(data3[0]["machine"]), dict, "machine is a dict")
+       self.failUnlessEqual(cmp(data3[0]["machine"],sample_machine),0,"machine equal: \n%s\n%s" % (data3[0]["machine"], sample_machine))
+       self.failUnlessEqual(data3[0].has_key("image"), True, "image filled out")
+       self.failUnlessEqual(type(data3[0]["image"]), dict, "image is a dict")
+       self.failUnlessEqual(cmp(data3[0]["image"],sample_image),0,"image equal")
+       # test nested data in "get"
+       (rc4, data4) = self.call(self.api.deployment_get, {"id" : data2})
+       self.failUnlessEqual(cmp(data4["machine"], sample_machine), 0, "machine equal")
+       self.failUnlessEqual(cmp(data4["image"], sample_image), 0, "image equal")
+       
+       # FIXME: test limit queries
+       # FIXME: test deletes
+       # FIXME: test additions
+       # FIXME: test edits
+       # FIXME: test "image_delete" orphaning deployment
+       # FIXME: test "machine_delete" orphaning deployment
+
+
 
 # others TBA
 

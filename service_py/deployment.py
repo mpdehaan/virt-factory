@@ -157,7 +157,8 @@ def deployment_list(websvc,args):
      machines.address, 
      machines.architecture,
      machines.processor_speed,
-     machines.processor_count
+     machines.processor_count,
+     machines.memory
      FROM deployments,images,machines 
      WHERE images.id = deployments.image_id AND
      machines.id = deployments.machine_id
@@ -174,14 +175,14 @@ def deployment_list(websvc,args):
             "machine_id"   : x[1],
             "image_id"     : x[2],
             "state"        : x[3],
-            "machine"      : {
+            "image"        : {
                 "id"       : x[4],
                 "name"     : x[5],
                 "version"  : x[6],
                 "filename" : x[7],
                 "specfile" : x[8]
             },
-            "image"        : {
+            "machine"      : {
                 "id"              : x[9],
                 "address"         : x[10],
                 "architecture"    : x[11],
@@ -200,21 +201,25 @@ def deployment_get(websvc,args):
      u = Deployment.produce(args,OP_GET) # force validation
      st = """
      SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
-     image.id, machine.id
-     FROM deployments WHERE deployments.id=:id AND 
-     AND image.id = deployments.image_id AND machines.id = deployments.machine_id
+     images.id, machines.id
+     FROM deployments,images,machines WHERE deployments.id=:id AND 
+     images.id = deployments.image_id AND machines.id = deployments.machine_id
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
          raise NoSuchObjectException()
+     # exceptions will be raised by these next two calls, so no RC
+     # checking is required
+     (rc1, machine1) = machine.machine_get(websvc, { "id" : x[1] })
+     (rc2, image1)   = image.image_get(websvc, { "id" : x[2] })
      data = {
             "id"         : x[0],
             "machine_id" : x[1],
             "image_id"   : x[2],
             "state"      : x[3],
-            "machine"    : machine.machine_get(websvc, x[1]),
-            "image"      : image.image_get(websvc, x[2])
+            "machine"    : machine1,
+            "image"      : image1
      }
      return success(data)
 

@@ -68,10 +68,8 @@ class XmlRpcInterface:
        FIXME: eventually calling most functions should go from here through getattr.
        """
        self.handlers = {}
-       user.register_rpc(self.handlers)
-       machine.register_rpc(self.handlers)
-       image.register_rpc(self.handlers)
-       # TODO: others ...
+       for x in [user,machine,image,deployment]:
+           x.register_rpc(self.handlers)
 
    # FIXME: find some more elegant way to surface the handlers?
    # FIXME: aforementioned login/session token requirement
@@ -165,7 +163,7 @@ class XmlRpcInterface:
    def image_delete(self, token, args):
        return self.__dispatch("image_delete",token,args)
    
-   def deployment_list(self,token,args):
+   def deployment_list(self,token,args={}):
        return self.__dispatch("deployment_list",token,args={})
 
    def deployment_get(self, token, args):
