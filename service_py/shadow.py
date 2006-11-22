@@ -56,12 +56,6 @@ class XmlRpcInterface:
        self.logger.addHandler(handler)
        self.logger.setLevel(logging.DEBUG)
 
-       self.uid = int(100*time.time())
-
-   def get_uid(self):
-       self.uid = self.uid + 1
-       return self.uid
-
    def __setup_handlers(self):
        """
        Add RPC functions from each class to the global list so they can be called.
