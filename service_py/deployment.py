@@ -18,6 +18,7 @@ from codes import *
 from errors import *
 import baseobj
 import traceback
+import threading
 
 import machine
 import image
@@ -84,7 +85,6 @@ def deployment_add(websvc,args):
      Create a deployment.  args should contain all fields except ID.
      """
      u = Deployment.produce(args,OP_ADD)
-     u.id = websvc.get_uid()
      st = """
      INSERT INTO deployments (id,machine_id,image_id,state)
      VALUES (:id,:machine_id,:image_id,:state)
@@ -97,13 +97,18 @@ def deployment_add(websvc,args):
          image.image_get(websvc, { "id" : args["image_id"]})
      except ShadowManagerException:
          raise OrphanedObjectException('image_id')
+     lock = threading.Lock()
+     lock.acquire()
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception:
+         lock.release()
          # FIXME: be more fined grained (find where IntegrityError is defined)
          raise SQLException(traceback.format_exc())
-     return success(u.id)
+     id = websvc.cursor.lastrowid
+     lock.release()
+     return success(id)
 
 def deployment_edit(websvc,args):
      """
