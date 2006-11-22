@@ -6,7 +6,8 @@
          <TR>
             <TD>Address</TD>
             <TD>Architecture</TD>
-            <TD>Processors</TD>
+            <TD>Processor Speed</TD>
+            <TD>Processor Count</TD>
             <TD>Memory</TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
@@ -16,7 +17,8 @@
              
              <TD> <%= item.address %> </TD>
              <TD> <%= item.architecture %> </TD>
-             <TD> <%= item.processors %> </TD>
+             <TD> <%= item.processor_speed %> </TD>
+             <TD> <%= item.processor_count %> </TD>
              <TD> <%= item.memory %> </TD>
              <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>

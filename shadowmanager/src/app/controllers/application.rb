@@ -66,11 +66,13 @@ class ObjectController < ApplicationController
             @item = object_class.new
             @operation = "Add"
         else
-            plist = { "id" => @params[:id] }
-            (rc, item_hash) = @@server.call("#{object_class::METHOD_PREFIX}_get", @session[:login], plist)
-            @item = ManagedObject.from_hash(object_class,item_hash)
+            @item = ManagedObject.retrieve(object_class,session, @params[:id])
             @operation = "Edit"
         end
+    end
+
+    def view
+        @item = ManagedObject.retrieve(object_class,session, @params[:id])
     end
 
     def edit_submit
@@ -127,6 +129,16 @@ class ObjectController < ApplicationController
                 raise XMLRPCClientException.new(rc, results)
             end
             results.collect {|hash| ManagedObject.from_hash(object_class,hash)}
+        end
+
+        def self.retrieve(object_class, session, id)
+#            plist = { "id" => id }
+#           (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_get", session[:login], plist)
+#            ManagedObject.from_hash(object_class,results)
+            print "ID: ", id, "\n"
+            item = self.retrieve_all(object_class, session).find { |obj| obj.id.to_s == id }
+            print "item: ", item, "\n"
+            item
         end
 
         def self.temp_retrieve(object_class)
@@ -228,5 +240,3 @@ class ApplicationControllerUnlocked < ActionController::Base
     layout "shadowmanager-layout"
 
 end
-
-

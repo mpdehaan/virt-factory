@@ -1,0 +1,25 @@
+      <% @page_title = "View Image" %>
+      <%= ApplicationHelper.menubar("image","list") %>
+
+      <div id="content-main">
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Name</TD>
+            <TD><%= @item.name %></TD>
+         </TR>
+         <TR> 
+            <TD>Version</TD>
+            <TD><%= @item.version %></TD>
+         </TR>
+         <TR> 
+            <TD>Filename</TD>
+            <TD><%= @item.filename %></TD>
+         </TR>
+         <TR>
+            <TD>Specfile</TD>
+            <TD><%= @item.specfile %></TD>
+         </TR>
+      </TABLE>
+      </div>
+
+      <% @callout_1 = "View an image" %>
