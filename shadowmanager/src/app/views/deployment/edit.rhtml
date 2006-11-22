@@ -1,0 +1,27 @@
+      <% @page_title = @operation + " Deployment" %>
+      <%= ApplicationHelper.menubar("deployment","list") %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Machine</TD>
+            <TD><%= f.select :machine_id, @machines %></TD>
+         </TR>
+         <TR>
+            <TD>Image</TD>
+            <TD><%= f.select :image_id, @images %></TD>
+         </TR>
+         <TR> 
+            <TD>State</TD>
+            <TD><%= f.text_field :state %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+      <% @callout_1 = @operation + " a deployment" %>
+

@@ -1,31 +1,30 @@
-require 'xmlrpc/client'
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
-class DeploymentController < ApplicationController
-   include ApplicationHelper
-   
-   def index
-       redirect_to :action => 'list'
+
+class DeploymentController < ObjectController
+
+   def object_class
+       Deployment
    end
 
-   def list
-       (success, rc, @items) = @@server.call("deployment_list",@session[:login])
+   def edit
+       super
+       @machines = ManagedObject.retrieve_all(MachineController::Machine, @session).collect do |machine|
+           [machine.address, machine.id]
+       end
+       @images = ManagedObject.retrieve_all(ImageController::Image, @session).collect do |image|
+           [image.name, image.id]
+       end
    end
 
-   def add
+   class Deployment < ManagedObject
+       ATTR_LIST = [:id, :machine_id, :image_id, :state]
+       ASSOCIATIONS = {:machine => [:machine_id, MachineController::Machine], :image => [:image_id, ImageController::Image]}
+       ATTR_LIST.each {|x| attr_accessor x}
+       ASSOCIATIONS.each {|x,y| attr_accessor x}
+       METHOD_PREFIX = "deployment"
+
+       def objname
+           username
+       end
    end
-
-   def add_submit
-   end
-
-   def delete
-   end
-
-   def viewedit
-   end
-
-   def viewedit_submit
-   end
-
-
 end

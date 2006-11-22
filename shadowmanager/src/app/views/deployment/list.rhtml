@@ -2,7 +2,25 @@
       <%= ApplicationHelper.menubar("deployment","list") %>
      
       <div id="content-main">
-      <!-- FIXME -->
+      <TABLE class='listing'>
+         <TR>
+            <TD>Machine</TD>
+            <TD>Image</TD>
+            <TD>State</TD>
+         </TR>
+      <%# FIXME: this may be a result of what objects are being sent over from Python. %>
+      <%# FIXME: web svc should return a hash not a list %>
+      <% @items.each do |item| %>
+         <TR>
+             
+             <TD> <%= link_to item.machine.address, :controller => "machine", :action=> "view", :id=> item.machine.id %></TD>
+             <TD> <%= link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id %></TD>
+             <TD> <%= item.state %> </TD>
+             <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
+         </TR>
+      <% end %>
+      </TABLE>
       </div>
 
       <% @callout_1 = "This page lists deployed appliances." %>
