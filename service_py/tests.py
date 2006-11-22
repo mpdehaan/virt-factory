@@ -328,5 +328,6 @@ class DeploymentTests(BaseTest):
 
 if __name__ == "__main__":
     unittest.main() 
+    shadow.database_reset() # make it usable again
 
 
