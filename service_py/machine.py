@@ -18,6 +18,7 @@ from codes import *
 from errors import *
 import baseobj
 import traceback
+import threading
 
 class Machine(baseobj.BaseObject):
 
@@ -85,18 +86,22 @@ def machine_add(websvc,args):
      Create a machine.  args should contain all fields except ID.
      """
      u = Machine.produce(args,OP_ADD)
-     u.id = websvc.get_uid()
      st = """
-     INSERT INTO machines (id,address,architecture,processor_speed,processor_count,memory)
-     VALUES (:id,:address,:architecture,:processor_speed,:processor_count,:memory)
+     INSERT INTO machines (address,architecture,processor_speed,processor_count,memory)
+     VALUES (:address,:architecture,:processor_speed,:processor_count,:memory)
      """
+     lock = threading.Lock()
+     lock.acquire()
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
      except Exception:
          # FIXME: be more fined grained (IntegrityError only)
+         lock.release()
          raise SQLException(traceback.format_exc())
-     return success(u.id)
+     id = websvc.cursor.lastrowid
+     lock.release()
+     return success(id)
 
 def machine_edit(websvc,args):
      """
