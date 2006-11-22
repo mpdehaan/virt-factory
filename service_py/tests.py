@@ -268,6 +268,20 @@ class DeploymentTests(BaseTest):
    # edit: orphan detection also applies
    # list: verify that image and machine data are nested
 
+   def test_delete(self):
+       self.test_add_one()
+       (rc0, data0) = self.call(self.api.deployment_list)
+       self.failUnlessEqual(rc0, 0, "list ok")
+       self.failUnlessEqual(len(data0),1,"cardinality")
+       record = data0[0]
+       id = record["id"]
+       (rc1, data1) = self.call(self.api.deployment_delete, { "id" : id})
+       self.failUnlessEqual(rc1, 0, "delete ok: %s, %s" % (rc1, data1))
+       (rc2, data2) = self.call(self.api.deployment_list)
+       self.failUnlessEqual(rc2, 0, "list ok")
+       self.failUnlessEqual(type(data2), list, "list returned")
+       self.failUnlessEqual(len(data2), 0, "empty list")
+
    def test_add_one(self):
        sample_image = {
            "name"     : "dep_image",
