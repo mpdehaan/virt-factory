@@ -36,6 +36,7 @@ import event
 import image
 import deployment
 import machine
+import distribution
 from pysqlite2 import dbapi2 as sqlite
 
 class XmlRpcInterface:
@@ -62,7 +63,7 @@ class XmlRpcInterface:
        FIXME: eventually calling most functions should go from here through getattr.
        """
        self.handlers = {}
-       for x in [user,machine,image,deployment]:
+       for x in [user,machine,image,deployment,distribution]:
            x.register_rpc(self.handlers)
 
    # FIXME: find some more elegant way to surface the handlers?
@@ -171,6 +172,9 @@ class XmlRpcInterface:
    
    def deployment_delete(self, token, args):
        return self.__dispatch("deployment_delete",token,args)
+
+   def distribution_get(self, token, args):
+       return self.__dispatch("distribution_get", token, args)
 
    def __dispatch(self, method, token, args=[]):
        """

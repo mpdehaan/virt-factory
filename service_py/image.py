@@ -42,38 +42,36 @@ class Image(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         image object for interaction with the ORM.  See methods below for examples.
         """
-        self.id               = self.load(args,"id",-1)
-        self.name             = self.load(args,"name",-1)
-        self.version          = self.load(args,"version",-1)
-        self.filename         = self.load(args,"filename",-1)
-        self.specfile         = self.load(args,"specfile",-1)
+        self.id                 = self.load(args,"id",-1)
+        self.name               = self.load(args,"name",-1)
+        self.version            = self.load(args,"version",-1)
+        self.filename           = self.load(args,"filename",-1)
+        self.specfile           = self.load(args,"specfile",-1)
+        self.distribution_id    = self.load(args,"distribution_id",-1)
+        self.virt_storage_size  = self.load(args,"virt_storage_size", -1)
+        self.virt_ram           = self.load(args,"virt_ram", -1)
+        self.kickstart_metadata = self.load(args,"kickstart_metadata", -1)
 
     def to_datastruct(self):
         """
         Serialize the object for transmission over WS.
         """
         return {
-            "id"              : self.id,
-            "name"            : self.name,
-            "version"         : self.version,
-            "filename"        : self.filename,
-            "specfile"        : self.specfile
+            "id"                 : self.id,
+            "name"               : self.name,
+            "version"            : self.version,
+            "filename"           : self.filename,
+            "specfile"           : self.specfile,
+            "distribution_id"    : self.distribution_id,
+            "virt_storage_size"  : self.virt_storage_size,
+            "virt_ram"           : self.virt_ram,
+            "kickstart_metadata" : self.kickstart_metadata  
         }
 
     def validate(self,operation):
         """
-        Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
-        if there are any problems.  Note that validation is operation specific, for instance
-        there is no ID for an "add" command because the add command generates the ID.
-
-        Note that getting python exception errors during a cast here is technically good enough
-        to prevent GIGO, but really InvalidArgumentsExceptions should be raised.  That's what
-        we want.
-
-        NOTE: API currently gives names of invalid fields but does not list reasons.  
-        i.e. (FALSE, INVALID_ARGUMENTS, ["foo,"bar"].  By making the 3rd argument a hash
-        it could, but these would also need to be codes.  { "foo" : OUT_OF_RANGE, "bar" : ... }
-        Up for consideration, but probably not needed at this point.  Can be added later. 
+        Cast variables appropriately and raise InvalidArgumentException
+        where appropriate.
         """
         # FIXME
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
@@ -85,9 +83,17 @@ def image_add(websvc,args):
      """
      u = Image.produce(args,OP_ADD)
      st = """
-     INSERT INTO images (name,version,filename,specfile)
-     VALUES (:name,:version,:filename,:specfile)
+     INSERT INTO images (name,version,filename,specfile,
+     distribution_id,virt_storage_size,virt_ram,kickstart_metadata)
+     VALUES (:name,:version,:filename,:specfile,:distribution_id,
+     :virt_storage_size,:virt_ram,:kickstart_metadata)
      """
+     if distribution_id >= 0:
+         try:
+             distribution.distribution_get(websvc, { "id" : args["distribution_id"]})
+         except ShadowManagerException:
+             raise OrphanedObjectExcception('distribution_id')
+
      lock = threading.Lock()
      lock.acquire()
      try:
@@ -109,7 +115,9 @@ def image_edit(websvc,args):
      u = Image.produce(args,OP_EDIT) # force validation
      st = """
      UPDATE images 
-     SET name=:name, version=:version, filename=:filename, specfile=:specfile
+     SET name=:name, version=:version, filename=:filename, specfile=:specfile,
+     virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
+     kickstart_metadata=:kickstart_metadata
      WHERE id=:id
      """
      websvc.cursor.execute(st, u.to_datastruct())
@@ -126,7 +134,8 @@ def image_delete(websvc,args):
      DELETE FROM images WHERE images.id=:id
      """
      st2 = """
-     SELECT images.id FROM deployments,images where deployments.image_id = images.id
+     SELECT images.id FROM deployments,images 
+     WHERE deployments.image_id = images.id
      AND images.id=:id
      """
      # check to see that what we are deleting exists
@@ -143,6 +152,11 @@ def image_delete(websvc,args):
      # FIXME: failure based on existance
      return success()
 
+def __not_none(x):
+     if x is None:
+         return -1
+     return x
+
 def image_list(websvc,args):
      """
      Return a list of images.  The args list is currently *NOT*
@@ -156,8 +170,15 @@ def image_list(websvc,args):
      if args.has_key("limit"):
         limit = args["limit"]
      st = """
-     SELECT id,name,version,filename,specfile
-     FROM images LIMIT ?,?
+     SELECT 
+     images.id, images.name, images.version,
+     images.filename, images.specfile, images.virt_storage_size,
+     images.virt_ram, images.kickstart_metadata,
+     distributions.id, distributions.kernel, distributions.initrd,
+     distributions.options, distributions.kickstart, distributions.name
+     FROM images,distributions 
+     LEFT OUTER JOIN images.distribution_id = distributions.id 
+     LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
@@ -165,12 +186,27 @@ def image_list(websvc,args):
          return success([])
      images = []
      for x in results:
+         # note that the distribution is *not* expanded as it may
+         # not be valid in all cases
          data = {         
             "id"        : x[0],
             "name"      : x[1],
             "version"   : x[2],
             "filename"  : x[3],
-            "specfile"  : x[4]
+            "specfile"  : x[4],
+            "distribution_id"    : x[5],
+            "virt_storage_size"  : x[6],
+            "virt_ram"           : x[7],
+            "kickstart_metadata" : x[8],
+            "distribution" : {
+                 "id"        : x[9],
+                 "kernel"    : x[10],
+                 "initrd"    : x[11],
+                 "options"   : x[12],
+                 "kickstart" : x[12],
+                 "name"      : x[13]
+            }
+
          }
          images.append(Image.produce(data).to_datastruct())
      return success(images)
@@ -181,7 +217,8 @@ def image_get(websvc,args):
      """
      u = Image.produce(args,OP_GET) # force validation
      st = """
-     SELECT id,name,version,filename,specfile
+     SELECT id,name,version,filename,specfile,
+     distribution_id,virt_storage_size,virt_ram, kickstart_metadata
      FROM images WHERE id=:id
      """
      websvc.cursor.execute(st,{ "id" : u.id })
@@ -194,7 +231,13 @@ def image_get(websvc,args):
             "version"  : x[2],
             "filename" : x[3],
             "specfile" : x[4],
+            "distribution_id" : x[5],
+            "virt_storage_size" : x[6],
+            "virt_ram" : x[7],
+            "kickstart_metadata" : x[8]
      }
+     if x[5] >= 0:
+         data["distribution"] = distribution.distribution_get(websvc, { "id" : x[5]     })
      return success(Image.produce(data).to_datastruct())
 
 def register_rpc(handlers):
