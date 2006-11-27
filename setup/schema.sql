@@ -1,3 +1,4 @@
+
 CREATE TABLE users (
    id INTEGER PRIMARY KEY,
    username VARCHAR (255) UNIQUE,
@@ -22,25 +23,32 @@ CREATE TABLE events (
    user_comment   VARCHAR (255)
 );
 
+CREATE TABLE distribution (
+   id INTEGER PRIMARY KEY,
+   kernel VARCHAR(255),
+   initrd VARCHAR(255),
+   options VARCHAR(255),
+   kickstart VARCHAR(255),
+   name VARCHAR(255)
+);
+
 CREATE TABLE images (
    id INTEGER PRIMARY KEY,
    name       VARCHAR (255) UNIQUE,
    version    VARCHAR (255),
    filename   VARCHAR (255),
    specfile   VARCHAR (255),
-   provision_virt_storage_size INT,
-   provision_virt_ram INT,
-   provision_kernel_options VARCHAR(255),
-   provision_initrd_path VARCHAR(255),
-   provision_kernel_path VARCHAR(255),
-   provision_metadata VARCHAR(255)
+   distribution_id    INT,
+   virt_storage_size  INT,
+   virt_ram           INT,
+   kickstart_metadata VARCHAR(255)
 );
 
 CREATE TABLE deployments (
    id INTEGER PRIMARY KEY,
    machine_id INT,
-   image_id INT,
-   state INT
+   image_id   INT,
+   state      INT
 );
 
 CREATE TABLE machines (
@@ -49,20 +57,10 @@ CREATE TABLE machines (
    architecture INT,
    processor_speed INT,
    processor_count INT,
-   memory INT,
-   provision_kernel_options VARCHAR(255),
-   provision_initrd_path VARCHAR(255),
-   provision_kernel_path VARCHAR(255),
-   provision_kickstart_path VARCHAR(255),
-   provision_metadata VARCHAR(255)
-);
-
-CREATE TABLE metrics (
-   id INTEGER PRIMARY KEY,
-   deployment_id INT,
-   category VARCHAR(255),
-   time VARCHAR(255),
-   value VARCHAR(255),
-   type VARCHAR(255)
+   memory          INT,
+   distribution_id INT,
+   kernel_options     VARCHAR(255),
+   kickstart_metadata VARCHAR(255),
+   list_group         VARCHAR(255)
 );
 
