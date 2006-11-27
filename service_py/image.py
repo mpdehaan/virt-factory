@@ -19,6 +19,7 @@ from errors import *
 import baseobj
 import traceback
 import threading
+import distribution
 
 class Image(baseobj.BaseObject):
 
@@ -88,9 +89,11 @@ def image_add(websvc,args):
      VALUES (:name,:version,:filename,:specfile,:distribution_id,
      :virt_storage_size,:virt_ram,:kickstart_metadata)
      """
-     if distribution_id >= 0:
+     u = Image.produce(args,OP_ADD)
+     print u.to_datastruct() # debug
+     if u.distribution_id >= 0:
          try:
-             distribution.distribution_get(websvc, { "id" : args["distribution_id"]})
+             distribution.distribution_get(websvc, { "id" : u.distribution_id})
          except ShadowManagerException:
              raise OrphanedObjectExcception('distribution_id')
 

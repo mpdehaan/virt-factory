@@ -217,7 +217,7 @@ class MachineTests(BaseCrudTests):
          "architecture" : 1,
          "processor_speed" : 2200,
          "processor_count" : 2,
-         "memory" : 1024
+         "memory" : 1024,
          "distribution_id" : -1,
          "kernel_options" : "ksdevice=eth0 text",
          "kickstart_metadata" : -1,

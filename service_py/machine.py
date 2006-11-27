@@ -19,6 +19,7 @@ from errors import *
 import baseobj
 import traceback
 import threading
+import distribution
 
 class Machine(baseobj.BaseObject):
 
@@ -241,7 +242,7 @@ def machine_get(websvc,args):
             "kernel_options"  : x[7],
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
-            "distribution"    : distribution.distribution_get({"id":x[6]})
+            "distribution"    : distribution.distribution_get(websvc, {"id":x[6]})
      }
      return success(Machine.produce(data).to_datastruct())
 

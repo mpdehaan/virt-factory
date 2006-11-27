@@ -168,7 +168,7 @@ def distribution_get(websvc,args):
      """
      u = Distribution.produce(args,OP_GET) # force validation
      st = """
-     SELECT id,distributionname,password,first,middle,last,description,email
+     SELECT id,kernel,initrd,options,kickstart,name
      FROM distributions WHERE distributions.id=:id
      """
      websvc.cursor.execute(st,{ "id" : u.id })
@@ -189,7 +189,6 @@ def register_rpc(handlers):
      """
      This adds RPC functions to the global list of handled functions.
      """
-     handlers["distribution_login"]  = distribution_login
      handlers["distribution_add"]    = distribution_add
      handlers["distribution_delete"] = distribution_delete
      handlers["distribution_list"]   = distribution_list
