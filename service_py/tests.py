@@ -186,7 +186,11 @@ class ImageTests(BaseCrudTests):
          "name" : "foo",
          "version" : "1.01",
          "filename" : "/tmp/foo",
-         "specfile" : "/tmp/bar"
+         "specfile" : "/tmp/bar",
+         "distribution_id" : -1, 
+         "virt_storage_size" : 500,
+         "virt_ram" : 2048,
+         "kickstart_metadata" : -1
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -214,6 +218,10 @@ class MachineTests(BaseCrudTests):
          "processor_speed" : 2200,
          "processor_count" : 2,
          "memory" : 1024
+         "distribution_id" : -1,
+         "kernel_options" : "ksdevice=eth0 text",
+         "kickstart_metadata" : -1,
+         "list_group" : "building three"
       } 
       self.funcs = {
          "add_func"    : self.api.machine_add,
@@ -344,14 +352,22 @@ class DeploymentTests(BaseTest):
            "name"     : "dep_image",
            "version"  : "5150.812",
            "filename" : "/dev/null", 
-           "specfile" : "/dev/true"
+           "specfile" : "/dev/true",
+           "distribution_id" : -1,
+           "virt_storage_size" : 456,
+           "virt_ram" : 789,
+           "kickstart_metadata" : "foo=bar baz=foo 12345"
        }
        sample_machine = {
            "address"         : "foo.example.com",
            "architecture"    : 1,
            "processor_speed" : 3000,
            "processor_count" : 1,
-           "memory"          : 4096
+           "memory"          : 4096,
+           "distribution_id" : -1,
+           "kernel_options"  : "foo=bar 12345",
+           "kickstart_metadata" : "bar=foo baz=foo foo=bar",
+           "list_group"      : "server room 5"
        }
        sample_deployment = {
            "machine_id"      : None,
