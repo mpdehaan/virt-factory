@@ -23,6 +23,55 @@
             <TD>Memory</TD>
             <TD><%= @item.memory %></TD>
          </TR>
+         <TR>
+            <TD>Distribution</TD>
+            <TD>
+                <% if @item.get_distribution %>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Name</TD>
+                          <TD><%= @item.distribution.name %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Kernel</TD>
+                          <TD><%= @item.distribution.kernel %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Initrd</TD>
+                          <TD><%= @item.distribution.initrd %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Options</TD>
+                          <TD><%= @item.distribution.options %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Kickstart</TD>
+                          <TD><%= @item.distribution.kickstart %></TD>
+                       </TR>
+                    </TABLE>
+                <% end %>
+            </TD>
+         </TR>
+         <TR>
+            <TD>Kernel Options</TD>
+            <TD><%= @item.kernel_options %></TD>
+         </TR>
+         <TR>
+            <TD>Kickstart Metadata</TD>
+            <TD><%= @item.kickstart_metadata %></TD>
+         </TR>
+         <TR>
+            <TD>List Group</TD>
+            <TD><%= @item.list_group %></TD>
+         </TR>
       </TABLE>
       </div>
       <% @callout_1 = "View a machine" %>

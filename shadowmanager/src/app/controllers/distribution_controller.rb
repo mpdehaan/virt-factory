@@ -12,7 +12,7 @@ class DistributionController < ObjectController
                      :initrd => {:type => String}, 
                      :options => {:type => String}, 
                      :kickstart => {:type => String} }
-       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
+       self.set_attrs(ATTR_LIST)
        METHOD_PREFIX = "distribution"
 
        def objname

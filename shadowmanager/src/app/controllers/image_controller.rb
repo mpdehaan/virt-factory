@@ -3,6 +3,7 @@ class ImageController < ObjectController
 
    def edit
        super
+# FIXME stubbed out until api support is added
 #       @distributions = ManagedObject.retrieve_all(DistributionController::Distribution, @session).collect do |dist|
 #           [dist.name, dist.id]
 #       end
