@@ -174,12 +174,20 @@ def deployment_list(websvc,args):
      images.version,
      images.filename,
      images.specfile,
+     images.distribution_id,
+     images.virt_storage_size,
+     images.virt_ram,
+     images.kickstart_metadata,
      machines.id,
      machines.address, 
      machines.architecture,
      machines.processor_speed,
      machines.processor_count,
-     machines.memory
+     machines.memory,
+     machines.distribution_id,
+     machines.kernel_options,
+     machines.kickstart_metadata,
+     machines.list_group
      FROM deployments,images,machines 
      WHERE images.id = deployments.image_id AND
      machines.id = deployments.machine_id
@@ -201,15 +209,23 @@ def deployment_list(websvc,args):
                 "name"     : x[5],
                 "version"  : x[6],
                 "filename" : x[7],
-                "specfile" : x[8]
+                "specfile" : x[8],
+                "distribution_id"    : x[9],
+                "virt_storage_size"  : x[10],
+                "virt_ram"           : x[11],
+                "kickstart_metadata" : x[12]
             },
             "machine"      : {
-                "id"              : x[9],
-                "address"         : x[10],
-                "architecture"    : x[11],
-                "processor_speed" : x[12],
-                "processor_count" : x[13],
-                "memory"          : x[14]
+                "id"              : x[13],
+                "address"         : x[14],
+                "architecture"    : x[15],
+                "processor_speed" : x[16],
+                "processor_count" : x[17],
+                "memory"          : x[18],
+                "distribution_id" : x[19],
+                "kernel_options"  : x[20],
+                "kickstart_metadata" : x[21],
+                "list_group" : x[22]
             }
          }
          deployments.append(data)

@@ -157,8 +157,8 @@ class BaseCrudTests(BaseTest):
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0,"get")
        self.failUnlessEqual(data3[self.change_test_field],"blahblahblah","changed: %s" % (data3))
-       self.failUnlessEqual(data3,s1,"modified 1")
-       self.failUnlessEqual(data2,s1,"modified 2")
+       self.failUnlessEqual(data3,s1,"modified 1: %s vs %s" % (data3,s1))
+       self.failUnlessEqual(data2,s1,"modified 2: %s vs %s" % (data2,s1))
 
    def _test_delete(self):
        (rc0, data0) = self.call(self.funcs["list_func"])
@@ -186,7 +186,11 @@ class ImageTests(BaseCrudTests):
          "name" : "foo",
          "version" : "1.01",
          "filename" : "/tmp/foo",
-         "specfile" : "/tmp/bar"
+         "specfile" : "/tmp/bar",
+         "distribution_id" : -1, 
+         "virt_storage_size" : 500,
+         "virt_ram" : 2048,
+         "kickstart_metadata" : ""
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -213,7 +217,11 @@ class MachineTests(BaseCrudTests):
          "architecture" : 1,
          "processor_speed" : 2200,
          "processor_count" : 2,
-         "memory" : 1024
+         "memory" : 1024,
+         "distribution_id" : -1,
+         "kernel_options" : "ksdevice=eth0 text",
+         "kickstart_metadata" : "",
+         "list_group" : "building three"
       } 
       self.funcs = {
          "add_func"    : self.api.machine_add,
@@ -344,14 +352,22 @@ class DeploymentTests(BaseTest):
            "name"     : "dep_image",
            "version"  : "5150.812",
            "filename" : "/dev/null", 
-           "specfile" : "/dev/true"
+           "specfile" : "/dev/true",
+           "distribution_id" : -1,
+           "virt_storage_size" : 456,
+           "virt_ram" : 789,
+           "kickstart_metadata" : "foo=bar baz=foo 12345"
        }
        sample_machine = {
            "address"         : "foo.example.com",
            "architecture"    : 1,
            "processor_speed" : 3000,
            "processor_count" : 1,
-           "memory"          : 4096
+           "memory"          : 4096,
+           "distribution_id" : -1,
+           "kernel_options"  : "foo=bar 12345",
+           "kickstart_metadata" : "bar=foo baz=foo foo=bar",
+           "list_group"      : "server room 5"
        }
        sample_deployment = {
            "machine_id"      : None,
@@ -365,10 +381,10 @@ class DeploymentTests(BaseTest):
        dep = sample_deployment.copy()
        dep["machine_id"] = data1 
        dep["image_id"] = data0
-       (rc2, data2) = self.call(self.api.deployment_add, dep)
-       self.failUnlessEqual(rc2, 0, "deployment add")
        sample_image["id"] = data0
        sample_machine["id"] = data1
+       (rc2, data2) = self.call(self.api.deployment_add, dep)
+       self.failUnlessEqual(rc2, 0, "deployment add: %s, %s" % (rc2, data2))
        (rc3, data3) = self.call(self.api.deployment_list)
        self.failUnlessEqual(rc3, 0, "deployment list")
        self.failUnlessEqual(len(data3), 1, "one machine")

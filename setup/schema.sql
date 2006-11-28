@@ -23,7 +23,7 @@ CREATE TABLE events (
    user_comment   VARCHAR (255)
 );
 
-CREATE TABLE distribution (
+CREATE TABLE distributions (
    id INTEGER PRIMARY KEY,
    kernel VARCHAR(255),
    initrd VARCHAR(255),

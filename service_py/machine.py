@@ -19,6 +19,7 @@ from errors import *
 import baseobj
 import traceback
 import threading
+import distribution
 
 class Machine(baseobj.BaseObject):
 
@@ -43,23 +44,31 @@ class Machine(baseobj.BaseObject):
         machine object for interaction with the ORM.  See methods below for examples.
         """
         self.id               = self.load(args,"id",-1)
-        self.address          = self.load(args,"address",-1)
+        self.address          = self.load(args,"address", "")
         self.architecture     = self.load(args,"architecture",-1)
         self.processor_speed  = self.load(args,"processor_speed",-1)
         self.processor_count  = self.load(args,"processor_count",-1)
         self.memory           = self.load(args,"memory",-1)
+        self.distribution_id  = self.load(args,"distribution_id", "")
+        self.kernel_options   = self.load(args,"kernel_options", "")
+        self.kickstart_metadata = self.load(args, "kickstart_metadata", "")
+        self.list_group         = self.load(args, "list_group", -1)
 
     def to_datastruct(self):
         """
         Serialize the object for transmission over WS.
         """
         return {
-            "id"              : self.id,
-            "address"         : self.address,
-            "architecture"    : self.architecture,
-            "processor_speed" : self.processor_speed,
-            "processor_count" : self.processor_count,
-            "memory"          : self.memory,
+            "id"                 : self.id,
+            "address"            : self.address,
+            "architecture"       : self.architecture,
+            "processor_speed"    : self.processor_speed,
+            "processor_count"    : self.processor_count,
+            "memory"             : self.memory,
+            "distribution_id"    : self.distribution_id,
+            "kernel_options"     : self.kernel_options,
+            "kickstart_metadata" : self.kickstart_metadata,
+            "list_group"         : self.list_group
         }
 
     def validate(self,operation):
@@ -87,9 +96,20 @@ def machine_add(websvc,args):
      """
      u = Machine.produce(args,OP_ADD)
      st = """
-     INSERT INTO machines (address,architecture,processor_speed,processor_count,memory)
-     VALUES (:address,:architecture,:processor_speed,:processor_count,:memory)
+     INSERT INTO machines (address,architecture,processor_speed,
+     processor_count,memory,distribution_id,
+     kernel_options,kickstart_metadata,list_group)
+     VALUES (:address,:architecture,:processor_speed,
+     :processor_count,:memory,:distribution_id, 
+     :kernel_options, :kickstart_metadata, :list_group)
      """
+     if args["distribution_id"] >=0 :
+         try:
+             obj = distribution.distribution_get(websvc, { "id" : args["distribution_id"] })
+         except ShadowManagerException:
+             print "distribution_id = %s" % args["distribution_id"]
+             raise OrphanedObjectException("distribution_id")
+
      lock = threading.Lock()
      lock.acquire()
      try:
@@ -105,8 +125,7 @@ def machine_add(websvc,args):
 
 def machine_edit(websvc,args):
      """
-     Edit a machine.  args should contain all fields that need to
-     be changed.
+     Edit a machine.
      """
      u = Machine.produce(args,OP_EDIT) # force validation
      st = """
@@ -115,7 +134,10 @@ def machine_edit(websvc,args):
      architecture=:architecture,
      processor_speed=:processor_speed,
      processor_count=:processor_count,
-     memory=:memory
+     memory=:memory,
+     kernel_options=:kernel_options,
+     kickstart_metadata=:kickstart_metadata,
+     list_group=:list_group
      WHERE id=:id
      """
      websvc.cursor.execute(st, u.to_datastruct())
@@ -161,8 +183,14 @@ def machine_list(websvc,args):
      if args.has_key("limit"):
         limit = args["limit"]
      st = """
-     SELECT id,address,architecture,processor_speed,processor_count,memory
-     FROM machines LIMIT ?,?
+     SELECT machines.id AS mid, machines.address,machines.architecture,
+     machines.processor_speed,machines.processor_count,machines.memory,
+     machines.kernel_options,machines.kickstart_metadata,machines.list_group,
+     distributions.id AS did, distributions.kernel, distributions.initrd,
+     distributions.options, distributions.kickstart, distributions.name
+     FROM machines
+     LEFT OUTER JOIN distributions ON machines.distribution_id = did  
+     LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
@@ -171,13 +199,26 @@ def machine_list(websvc,args):
      machines = []
      for x in results:
          data = {         
-            "id"               : x[0],
-            "address"          : x[1],
-            "architecture"     : x[2],
-            "processor_speed"  : x[3],
-            "processor_count"  : x[4],
-            "memory"           : x[5],
+             "id"                 : x[0],
+             "address"            : x[1],
+             "architecture"       : x[2],
+             "processor_speed"    : x[3],
+             "processor_count"    : x[4],
+             "memory"             : x[5],
+             "distribution_id"    : x[6],
+             "kernel_options"     : x[7],
+             "kickstart_metadata" : x[8],
+             "list_group"         : x[9]
          }
+         if x[6] >= 0:
+             data["distribution"] = {
+                 "id"             : x[6],
+                 "kernel"         : x[10],
+                 "initrd"         : x[11],
+                 "options"        : x[12],
+                 "kickstart"      : x[13],
+                 "name"           : x[14]
+             }
          machines.append(Machine.produce(data).to_datastruct())
      return success(machines)
 
@@ -187,7 +228,8 @@ def machine_get(websvc,args):
      """
      u = Machine.produce(args,OP_GET) # force validation
      st = """
-     SELECT id,address,architecture,processor_speed,processor_count,memory
+     SELECT id,address,architecture,processor_speed,processor_count,memory,
+     distribution_id, kernel_options, kickstart_metadata, list_group
      FROM machines WHERE id=:id
      """
      websvc.cursor.execute(st,u.to_datastruct())
@@ -201,7 +243,13 @@ def machine_get(websvc,args):
             "processor_speed" : x[3],
             "processor_count" : x[4],
             "memory"          : x[5],
+            "distribution_id" : x[6],
+            "kernel_options"  : x[7],
+            "kickstart_metadata" : x[8],
+            "list_group"         : x[9],
      }
+     if x[6] >=0:
+         data["distribution"] = distribution.distribution_get(websvc, {"id":x[6]})
      return success(Machine.produce(data).to_datastruct())
 
 def register_rpc(handlers):
