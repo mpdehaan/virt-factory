@@ -19,6 +19,55 @@
             <TD>Specfile</TD>
             <TD><%= @item.specfile %></TD>
          </TR>
+         <TR>
+            <TD>Distribution</TD>
+            <TD>
+                <% if @item.get_distribution %>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Name</TD>
+                          <TD><%= @item.distribution.name %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Kernel</TD>
+                          <TD><%= @item.distribution.kernel %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Initrd</TD>
+                          <TD><%= @item.distribution.initrd %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Options</TD>
+                          <TD><%= @item.distribution.options %></TD>
+                       </TR>
+                    </TABLE>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Kickstart</TD>
+                          <TD><%= @item.distribution.kickstart %></TD>
+                       </TR>
+                    </TABLE>
+                <% end %>
+            </TD>
+         </TR>
+         <TR>
+            <TD>Virtual Storage Size</TD>
+            <TD><%= @item.virt_storage_size %></TD>
+         </TR>
+         <TR>
+            <TD>Virtual RAM</TD>
+            <TD><%= @item.virt_ram %></TD>
+         </TR>
+         <TR>
+            <TD>Kickstart Metadata</TD>
+            <TD><%= @item.kickstart_metadata %></TD>
+         </TR>
       </TABLE>
       </div>
 

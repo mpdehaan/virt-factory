@@ -15,7 +15,7 @@ class UserController < ObjectController
                      :last => {:type => String}, 
                      :description => {:type => String}, 
                      :email => {:type => String}}
-       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
+       self.set_attrs(ATTR_LIST)
        METHOD_PREFIX = "user"
 
        def objname

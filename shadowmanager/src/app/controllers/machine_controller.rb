@@ -1,6 +1,15 @@
 
 class MachineController < ObjectController
 
+   def edit
+       super
+# FIXME stubbed out until api support is added
+#       @distributions = ManagedObject.retrieve_all(DistributionController::Distribution, @session).collect do |dist|
+#           [dist.name, dist.id]
+#       end
+       @distributions = []
+   end
+
    def object_class
        Machine
    end
@@ -11,8 +20,13 @@ class MachineController < ObjectController
                      :architecture => {:type => Integer}, 
                      :processor_speed => {:type => Integer}, 
                      :processor_count => {:type => Integer}, 
-                     :memory => {:type => Integer} }
-       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
+                     :memory => {:type => Integer},
+                     :distribution_id => {:type => Integer}, 
+                     :distribution => { :type => DistributionController::Distribution, :id_attr => :distribution_id}, 
+                     :kernel_options => {:type => String}, 
+                     :kickstart_metadata => {:type => String}, 
+                     :list_group => {:type => String} }
+       self.set_attrs(ATTR_LIST)
        METHOD_PREFIX = "machine"
    end
 
