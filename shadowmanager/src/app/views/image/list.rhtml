@@ -9,6 +9,10 @@
             <TD>Version</TD>
             <TD>Filename</TD>
             <TD>Specfile</TD>
+            <TD>Distribution</TD>
+            <TD>Virtual Storage Size</TD>
+            <TD>Virtual RAM</TD>
+            <TD>Kickstart Metadata</TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
@@ -16,10 +20,14 @@
          <TR>
              
              <TD> <%= item.id %> </TD>
-             <TD> <%= item.name %> </TD>
+             <TD> <%= link_to item.name, :controller => "image", :action=> "view", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
              <TD> <%= item.filename %> </TD>
              <TD> <%= item.specfile %> </TD>
+             <TD> <%= item.get_distribution.name if item.get_distribution %> </TD>
+             <TD> <%= item.virt_storage_size %> </TD>
+             <TD> <%= item.virt_ram %> </TD>
+             <TD> <%= item.kickstart_metadata %> </TD>
              <TD> <%= link_to "edit", :controller => "image", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "image", :action=> "delete", :id=> item.id %></TD>
          </TR>

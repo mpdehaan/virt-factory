@@ -22,6 +22,22 @@
             <TD><%= f.text_field :specfile %></TD>
          </TR>
          <TR>
+            <TD>Distribution</TD>
+            <TD><%= f.select :distribution_id, @distributions %></TD>
+         </TR>
+         <TR>
+            <TD>Virtual Storage Size</TD>
+            <TD><%= f.text_field :virt_storage_size %></TD>
+         </TR>
+         <TR>
+            <TD>Virtual RAM</TD>
+            <TD><%= f.text_field :virt_ram %></TD>
+         </TR>
+         <TR>
+            <TD>Kickstart Metadata</TD>
+            <TD><%= f.text_field :kickstart_metadata %></TD>
+         </TR>
+         <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>
          </TR>
       </TABLE>

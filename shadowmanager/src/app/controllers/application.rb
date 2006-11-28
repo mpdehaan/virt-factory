@@ -135,11 +135,12 @@ class ObjectController < ApplicationController
                 attr_accessor attr 
                 if (metadata[:id_attr])
                     define_method(("get_"+attr.to_s).to_sym) do
-                        unless instance_variable_get("@"+attr.to_s)
+                        if ((!instance_variable_get("@"+attr.to_s)) &&
+                            (id = instance_variable_get("@"+metadata[:id_attr].to_s)))
                             instance_variable_set("@"+attr.to_s,
                                                   ManagedObject.retrieve(metadata[:type],
                                                                          self.session,
-                                                                         instance_variable_get("@"+metadata[:id_attr].to_s)))
+                                                                         id))
                         end
                         instance_variable_get("@"+attr.to_s)
                     end
