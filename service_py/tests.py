@@ -157,8 +157,8 @@ class BaseCrudTests(BaseTest):
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0,"get")
        self.failUnlessEqual(data3[self.change_test_field],"blahblahblah","changed: %s" % (data3))
-       self.failUnlessEqual(data3,s1,"modified 1")
-       self.failUnlessEqual(data2,s1,"modified 2")
+       self.failUnlessEqual(data3,s1,"modified 1: %s vs %s" % (data3,s1))
+       self.failUnlessEqual(data2,s1,"modified 2: %s vs %s" % (data2,s1))
 
    def _test_delete(self):
        (rc0, data0) = self.call(self.funcs["list_func"])
@@ -190,7 +190,7 @@ class ImageTests(BaseCrudTests):
          "distribution_id" : -1, 
          "virt_storage_size" : 500,
          "virt_ram" : 2048,
-         "kickstart_metadata" : -1
+         "kickstart_metadata" : ""
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -220,7 +220,7 @@ class MachineTests(BaseCrudTests):
          "memory" : 1024,
          "distribution_id" : -1,
          "kernel_options" : "ksdevice=eth0 text",
-         "kickstart_metadata" : -1,
+         "kickstart_metadata" : "",
          "list_group" : "building three"
       } 
       self.funcs = {
@@ -381,10 +381,10 @@ class DeploymentTests(BaseTest):
        dep = sample_deployment.copy()
        dep["machine_id"] = data1 
        dep["image_id"] = data0
-       (rc2, data2) = self.call(self.api.deployment_add, dep)
-       self.failUnlessEqual(rc2, 0, "deployment add")
        sample_image["id"] = data0
        sample_machine["id"] = data1
+       (rc2, data2) = self.call(self.api.deployment_add, dep)
+       self.failUnlessEqual(rc2, 0, "deployment add: %s, %s" % (rc2, data2))
        (rc3, data3) = self.call(self.api.deployment_list)
        self.failUnlessEqual(rc3, 0, "deployment list")
        self.failUnlessEqual(len(data3), 1, "one machine")

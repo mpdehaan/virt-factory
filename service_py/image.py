@@ -44,14 +44,14 @@ class Image(baseobj.BaseObject):
         image object for interaction with the ORM.  See methods below for examples.
         """
         self.id                 = self.load(args,"id",-1)
-        self.name               = self.load(args,"name",-1)
-        self.version            = self.load(args,"version",-1)
-        self.filename           = self.load(args,"filename",-1)
-        self.specfile           = self.load(args,"specfile",-1)
+        self.name               = self.load(args,"name","")
+        self.version            = self.load(args,"version","")
+        self.filename           = self.load(args,"filename","")
+        self.specfile           = self.load(args,"specfile","")
         self.distribution_id    = self.load(args,"distribution_id",-1)
         self.virt_storage_size  = self.load(args,"virt_storage_size", -1)
         self.virt_ram           = self.load(args,"virt_ram", -1)
-        self.kickstart_metadata = self.load(args,"kickstart_metadata", -1)
+        self.kickstart_metadata = self.load(args,"kickstart_metadata", "")
 
     def to_datastruct(self):
         """
@@ -90,9 +90,9 @@ def image_add(websvc,args):
      :virt_storage_size,:virt_ram,:kickstart_metadata)
      """
      u = Image.produce(args,OP_ADD)
-     print u.to_datastruct() # debug
      if u.distribution_id >= 0:
          try:
+             print "image did = %s" % u.distribution_id
              distribution.distribution_get(websvc, { "id" : u.distribution_id})
          except ShadowManagerException:
              raise OrphanedObjectExcception('distribution_id')
@@ -179,8 +179,8 @@ def image_list(websvc,args):
      images.virt_ram, images.kickstart_metadata,
      distributions.id, distributions.kernel, distributions.initrd,
      distributions.options, distributions.kickstart, distributions.name
-     FROM images,distributions 
-     LEFT OUTER JOIN images.distribution_id = distributions.id 
+     FROM images 
+     LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
      LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
@@ -239,7 +239,8 @@ def image_get(websvc,args):
             "virt_ram" : x[7],
             "kickstart_metadata" : x[8]
      }
-     if x[5] >= 0:
+     if data["distribution_id"] >= 0:
+         print "image2 did = %s" % data["distribution_id"]
          data["distribution"] = distribution.distribution_get(websvc, { "id" : x[5]     })
      return success(Image.produce(data).to_datastruct())
 
