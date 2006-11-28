@@ -64,11 +64,17 @@ class ObjectController < ApplicationController
     def edit
         # FIXME: error handling on "success"
         if @params[:id].nil?
-            @item = object_class.new
+            @item = object_class.new(@session)
             @operation = "Add"
         else
-            @item = ManagedObject.retrieve(object_class,session, @params[:id])
-            @operation = "Edit"
+            begin
+                @operation = "Edit"
+                @item = ManagedObject.retrieve(object_class,session, @params[:id])
+            rescue XMLRPCClientException => ex
+                @item = object_class.new(@session)
+                @flash[:notice] = "Error:  #{object_class::METHOD_PREFIX} with ID #{@params[:id]} not found (#{ex.rc})."
+                @flash[:errmsg] = ex.data
+            end
         end
     end
 
@@ -77,14 +83,13 @@ class ObjectController < ApplicationController
     end
 
     def edit_submit
-        obj = ManagedObject.from_hash(object_class,@params["form"])
+        obj = ManagedObject.from_hash(object_class,@params["form"], @session)
         id = obj.id
-        if id.nil? || id.empty?
+        if id.nil?
             operation = "add"
         else
             operation = "edit"
         end
-        print "#{object_class::METHOD_PREFIX}_#{operation}, #{obj.to_hash}\n"
         (rc, data) = @@server.call("#{object_class::METHOD_PREFIX}_#{operation}", @session[:login], obj.to_hash)
         unless rc == ERR_SUCCESS
             @flash[:notice] = "#{object_class::METHOD_PREFIX} #{operation} failed (#{rc})."
@@ -119,115 +124,82 @@ class ObjectController < ApplicationController
     end
 
     class ManagedObject
-        
-        ASSOCIATIONS = {}
+
+        def initialize(session)
+            @session = session
+        end
+        attr_reader :session
+
+        def self.set_attrs(hash)
+            hash.each do |attr,metadata| 
+                attr_accessor attr 
+                if (metadata[:id_attr])
+                    define_method(("get_"+attr.to_s).to_sym) do
+                        unless instance_variable_get("@"+attr.to_s)
+                            instance_variable_set("@"+attr.to_s,
+                                                  ManagedObject.retrieve(metadata[:type],
+                                                                         self.session,
+                                                                         instance_variable_get("@"+metadata[:id_attr].to_s)))
+                        end
+                        instance_variable_get("@"+attr.to_s)
+                    end
+                end
+            end
+        end
 
         def self.retrieve_all(object_class, session)
-            (rc, results) = temp_retrieve(object_class)
-#hard-coding data temporarily until python api returns data
-#            (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",session[:login])
+            (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",session[:login])
             unless rc == ERR_SUCCESS
                 raise XMLRPCClientException.new(rc, results)
             end
-            results.collect {|hash| ManagedObject.from_hash(object_class,hash)}
+            results.collect {|hash| ManagedObject.from_hash(object_class,hash, session)}
         end
 
         def self.retrieve(object_class, session, id)
-#            plist = { "id" => id }
-#           (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_get", session[:login], plist)
-#            ManagedObject.from_hash(object_class,results)
-            print "ID: ", id, "\n"
-            item = self.retrieve_all(object_class, session).find { |obj| obj.id.to_s == id }
-            print "item: ", item, "\n"
-            item
+            plist = { "id" => id }
+           (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_get", session[:login], plist)
+            unless rc == ERR_SUCCESS
+                raise XMLRPCClientException.new(rc, results)
+            end
+            ManagedObject.from_hash(object_class,results, session)
         end
 
-        def self.temp_retrieve(object_class)
-            if (object_class == UserController::User)
-                [0, [ { "id" => 101,
-                          "username"    => "admin",
-                          "password"    => "fedora",
-                          "first"       => "a",
-                          "middle"      => "b",
-                          "last"        => "c",
-                          "description" => "d",
-                          "email"       => "admin@foo.com" },
-                      { "id" => 102,
-                          "username"    => "guest",
-                          "password"    => "guest",
-                          "first"       => "e",
-                          "middle"      => "f",
-                          "last"        => "g",
-                          "description" => "h",
-                          "email"       => "guest@foo.com" }]]
-             elsif (object_class == MachineController::Machine)
-                [0, [ {"id" => 201, 
-                          "address" => "foo.com", 
-                          "architecture" => "foo_64",
-                          "processor_speed" => 42,
-                          "processor_count" => 4},
-                      { "id" => 202, 
-                          "address" => "foo2.com", 
-                          "architecture" => "foo_64",
-                          "processor_speed" => 42,
-                          "processor_count" => 4}]]
-            elsif (object_class == ImageController::Image)
-                [0, [ {"id" => 301, 
-                          "name" => "myimage", 
-                          "version" => "55",
-                          "filename" => "/tmp/foo",
-                          "specname" => "foospec"},
-                      { "id" => 302, 
-                          "name" => "myimage2", 
-                          "version" => "552",
-                          "filename" => "/tmp/foo2",
-                          "specname" => "foo2spec"}]]
-            elsif (object_class == DeploymentController::Deployment)
-                [0, [ { "id" => 401,
-                          "machine_id"    => 201,
-                          "image_id"    => 301,
-                          "state"       => 1,
-                          "machine"      => {"id" => 201, 
-                              "address" => "foo.com", 
-                              "architecture" => "foo_64",
-                              "processor_speed" => 42,
-                              "processor_count" => 4},
-                          "image"      => {"id" => 301, 
-                              "name" => "myimage", 
-                              "version" => "55",
-                              "filename" => "/tmp/foo",
-                              "specname" => "foospec"} },
-                      { "id" => 402,
-                          "machine_id"    => 202,
-                          "image_id"    => 302,
-                          "state"       => 2,
-                          "machine"      => {"id" => 202, 
-                              "address" => "foo2.com", 
-                              "architecture" => "foo_64",
-                              "processor_speed" => 42,
-                              "processor_count" => 4},
-                          "image"      => {"id" => 302, 
-                              "name" => "myimage2", 
-                              "version" => "552",
-                              "filename" => "/tmp/foo2",
-                              "specname" => "foo2spec"} }]]
+        def self.from_hash(object_class, hash, session)
+            obj = object_class.new(session)
+            object_class::ATTR_LIST.each do |attr, metadata| 
+                newval = hash[attr.to_s]
+                if newval
+                    attr_type = metadata[:type]
+                    if (newval.is_a?(Hash) && attr_type.methods.include?("from_hash"))
+                        newval = self.from_hash(attr_type, newval, session)
+                    end
+                    unless newval.is_a?(attr_type)
+                        if (attr_type == Integer)
+                            if (newval.is_a?(String) && newval.empty?)
+                                newval = nil
+                            else
+                                newval = newval.to_i 
+                            end
+                        else
+                            newval = attr_type.new(newval)
+                        end
+                    end
+                end
+                obj.method(attr.to_s+"=").call(newval) if newval
             end
-        end
-
-        def self.from_hash(object_class, hash)
-            obj = object_class.new
-            object_class::ATTR_LIST.each { |attr| obj.method(attr.to_s+"=").call(hash[attr.to_s]) }
-            object_class::ASSOCIATIONS.each do |attr,attrinfo| 
-                related_obj = self.from_hash(attrinfo[1], hash[attr.to_s])
-                obj.method(attr.to_s+"=").call(related_obj) 
-            end
-            obj
+             obj
         end
         def to_hash
             hash = Hash.new
-            self.class::ATTR_LIST.each { |attr| hash[attr.to_s] = self.method(attr).call }
-            self.class::ASSOCIATIONS.each do |attr,attrinfo| 
-                hash[attr.to_s] = self.method(attr).call.to_hash
+            self.class::ATTR_LIST.each do |attr, metadata|
+                newval = self.method(attr).call 
+                if newval
+                    attr_type = metadata[:type]
+                    if (newval.methods.include?("to_hash"))
+                        newval = newval.to_hash
+                    end
+                    hash[attr.to_s] = newval 
+                end
             end
             hash
         end

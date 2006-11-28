@@ -17,14 +17,18 @@ class DeploymentController < ObjectController
    end
 
    class Deployment < ManagedObject
-       ATTR_LIST = [:id, :machine_id, :image_id, :state]
-       ASSOCIATIONS = {:machine => [:machine_id, MachineController::Machine], :image => [:image_id, ImageController::Image]}
-       ATTR_LIST.each {|x| attr_accessor x}
-       ASSOCIATIONS.each {|x,y| attr_accessor x}
+       ATTR_LIST = { :id => {:type => Integer}, 
+                     :machine_id => {:type => Integer}, 
+                     :image_id => {:type => Integer}, 
+                     :state => {:type => String},
+                     :machine => { :type => MachineController::Machine, :id_attr => :machine_id}, 
+                     :image => { :type => ImageController::Image, :id_attr => :image_id} }
+       self.set_attrs(ATTR_LIST)
+       print "state: ", instance_method("state"), "\n"
        METHOD_PREFIX = "deployment"
 
        def objname
-           username
+           self.get_machine.address + ": " + self.get_image.name
        end
    end
 end

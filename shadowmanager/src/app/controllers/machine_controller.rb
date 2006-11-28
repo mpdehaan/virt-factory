@@ -6,8 +6,13 @@ class MachineController < ObjectController
    end
 
    class Machine < ManagedObject
-       ATTR_LIST = [:id, :address, :architecture, :processor_speed, :processor_count, :memory]
-       ATTR_LIST.each {|x| attr_accessor x}
+       ATTR_LIST = { :id => {:type => Integer}, 
+                     :address => {:type => String}, 
+                     :architecture => {:type => Integer}, 
+                     :processor_speed => {:type => Integer}, 
+                     :processor_count => {:type => Integer}, 
+                     :memory => {:type => Integer} }
+       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
        METHOD_PREFIX = "machine"
    end
 

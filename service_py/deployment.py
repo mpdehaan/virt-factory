@@ -86,8 +86,8 @@ def deployment_add(websvc,args):
      """
      u = Deployment.produce(args,OP_ADD)
      st = """
-     INSERT INTO deployments (id,machine_id,image_id,state)
-     VALUES (:id,:machine_id,:image_id,:state)
+     INSERT INTO deployments (machine_id,image_id,state)
+     VALUES (:machine_id,:image_id,:state)
      """
      try:
          machine.machine_get(websvc, { "id" : args["machine_id"]})

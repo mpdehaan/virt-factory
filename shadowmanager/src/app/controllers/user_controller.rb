@@ -7,8 +7,15 @@ class UserController < ObjectController
    end
 
    class User < ManagedObject
-       ATTR_LIST = [:id, :username, :password, :first, :middle, :last, :description, :email]
-       ATTR_LIST.each {|x| attr_accessor x}
+       ATTR_LIST = { :id => {:type => Integer}, 
+                     :username => {:type => String}, 
+                     :password => {:type => String}, 
+                     :first => {:type => String}, 
+                     :middle => {:type => String}, 
+                     :last => {:type => String}, 
+                     :description => {:type => String}, 
+                     :email => {:type => String}}
+       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
        METHOD_PREFIX = "user"
 
        def objname

@@ -6,8 +6,12 @@ class ImageController < ObjectController
    end
 
    class Image < ManagedObject
-       ATTR_LIST = [:id, :name, :version, :filename, :specfile]
-       ATTR_LIST.each {|x| attr_accessor x}
+       ATTR_LIST = { :id => {:type => Integer}, 
+                     :name => {:type => String}, 
+                     :version => {:type => String}, 
+                     :filename => {:type => String}, 
+                     :specfile => {:type => String} }
+       ATTR_LIST.each {|attr,metadata| attr_accessor attr }
        METHOD_PREFIX = "image"
 
        def objname
