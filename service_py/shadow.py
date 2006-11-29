@@ -97,7 +97,7 @@ class XmlRpcInterface:
            # remove tokens older than 1/2 hour
            if (now - t[1]) > 1800:
                self.tokens.remove(t)
-               raise ExpiredTokenException()
+               raise TokenExpiredException()
            if t[0] == token:
                # update the expiration counter
                t[1] = time.time()
