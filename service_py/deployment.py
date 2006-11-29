@@ -45,10 +45,10 @@ class Deployment(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         deployment object for interaction with the ORM.  See methods below for examples.
         """
-        self.id            = self.load(args,"id",-1)
-        self.machine_id    = self.load(args,"machine_id",-1)
-        self.image_id      = self.load(args,"image_id",-1)
-        self.state         = self.load(args,"state",-1)
+        self.id            = self.load(args,"id")
+        self.machine_id    = self.load(args,"machine_id")
+        self.image_id      = self.load(args,"image_id")
+        self.state         = self.load(args,"state")
 
     def to_datastruct_internal(self):
         """
@@ -77,14 +77,13 @@ class Deployment(baseobj.BaseObject):
         Up for consideration, but probably not needed at this point.  Can be added later. 
         """
         # FIXME
-        if self.id is None:
-            self.id = -1
+        if operation in [OP_EDIT]:
+            if self.machine_id is None:
+                raise InvalidArgumentsException("machine_id")
+            if self.image_id is None:
+                raise InvalidArgumentsException("image_id")
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
-        if self.machine_id == -1:
-            self.machine_id = None
-        if self.image_id == -1:
-            self.image_id = None
 
 def deployment_add(websvc,args):
      """
@@ -128,16 +127,16 @@ def deployment_edit(websvc,args):
      WHERE id=:id
      """
      try:
-         machine.machine_get(websvc, { "id" : args["machine_id"]})
+         machine.machine_get(websvc, { "id" : u.machine_id })
      except ShadowManagerException:
          raise InvalidArgumentsException('machine_id')
      try:
-         image.image_get(websvc, { "id" : args["image_id"]})
+         image.image_get(websvc, { "id" : u.image_id })
      except ShadowManagerException:
          raise InvalidArgumentsException('image_id')
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
-     return success(u.to_datastruct())
+     return success(u.to_datastruct(True))
 
 def deployment_delete(websvc,args):
      """
@@ -205,12 +204,7 @@ def deployment_list(websvc,args):
          return success([])
      deployments = []
      for x in results:
-         data = {         
-            "id"           : x[0],
-            "machine_id"   : x[1],
-            "image_id"     : x[2],
-            "state"        : x[3],
-            "image"        : {
+         image_data = image.Image.produce({
                 "id"       : x[4],
                 "name"     : x[5],
                 "version"  : x[6],
@@ -220,8 +214,8 @@ def deployment_list(websvc,args):
                 "virt_storage_size"  : x[10],
                 "virt_ram"           : x[11],
                 "kickstart_metadata" : x[12]
-            },
-            "machine"      : {
+         }).to_datastruct(True)
+         machine_data = machine.Machine.produce({
                 "id"              : x[13],
                 "address"         : x[14],
                 "architecture"    : x[15],
@@ -232,8 +226,15 @@ def deployment_list(websvc,args):
                 "kernel_options"  : x[20],
                 "kickstart_metadata" : x[21],
                 "list_group" : x[22]
-            }
-         }
+         }).to_datastruct(True)
+         data = Deployment.produce({         
+            "id"           : x[0],
+            "machine_id"   : x[1],
+            "image_id"     : x[2],
+            "state"        : x[3],
+         }).to_datastruct(True)
+         data["image"] = image_data
+         data["machine"] = machine_data
          deployments.append(data)
      return success(deployments)
 
@@ -256,14 +257,14 @@ def deployment_get(websvc,args):
      # checking is required
      (rc1, machine1) = machine.machine_get(websvc, { "id" : x[1] })
      (rc2, image1)   = image.image_get(websvc, { "id" : x[2] })
-     data = {
+     data = Deployment.produce({
             "id"         : x[0],
             "machine_id" : x[1],
             "image_id"   : x[2],
             "state"      : x[3],
-            "machine"    : machine1,
-            "image"      : image1
-     }
+     }).to_datastruct(True)
+     data["machine"] = machine1
+     data["image"]   = image1
      return success(data)
 
 def register_rpc(handlers):

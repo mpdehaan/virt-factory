@@ -75,12 +75,8 @@ class Image(baseobj.BaseObject):
         where appropriate.
         """
         # FIXME
-        if self.id is None:
-            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
-        if self.distribution_id == -1:
-            self.distribution_id = None
 
 def image_add(websvc,args):
      """
@@ -127,7 +123,7 @@ def image_edit(websvc,args):
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
-     return success(u.to_datastruct())
+     return success(u.to_datastruct(True))
 
 def image_delete(websvc,args):
      """
@@ -144,7 +140,7 @@ def image_delete(websvc,args):
      AND images.id=:id
      """
      # check to see that what we are deleting exists
-     rc = image_get(websvc,args)
+     rc = image_get(websvc,u.to_datastruct())
      if not rc:
         raise NoSuchObjectException()
      # check to see that deletion won't orphan a deployment
@@ -208,7 +204,7 @@ def image_list(websvc,args):
             }
 
          }
-         images.append(Image.produce(data).to_datastruct())
+         images.append(Image.produce(data).to_datastruct(True))
      return success(images)
 
 def image_get(websvc,args):
@@ -239,7 +235,7 @@ def image_get(websvc,args):
      u = Image.produce(data)
      if u.distribution_id is not None:
          data["distribution"] = distribution.distribution_get(websvc, { "id" : u.distribution_id  })
-     return success(Image.produce(data).to_datastruct())
+     return success(Image.produce(data).to_datastruct(True))
 
 def register_rpc(handlers):
      """

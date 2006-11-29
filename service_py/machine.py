@@ -72,27 +72,9 @@ class Machine(baseobj.BaseObject):
         }
 
     def validate(self,operation):
-        """
-        Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
-        if there are any problems.  Note that validation is operation specific, for instance
-        there is no ID for an "add" command because the add command generates the ID.
-
-        Note that getting python exception errors during a cast here is technically good enough
-        to prevent GIGO, but really InvalidArgumentsExceptions should be raised.  That's what
-        we want.
-
-        NOTE: API currently gives names of invalid fields but does not list reasons.  
-        i.e. (FALSE, INVALID_ARGUMENTS, ["foo,"bar"].  By making the 3rd argument a hash
-        it could, but these would also need to be codes.  { "foo" : OUT_OF_RANGE, "bar" : ... }
-        Up for consideration, but probably not needed at this point.  Can be added later. 
-        """
         # FIXME
-        if self.id is None:
-            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
-        if self.distribution_id == -1:
-            self.distribution_id = None
 
 def machine_add(websvc,args):
      """
@@ -146,7 +128,7 @@ def machine_edit(websvc,args):
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
-     return success(u.to_datastruct())
+     return success(u.to_datastruct(True))
 
 def machine_delete(websvc,args):
      """
@@ -223,7 +205,7 @@ def machine_list(websvc,args):
                  "kickstart"      : x[13],
                  "name"           : x[14]
              }
-         machines.append(Machine.produce(data).to_datastruct())
+         machines.append(Machine.produce(data).to_datastruct(True))
      return success(machines)
 
 def machine_get(websvc,args):
@@ -254,7 +236,7 @@ def machine_get(websvc,args):
      }
      if x[6] is not None and x[6] != -1:
          data["distribution"] = distribution.distribution_get(websvc, {"id":x[6]})
-     return success(Machine.produce(data).to_datastruct())
+     return success(Machine.produce(data).to_datastruct(True))
 
 def register_rpc(handlers):
      """

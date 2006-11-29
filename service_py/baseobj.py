@@ -22,27 +22,33 @@ class BaseObject(object):
       else:
           return default
 
-   def to_datastruct(self):
+   def to_datastruct(self,to_caller=False):
       ds = self.to_datastruct_internal()
-      ds = self.__ds_fixup(ds)
+      if to_caller:
+          # don't send NULLs
+          ds = self.remove_nulls(ds)
       return ds
 
-   def __ds_fixup(self, x, forward=True):
+   def remove_nulls(self, x, forward=True):
        """
-       Workaround for XMLRPC and allow_none
-       map None to -1 for all return datastructures.
+       If any entries are None in the datastructure, prune them.
+       XMLRPC can't marshall None
        """
        if type(x) == list:
-           for i,j in enumerate(x):
-               if j is None:
-                  x[i] = -1
-               elif type(j) == dict or type(j) == list:
-                  self.ds_fixup(x)
-       if type(x) == dict:
+           newx = []
+           for i in x:
+               if type(i) == list or type(i) == dict:
+                   newx.append(self.__ds_fixup(i))
+               elif i is not None:
+                   newx.append(i)
+           x = newx
+       elif type(x) == dict:
+           newx = {}
            for i,j in x.iteritems():
-               if j is None:
-                   x[i] = -1
-               elif type(j) == dict or type(j) == list:
-                   self.ds_fixup(x)
+               if type(j) == list or type(j) == dict:
+                   newx[i] = self.__ds_fixup(x)
+               elif j is not None:
+                   newx[i] = j
+           x = newx
        return x
 

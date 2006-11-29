@@ -88,8 +88,6 @@ class User(baseobj.BaseObject):
         #  email regex check (tricky, RFC modules only if available, don't do it ourselves)
         #  certain fields required to *not* be blank in certain cases?
         #  username is printable
-        if self.id is None:
-            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
@@ -210,7 +208,7 @@ def user_list(websvc,args):
             "description" : x[6],
             "email"       : x[7]
          }
-         users.append(User.produce(data).to_datastruct())
+         users.append(User.produce(data).to_datastruct(True))
      return success(users)
 
 def user_get(websvc,args):
@@ -235,7 +233,7 @@ def user_get(websvc,args):
             "description" : x[6],
             "email"       : x[7]
      }
-     return success(User.produce(data).to_datastruct())
+     return success(User.produce(data).to_datastruct(True))
 
 def register_rpc(handlers):
      """
