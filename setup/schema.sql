@@ -29,7 +29,7 @@ CREATE TABLE distributions (
    initrd VARCHAR(255),
    options VARCHAR(255),
    kickstart VARCHAR(255),
-   name VARCHAR(255)
+   name VARCHAR(255) UNIQUE
 );
 
 CREATE TABLE images (

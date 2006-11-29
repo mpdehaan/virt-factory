@@ -105,12 +105,12 @@ class BaseCrudTests(BaseTest):
        self.failUnlessEqual(len(data2),len(data0)+1,"successful add")
        id = -1
        for obj in data2:
-          if obj[self.name_field] == "foo":
+          if obj[self.name_field] == self.sample[self.name_field]:
               id = obj["id"]
        self.failUnlessEqual(data1, id, "returned UID not equal to found: %s,%s" % (data1,id))
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0, "get ok")
-       self.failUnlessEqual(data3[self.name_field],"foo","retrieval")
+       self.failUnlessEqual(data3[self.name_field], self.sample[self.name_field],"retrieval: %s, %s" % (data3[self.name_field], "foo"))
        self.failUnlessEqual(id,data1,"function returned UID")
 
        obj = self.sample.copy()
@@ -241,6 +241,35 @@ class MachineTests(BaseCrudTests):
    def test_machine_delete(self): self._test_delete()
    def test_machine_add(self):    self._test_add()
 
+class DistributionTests(BaseCrudTests):
+
+   def custom_setup(self):
+      self.sample = {
+         "kernel"    : "kernel",
+         "initrd"    : "initrd",
+         "options"   : "options",
+         "kickstart" : "kickstart",
+         "name"      : "name",
+      }
+      self.funcs = {
+         "add_func"    : self.api.distribution_add,
+         "edit_func"   : self.api.distribution_edit,
+         "list_func"   : self.api.distribution_list,
+         "get_func"    : self.api.distribution_get,
+         "delete_func" : self.api.distribution_delete
+      }
+      self.name_field = "name"
+      self.change_test_field = "options"
+      self.initial_rows = 0
+
+   # FIXME: more tests of distribution specific validation
+
+   def test_distribution_list(self):   self._test_list()
+   def test_distribution_edit(self):   self._test_edit()
+   def test_distribution_delete(self): self._test_delete()
+   def test_distribution_add(self):    self._test_add()
+
+  
 
 class UserTests(BaseCrudTests):
    def custom_setup(self):

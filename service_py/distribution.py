@@ -73,8 +73,8 @@ def distribution_add(websvc,args):
      """
      u = Distribution.produce(args,OP_ADD)
      st = """
-     INSERT INTO distributions (id,kernel,initrd,options,kickstart,name)
-     VALUES (:id,:kernel,:initrd,:options,:kickstart,:name)
+     INSERT INTO distributions (kernel,initrd,options,kickstart,name)
+     VALUES (:kernel,:initrd,:options,:kickstart,:name)
      """
      lock = threading.Lock()
      lock.acquire()
@@ -107,9 +107,11 @@ def distribution_edit(websvc,args):
 def distribution_delete(websvc,args):
      st = """
      SELECT machines.id FROM machines, distributions WHERE
-     machines.distriubtion_id = distributions.id
+     machines.distribution_id = distributions.id AND
+     distributions.id = :id
      """
-     websvc.cursor.execute(st, u.to_datastruct())
+     u = Distribution.produce(args)
+     websvc.cursor.execute(st,u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is not None:
          raise errors.OrphanedObjectException("machines.distribution_id")
