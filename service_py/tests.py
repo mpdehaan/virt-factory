@@ -157,10 +157,13 @@ class BaseCrudTests(BaseTest):
        (rc3, data3) = self.call(self.funcs["get_func"], { "id" : id })
        self.failUnlessEqual(rc3,0,"get")
        self.failUnlessEqual(data3[self.change_test_field],"blahblahblah","changed: %s" % (data3))
-       # FIXME: really need a list of seeded fields to iterate over
-       # to make this complete.  
-       self.failUnlessEqual(data3[self.change_test_field],s1[self.change_test_field],"modified 1: %s vs %s" % (data3,s1))
-       self.failUnlessEqual(data2[self.change_test_field],s1[self.change_test_field],"modified 2: %s vs %s" % (data2,s1))
+       # test all fields that aren't allowed to be NULL to determine
+       # they were correctly modified (or preserved, as the case may be)
+       for k in self.sample:
+          v = self.sample[k]
+          if v is not None:
+              self.failUnlessEqual(data3[k],s1[k],"modified 1: %s vs %s" % (data3,s1))
+              self.failUnlessEqual(data2[k],s1[k],"modified 2: %s vs %s" % (data2,s1))
 
    def _test_delete(self):
        (rc0, data0) = self.call(self.funcs["list_func"])
