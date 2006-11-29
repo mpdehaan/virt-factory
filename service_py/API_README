@@ -1,0 +1,123 @@
+How to use the XMLRPC API.
+
+======
+
+all calls have the following return structure:
+
+(return_code, value)
+
+return code is 0 on success, non-zero otherwise.
+value depends on what function is being called.
+the value could be a hash, a list, an integer, or a string.
+on failure, the value might be a stacktrace (string) or just the
+name of an invalid field that needs correcting.  This depends
+on the method.
+
+XMLRPC faults are not used.
+
+=====
+
+the first call (regardless of what one wants to do) must be:
+
+user_login(username,password) -> (return_code, token). 
+
+this call returns a single string value, a token, that must
+be used on following calls.  If a token is not used for 30
+minutes, it will expire, requireing another call to user_login.
+
+if return_code is non-zero, the token isn't valid.
+
+=====
+
+In general, most objects have the following functions available
+
+foo_get(token,hash)    -> (return_code, dict)
+foo_list(token,hash)   -> (return_code, array of dicts
+foo_edit(token,hash)   -> (return_code, 0)
+foo_delete(token,hash) -> (return_code, 0)
+foo_add(token,hash)    -> (return_code, 0)
+
+Objects may have different methods available depending on what
+they are.
+
+Dicts in return objects can contain nested data structures related
+to links between database tables.  If the data type for any element
+in the dict return is a list or a hash, that's what's going on.
+
+Since None (or NULL) cannot be sent over XMLRPC, fields that are None or NULL
+will never be included in a dict that is returned to a caller.  So, if
+a call to machine_get doesn't have a distribution_id as a key in the return
+hash, then the machine_id has to have been NULL in the database.
+
+======
+
+Additional info about "foo_get"
+
+the input dict is of the form { "id" : INTEGER }
+all other input fields are ignored
+
+=====
+
+Additional info about "foo_list" 
+
+the input dict can be empty or can contain "limit" and "offset",
+which are used to control which results get returned.  These
+are integers.
+
+=====
+
+Additional info about "foo_edit"
+
+the input dict sent to foo_edit should be exactly as retrieved
+by a foo_get, which the desired fields modified.  This is
+"read-modify-write". Any fields not sent down will be assumed
+to be NULL and may cause error return codes.
+
+NOTE:  do not assume that an edit is the same as a SQL UPDATE.
+Fields may be tweaked by the backend, and certain fields, which
+should be unchangeable, will be ignored by the backend code.  An
+example of this might be a user account -- user accounts are
+not something that can be renamed, so sending down a different
+value for "username" in user_edit would not change anything.
+
+=====
+
+Additional info about "foo_delete"
+
+the input dict is of the form { "id" : INTEGER }
+
+=====
+
+Additional info about "foo_add"
+
+the input dict must contain values for all fields other than id.
+
+the return datastructure is the ID that was just created.
+
+=====
+
+Additional info about other methods
+
+Methods not already listed may take various arguments in their
+hash.  Again, values passed in will be considered null.
+
+The return datastructure is also method specific.
+
+====
+
+A note about nested returns.
+
+Many tables in the database that lie underneath the backend
+contain multiple columns.   The return codes from
+every foo_get and foo_list will contain the values for every
+column in the dict, but in addition, additional information will
+be added that is not found in the columns.
+
+For instance, if there is a "machine_id" in a data item
+in the return for a "deployment" object, it will also contain
+a "machine", which contains the expanded data (in a nested dict)
+that contains information about that machine.
+
+
+
+
