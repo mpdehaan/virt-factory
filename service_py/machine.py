@@ -43,18 +43,18 @@ class Machine(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         machine object for interaction with the ORM.  See methods below for examples.
         """
-        self.id               = self.load(args,"id",-1)
-        self.address          = self.load(args,"address", "")
-        self.architecture     = self.load(args,"architecture",-1)
-        self.processor_speed  = self.load(args,"processor_speed",-1)
-        self.processor_count  = self.load(args,"processor_count",-1)
-        self.memory           = self.load(args,"memory",-1)
-        self.distribution_id  = self.load(args,"distribution_id", "")
-        self.kernel_options   = self.load(args,"kernel_options", "")
-        self.kickstart_metadata = self.load(args, "kickstart_metadata", "")
-        self.list_group         = self.load(args, "list_group", -1)
+        self.id               = self.load(args,"id")
+        self.address          = self.load(args,"address")
+        self.architecture     = self.load(args,"architecture")
+        self.processor_speed  = self.load(args,"processor_speed")
+        self.processor_count  = self.load(args,"processor_count")
+        self.memory           = self.load(args,"memory")
+        self.distribution_id  = self.load(args,"distribution_id")
+        self.kernel_options   = self.load(args,"kernel_options")
+        self.kickstart_metadata = self.load(args, "kickstart_metadata")
+        self.list_group         = self.load(args, "list_group")
 
-    def to_datastruct(self):
+    def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
@@ -87,8 +87,12 @@ class Machine(baseobj.BaseObject):
         Up for consideration, but probably not needed at this point.  Can be added later. 
         """
         # FIXME
+        if self.id is None:
+            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
+        if self.distribution_id == -1:
+            self.distribution_id = None
 
 def machine_add(websvc,args):
      """
@@ -103,11 +107,11 @@ def machine_add(websvc,args):
      :processor_count,:memory,:distribution_id, 
      :kernel_options, :kickstart_metadata, :list_group)
      """
-     if args["distribution_id"] >=0 :
+     u = Machine.produce(args,OP_ADD)
+     if u.distribution_id is not None:
          try:
-             obj = distribution.distribution_get(websvc, { "id" : args["distribution_id"] })
+             obj = distribution.distribution_get(websvc, { "id" : u.distribution_id })
          except ShadowManagerException:
-             print "distribution_id = %s" % args["distribution_id"]
              raise OrphanedObjectException("distribution_id")
 
      lock = threading.Lock()
@@ -210,7 +214,7 @@ def machine_list(websvc,args):
              "kickstart_metadata" : x[8],
              "list_group"         : x[9]
          }
-         if x[6] >= 0:
+         if x[6] is not None and x[6] != -1:
              data["distribution"] = {
                  "id"             : x[6],
                  "kernel"         : x[10],
@@ -248,7 +252,7 @@ def machine_get(websvc,args):
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
      }
-     if x[6] >=0:
+     if x[6] is not None and x[6] != -1:
          data["distribution"] = distribution.distribution_get(websvc, {"id":x[6]})
      return success(Machine.produce(data).to_datastruct())
 

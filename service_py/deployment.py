@@ -50,7 +50,7 @@ class Deployment(baseobj.BaseObject):
         self.image_id      = self.load(args,"image_id",-1)
         self.state         = self.load(args,"state",-1)
 
-    def to_datastruct(self):
+    def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
@@ -77,8 +77,14 @@ class Deployment(baseobj.BaseObject):
         Up for consideration, but probably not needed at this point.  Can be added later. 
         """
         # FIXME
+        if self.id is None:
+            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
+        if self.machine_id == -1:
+            self.machine_id = None
+        if self.image_id == -1:
+            self.image_id = None
 
 def deployment_add(websvc,args):
      """

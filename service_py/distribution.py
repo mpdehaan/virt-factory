@@ -43,14 +43,14 @@ class Distribution(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         distribution object for interaction with the ORM.  See methods below for examples.
         """
-        self.id          = self.load(args,"id",-1)
-        self.kernel      = self.load(args,"kernel",-1)
-        self.initrd      = self.load(args,"initrd",-1)
-        self.options     = self.load(args,"options",-1)
-        self.kickstart   = self.load(args,"kickstart",-1)
-        self.name        = self.load(args,"name",-1)
+        self.id          = self.load(args,"id")
+        self.kernel      = self.load(args,"kernel")
+        self.initrd      = self.load(args,"initrd")
+        self.options     = self.load(args,"options")
+        self.kickstart   = self.load(args,"kickstart")
+        self.name        = self.load(args,"name")
 
-    def to_datastruct(self):
+    def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
@@ -64,6 +64,9 @@ class Distribution(baseobj.BaseObject):
         }
 
     def validate(self,operation):
+        if self.id is None:
+            # -1 is for sqlite to say "use your own counter".
+            self.id = -1 
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 

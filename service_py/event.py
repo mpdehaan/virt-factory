@@ -18,7 +18,7 @@ import baseobj
 
 class Event(baseobj.BaseObject):
 
-   def to_datastruct(self):
+   def to_datastruct_internal(self):
        return {
        }
 

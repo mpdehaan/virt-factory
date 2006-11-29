@@ -43,16 +43,16 @@ class User(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         user object for interaction with the ORM.  See methods below for examples.
         """
-        self.id          = self.load(args,"id",-1)
-        self.username    = self.load(args,"username",-1)
-        self.password    = self.load(args,"password",-1)
-        self.first       = self.load(args,"first",-1)
-        self.middle      = self.load(args,"middle",-1)
-        self.last        = self.load(args,"last",-1)
-        self.description = self.load(args,"description",-1)
-        self.email       = self.load(args,"email",-1)
+        self.id          = self.load(args,"id")
+        self.username    = self.load(args,"username")
+        self.password    = self.load(args,"password")
+        self.first       = self.load(args,"first")
+        self.middle      = self.load(args,"middle")
+        self.last        = self.load(args,"last")
+        self.description = self.load(args,"description")
+        self.email       = self.load(args,"email")
 
-    def to_datastruct(self):
+    def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
@@ -88,6 +88,8 @@ class User(baseobj.BaseObject):
         #  email regex check (tricky, RFC modules only if available, don't do it ourselves)
         #  certain fields required to *not* be blank in certain cases?
         #  username is printable
+        if self.id is None:
+            self.id = -1
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
@@ -148,7 +150,7 @@ def user_edit(websvc,args):
      #        wanting HTTPS anyhow).
      u = User.produce(args,OP_EDIT) # force validation
      st = """
-     UPDATE users 
+     UPDATE users
      SET password=:password,
      first=:first,
      middle=:middle,
