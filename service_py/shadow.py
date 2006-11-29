@@ -176,6 +176,19 @@ class XmlRpcInterface:
    def distribution_get(self, token, args):
        return self.__dispatch("distribution_get", token, args)
 
+   def distribution_list(self, token, args={}):
+       return self.__dispatch("distribution_list",token,args)
+
+   def distribution_add(self, token, args):
+       return self.__dispatch("distribution_add",token,args)
+
+   def distribution_edit(self, token, args):
+       return self.__dispatch("distribution_edit",token,args)
+
+   def distribution_delete(self, token, args):
+       return self.__dispatch("distribution_delete",token,args)
+
+
    def __dispatch(self, method, token, args=[]):
        """
        Dispatch is a wrapper around all API functions other
