@@ -195,7 +195,8 @@ class ImageTests(BaseCrudTests):
          "distribution_id" : None, 
          "virt_storage_size" : 500,
          "virt_ram" : 2048,
-         "kickstart_metadata" : ""
+         "kickstart_metadata" : "???",
+         "kernel_options" : "????"
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -226,7 +227,8 @@ class MachineTests(BaseCrudTests):
          "distribution_id" : None,
          "kernel_options" : "ksdevice=eth0 text",
          "kickstart_metadata" : "",
-         "list_group" : "building three"
+         "list_group" : "building three",
+         "mac_address" : "AA:BB:CC:DD:EE:FF"
       } 
       self.funcs = {
          "add_func"    : self.api.machine_add,
@@ -255,7 +257,9 @@ class DistributionTests(BaseCrudTests):
          "options"      : "options",
          "kickstart"    : "kickstart",
          "name"         : "name",
-         "architecture" : 1
+         "architecture" : 1,
+         "kernel_options" : "?",
+         "kickstart_metadata" : "??"
       }
       self.funcs = {
          "add_func"    : self.api.distribution_add,
@@ -286,7 +290,8 @@ class DistributionTests(BaseCrudTests):
           "distribution_id" : None,
           "kernel_options" : "ksdevice=eth0 text",
           "kickstart_metadata" : "",
-          "list_group" : "building three"
+          "list_group" : "building three",
+          "mac_address" : "FF:FF:FF:FF:FF:FF"
        }
        image = { 
           "name" : "foo",
@@ -296,7 +301,8 @@ class DistributionTests(BaseCrudTests):
           "distribution_id" : None,
           "virt_storage_size" : 500,
           "virt_ram" : 2048,
-          "kickstart_metadata" : ""
+          "kickstart_metadata" : "@@",
+          "kernel_options" : "@@@"
        }
        (rc0, data0) = self.call(self.api.distribution_add, distro)
        self.failUnlessEqual(rc0, 0, "distribution_add")
@@ -437,7 +443,8 @@ class DeploymentTests(BaseTest):
            "specfile" : "/dev/true",
            "virt_storage_size" : 456,
            "virt_ram" : 789,
-           "kickstart_metadata" : "foo=bar baz=foo 12345"
+           "kickstart_metadata" : "foo=bar baz=foo 12345",
+           "kernel_options"     : "-----"
        }
        sample_machine = {
            "address"         : "foo.example.com",
@@ -447,7 +454,8 @@ class DeploymentTests(BaseTest):
            "memory"          : 4096,
            "kernel_options"  : "foo=bar 12345",
            "kickstart_metadata" : "bar=foo baz=foo foo=bar",
-           "list_group"      : "server room 5"
+           "list_group"      : "server room 5",
+           "mac_address"     : "BB:EE:EE:EE:FF"
        }
        sample_deployment = {
            "machine_id"      : None,

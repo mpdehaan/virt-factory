@@ -56,6 +56,7 @@ class Image(baseobj.BaseObject):
         self.virt_storage_size  = self.load(args,"virt_storage_size")
         self.virt_ram           = self.load(args,"virt_ram")
         self.kickstart_metadata = self.load(args,"kickstart_metadata")
+        self.kernel_options     = self.load(args,"kernel_options")
 
     def to_datastruct_internal(self):
         """
@@ -71,7 +72,8 @@ class Image(baseobj.BaseObject):
             "distribution_id"    : self.distribution_id,
             "virt_storage_size"  : self.virt_storage_size,
             "virt_ram"           : self.virt_ram,
-            "kickstart_metadata" : self.kickstart_metadata  
+            "kickstart_metadata" : self.kickstart_metadata,
+            "kernel_options"     : self.kernel_options  
         }
 
     def validate(self,operation):
@@ -90,9 +92,9 @@ def image_add(websvc,args):
 
      st = """
      INSERT INTO images (name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram,kickstart_metadata)
+     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options)
      VALUES (:name,:version,:filename,:specfile,:distribution_id,
-     :virt_storage_size,:virt_ram,:kickstart_metadata)
+     :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options)
      """
 
      u = Image.produce(args,OP_ADD)
@@ -133,7 +135,7 @@ def image_edit(websvc,args):
      UPDATE images 
      SET name=:name, version=:version, filename=:filename, specfile=:specfile,
      virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
-     kickstart_metadata=:kickstart_metadata
+     kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options
      WHERE id=:id
      """
 
@@ -194,11 +196,25 @@ def image_list(websvc,args):
 
      st = """
      SELECT 
-     images.id, images.name, images.version,
-     images.filename, images.specfile, images.distribution_id, 
-     images.virt_storage_size, images.virt_ram, images.kickstart_metadata,
-     distributions.id, distributions.kernel, distributions.initrd,
-     distributions.options, distributions.kickstart, distributions.name, distributions.architecture
+     images.id,
+     images.name,
+     images.version,
+     images.filename,
+     images.specfile,
+     images.distribution_id, 
+     images.virt_storage_size,
+     images.virt_ram,
+     images.kickstart_metadata,
+     images.kernel_options,
+     distributions.id,
+     distributions.kernel,
+     distributions.initrd,
+     distributions.options,
+     distributions.kickstart,
+     distributions.name,
+     distributions.architecture,
+     distributions.kernel_options,
+     distributions.kickstart_metadata
      FROM images 
      LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
      LIMIT ?,?
@@ -222,18 +238,21 @@ def image_list(websvc,args):
             "distribution_id"    : x[9],
             "virt_storage_size"  : x[6],
             "virt_ram"           : x[7],
-            "kickstart_metadata" : x[8]
+            "kickstart_metadata" : x[8],
+            "kernel_options"     : x[9]
          }).to_datastruct(True)
      
-         if x[9] is not None and x[9] != -1:
+         if x[10] is not None and x[10] != -1:
              data["distribution"] = distribution.Distribution.produce({
-                 "id"             : x[9],
-                 "kernel"         : x[10],
-                 "initrd"         : x[11],
-                 "options"        : x[12],
-                 "kickstart"      : x[13],
-                 "name"           : x[14],
-                 "architecture"   : x[15]
+                 "id"             : x[10],
+                 "kernel"         : x[11],
+                 "initrd"         : x[12],
+                 "options"        : x[13],
+                 "kickstart"      : x[14],
+                 "name"           : x[15],
+                 "architecture"   : x[16],
+                 "kernel_options" : x[17],
+                 "kickstart_metadata" : x[18]
              }).to_datastruct(True)
      
          images.append(data)
@@ -249,7 +268,7 @@ def image_get(websvc,args):
 
      st = """
      SELECT id,name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram, kickstart_metadata
+     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options
      FROM images WHERE id=:id
      """
 
@@ -268,7 +287,8 @@ def image_get(websvc,args):
             "distribution_id" : x[5],
             "virt_storage_size" : x[6],
             "virt_ram" : x[7],
-            "kickstart_metadata" : x[8]
+            "kickstart_metadata" : x[8],
+            "kernel_options" : x[9]
      }
 
      data = Image.produce(data).to_datastruct(True)

@@ -57,6 +57,7 @@ class Machine(baseobj.BaseObject):
         self.kernel_options   = self.load(args,"kernel_options")
         self.kickstart_metadata = self.load(args, "kickstart_metadata")
         self.list_group         = self.load(args, "list_group")
+        self.mac_address        = self.load(args, "mac_address")
 
     def to_datastruct_internal(self):
         """
@@ -73,7 +74,8 @@ class Machine(baseobj.BaseObject):
             "distribution_id"    : self.distribution_id,
             "kernel_options"     : self.kernel_options,
             "kickstart_metadata" : self.kickstart_metadata,
-            "list_group"         : self.list_group
+            "list_group"         : self.list_group,
+            "mac_address"        : self.mac_address
         }
 
     def validate(self,operation):
@@ -91,10 +93,10 @@ def machine_add(websvc,args):
      st = """
      INSERT INTO machines (address,architecture,processor_speed,
      processor_count,memory,distribution_id,
-     kernel_options,kickstart_metadata,list_group)
+     kernel_options,kickstart_metadata,list_group, mac_address)
      VALUES (:address,:architecture,:processor_speed,
      :processor_count,:memory,:distribution_id, 
-     :kernel_options, :kickstart_metadata, :list_group)
+     :kernel_options, :kickstart_metadata, :list_group, :mac_address)
      """
 
      u = Machine.produce(args,OP_ADD)
@@ -138,7 +140,8 @@ def machine_edit(websvc,args):
      memory=:memory,
      kernel_options=:kernel_options,
      kickstart_metadata=:kickstart_metadata,
-     list_group=:list_group
+     list_group=:list_group,
+     mac_address=:mac_address
      WHERE id=:id
      """
 
@@ -195,11 +198,25 @@ def machine_list(websvc,args):
         limit = args["limit"]
 
      st = """
-     SELECT machines.id AS mid, machines.address,machines.architecture,
-     machines.processor_speed,machines.processor_count,machines.memory,
-     distributions.id AS did, machines.kernel_options,machines.kickstart_metadata,
-     machines.list_group, distributions.kernel, distributions.initrd,
-     distributions.options, distributions.kickstart, distributions.name, distributions.architecture
+     SELECT machines.id AS mid, 
+     machines.address,
+     machines.architecture,
+     machines.processor_speed,
+     machines.processor_count,
+     machines.memory,
+     distributions.id AS did,
+     machines.kernel_options,
+     machines.kickstart_metadata,
+     machines.list_group,
+     machines.mac_address,
+     distributions.kernel,
+     distributions.initrd,
+     distributions.options,
+     distributions.kickstart,
+     distributions.name,
+     distributions.architecture,
+     distributions.kernel_options,
+     distributions.kickstart_metadata
      FROM machines
      LEFT OUTER JOIN distributions ON machines.distribution_id = distributions.id  
      LIMIT ?,?
@@ -224,18 +241,21 @@ def machine_list(websvc,args):
              "distribution_id"    : x[6],
              "kernel_options"     : x[7],
              "kickstart_metadata" : x[8],
-             "list_group"         : x[9]
+             "list_group"         : x[9],
+             "mac_address"        : x[10]
          }).to_datastruct(True)
 
          if x[6] is not None and x[6] != -1:
              data["distribution"] = distribution.Distribution.produce({
                  "id"             : x[6],
-                 "kernel"         : x[10],
-                 "initrd"         : x[11],
-                 "options"        : x[12],
-                 "kickstart"      : x[13],
-                 "name"           : x[14],
-                 "architecture"   : x[15]
+                 "kernel"         : x[11],
+                 "initrd"         : x[12],
+                 "options"        : x[13],
+                 "kickstart"      : x[14],
+                 "name"           : x[15],
+                 "architecture"   : x[16],
+                 "kernel_options" : x[17],
+                 "kickstart_metadata" : x[18]
              }).to_datastruct(True)
      
          machines.append(data)
@@ -251,7 +271,7 @@ def machine_get(websvc,args):
 
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory,
-     distribution_id, kernel_options, kickstart_metadata, list_group
+     distribution_id, kernel_options, kickstart_metadata, list_group, mac_address
      FROM machines WHERE id=:id
      """
      websvc.cursor.execute(st,u.to_datastruct())
@@ -270,6 +290,7 @@ def machine_get(websvc,args):
             "kernel_options"  : x[7],
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
+            "mac_address"        : x[10]
      }
 
      data = Machine.produce(data).to_datastruct(True)

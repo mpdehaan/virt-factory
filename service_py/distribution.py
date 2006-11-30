@@ -55,6 +55,8 @@ class Distribution(baseobj.BaseObject):
         self.kickstart    = self.load(args,"kickstart")
         self.name         = self.load(args,"name")
         self.architecture = self.load(args,"architecture") 
+        self.kernel_options = self.load(args,"kernel_options")
+        self.kickstart_metadata = self.load(args,"kickstart_metadata")
 
     def to_datastruct_internal(self):
         """
@@ -68,7 +70,9 @@ class Distribution(baseobj.BaseObject):
             "options"      : self.options,
             "kickstart"    : self.kickstart,
             "name"         : self.name,
-            "architecture" : self.architecture
+            "architecture" : self.architecture,
+            "kernel_options" : self.kernel_options,
+            "kickstart_metadata" : self.kickstart_metadata
         }
 
     def validate(self,operation):
@@ -119,7 +123,9 @@ def distribution_edit(websvc,args):
      options=:options,
      kickstart=:kickstart,
      name=:name,
-     architecture=:architecture
+     architecture=:architecture,
+     kernel_options=:kernel_options,
+     kickstart_metadata=:kickstart_metadata
      WHERE id=:id
      """
 
@@ -179,7 +185,7 @@ def distribution_list(websvc,args):
         limit = args["limit"]
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name,architecture
+     SELECT id,kernel,initrd,options,kickstart,name,architecture,kernel_options,kickstart_metadata
      FROM distributions LIMIT ?,?
      """ 
 
@@ -195,7 +201,9 @@ def distribution_list(websvc,args):
             "options"      : x[3],
             "kickstart"    : x[4],
             "name"         : x[5],
-            "architecture" : x[6]
+            "architecture" : x[6],
+            "kernel_options" : x[7],
+            "kickstart_metadata" : x[8]
          }
          distributions.append(Distribution.produce(data).to_datastruct())
      return success(distributions)
@@ -208,7 +216,7 @@ def distribution_get(websvc,args):
      u = Distribution.produce(args,OP_GET) # force validation
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name,architecture
+     SELECT id,kernel,initrd,options,kickstart,name,architecture,kernel_options,kickstart_metadata
      FROM distributions WHERE distributions.id=:id
      """
 
@@ -224,7 +232,9 @@ def distribution_get(websvc,args):
             "options"          : x[3],
             "kickstart"        : x[4],
             "name"             : x[5],
-            "architecture"     : x[6]
+            "architecture"     : x[6],
+            "kernel_options"   : x[7],
+            "kickstart_metadata" : x[8]
      }
 
      return success(Distribution.produce(data).to_datastruct())
