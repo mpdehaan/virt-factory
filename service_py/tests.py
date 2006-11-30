@@ -274,7 +274,57 @@ class DistributionTests(BaseCrudTests):
    def test_distribution_delete(self): self._test_delete()
    def test_distribution_add(self):    self._test_add()
 
-  
+   def test_distribution_with_links(self):
+       distro = self.sample.copy()
+       machine = {
+          "address" : "foo",
+          "architecture" : 1,
+          "processor_speed" : 2200,
+          "processor_count" : 2,
+          "memory" : 1024,
+          "distribution_id" : None,
+          "kernel_options" : "ksdevice=eth0 text",
+          "kickstart_metadata" : "",
+          "list_group" : "building three"
+       }
+       image = { 
+          "name" : "foo",
+          "version" : "1.01",
+          "filename" : "/tmp/foo",
+          "specfile" : "/tmp/bar",
+          "distribution_id" : None,
+          "virt_storage_size" : 500,
+          "virt_ram" : 2048,
+          "kickstart_metadata" : ""
+       }
+       (rc0, data0) = self.call(self.api.distribution_add, distro)
+       self.failUnlessEqual(rc0, 0, "distribution_add")
+       (rc0a, data0a) = self.call(self.api.distribution_get, { "id" : data0 })
+       self.failUnlessEqual(rc0a, 0, "distribution_get")
+ 
+       machine["distribution_id"] = data0
+       (rc1, data1) = self.call(self.api.machine_add, machine)
+       self.failUnlessEqual(rc1, 0, "machine_add")
+       (rc1a, data1a) = self.call(self.api.machine_get, { "id" : data1 })
+       self.failUnlessEqual(rc1a, 0, "machine_get")
+       self.failUnlessEqual(data1a["distribution"], data0a, "machine contains nested distribution")       
+
+       image["distribution_id"] = data0
+       (rc2, data2) = self.call(self.api.image_add, image)
+       self.failUnlessEqual(rc2, 0, "image_add")
+       print "getting image: %s" % data2
+       (rc2b, data2b) = self.call(self.api.image_list)
+       self.failUnlessEqual(rc2b, 0, "image list ok")
+       self.failUnlessEqual(len(data2b), 1, "correct number of images returned")
+       (rc2a, data2a) = self.call(self.api.image_get, { "id" : data2 })
+       self.failUnlessEqual(rc2a, 0, "image_get: %s, %s" % (rc2a, data2a))
+       print data2a
+       print data0a
+       self.failUnlessEqual(data2a, data0a, "image contains nested distribution")
+    
+       (rc3, data3) = self.call(self.api.distribution_delete, { "id" : data0 })
+       self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT, "cannot delete distribution if in use")
+ 
 
 class UserTests(BaseCrudTests):
    def custom_setup(self):

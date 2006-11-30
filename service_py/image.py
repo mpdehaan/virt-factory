@@ -220,7 +220,7 @@ def image_get(websvc,args):
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException()
+         raise NoSuchObjectException("image_get")
      data = {
             "id"       : x[0],
             "name"     : x[1],
@@ -232,10 +232,13 @@ def image_get(websvc,args):
             "virt_ram" : x[7],
             "kickstart_metadata" : x[8]
      }
-     u = Image.produce(data)
-     if u.distribution_id is not None:
-         data["distribution"] = distribution.distribution_get(websvc, { "id" : u.distribution_id  })
-     return success(Image.produce(data).to_datastruct(True))
+     data = Image.produce(data).to_datastruct(True)
+     if x[5] is not None:
+         (rc, dist) = distribution.distribution_get(websvc, { "id" : u.distribution_id  })
+         if rc != 0:
+             raise OrphanedObjectException("distribution_id")
+         data["distribution"] = dist
+     return success(data)
 
 def register_rpc(handlers):
      """

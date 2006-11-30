@@ -234,9 +234,13 @@ def machine_get(websvc,args):
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
      }
+     data = Machine.produce(data).to_datastruct(True)
      if x[6] is not None and x[6] != -1:
-         data["distribution"] = distribution.distribution_get(websvc, {"id":x[6]})
-     return success(Machine.produce(data).to_datastruct(True))
+         (rc, dist) = distribution.distribution_get(websvc, {"id":x[6]})
+         if rc != 0:
+             raise OrphanedObjectException("distribution_id")
+         data["distribution"] = dist
+     return success(data)
 
 def register_rpc(handlers):
      """
