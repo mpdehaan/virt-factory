@@ -140,9 +140,9 @@ def image_delete(websvc,args):
      AND images.id=:id
      """
      # check to see that what we are deleting exists
-     rc = image_get(websvc,u.to_datastruct())
-     if not rc:
-        raise NoSuchObjectException()
+     (rc, data) = image_get(websvc,u.to_datastruct())
+     if not rc == 0:
+        raise NoSuchObjectException("image_delete")
      # check to see that deletion won't orphan a deployment
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
@@ -234,7 +234,7 @@ def image_get(websvc,args):
      }
      data = Image.produce(data).to_datastruct(True)
      if x[5] is not None:
-         (rc, dist) = distribution.distribution_get(websvc, { "id" : u.distribution_id  })
+         (rc, dist) = distribution.distribution_get(websvc, { "id" : x[5] })
          if rc != 0:
              raise OrphanedObjectException("distribution_id")
          data["distribution"] = dist

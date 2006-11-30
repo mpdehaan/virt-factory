@@ -145,7 +145,7 @@ def machine_delete(websvc,args):
      # check to see that what we are deleting exists
      rc = machine_get(websvc,args)
      if not rc:
-        raise NoSuchObjectException()
+        raise NoSuchObjectException("machine_delete")
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
@@ -221,7 +221,7 @@ def machine_get(websvc,args):
      websvc.cursor.execute(st,u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException()
+         raise NoSuchObjectException("machine_get")
      data = {
             "id"              : x[0],
             "address"         : x[1],

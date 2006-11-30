@@ -117,7 +117,7 @@ def distribution_delete(websvc,args):
      websvc.cursor.execute(st,u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is not None:
-         raise errors.OrphanedObjectException("machines.distribution_id")
+         raise OrphanedObjectException("machines.distribution_id")
      st = """
      SELECT images.id FROM images, distributions WHERE
      images.distribution_id = distributions.id
@@ -125,7 +125,7 @@ def distribution_delete(websvc,args):
      websvc.cursor.execute(st, u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is not None:
-         raise errors.OrphanedObjectException("images.distribution_id")
+         raise OrphanedObjectException("images.distribution_id")
      u = Distribution.produce(args,OP_DELETE) # force validation
      st = """
      DELETE FROM distributions WHERE distributions.id=:id
@@ -179,7 +179,7 @@ def distribution_get(websvc,args):
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException()
+         raise NoSuchObjectException("distribution_get")
      data = {
             "id"               : x[0],
             "kernel"           : x[1],

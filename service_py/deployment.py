@@ -150,7 +150,7 @@ def deployment_delete(websvc,args):
      # check to see that what we are deleting exists
      rc = deployment_get(websvc,args)
      if not rc:
-        raise NoSuchObjectException()
+        raise NoSuchObjectException("deployment_delete")
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      # FIXME: failure based on existance
@@ -252,7 +252,7 @@ def deployment_get(websvc,args):
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException()
+         raise NoSuchObjectException("deployment_get")
      # exceptions will be raised by these next two calls, so no RC
      # checking is required
      (rc1, machine1) = machine.machine_get(websvc, { "id" : x[1] })

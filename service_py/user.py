@@ -222,7 +222,7 @@ def user_get(websvc,args):
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException()
+         raise NoSuchObjectException("user_get")
      data = {
             "id"          : x[0],
             "username"    : x[1],

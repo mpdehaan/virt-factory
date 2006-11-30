@@ -312,15 +312,12 @@ class DistributionTests(BaseCrudTests):
        image["distribution_id"] = data0
        (rc2, data2) = self.call(self.api.image_add, image)
        self.failUnlessEqual(rc2, 0, "image_add")
-       print "getting image: %s" % data2
        (rc2b, data2b) = self.call(self.api.image_list)
        self.failUnlessEqual(rc2b, 0, "image list ok")
        self.failUnlessEqual(len(data2b), 1, "correct number of images returned")
        (rc2a, data2a) = self.call(self.api.image_get, { "id" : data2 })
        self.failUnlessEqual(rc2a, 0, "image_get: %s, %s" % (rc2a, data2a))
-       print data2a
-       print data0a
-       self.failUnlessEqual(data2a, data0a, "image contains nested distribution")
+       self.failUnlessEqual(data2a["distribution"], data0a, "image contains nested distribution")
     
        (rc3, data3) = self.call(self.api.distribution_delete, { "id" : data0 })
        self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT, "cannot delete distribution if in use")
