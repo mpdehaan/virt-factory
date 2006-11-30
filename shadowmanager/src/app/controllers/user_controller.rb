@@ -1,6 +1,6 @@
 
 
-class UserController < ObjectController
+class UserController < AbstractObjectController
 
    def object_class
        User

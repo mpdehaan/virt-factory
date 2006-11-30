@@ -1,5 +1,5 @@
 
-class DistributionController < ObjectController
+class DistributionController < AbstractObjectController
 
    def object_class
        Distribution

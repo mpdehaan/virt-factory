@@ -1,6 +1,6 @@
 
 
-class DeploymentController < ObjectController
+class DeploymentController < AbstractObjectController
 
    def object_class
        Deployment

@@ -1,5 +1,5 @@
 
-class MachineController < ObjectController
+class MachineController < AbstractObjectController
 
    def edit
        super

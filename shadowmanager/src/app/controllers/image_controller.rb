@@ -1,5 +1,5 @@
 
-class ImageController < ObjectController
+class ImageController < AbstractObjectController
 
    def edit
        super
