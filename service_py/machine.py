@@ -30,10 +30,12 @@ class Machine(baseobj.BaseObject):
         running it through validation, which will vary depending on what
         operation is creating the machine object.
         """
+
         self = Machine()
         self.from_datastruct(args)
         self.validate(operation)
         return self
+
     produce = classmethod(_produce)
 
     def from_datastruct(self,args):
@@ -44,6 +46,7 @@ class Machine(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         machine object for interaction with the ORM.  See methods below for examples.
         """
+
         self.id               = self.load(args,"id")
         self.address          = self.load(args,"address")
         self.architecture     = self.load(args,"architecture")
@@ -59,6 +62,7 @@ class Machine(baseobj.BaseObject):
         """
         Serialize the object for transmission over WS.
         """
+
         return {
             "id"                 : self.id,
             "address"            : self.address,
@@ -81,7 +85,9 @@ def machine_add(websvc,args):
      """
      Create a machine.  args should contain all fields except ID.
      """
+
      u = Machine.produce(args,OP_ADD)
+
      st = """
      INSERT INTO machines (address,architecture,processor_speed,
      processor_count,memory,distribution_id,
@@ -90,6 +96,7 @@ def machine_add(websvc,args):
      :processor_count,:memory,:distribution_id, 
      :kernel_options, :kickstart_metadata, :list_group)
      """
+
      u = Machine.produce(args,OP_ADD)
      if u.distribution_id is not None:
          try:
@@ -99,6 +106,7 @@ def machine_add(websvc,args):
 
      lock = threading.Lock()
      lock.acquire()
+
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
@@ -106,6 +114,7 @@ def machine_add(websvc,args):
          # FIXME: be more fined grained (IntegrityError only)
          lock.release()
          raise SQLException(traceback.format_exc())
+
      id = websvc.cursor.lastrowid
      lock.release() 
 
@@ -117,7 +126,9 @@ def machine_edit(websvc,args):
      """
      Edit a machine.
      """
+
      u = Machine.produce(args,OP_EDIT) # force validation
+
      st = """
      UPDATE machines 
      SET address=:address,
@@ -130,6 +141,7 @@ def machine_edit(websvc,args):
      list_group=:list_group
      WHERE id=:id
      """
+
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
 
@@ -141,10 +153,13 @@ def machine_delete(websvc,args):
      """
      Deletes a machine.  The args must only contain the id field.
      """
+
      u = Machine.produce(args,OP_DELETE) # force validation
+
      st = """
      DELETE FROM machines WHERE machines.id=:id
      """
+
      st2 = """
      SELECT machines.id FROM deployments,machines where deployments.machine_id = machines.id
      AND machines.id=:id
@@ -153,6 +168,7 @@ def machine_delete(websvc,args):
      rc = machine_get(websvc,args)
      if not rc:
         raise NoSuchObjectException("machine_delete")
+
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
@@ -160,6 +176,7 @@ def machine_delete(websvc,args):
 
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
+
      # FIXME: failure based on existance
      return success()
 
@@ -169,12 +186,14 @@ def machine_list(websvc,args):
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
+
      offset = 0
      limit  = 100
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
         limit = args["limit"]
+
      st = """
      SELECT machines.id AS mid, machines.address,machines.architecture,
      machines.processor_speed,machines.processor_count,machines.memory,
@@ -185,10 +204,13 @@ def machine_list(websvc,args):
      LEFT OUTER JOIN distributions ON machines.distribution_id = did  
      LIMIT ?,?
      """ 
+
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
+
      if results is None:
          return success([])
+
      machines = []
      for x in results:
          data = {         
@@ -213,13 +235,16 @@ def machine_list(websvc,args):
                  "name"           : x[14]
              }
          machines.append(Machine.produce(data).to_datastruct(True))
+
      return success(machines)
 
 def machine_get(websvc,args):
      """
      Return a specific machine record.  Only the "id" is required in args.
      """
+
      u = Machine.produce(args,OP_GET) # force validation
+
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory,
      distribution_id, kernel_options, kickstart_metadata, list_group
@@ -229,6 +254,7 @@ def machine_get(websvc,args):
      x = websvc.cursor.fetchone()
      if x is None:
          raise NoSuchObjectException("machine_get")
+
      data = {
             "id"              : x[0],
             "address"         : x[1],
@@ -241,18 +267,22 @@ def machine_get(websvc,args):
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
      }
+
      data = Machine.produce(data).to_datastruct(True)
+
      if x[6] is not None and x[6] != -1:
          (rc, dist) = distribution.distribution_get(websvc, {"id":x[6]})
          if rc != 0:
              raise OrphanedObjectException("distribution_id")
          data["distribution"] = dist
+
      return success(data)
 
 def register_rpc(handlers):
      """
      This adds RPC functions to the global list of handled functions.
      """
+
      handlers["machine_add"]    = machine_add
      handlers["machine_delete"] = machine_delete
      handlers["machine_list"]   = machine_list
