@@ -188,8 +188,8 @@ class XmlRpcInterface:
    def distribution_delete(self, token, args):
        return self.__dispatch("distribution_delete",token,args)
 
-   def test_allow_none(self):
-       return ""
+   def provisioning_sync(self, token, args):
+       return self.__dispatch("provisioning_sync", token, args)
 
    def __dispatch(self, method, token, args=[]):
        """

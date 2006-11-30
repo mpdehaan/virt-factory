@@ -20,6 +20,7 @@ import baseobj
 import traceback
 import threading
 import distribution
+import provisioning
 
 class Image(baseobj.BaseObject):
 
@@ -29,10 +30,12 @@ class Image(baseobj.BaseObject):
         running it through validation, which will vary depending on what
         operation is creating the image object.
         """
+
         self = Image()
         self.from_datastruct(args)
         self.validate(operation)
         return self
+
     produce = classmethod(_produce)
 
     def from_datastruct(self,args):
@@ -43,6 +46,7 @@ class Image(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         image object for interaction with the ORM.  See methods below for examples.
         """
+
         self.id                 = self.load(args,"id")
         self.name               = self.load(args,"name")
         self.version            = self.load(args,"version")
@@ -57,6 +61,7 @@ class Image(baseobj.BaseObject):
         """
         Serialize the object for transmission over WS.
         """
+
         return {
             "id"                 : self.id,
             "name"               : self.name,
@@ -82,13 +87,16 @@ def image_add(websvc,args):
      """
      Create a image.  args should contain all fields except ID.
      """
+
      st = """
      INSERT INTO images (name,version,filename,specfile,
      distribution_id,virt_storage_size,virt_ram,kickstart_metadata)
      VALUES (:name,:version,:filename,:specfile,:distribution_id,
      :virt_storage_size,:virt_ram,:kickstart_metadata)
      """
+
      u = Image.produce(args,OP_ADD)
+
      if u.distribution_id is not None:
          try:
              distribution.distribution_get(websvc, { "id" : u.distribution_id})
@@ -97,6 +105,7 @@ def image_add(websvc,args):
 
      lock = threading.Lock()
      lock.acquire()
+
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
@@ -104,8 +113,12 @@ def image_add(websvc,args):
          lock.release()
          # FIXME: be more fined grained (find where IntegrityError is defined)
          raise SQLException(traceback.format_exc())
+
      id = websvc.cursor.lastrowid
      lock.release()
+
+     provisioning.provisioning_sync(websvc, {})
+
      return success(id)
 
 def image_edit(websvc,args):
@@ -113,7 +126,9 @@ def image_edit(websvc,args):
      Edit a image.  args should contain all fields that need to
      be changed.
      """
+
      u = Image.produce(args,OP_EDIT) # force validation
+
      st = """
      UPDATE images 
      SET name=:name, version=:version, filename=:filename, specfile=:specfile,
@@ -124,34 +139,43 @@ def image_edit(websvc,args):
 
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
+
+     provisioning.provisioning_sync(websvc,{})
+
      return success(u.to_datastruct(True))
 
 def image_delete(websvc,args):
      """
      Deletes a image.  The args must only contain the id field.
      """
+
      u = Image.produce(args,OP_DELETE) # force validation
  
      st = """
      DELETE FROM images WHERE images.id=:id
      """
+
      st2 = """
      SELECT images.id FROM deployments,images 
      WHERE deployments.image_id = images.id
      AND images.id=:id
      """
+
      # check to see that what we are deleting exists
      (rc, data) = image_get(websvc,u.to_datastruct())
      if not rc == 0:
         raise NoSuchObjectException("image_delete")
+
      # check to see that deletion won't orphan a deployment
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
         raise OrphanedObjectException("deployment")
+
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
-     # FIXME: failure based on existance
+
+     # no need to sync provisioning as the image isn't hurting anything
      return success()
 
 def image_list(websvc,args):
@@ -160,12 +184,14 @@ def image_list(websvc,args):
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
+
      offset = 0
      limit  = 100
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
         limit = args["limit"]
+
      st = """
      SELECT 
      images.id, images.name, images.version,
@@ -177,10 +203,12 @@ def image_list(websvc,args):
      LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
      LIMIT ?,?
      """ 
+
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
      if results is None:
          return success([])
+
      images = []
      for x in results:
          # note that the distribution is *not* expanded as it may
@@ -196,6 +224,7 @@ def image_list(websvc,args):
             "virt_ram"           : x[7],
             "kickstart_metadata" : x[8]
          }).to_datastruct(True)
+     
          if x[9] is not None and x[9] != -1:
              data["distribution"] = distribution.Distribution.produce({
                  "id"             : x[9],
@@ -205,23 +234,30 @@ def image_list(websvc,args):
                  "kickstart"      : x[13],
                  "name"           : x[14]
              }).to_datastruct(True)
+     
          images.append(data)
+  
      return success(images)
 
 def image_get(websvc,args):
      """
      Return a specific image record.  Only the "id" is required in args.
      """
+
      u = Image.produce(args,OP_GET) # force validation
+
      st = """
      SELECT id,name,version,filename,specfile,
      distribution_id,virt_storage_size,virt_ram, kickstart_metadata
      FROM images WHERE id=:id
      """
+
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
+
      if x is None:
          raise NoSuchObjectException("image_get")
+
      data = {
             "id"       : x[0],
             "name"     : x[1],
@@ -233,18 +269,22 @@ def image_get(websvc,args):
             "virt_ram" : x[7],
             "kickstart_metadata" : x[8]
      }
+
      data = Image.produce(data).to_datastruct(True)
+
      if x[5] is not None:
          (rc, dist) = distribution.distribution_get(websvc, { "id" : x[5] })
          if rc != 0:
              raise OrphanedObjectException("distribution_id")
          data["distribution"] = dist
+
      return success(data)
 
 def register_rpc(handlers):
      """
      This adds RPC functions to the global list of handled functions.
      """
+
      handlers["image_add"]    = image_add
      handlers["image_delete"] = image_delete
      handlers["image_list"]   = image_list

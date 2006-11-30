@@ -31,10 +31,12 @@ class Deployment(baseobj.BaseObject):
         running it through validation, which will vary depending on what
         operation is creating the deployment object.
         """
+
         self = Deployment()
         self.from_datastruct(args)
         self.validate(operation)
         return self
+
     produce = classmethod(_produce)
 
     def from_datastruct(self,args):
@@ -45,6 +47,7 @@ class Deployment(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         deployment object for interaction with the ORM.  See methods below for examples.
         """
+
         self.id            = self.load(args,"id")
         self.machine_id    = self.load(args,"machine_id")
         self.image_id      = self.load(args,"image_id")
@@ -54,6 +57,7 @@ class Deployment(baseobj.BaseObject):
         """
         Serialize the object for transmission over WS.
         """
+
         return {
             "id"           : self.id,
             "machine_id"   : self.machine_id,
@@ -77,11 +81,13 @@ class Deployment(baseobj.BaseObject):
         Up for consideration, but probably not needed at this point.  Can be added later. 
         """
         # FIXME
+
         if operation in [OP_EDIT]:
             if self.machine_id is None:
                 raise InvalidArgumentsException("machine_id")
             if self.image_id is None:
                 raise InvalidArgumentsException("image_id")
+
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
@@ -89,21 +95,27 @@ def deployment_add(websvc,args):
      """
      Create a deployment.  args should contain all fields except ID.
      """
+
      u = Deployment.produce(args,OP_ADD)
+
      st = """
      INSERT INTO deployments (machine_id,image_id,state)
      VALUES (:machine_id,:image_id,:state)
      """
+
      try:
          machine.machine_get(websvc, { "id" : args["machine_id"]})
      except ShadowManagerException:
          raise OrphanedObjectException('machine_id')
+
      try:
          image.image_get(websvc, { "id" : args["image_id"]})
      except ShadowManagerException:
          raise OrphanedObjectException('image_id')
+
      lock = threading.Lock()
      lock.acquire()
+
      try:
          websvc.cursor.execute(st, u.to_datastruct())
          websvc.connection.commit()
@@ -111,8 +123,10 @@ def deployment_add(websvc,args):
          lock.release()
          # FIXME: be more fined grained (find where IntegrityError is defined)
          raise SQLException(traceback.format_exc())
+
      id = websvc.cursor.lastrowid
      lock.release()
+
      return success(id)
 
 def deployment_edit(websvc,args):
@@ -120,22 +134,28 @@ def deployment_edit(websvc,args):
      Edit a deployment.  args should contain all fields that need to
      be changed.
      """
+
      u = Deployment.produce(args,OP_EDIT) # force validation
+
      st = """
      UPDATE deployments 
      SET machine_id=:machine_id, state=:state
      WHERE id=:id
      """
+
      try:
          machine.machine_get(websvc, { "id" : u.machine_id })
      except ShadowManagerException:
          raise InvalidArgumentsException('machine_id')
+
      try:
          image.image_get(websvc, { "id" : u.image_id })
      except ShadowManagerException:
          raise InvalidArgumentsException('image_id')
+
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
+
      return success(u.to_datastruct(True))
 
 def deployment_delete(websvc,args):
@@ -147,12 +167,15 @@ def deployment_delete(websvc,args):
      st = """
      DELETE FROM deployments WHERE deployments.id=:id
      """
+
      # check to see that what we are deleting exists
      rc = deployment_get(websvc,args)
      if not rc:
         raise NoSuchObjectException("deployment_delete")
+
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
+
      # FIXME: failure based on existance
      return success()
 
@@ -162,12 +185,14 @@ def deployment_list(websvc,args):
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
+
      offset = 0
      limit  = 100
      if args.has_key("offset"):
         offset = args["offset"]
      if args.has_key("limit"):
         limit = args["limit"]
+
      st = """
      SELECT 
      deployments.id,
@@ -198,12 +223,16 @@ def deployment_list(websvc,args):
      machines.id = deployments.machine_id
      LIMIT ?,?
      """ 
+
      results = websvc.cursor.execute(st, (offset,limit))
      results = websvc.cursor.fetchall()
      if results is None:
          return success([])
+
      deployments = []
+
      for x in results:
+
          image_data = image.Image.produce({
                 "id"       : x[4],
                 "name"     : x[5],
@@ -215,6 +244,7 @@ def deployment_list(websvc,args):
                 "virt_ram"           : x[11],
                 "kickstart_metadata" : x[12]
          }).to_datastruct(True)
+
          machine_data = machine.Machine.produce({
                 "id"              : x[13],
                 "address"         : x[14],
@@ -227,44 +257,54 @@ def deployment_list(websvc,args):
                 "kickstart_metadata" : x[21],
                 "list_group" : x[22]
          }).to_datastruct(True)
+
          data = Deployment.produce({         
             "id"           : x[0],
             "machine_id"   : x[1],
             "image_id"     : x[2],
             "state"        : x[3],
          }).to_datastruct(True)
+
          data["image"] = image_data
          data["machine"] = machine_data
          deployments.append(data)
+
      return success(deployments)
 
 def deployment_get(websvc,args):
      """
      Return a specific deployment record.  Only the "id" is required in args.
      """
+
      u = Deployment.produce(args,OP_GET) # force validation
+
      st = """
      SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
      images.id, machines.id
      FROM deployments,images,machines WHERE deployments.id=:id AND 
      images.id = deployments.image_id AND machines.id = deployments.machine_id
      """
+
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
          raise NoSuchObjectException("deployment_get")
+
      # exceptions will be raised by these next two calls, so no RC
      # checking is required
      (rc1, machine1) = machine.machine_get(websvc, { "id" : x[1] })
      (rc2, image1)   = image.image_get(websvc, { "id" : x[2] })
+
      data = Deployment.produce({
             "id"         : x[0],
             "machine_id" : x[1],
             "image_id"   : x[2],
             "state"      : x[3],
      }).to_datastruct(True)
+
      data["machine"] = machine1
      data["image"]   = image1
+
      return success(data)
 
 def register_rpc(handlers):
