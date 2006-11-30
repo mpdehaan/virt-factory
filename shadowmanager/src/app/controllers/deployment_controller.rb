@@ -11,6 +11,7 @@ class DeploymentController < ObjectController
        @machines = ManagedObject.retrieve_all(MachineController::Machine, @session).collect do |machine|
            [machine.address, machine.id]
        end
+       @machines.insert(0,EMPTY_ENTRY)
        @images = ManagedObject.retrieve_all(ImageController::Image, @session).collect do |image|
            [image.name, image.id]
        end

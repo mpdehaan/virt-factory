@@ -41,6 +41,7 @@ end
 # FIXME do something with the return data upon error (could be an error message or traceback
 class ObjectController < ApplicationController
     include ApplicationHelper
+    EMPTY_ENTRY = ["-None-", ""]
 
     def index
         redirect_to :action => 'list'
@@ -136,7 +137,8 @@ class ObjectController < ApplicationController
                 if (metadata[:id_attr])
                     define_method(("get_"+attr.to_s).to_sym) do
                         if ((!instance_variable_get("@"+attr.to_s)) &&
-                            (id = instance_variable_get("@"+metadata[:id_attr].to_s)))
+                            (id = instance_variable_get("@"+metadata[:id_attr].to_s)) &&
+                            id > 0)
                             instance_variable_set("@"+attr.to_s,
                                                   ManagedObject.retrieve(metadata[:type],
                                                                          self.session,

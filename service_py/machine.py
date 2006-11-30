@@ -121,11 +121,18 @@ def machine_edit(websvc,args):
      processor_speed=:processor_speed,
      processor_count=:processor_count,
      memory=:memory,
+     distribution_id=:distribution_id,
      kernel_options=:kernel_options,
      kickstart_metadata=:kickstart_metadata,
      list_group=:list_group
      WHERE id=:id
      """
+     if u.distribution_id is not None:
+         try:
+             obj = distribution.distribution_get(websvc, { "id" : u.distribution_id })
+         except ShadowManagerException:
+             raise OrphanedObjectException("distribution_id")
+
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct(True))
@@ -171,11 +178,11 @@ def machine_list(websvc,args):
      st = """
      SELECT machines.id AS mid, machines.address,machines.architecture,
      machines.processor_speed,machines.processor_count,machines.memory,
-     machines.kernel_options,machines.kickstart_metadata,machines.list_group,
-     distributions.id AS did, distributions.kernel, distributions.initrd,
+     distributions.id AS did, machines.kernel_options,machines.kickstart_metadata,
+     machines.list_group, distributions.kernel, distributions.initrd,
      distributions.options, distributions.kickstart, distributions.name
      FROM machines
-     LEFT OUTER JOIN distributions ON machines.distribution_id = did  
+     LEFT OUTER JOIN distributions ON machines.distribution_id = distributions.id  
      LIMIT ?,?
      """ 
      results = websvc.cursor.execute(st, (offset,limit))
@@ -184,7 +191,7 @@ def machine_list(websvc,args):
          return success([])
      machines = []
      for x in results:
-         data = {         
+         data = Machine.produce({         
              "id"                 : x[0],
              "address"            : x[1],
              "architecture"       : x[2],
@@ -195,17 +202,17 @@ def machine_list(websvc,args):
              "kernel_options"     : x[7],
              "kickstart_metadata" : x[8],
              "list_group"         : x[9]
-         }
+         }).to_datastruct(True)
          if x[6] is not None and x[6] != -1:
-             data["distribution"] = {
+             data["distribution"] = distribution.Distribution.produce({
                  "id"             : x[6],
                  "kernel"         : x[10],
                  "initrd"         : x[11],
                  "options"        : x[12],
                  "kickstart"      : x[13],
                  "name"           : x[14]
-             }
-         machines.append(Machine.produce(data).to_datastruct(True))
+             }).to_datastruct(True)
+         machines.append(data)
      return success(machines)
 
 def machine_get(websvc,args):

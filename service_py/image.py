@@ -117,10 +117,17 @@ def image_edit(websvc,args):
      st = """
      UPDATE images 
      SET name=:name, version=:version, filename=:filename, specfile=:specfile,
+     distribution_id=:distribution_id,
      virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
      kickstart_metadata=:kickstart_metadata
      WHERE id=:id
      """
+     if u.distribution_id is not None:
+         try:
+             distribution.distribution_get(websvc, { "id" : u.distribution_id})
+         except ShadowManagerException:
+             raise OrphanedObjectExcception('distribution_id')
+
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct(True))
@@ -168,8 +175,8 @@ def image_list(websvc,args):
      st = """
      SELECT 
      images.id, images.name, images.version,
-     images.filename, images.specfile, images.virt_storage_size,
-     images.virt_ram, images.kickstart_metadata,
+     images.filename, images.specfile, images.distribution_id, 
+     images.virt_storage_size, images.virt_ram, images.kickstart_metadata,
      distributions.id, distributions.kernel, distributions.initrd,
      distributions.options, distributions.kickstart, distributions.name
      FROM images 
@@ -184,27 +191,27 @@ def image_list(websvc,args):
      for x in results:
          # note that the distribution is *not* expanded as it may
          # not be valid in all cases
-         data = {         
+         data = Image.produce({         
             "id"        : x[0],
             "name"      : x[1],
             "version"   : x[2],
             "filename"  : x[3],
             "specfile"  : x[4],
-            "distribution_id"    : x[5],
+            "distribution_id"    : x[9],
             "virt_storage_size"  : x[6],
             "virt_ram"           : x[7],
-            "kickstart_metadata" : x[8],
-            "distribution" : {
-                 "id"        : x[9],
-                 "kernel"    : x[10],
-                 "initrd"    : x[11],
-                 "options"   : x[12],
-                 "kickstart" : x[12],
-                 "name"      : x[13]
-            }
-
-         }
-         images.append(Image.produce(data).to_datastruct(True))
+            "kickstart_metadata" : x[8]
+         }).to_datastruct(True)
+         if x[9] is not None and x[9] != -1:
+             data["distribution"] = distribution.Distribution.produce({
+                 "id"             : x[9],
+                 "kernel"         : x[10],
+                 "initrd"         : x[11],
+                 "options"        : x[12],
+                 "kickstart"      : x[13],
+                 "name"           : x[14]
+             }).to_datastruct(True)
+         images.append(data)
      return success(images)
 
 def image_get(websvc,args):

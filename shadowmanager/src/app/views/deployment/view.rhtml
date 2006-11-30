@@ -1,0 +1,67 @@
+      <% @page_title = "View Machine" %>
+      <%= ApplicationHelper.menubar("machine","list") %>
+
+      <div id="content-main">
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Machine</TD>
+            <TD>
+                <% if @item.machine %>
+                    <TABLE BORDER=0>
+                       <TR>
+                          <TD>Address</TD>
+                          <TD><%= @item.machine.address %></TD>
+                       </TR>
+                       <TR>
+                          <TD>Architecture</TD>
+                          <TD><%= @item.machine.architecture %></TD>
+                       </TR>
+                       <TR> 
+                          <TD>Procesor Speed</TD>
+                          <TD><%= @item.machine.processor_speed %></TD>
+                       </TR>
+                       <TR> 
+                          <TD>Procesor Count</TD>
+                          <TD><%= @item.machine.processor_count %></TD>
+                       </TR>
+                       <TR> 
+                          <TD>Memory</TD>
+                          <TD><%= @item.machine.memory %></TD>
+                       </TR>
+                    </TABLE>
+                <% end %>
+            </TD>
+         </TR>
+         <TR>
+            <TD>Image</TD>
+            <TD>
+                <% if @item.image %>
+                    <TABLE BORDER=0>
+                        <TR>
+                            <TD>Name</TD>
+                            <TD><%= @item.image.name %></TD>
+                        </TR>
+                        <TR> 
+                            <TD>Version</TD>
+                            <TD><%= @item.image.version %></TD>
+                        </TR>
+                        <TR> 
+                            <TD>Filename</TD>
+                            <TD><%= @item.image.filename %></TD>
+                        </TR>
+                        <TR>
+                            <TD>Specfile</TD>
+                            <TD><%= @item.image.specfile %></TD>
+                        </TR>
+                    </TABLE>
+                <% end %>
+            </TD>
+         </TR>
+         <TR> 
+            <TD>State</TD>
+            <TD><%= @item.state %></TD>
+         </TR>
+      </TABLE>
+      </div>
+      <% @callout_1 = "View a deployment" %>
+

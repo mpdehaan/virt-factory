@@ -3,11 +3,10 @@ class MachineController < ObjectController
 
    def edit
        super
-# FIXME stubbed out until api support is added
-#       @distributions = ManagedObject.retrieve_all(DistributionController::Distribution, @session).collect do |dist|
-#           [dist.name, dist.id]
-#       end
-       @distributions = []
+       @distributions = ManagedObject.retrieve_all(DistributionController::Distribution, @session).collect do |dist|
+           [dist.name, dist.id]
+       end
+       @distributions.insert(0,EMPTY_ENTRY)
    end
 
    def object_class

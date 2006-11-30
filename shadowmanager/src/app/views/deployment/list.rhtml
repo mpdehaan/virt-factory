@@ -13,8 +13,8 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.get_machine.address, :controller => "machine", :action=> "view", :id=> item.get_machine.id %></TD>
-             <TD> <%= link_to item.get_image.name, :controller => "image", :action=> "view", :id=> item.get_image.id %></TD>
+             <TD> <%= link_to item.machine.address, :controller => "machine", :action=> "view", :id=> item.machine.id %></TD>
+             <TD> <%= link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id %></TD>
              <TD> <%= item.state %> </TD>
              <TD> <%= link_to "edit", :controller => "deployment", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "deployment", :action=> "delete", :id=> item.id %></TD>
