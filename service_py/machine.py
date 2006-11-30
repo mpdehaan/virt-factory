@@ -199,7 +199,7 @@ def machine_list(websvc,args):
      machines.processor_speed,machines.processor_count,machines.memory,
      distributions.id AS did, machines.kernel_options,machines.kickstart_metadata,
      machines.list_group, distributions.kernel, distributions.initrd,
-     distributions.options, distributions.kickstart, distributions.name
+     distributions.options, distributions.kickstart, distributions.name, distributions.architecture
      FROM machines
      LEFT OUTER JOIN distributions ON machines.distribution_id = distributions.id  
      LIMIT ?,?
@@ -234,7 +234,8 @@ def machine_list(websvc,args):
                  "initrd"         : x[11],
                  "options"        : x[12],
                  "kickstart"      : x[13],
-                 "name"           : x[14]
+                 "name"           : x[14],
+                 "architecture"   : x[15]
              }).to_datastruct(True)
      
          machines.append(data)

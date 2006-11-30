@@ -40,6 +40,10 @@ ERR_ORPHANED_OBJECT = 8
 ERR_SQL = 9
 ERR_UNCAUGHT = 999
 
+ARCH_X86 = 0
+ARCH_X86_64 = 1
+ARCH_IA64 = 2
+
 def result(rc, variables=[]):
    return (rc == 0, rc, variables)
 

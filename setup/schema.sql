@@ -1,7 +1,7 @@
 
 CREATE TABLE users (
    id INTEGER PRIMARY KEY,
-   username VARCHAR (255) UNIQUE,
+   username VARCHAR (255) UNIQUE NOT NULL,
    password VARCHAR (255) NOT NULL,
    first VARCHAR (255) NOT NULL,
    middle VARCHAR (255),
@@ -17,47 +17,48 @@ CREATE TABLE events (
    machine_id     INT,
    deployment_id  INT,
    image_id       INT,
-   severity       INT,
-   category       VARCHAR (255),
+   severity       INT NOT NULL,
+   category       VARCHAR (255) NOT NULL,
    action         VARCHAR (255),
    user_comment   VARCHAR (255)
 );
 
 CREATE TABLE distributions (
    id INTEGER PRIMARY KEY,
-   kernel VARCHAR(255),
-   initrd VARCHAR(255),
+   kernel VARCHAR(255) NOT NULL,
+   initrd VARCHAR(255) NOT NULL,
    options VARCHAR(255),
    kickstart VARCHAR(255),
-   name VARCHAR(255) UNIQUE
+   name VARCHAR(255) UNIQUE,
+   architecture INT
 );
 
 CREATE TABLE images (
    id INTEGER PRIMARY KEY,
    name       VARCHAR (255) UNIQUE,
-   version    VARCHAR (255),
+   version    VARCHAR (255) NOT NULL,
    filename   VARCHAR (255),
    specfile   VARCHAR (255),
    distribution_id    INT,
-   virt_storage_size  INT,
-   virt_ram           INT,
+   virt_storage_size  INT NOT NULL,
+   virt_ram           INT NOT NULL,
    kickstart_metadata VARCHAR(255)
 );
 
 CREATE TABLE deployments (
    id INTEGER PRIMARY KEY,
-   machine_id INT,
-   image_id   INT,
-   state      INT
+   machine_id INT NOT NULL,
+   image_id   INT NOT NULL,
+   state      INT NOT NULL
 );
 
 CREATE TABLE machines (
    id INTEGER PRIMARY KEY,
-   address VARCHAR(255) UNIQUE,
-   architecture INT,
-   processor_speed INT,
-   processor_count INT,
-   memory          INT,
+   address VARCHAR(255) UNIQUE NOT NULL,
+   architecture INT NOT NULL,
+   processor_speed INT NOT NULL,
+   processor_count INT NOT NULL,
+   memory          INT NOT NULL,
    distribution_id INT,
    kernel_options     VARCHAR(255),
    kickstart_metadata VARCHAR(255),

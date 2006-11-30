@@ -250,11 +250,12 @@ class DistributionTests(BaseCrudTests):
 
    def custom_setup(self):
       self.sample = {
-         "kernel"    : "kernel",
-         "initrd"    : "initrd",
-         "options"   : "options",
-         "kickstart" : "kickstart",
-         "name"      : "name",
+         "kernel"       : "kernel",
+         "initrd"       : "initrd",
+         "options"      : "options",
+         "kickstart"    : "kickstart",
+         "name"         : "name",
+         "architecture" : 1
       }
       self.funcs = {
          "add_func"    : self.api.distribution_add,

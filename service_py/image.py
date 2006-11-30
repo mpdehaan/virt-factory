@@ -198,7 +198,7 @@ def image_list(websvc,args):
      images.filename, images.specfile, images.distribution_id, 
      images.virt_storage_size, images.virt_ram, images.kickstart_metadata,
      distributions.id, distributions.kernel, distributions.initrd,
-     distributions.options, distributions.kickstart, distributions.name
+     distributions.options, distributions.kickstart, distributions.name, distributions.architecture
      FROM images 
      LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
      LIMIT ?,?
@@ -232,7 +232,8 @@ def image_list(websvc,args):
                  "initrd"         : x[11],
                  "options"        : x[12],
                  "kickstart"      : x[13],
-                 "name"           : x[14]
+                 "name"           : x[14],
+                 "architecture"   : x[15]
              }).to_datastruct(True)
      
          images.append(data)

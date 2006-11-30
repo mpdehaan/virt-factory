@@ -48,12 +48,13 @@ class Distribution(baseobj.BaseObject):
         distribution object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id          = self.load(args,"id")
-        self.kernel      = self.load(args,"kernel")
-        self.initrd      = self.load(args,"initrd")
-        self.options     = self.load(args,"options")
-        self.kickstart   = self.load(args,"kickstart")
-        self.name        = self.load(args,"name")
+        self.id           = self.load(args,"id")
+        self.kernel       = self.load(args,"kernel")
+        self.initrd       = self.load(args,"initrd")
+        self.options      = self.load(args,"options")
+        self.kickstart    = self.load(args,"kickstart")
+        self.name         = self.load(args,"name")
+        self.architecture = self.load(args,"architecture") 
 
     def to_datastruct_internal(self):
         """
@@ -61,12 +62,13 @@ class Distribution(baseobj.BaseObject):
         """
 
         return {
-            "id"          : self.id,
-            "kernel"      : self.kernel,
-            "initrd"      : self.initrd,
-            "options"     : self.options,
-            "kickstart"   : self.kickstart,
-            "name"        : self.name,
+            "id"           : self.id,
+            "kernel"       : self.kernel,
+            "initrd"       : self.initrd,
+            "options"      : self.options,
+            "kickstart"    : self.kickstart,
+            "name"         : self.name,
+            "architecture" : self.architecture
         }
 
     def validate(self,operation):
@@ -116,7 +118,8 @@ def distribution_edit(websvc,args):
      initrd=:initrd,
      options=:options,
      kickstart=:kickstart,
-     name=:name
+     name=:name,
+     architecture=:architecture
      WHERE id=:id
      """
 
@@ -176,7 +179,7 @@ def distribution_list(websvc,args):
         limit = args["limit"]
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name
+     SELECT id,kernel,initrd,options,kickstart,name,architecture
      FROM distributions LIMIT ?,?
      """ 
 
@@ -186,12 +189,13 @@ def distribution_list(websvc,args):
 
      for x in results:
          data = {         
-            "id"          : x[0],
-            "kernel"      : x[1],
-            "initrd"      : x[2],
-            "options"     : x[3],
-            "kickstart"   : x[4],
-            "name"        : x[5],
+            "id"           : x[0],
+            "kernel"       : x[1],
+            "initrd"       : x[2],
+            "options"      : x[3],
+            "kickstart"    : x[4],
+            "name"         : x[5],
+            "architecture" : x[6]
          }
          distributions.append(Distribution.produce(data).to_datastruct())
      return success(distributions)
@@ -204,7 +208,7 @@ def distribution_get(websvc,args):
      u = Distribution.produce(args,OP_GET) # force validation
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name
+     SELECT id,kernel,initrd,options,kickstart,name,architecture
      FROM distributions WHERE distributions.id=:id
      """
 
@@ -220,6 +224,7 @@ def distribution_get(websvc,args):
             "options"          : x[3],
             "kickstart"        : x[4],
             "name"             : x[5],
+            "architecture"     : x[6]
      }
 
      return success(Distribution.produce(data).to_datastruct())
