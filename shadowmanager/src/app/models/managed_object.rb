@@ -25,7 +25,7 @@ class ManagedObject
     end
 
     def self.retrieve_all(object_class, session)
-        (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",session[:login])
+        (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",session[:login], {})
         unless rc == ERR_SUCCESS
             raise XMLRPCClientException.new(rc, results)
         end
