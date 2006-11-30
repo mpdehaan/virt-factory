@@ -30,7 +30,9 @@ CREATE TABLE distributions (
    options VARCHAR(255),
    kickstart VARCHAR(255),
    name VARCHAR(255) UNIQUE,
-   architecture INT
+   architecture INT,
+   kernel_options VARCHAR(255),       
+   kickstart_metadata VARCHAR(255)   
 );
 
 CREATE TABLE images (
@@ -42,7 +44,8 @@ CREATE TABLE images (
    distribution_id    INT,
    virt_storage_size  INT NOT NULL,
    virt_ram           INT NOT NULL,
-   kickstart_metadata VARCHAR(255)
+   kickstart_metadata VARCHAR(255),
+   kernel_options VARCHAR(255)        
 );
 
 CREATE TABLE deployments (
@@ -62,6 +65,7 @@ CREATE TABLE machines (
    distribution_id INT,
    kernel_options     VARCHAR(255),
    kickstart_metadata VARCHAR(255),
-   list_group         VARCHAR(255)
+   list_group         VARCHAR(255),
+   mac_address VARCHAR(255) NOT NULL
 );
 
