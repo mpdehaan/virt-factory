@@ -20,6 +20,7 @@ from errors import *
 import baseobj
 import traceback
 import threading
+import provisioning
 
 class Distribution(baseobj.BaseObject):
 
@@ -89,6 +90,7 @@ def distribution_add(websvc,args):
          raise SQLException(traceback.format_exc())
      id = websvc.cursor.lastrowid
      lock.release()
+     provisioning.provisioning_sync(websvc,{})
      return success(id)
 
 def distribution_edit(websvc,args): 
@@ -105,6 +107,7 @@ def distribution_edit(websvc,args):
      ds = u.to_datastruct()
      websvc.cursor.execute(st, ds)
      websvc.connection.commit()
+     provisioning.provisioning_sync(websvc,{})
      return success(u.to_datastruct())
 
 def distribution_delete(websvc,args):

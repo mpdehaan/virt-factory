@@ -68,7 +68,7 @@ class LoginTests(BaseTest):
 
    def test_method_access(self):
       (rc, data) = self.api.user_login("admin","foosball")
-      (rc, data) = self.api.user_list(data) 
+      (rc, data) = self.api.user_list(data,{}) 
       self.failUnlessEqual(rc,codes.ERR_TOKEN_INVALID,"invalid token")
 
 class BaseCrudTests(BaseTest):
@@ -96,11 +96,11 @@ class BaseCrudTests(BaseTest):
    initial_rows = 0 
 
    def _test_add(self):
-       (rc0, data0) = self.call(self.funcs["list_func"])
+       (rc0, data0) = self.call(self.funcs["list_func"],{})
        self.failUnlessEqual(rc0, 0, "list ok: %s" % rc0)
        (rc1, data1) = self.call(self.funcs["add_func"], self.sample)
        self.failUnlessEqual(rc1, 0, "add ok: %s" % rc1)
-       (rc2, data2) = self.call(self.funcs["list_func"])
+       (rc2, data2) = self.call(self.funcs["list_func"],{})
        self.failUnlessEqual(rc2, 0, "list ok")
        self.failUnlessEqual(len(data2),len(data0)+1,"successful add")
        id = None
@@ -166,7 +166,7 @@ class BaseCrudTests(BaseTest):
               self.failUnlessEqual(data2[k],s1[k],"modified 2: %s vs %s" % (data2,s1))
 
    def _test_delete(self):
-       (rc0, data0) = self.call(self.funcs["list_func"])
+       (rc0, data0) = self.call(self.funcs["list_func"], {})
        self.failUnlessEqual(rc0, 0, "list ok")
        s1 = self.sample.copy()
        (rc1, data1) = self.call(self.funcs["add_func"], s1)
@@ -179,7 +179,7 @@ class BaseCrudTests(BaseTest):
        self.failUnlessEqual(type(data3),dict,"got a dict: %s" % type(data3))
        (rc4, data4) = self.call(self.funcs["delete_func"], { "id" : data1 })
        self.failUnlessEqual(rc4, 0, "working delete")
-       (rc5, data5) = self.call(self.funcs["list_func"])
+       (rc5, data5) = self.call(self.funcs["list_func"], {})
        self.failUnlessEqual(len(data5),len(data0),"back to initial size")
        (rc6, data6) = self.call(self.funcs["get_func"], { "id" : data1 })
        self.failUnlessEqual(rc6, codes.ERR_NO_SUCH_OBJECT,"deleted: %s, %s" % (rc6,data6))
@@ -312,7 +312,7 @@ class DistributionTests(BaseCrudTests):
        image["distribution_id"] = data0
        (rc2, data2) = self.call(self.api.image_add, image)
        self.failUnlessEqual(rc2, 0, "image_add")
-       (rc2b, data2b) = self.call(self.api.image_list)
+       (rc2b, data2b) = self.call(self.api.image_list, {})
        self.failUnlessEqual(rc2b, 0, "image list ok")
        self.failUnlessEqual(len(data2b), 1, "correct number of images returned")
        (rc2a, data2a) = self.call(self.api.image_get, { "id" : data2 })
@@ -481,13 +481,16 @@ class DeploymentTests(BaseTest):
        self.failUnlessEqual(rc4, 0, "successful get: %s, %s" % (rc4,data4))
        self.failUnlessEqual(cmp(data4["machine"], sample_machine), 0, "machine equal")
        self.failUnlessEqual(cmp(data4["image"], sample_image), 0, "image equal")
-       
+
        # FIXME: test limit queries
        # FIXME: test edits
 
+class AdvancedCobblerTests(BaseTest):
 
-
-# others TBA
+   def test_sync(self):
+       # cobbler sync is normally invoked when adding a new machine or image.  this test verifies that it is working
+       # by looking at cobbler's config and so forth.
+       pass
 
 if __name__ == "__main__":
     unittest.main() 

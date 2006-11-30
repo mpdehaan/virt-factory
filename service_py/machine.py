@@ -20,6 +20,7 @@ import baseobj
 import traceback
 import threading
 import distribution
+import provisioning
 
 class Machine(baseobj.BaseObject):
 
@@ -106,7 +107,10 @@ def machine_add(websvc,args):
          lock.release()
          raise SQLException(traceback.format_exc())
      id = websvc.cursor.lastrowid
-     lock.release()
+     lock.release() 
+
+     provisioning.provisioning_sync(websvc, {})
+
      return success(id)
 
 def machine_edit(websvc,args):
@@ -128,6 +132,9 @@ def machine_edit(websvc,args):
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
+
+     provisioning.provisioning_sync(websvc,{})
+
      return success(u.to_datastruct(True))
 
 def machine_delete(websvc,args):

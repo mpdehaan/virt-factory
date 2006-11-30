@@ -20,6 +20,7 @@ import baseobj
 import traceback
 import threading
 import distribution
+import provisioning
 
 class Image(baseobj.BaseObject):
 
@@ -106,6 +107,9 @@ def image_add(websvc,args):
          raise SQLException(traceback.format_exc())
      id = websvc.cursor.lastrowid
      lock.release()
+
+     provisioning.provisioning_sync(websvc, {})
+
      return success(id)
 
 def image_edit(websvc,args):
@@ -123,6 +127,9 @@ def image_edit(websvc,args):
      """
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
+
+     provisioning.provisioning_sync(websvc,{})
+
      return success(u.to_datastruct(True))
 
 def image_delete(websvc,args):
@@ -150,7 +157,7 @@ def image_delete(websvc,args):
         raise OrphanedObjectException("deployment")
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
-     # FIXME: failure based on existance
+     # no need to sync provisioning as the image isn't hurting anything
      return success()
 
 def image_list(websvc,args):
