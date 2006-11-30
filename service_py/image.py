@@ -117,16 +117,10 @@ def image_edit(websvc,args):
      st = """
      UPDATE images 
      SET name=:name, version=:version, filename=:filename, specfile=:specfile,
-     distribution_id=:distribution_id,
      virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
      kickstart_metadata=:kickstart_metadata
      WHERE id=:id
      """
-     if u.distribution_id is not None:
-         try:
-             distribution.distribution_get(websvc, { "id" : u.distribution_id})
-         except ShadowManagerException:
-             raise OrphanedObjectExcception('distribution_id')
 
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()

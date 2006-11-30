@@ -4,6 +4,7 @@
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
+      <%= f.hidden_field :distribution_id if @operation == "Edit" %>
       <TABLE BORDER=0>
          <TR>
             <TD>Address</TD>
@@ -27,7 +28,12 @@
          </TR>
          <TR>
             <TD>Distribution</TD>
-            <TD><%= f.select :distribution_id, @distributions %></TD>
+            <TD><%= if @operation == "Add"
+	                f.select :distribution_id, @distributions
+	            else
+ 	                @item.distribution.name if @item.distribution
+                    end %>
+             </TD>
          </TR>
          <TR>
             <TD>Kernel Options</TD>

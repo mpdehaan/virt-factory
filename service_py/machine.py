@@ -121,18 +121,11 @@ def machine_edit(websvc,args):
      processor_speed=:processor_speed,
      processor_count=:processor_count,
      memory=:memory,
-     distribution_id=:distribution_id,
      kernel_options=:kernel_options,
      kickstart_metadata=:kickstart_metadata,
      list_group=:list_group
      WHERE id=:id
      """
-     if u.distribution_id is not None:
-         try:
-             obj = distribution.distribution_get(websvc, { "id" : u.distribution_id })
-         except ShadowManagerException:
-             raise OrphanedObjectException("distribution_id")
-
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
      return success(u.to_datastruct(True))

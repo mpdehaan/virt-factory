@@ -4,6 +4,7 @@
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
+      <%= f.hidden_field :image_id if @operation == "Edit" %>
       <TABLE BORDER=0>
          <TR>
             <TD>Machine</TD>
@@ -11,7 +12,12 @@
          </TR>
          <TR>
             <TD>Image</TD>
-            <TD><%= @item.image.name %></TD>
+            <TD><%= if @operation == "Add"
+	                f.select :image_id, @images
+	            else
+ 	                @item.image.name if @item.image
+                    end %>
+             </TD>
          </TR>
          <TR> 
             <TD>State</TD>
