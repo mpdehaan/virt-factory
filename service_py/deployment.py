@@ -209,6 +209,7 @@ def deployment_list(websvc,args):
      images.virt_ram,
      images.kickstart_metadata,
      images.kernel_options,
+     images.type,
      machines.id,
      machines.address, 
      machines.architecture,
@@ -219,7 +220,8 @@ def deployment_list(websvc,args):
      machines.kernel_options,
      machines.kickstart_metadata,
      machines.list_group,
-     machines.mac_address
+     machines.mac_address,
+     machines.type
      FROM deployments,images,machines 
      WHERE images.id = deployments.image_id AND
      machines.id = deployments.machine_id
@@ -245,21 +247,23 @@ def deployment_list(websvc,args):
                 "virt_storage_size"  : x[10],
                 "virt_ram"           : x[11],
                 "kickstart_metadata" : x[12],
-                "kernel_options"     : x[13]
+                "kernel_options"     : x[13],
+                "type"               : x[14]
          }).to_datastruct(True)
 
          machine_data = machine.Machine.produce({
-                "id"              : x[14],
-                "address"         : x[15],
-                "architecture"    : x[16],
-                "processor_speed" : x[17],
-                "processor_count" : x[18],
-                "memory"          : x[19],
-                "distribution_id" : x[20],
-                "kernel_options"  : x[21],
-                "kickstart_metadata" : x[22],
-                "list_group" : x[23],
-                "mac_address" : x[24]
+                "id"              : x[15],
+                "address"         : x[16],
+                "architecture"    : x[17],
+                "processor_speed" : x[18],
+                "processor_count" : x[19],
+                "memory"          : x[20],
+                "distribution_id" : x[21],
+                "kernel_options"  : x[22],
+                "kickstart_metadata" : x[23],
+                "list_group"         : x[24],
+                "mac_address"        : x[25],
+                "type"               : x[26]
          }).to_datastruct(True)
 
          data = Deployment.produce({         

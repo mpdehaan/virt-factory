@@ -58,6 +58,7 @@ class Machine(baseobj.BaseObject):
         self.kickstart_metadata = self.load(args, "kickstart_metadata")
         self.list_group         = self.load(args, "list_group")
         self.mac_address        = self.load(args, "mac_address")
+        self.type               = self.load(args, "type")
 
     def to_datastruct_internal(self):
         """
@@ -75,7 +76,8 @@ class Machine(baseobj.BaseObject):
             "kernel_options"     : self.kernel_options,
             "kickstart_metadata" : self.kickstart_metadata,
             "list_group"         : self.list_group,
-            "mac_address"        : self.mac_address
+            "mac_address"        : self.mac_address,
+            "type"               : self.type
         }
 
     def validate(self,operation):
@@ -93,10 +95,10 @@ def machine_add(websvc,args):
      st = """
      INSERT INTO machines (address,architecture,processor_speed,
      processor_count,memory,distribution_id,
-     kernel_options,kickstart_metadata,list_group, mac_address)
+     kernel_options,kickstart_metadata,list_group, mac_address, type)
      VALUES (:address,:architecture,:processor_speed,
      :processor_count,:memory,:distribution_id, 
-     :kernel_options, :kickstart_metadata, :list_group, :mac_address)
+     :kernel_options, :kickstart_metadata, :list_group, :mac_address, :type)
      """
 
      u = Machine.produce(args,OP_ADD)
@@ -141,7 +143,8 @@ def machine_edit(websvc,args):
      kernel_options=:kernel_options,
      kickstart_metadata=:kickstart_metadata,
      list_group=:list_group,
-     mac_address=:mac_address
+     mac_address=:mac_address,
+     type=:type
      WHERE id=:id
      """
 
@@ -209,6 +212,7 @@ def machine_list(websvc,args):
      machines.kickstart_metadata,
      machines.list_group,
      machines.mac_address,
+     machines.type,
      distributions.kernel,
      distributions.initrd,
      distributions.options,
@@ -242,20 +246,21 @@ def machine_list(websvc,args):
              "kernel_options"     : x[7],
              "kickstart_metadata" : x[8],
              "list_group"         : x[9],
-             "mac_address"        : x[10]
+             "mac_address"        : x[10],
+             "type"               : x[11]
          }).to_datastruct(True)
 
          if x[6] is not None and x[6] != -1:
              data["distribution"] = distribution.Distribution.produce({
                  "id"             : x[6],
-                 "kernel"         : x[11],
-                 "initrd"         : x[12],
-                 "options"        : x[13],
-                 "kickstart"      : x[14],
-                 "name"           : x[15],
-                 "architecture"   : x[16],
-                 "kernel_options" : x[17],
-                 "kickstart_metadata" : x[18]
+                 "kernel"         : x[12],
+                 "initrd"         : x[13],
+                 "options"        : x[14],
+                 "kickstart"      : x[15],
+                 "name"           : x[16],
+                 "architecture"   : x[17],
+                 "kernel_options" : x[18],
+                 "kickstart_metadata" : x[19]
              }).to_datastruct(True)
      
          machines.append(data)
@@ -271,7 +276,7 @@ def machine_get(websvc,args):
 
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory,
-     distribution_id, kernel_options, kickstart_metadata, list_group, mac_address
+     distribution_id, kernel_options, kickstart_metadata, list_group, mac_address, type
      FROM machines WHERE id=:id
      """
      websvc.cursor.execute(st,u.to_datastruct())
@@ -290,7 +295,8 @@ def machine_get(websvc,args):
             "kernel_options"  : x[7],
             "kickstart_metadata" : x[8],
             "list_group"         : x[9],
-            "mac_address"        : x[10]
+            "mac_address"        : x[10],
+            "type"               : x[11]
      }
 
      data = Machine.produce(data).to_datastruct(True)

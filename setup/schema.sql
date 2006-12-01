@@ -45,7 +45,8 @@ CREATE TABLE images (
    virt_storage_size  INT NOT NULL,
    virt_ram           INT NOT NULL,
    kickstart_metadata VARCHAR(255),
-   kernel_options VARCHAR(255)        
+   kernel_options VARCHAR(255),
+   type INT NOT NULL        
 );
 
 CREATE TABLE deployments (
@@ -66,6 +67,7 @@ CREATE TABLE machines (
    kernel_options     VARCHAR(255),
    kickstart_metadata VARCHAR(255),
    list_group         VARCHAR(255),
-   mac_address VARCHAR(255) NOT NULL
+   mac_address VARCHAR(255) NOT NULL,
+   type INT NOT NULL
 );
 

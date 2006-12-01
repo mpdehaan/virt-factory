@@ -79,10 +79,6 @@ class BaseCrudTests(BaseTest):
    """
 
    sample = {
-          "name"        : "foo", 
-          "version"     : "1.01",
-          "filename"    : "/tmp/foo",
-          "specfile"    : "/tmp/bar"
    }
    funcs = {
           "add_func"    : None,
@@ -196,7 +192,8 @@ class ImageTests(BaseCrudTests):
          "virt_storage_size" : 500,
          "virt_ram" : 2048,
          "kickstart_metadata" : "???",
-         "kernel_options" : "????"
+         "kernel_options" : "????",
+         "type" : 0
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -228,7 +225,8 @@ class MachineTests(BaseCrudTests):
          "kernel_options" : "ksdevice=eth0 text",
          "kickstart_metadata" : "",
          "list_group" : "building three",
-         "mac_address" : "AA:BB:CC:DD:EE:FF"
+         "mac_address" : "AA:BB:CC:DD:EE:FF",
+         "type" : 0
       } 
       self.funcs = {
          "add_func"    : self.api.machine_add,
@@ -291,7 +289,8 @@ class DistributionTests(BaseCrudTests):
           "kernel_options" : "ksdevice=eth0 text",
           "kickstart_metadata" : "",
           "list_group" : "building three",
-          "mac_address" : "FF:FF:FF:FF:FF:FF"
+          "mac_address" : "FF:FF:FF:FF:FF:FF",
+          "type" : 0
        }
        image = { 
           "name" : "foo",
@@ -302,7 +301,8 @@ class DistributionTests(BaseCrudTests):
           "virt_storage_size" : 500,
           "virt_ram" : 2048,
           "kickstart_metadata" : "@@",
-          "kernel_options" : "@@@"
+          "kernel_options" : "@@@",
+          "type" : 0
        }
        (rc0, data0) = self.call(self.api.distribution_add, distro)
        self.failUnlessEqual(rc0, 0, "distribution_add")
@@ -444,7 +444,8 @@ class DeploymentTests(BaseTest):
            "virt_storage_size" : 456,
            "virt_ram" : 789,
            "kickstart_metadata" : "foo=bar baz=foo 12345",
-           "kernel_options"     : "-----"
+           "kernel_options"     : "-----",
+           "type" : 0
        }
        sample_machine = {
            "address"         : "foo.example.com",
@@ -455,7 +456,8 @@ class DeploymentTests(BaseTest):
            "kernel_options"  : "foo=bar 12345",
            "kickstart_metadata" : "bar=foo baz=foo foo=bar",
            "list_group"      : "server room 5",
-           "mac_address"     : "BB:EE:EE:EE:FF"
+           "mac_address"     : "BB:EE:EE:EE:FF",
+           "type" : 0
        }
        sample_deployment = {
            "machine_id"      : None,
