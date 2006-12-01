@@ -25,7 +25,7 @@ import cobbler.api
 import shadow
 import yaml
 
-def config_list(websvc,args):
+def config_list(websvc=None,args=None):
    config_file = open("/var/lib/shadowmanager/settings")
    data = config_file.read()
    ds = yaml.load(data).next()

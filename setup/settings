@@ -2,7 +2,7 @@
 this_server:
     address: "127.0.0.1"
 databases:
-    primary: "/var/lib/shadowmanger/primary_db"
+    primary: "/var/lib/shadowmanager/primary_db"
 logs:
     service: "/var/lib/shadowmanager/svclog"
 mirrors:

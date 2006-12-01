@@ -22,7 +22,6 @@ import logging
 import subprocess
 from pysqlite2 import dbapi2 as sqlite
 
-DATABASE_PATH = "/opt/shadowmanager/primary_db"
 
 # FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
 # FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
@@ -40,23 +39,37 @@ import machine
 import distribution
 import config
 
+"/opt/shadowmanager/primary_db"
+
 class XmlRpcInterface:
 
    def __init__(self):
        """
        Constructor sets up SQLAlchemy (database ORM) and logging.
        """
+       (ok, self.config) = config.config_list()
+       self.dbpath = self.config["databases"]["primary"]
        self.tables = {}
        self.tokens = []
        self.__setup_handlers()
-       self.connection = sqlite.connect(DATABASE_PATH)
+       self.connection = self.sqlite_connect()
        self.cursor = self.connection.cursor()
        self.logger = logging.getLogger("svc")
-       handler = logging.FileHandler("svclog", "a")
+       handler = logging.FileHandler(self.config["logs"]["service"], "a")
        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
        handler.setFormatter(formatter)
        self.logger.addHandler(handler)
        self.logger.setLevel(logging.DEBUG)
+
+   def sqlite_connect(self):
+       """
+       Workaround for "can't connect to full and/or unicode path" weirdness
+       """
+       current = os.getcwd()
+       os.chdir(os.path.dirname(self.dbpath))
+       conn = sqlite.connect(os.path.basename(self.dbpath))
+       os.chdir(current)
+       return conn 
 
    def __setup_handlers(self):
        """
@@ -229,6 +242,7 @@ def database_reset():
     """
     Used for testing.  Not callable from the web service.
     """
+    DATABASE_PATH = "/var/lib/shadowmanager/primary_db"
     try:
         os.remove(DATABASE_PATH)
     except:

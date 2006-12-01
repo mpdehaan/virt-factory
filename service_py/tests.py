@@ -501,7 +501,6 @@ class ConfigTests(BaseTest):
   def test_config_list(self):
        (rc0, data0) = self.call(self.api.config_list, {})
        self.failUnlessEqual(rc0, 0, "config_list ok")
-       print data0
        self.failUnlessEqual(type(data0), dict, "dict returned")
 
 class AdvancedCobblerTests(BaseTest):
