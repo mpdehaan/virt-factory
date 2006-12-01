@@ -20,6 +20,7 @@ import traceback
 import time
 import logging
 import subprocess
+from pysqlite2 import dbapi2 as sqlite
 
 DATABASE_PATH = "/opt/shadowmanager/primary_db"
 
@@ -37,7 +38,7 @@ import image
 import deployment
 import machine
 import distribution
-from pysqlite2 import dbapi2 as sqlite
+import config
 
 class XmlRpcInterface:
 
@@ -63,7 +64,7 @@ class XmlRpcInterface:
        FIXME: eventually calling most functions should go from here through getattr.
        """
        self.handlers = {}
-       for x in [user,machine,image,deployment,distribution]:
+       for x in [user,machine,image,deployment,distribution,config]:
            x.register_rpc(self.handlers)
 
    # FIXME: find some more elegant way to surface the handlers?
@@ -190,6 +191,9 @@ class XmlRpcInterface:
 
    def provisioning_sync(self, token, args):
        return self.__dispatch("provisioning_sync", token, args)
+
+   def config_list(self, token, args):
+       return self.__dispatch("config_list", token, args)
 
    def __dispatch(self, method, token, args=[]):
        """

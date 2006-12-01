@@ -85,8 +85,7 @@ class CobblerTranslatedProfile:
 
 class CobblerTranslatedSystem:
    def __init__(self,api,deployments,from_db):
-
-       NOTYET= """
+       NOTYET = """
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
@@ -105,14 +104,12 @@ class CobblerTranslatedSystem:
        new_item.set_pxe_paddress(from_db["pxe_address"])
        api.systems().add(new_item)
        """
-       pass
-
 
 # FIXME: need another ShadowManager backend object that will need to sync with
 # /var/lib/cobbler/settings
 
 def provisioning_sync(websvc, args):
-
+     
      return True # disable until later...     
 
      (rc0, distributions) = distribution.distribution_list(websvc,{})
