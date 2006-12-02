@@ -1,11 +1,12 @@
+require "util/codes"
 require "xmlrpc/client"
 @@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
 class XMLRPCClientException < Exception
-    attr_accessor :rc, :data
-    def initialize(rc, data)
-        @rc = rc
-        @data = data
+    attr_accessor :notice, :errmsg
+    def initialize(notice, errmsg)
+        @rc = notice
+        @data = errmsg
     end    
 end
 

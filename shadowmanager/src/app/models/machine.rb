@@ -1,3 +1,4 @@
+
 class Machine < ManagedObject
     ATTR_LIST = { :id => {:type => Integer}, 
                   :address => {:type => String}, 
