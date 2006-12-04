@@ -211,9 +211,11 @@ def provisioning_init(websvc, args):
 
      """
 
+     # FIXME
+
      # read the config entry to find out cobbler's mirror locations
-     for mirror_name in shadow_config["mirrors"]["rsync"]:
-        
+     for mirror_name in shadow_config["mirrors"]:
+         
         mirror_url = shadow_config["mirrors"][mirror_name]
 
         print """
@@ -225,11 +227,18 @@ def provisioning_init(websvc, args):
 
 
         # run the cobbler mirror import
+        # FIXME: more of a cobbler issue, but cobbler needs 
+        # to detect rsync failures such as mirrors that are shut down
+        # but don't have any files available.
+
         api.import_tree(None,mirror_url,mirror_name)
 
         print """
  
-        Mirror successfully imported.  Now imported distributions can be added to ShadowManager.
+        Mirror import exited.  Now imported distributions can be added 
+        to ShadowManager.  Note any errors above, you may have to 
+        reconfigure the mirror list in %s if a mirror path was invalid
+        or the chosen mirror was down.
 
         """
 
@@ -273,11 +282,13 @@ def provisioning_init(websvc, args):
 
      print """
 
-     Done with ShadowManager imports.  ShadowManager is now set up for provisioning.
+     Unless there's an error above somewhere, we're done with ShadowManager 
+     imports.  ShadowManager is now set up for provisioning.
+     
      Should you want to add different distributions, you can update your mirror list and
      run "shadow import" at a later date with additional rsync mirrors. 
 
-     Now log in through the Web UI (FIXME: address goes here).  You're good to go.
+     Now log in through the Web UI...  You're good to go.
 
      """
 

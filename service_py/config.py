@@ -29,6 +29,11 @@ import shadow
 
 CONFIG_FILE = "/var/lib/shadowmanager/settings"
 
+# note: if the user rsync's too close the arch info won't be in the path,
+# and this means we can't fill in the arch.  so the defaults probably
+# slurp a bit too much default info but at least it's not pulling in
+# all the FC's.
+
 defaults = {
     "this_server" : {
        "address" : "127.0.0.1"
@@ -40,7 +45,7 @@ defaults = {
        "service" : "/var/lib/shadowmanager/svclog"
     },
     "mirrors" : {
-       "rsync"   : "rsync://mirror.linux.duke.edu/fedora/pub/fedora/linux/core/6/"
+       "FC-6"   : "rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD"
     }
 }
 
