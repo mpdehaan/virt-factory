@@ -121,6 +121,9 @@ def provisioning_sync(websvc, args):
      lock = threading.Lock()
      lock.acquire()
 
+     # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
+     # the server field might have changed.
+
      try:
          api = cobbler.api.BootAPI()
          api.distros().clear()
@@ -144,3 +147,62 @@ def provisioning_sync(websvc, args):
      lock.release()
      return success()
 
+def provisioning_init(websvc, args):
+
+     """
+     Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
+     """
+
+     ARCH_CONVERT = {
+        "x86"    : codes.ARCH_X86,
+        "x86_64" : codes.ARCH_X86_64
+        "ia64"   : codes.ARCH_IA64
+     }
+
+     lock = threading.Lock()
+     lock.acquire()
+
+     # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
+     api = cobbler.api.BootAPI()
+     settings = api.settings()
+     shadow_config = shadow.config_get(websvc,{})
+     settings["server"] = shadow_config["this_server"]["address"]
+     settings["next_server"] = shadow_config["this_server"]["address"]
+     # FIXME: load other defaults that the user might want to configure in cobbler
+     api.serialize() 
+
+     # read the config entry to find out cobbler's mirror locations
+     for mirror_name in shadow_config["mirrors"]:
+        mirror_url = shadow_config["mirrors"][mirror_name]
+
+        # run the cobbler mirror import
+        api.import(None,mirror_url,mirror_name)
+
+        # go through the distribution list in cobbler and make shadowmanager distribution entries
+        cobbler_distros = api.distros()
+
+        for distro in cobbler_distros:
+            distro_data = distro.to_datastruct()
+            kernel = distro_data["kernel"]
+            initrd = distro_data["initrd"]
+            name   = distro_data["name"]
+            arch   = ARCH_CONVERT(distro_data["arch"].lower())
+            distribution.distribution_add({
+                 "kernel" : kernel,
+                 "initrd" : initrd,
+                 "name"   : name,
+                 "architecture" : architecture,
+            })
+           
+
+        # don't have to delete the cobbler distribution entries as they are going to be rewritten
+        # on provisioning_sync (with similar data)
+
+     api.serialize()
+
+     # now the records are in the table, and we won't be reading cobbler config data again ...
+     # we'll just be writing it.  The distribution bootstrapping is complete.
+
+     lock.release()
+     return success()
+ 

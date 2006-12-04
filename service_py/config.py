@@ -25,14 +25,46 @@ import cobbler.api
 import shadow
 import yaml
 
+CONFIG_FILE = "/var/lib/shadowmanager/settings"
+
+defaults = {
+    "this_server" : {
+       "address" : "127.0.0.1"
+    }, 
+    "databases" : {
+       "primary" : "/var/lib/shadowmanager/primary_db"
+    },
+    "logs" : {
+       "service" : "/var/lib/shadowmanager/svclog"
+    },
+    "mirrors" : {
+       "rsync"   : "rsync://mirror.linux.duke.edu/fedora/pub/fedora/linux/core/6/"
+    }
+}
+
 def config_list(websvc=None,args=None):
-   config_file = open("/var/lib/shadowmanager/settings")
+
+   if not os.path.exists(CONFIG_FILE)
+       config_reset(websvc=None, args=None)
+
+   config_file = open(CONFIG_FILE)
    data = config_file.read()
    ds = yaml.load(data).next()
+
    return success(ds)
+
+def config_reset(websvc=None,args=None):
+   
+   config_file = open(CONFIG_FILE)
+   data = yaml.dump(defaults)
+   config_file.write(data)
+
+   return success(0)
+
 
 def register_rpc(handlers):
    handlers["config_list"] = config_list
+   handlers["config_reset"] = config_list
 
 
 

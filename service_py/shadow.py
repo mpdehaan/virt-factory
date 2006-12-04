@@ -271,6 +271,20 @@ if __name__ == "__main__":
     Start things up.
     """
     # testmode() # temporary ...
+
+    if not os.path.exists("/var/lib/cobbler/installed"):
+        # First time run?
+        # then load distributions to use from the cobbler mirror import
+        # FIXME: is the default mirror in the code fair?  We may want that to be random, to be more fair
+        # to the Fedora mirrors (using Fedora as the initial setup is most likely)
+        provisioning.provisioning_init()
+        fd = open("/var/lib/cobbler/intalled","w+")
+        fd.close()
+        # FIXME: do any other first time setup here...
+        # FIXME: database upgrade logic would be nice to have here, as would general creation (?)
+        # FIXME: (unrelated) -- command line way to add a distro would be nice to have in the future
+        #        and probably would be needed for RHEL.
+
     serve()
 
 
