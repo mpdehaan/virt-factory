@@ -103,16 +103,6 @@ def user_login(websvc,username,password):
      st = """
      SELECT id, password FROM users WHERE username=:username
      """
-
-     if not os.path.exists("/var/lib/shadowmanager/settings"):
-         # the app isn't configured.  What this means is that there are (at minimum) no
-         # distributions configured and it's basically unusuable.  The WUI here should
-         # show a simple splash screen saying the service isn't configured and that the
-         # user needs to run two steps on the server.  "shadow init" to create the
-         # default config and "shadow import" to import distributions.  Once this is done
-         # they will be able to reload and use the WUI,
-         raise MisconfiguredException("/var/lib/shadowmanager/settings doesn't exist")
-
      websvc.cursor.execute(st, { "username" : username })
      results = websvc.cursor.fetchone()
      if results is None:

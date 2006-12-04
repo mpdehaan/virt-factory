@@ -92,8 +92,8 @@ def distribution_add(websvc,args):
      u = Distribution.produce(args,OP_ADD)
 
      st = """
-     INSERT INTO distributions (kernel,initrd,options,kickstart,name,architecture,kickstart_metadata)
-     VALUES (:kernel,:initrd,:options,:kickstart,:name, :architecture, :kickstart_metadata)
+     INSERT INTO distributions (kernel,initrd,options,kickstart,name)
+     VALUES (:kernel,:initrd,:options,:kickstart,:name)
      """
 
      lock = threading.Lock()

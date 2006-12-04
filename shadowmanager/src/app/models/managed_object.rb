@@ -24,28 +24,32 @@ class ManagedObject
         end
     end
 
+    def save
+        operation = @id.nil? ? "add" : "edit"
+        ManagedObject.call_server("#{self.class::METHOD_PREFIX}_#{operation}", 
+                                       @session, self.to_hash, objname)
+    end
+
+    def self.delete(object_class,id)
+        self.call_server("#{object_class::METHOD_PREFIX}_delete", 
+                         @session, { "id" => id }, id.to_s)
+    end
+
     def self.retrieve_all(object_class, session)
-        (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_list",session[:login], {})
-        unless rc == ERR_SUCCESS
-            raise XMLRPCClientException.new(rc, results)
-        end
-        results.collect {|hash| ManagedObject.from_hash(object_class,hash, session)}
+        results = self.call_server("#{object_class::METHOD_PREFIX}_list", session, {})
+        results.collect {|hash| ManagedObject.from_hash(object_class, hash, session)}
     end
 
     def self.retrieve(object_class, session, id)
-        plist = { "id" => id }
-       (rc, results) = @@server.call("#{object_class::METHOD_PREFIX}_get", session[:login], plist)
-        unless rc == ERR_SUCCESS
-            raise XMLRPCClientException.new(rc, results)
-        end
+        results = self.call_server("#{object_class::METHOD_PREFIX}_get", 
+                                   session, {"id" => id }, id.to_s)
         ManagedObject.from_hash(object_class,results, session)
     end
 
     def self.from_hash(object_class, hash, session)
         obj = object_class.new(session)
         object_class::ATTR_LIST.each do |attr, metadata| 
-            newval = hash[attr.to_s]
-            if newval
+            if (newval = hash[attr.to_s])
                 attr_type = metadata[:type]
                 if (newval.is_a?(Hash) && attr_type.methods.include?("from_hash"))
                     newval = self.from_hash(attr_type, newval, session)
@@ -64,14 +68,12 @@ class ManagedObject
             end
             obj.method(attr.to_s+"=").call(newval) if newval
         end
-         obj
+        obj
     end
     def to_hash
         hash = Hash.new
         self.class::ATTR_LIST.each do |attr, metadata|
-            newval = self.method(attr).call 
-            if newval
-                attr_type = metadata[:type]
+            if (newval = self.method(attr).call)
                 if (newval.methods.include?("to_hash"))
                     newval = newval.to_hash
                 end
@@ -82,5 +84,13 @@ class ManagedObject
     end
     def objname
         id
+    end
+
+    def self.call_server(method_name, session, args, errmsg = "")
+        (rc, results) = @@server.call(method_name, session[:login], args)
+        unless rc == ERR_SUCCESS
+            raise XMLRPCClientException.new("#{method_name} failed (#{rc}): #{errmsg}", results)
+        end
+        results
     end
 end

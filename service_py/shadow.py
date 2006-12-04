@@ -22,7 +22,6 @@ import logging
 import subprocess
 from pysqlite2 import dbapi2 as sqlite
 
-SERVE_ON = (None,None)
 
 # FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
 # FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
@@ -39,7 +38,6 @@ import deployment
 import machine
 import distribution
 import config
-import provisioning
 
 "/opt/shadowmanager/primary_db"
 
@@ -49,13 +47,6 @@ class XmlRpcInterface:
        """
        Constructor sets up SQLAlchemy (database ORM) and logging.
        """
-
-       self.is_local = False # non-local instances are subject to token checks
-
-       if not os.path.exists(config.CONFIG_FILE):
-           print "No %s found." % config.CONFIG_FILE
-           return
-
        (ok, self.config) = config.config_list()
        self.dbpath = self.config["databases"]["primary"]
        self.tables = {}
@@ -86,7 +77,7 @@ class XmlRpcInterface:
        FIXME: eventually calling most functions should go from here through getattr.
        """
        self.handlers = {}
-       for x in [user,machine,image,deployment,distribution,config,provisioning]:
+       for x in [user,machine,image,deployment,distribution,config]:
            x.register_rpc(self.handlers)
 
    # FIXME: find some more elegant way to surface the handlers?
@@ -114,8 +105,6 @@ class XmlRpcInterface:
        This is a feature, mainly since Rails (and other language bindings) can better
        grok tracebacks this way.
        """
-       if not self.is_local:
-           return
        self.logger.debug("token check")
        now = time.time()
        for t in self.tokens:
@@ -218,15 +207,6 @@ class XmlRpcInterface:
 
    def config_list(self, token, args):
        return self.__dispatch("config_list", token, args)
-   
-   def config_reset(self, token, args):
-       return self.__dispatch("config_reset", token, args)
-
-   def provisioning_init(self, token, args):
-       return self.__dispatch("provisioning_init", token, args)
-
-   def provisioning_sync(self, token, args):
-       return self.__dispatch("provisioning_sync", token, args)
 
    def __dispatch(self, method, token, args=[]):
        """
@@ -276,46 +256,21 @@ def database_reset():
     p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
     p4.communicate()[0]
 
-def serve(websvc):
+def serve():
     """
     Code for starting the XMLRPC service. 
     FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
     """
+    xmlrpc_interface = XmlRpcInterface()
     server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
-    server.register_instance(websvc)
+    server.register_instance(xmlrpc_interface)
     server.serve_forever()
 
 if __name__ == "__main__":
     """
     Start things up.
     """
-    
-    websvc = XmlRpcInterface()
-     
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "init":
-            # FIXME: do any other first time setup here...
-            print "reseting configuration...\n"
-            config.config_reset(websvc,{})
-        elif sys.argv[1].lower() == "import":
-            print "importing configuration...\n"
-            provisioning.provisioning_init(websvc,{})
-        else:
-            print """
-
-            I'm sorry, I can't do that, Dave.
-
-            Usage: shadow [import|sync]
-
-            """
-            sys.exit(1)
-    else:
-        print "serving on...\n"
-        serve(websvc)
-
-    # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
-    # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
-    #        (and might not be enough for RHEL, but is good for Fedora/Centos)
-
+    # testmode() # temporary ...
+    serve()
 
 

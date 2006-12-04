@@ -38,7 +38,6 @@ ERR_INVALID_ARGUMENTS = 6
 ERR_NO_SUCH_OBJECT = 7
 ERR_ORPHANED_OBJECT = 8
 ERR_SQL = 9
-ERR_MISCONFIGURED = 10
 ERR_UNCAUGHT = 999
 
 ARCH_X86 = 0
@@ -54,7 +53,7 @@ IMAGE_TYPE_EITHER_APPLIANCE = 3
 IMAGE_TYPE_APPLIANCE_CONTAINER = 4
 
 def result(rc, variables=[]):
-   return (rc, variables)
+   return (rc == 0, rc, variables)
 
 def from_exception(exc):
    if exc.error_code is None: 
