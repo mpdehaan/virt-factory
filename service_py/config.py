@@ -16,14 +16,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 # code for loading a few backend service parameters from a config
 # file, and _potentially_ used by a CLI for initial setup/install...
 
+import os
+import cobbler.api
+import traceback
+import threading
+import yaml
+
 from codes import *
 from errors import *
 import baseobj
-import traceback
-import threading
-import cobbler.api
 import shadow
-import yaml
 
 CONFIG_FILE = "/var/lib/shadowmanager/settings"
 
@@ -44,8 +46,8 @@ defaults = {
 
 def config_list(websvc=None,args=None):
 
-   if not os.path.exists(CONFIG_FILE)
-       config_reset(websvc=None, args=None)
+   if not os.path.exists(CONFIG_FILE):
+       raise MisconfiguredException("%s missing" % CONFIG_FILE)
 
    config_file = open(CONFIG_FILE)
    data = config_file.read()
@@ -55,16 +57,28 @@ def config_list(websvc=None,args=None):
 
 def config_reset(websvc=None,args=None):
    
-   config_file = open(CONFIG_FILE)
+   config_file = open(CONFIG_FILE,"w+")
    data = yaml.dump(defaults)
    config_file.write(data)
+
+   print """
+
+   The configuration values in %s have been reset.
+
+   Next steps:
+      (1) Edit the address field and mirror list in %s
+          Change other settings as desired.
+      (2) Run 'shadow import' to import distributions from your selected mirrors.
+      (3) Test the configuration by logging in using the Web UI.  It should now be ready for use.
+
+   """ % (CONFIG_FILE, CONFIG_FILE)
 
    return success(0)
 
 
 def register_rpc(handlers):
    handlers["config_list"] = config_list
-   handlers["config_reset"] = config_list
+   handlers["config_reset"] = config_reset
 
 
 
