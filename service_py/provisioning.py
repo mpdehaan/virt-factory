@@ -170,8 +170,8 @@ def provisioning_init(websvc, args):
 
          print """
   
-         The provisioning setup tools generally require root access.  If there is a failure below
-         related to permissions, try running as root.
+The provisioning setup tools generally require root access.  If there is a failure below
+related to permissions, try running as root.
 
          """
 
@@ -189,7 +189,7 @@ def provisioning_init(websvc, args):
 
      print """
 
-     Now configuring the provisioning subcomponent using settings from %s
+Now configuring the provisioning subcomponent using settings from %s
 
      """ % config.CONFIG_FILE
 
@@ -199,7 +199,7 @@ def provisioning_init(websvc, args):
 
      print """
  
-     Now saving the temporary provisioning configuration.
+Now saving the temporary provisioning configuration.
 
      """
 
@@ -220,8 +220,8 @@ def provisioning_init(websvc, args):
 
         print """
  
-        Processing rsync mirror named: %s
-        Address                      : %s
+Processing rsync mirror named: %s
+Address                      : %s
 
         """ % (mirror_name, mirror_url)
 
@@ -235,10 +235,10 @@ def provisioning_init(websvc, args):
 
         print """
  
-        Mirror import exited.  Now imported distributions can be added 
-        to ShadowManager.  Note any errors above, you may have to 
-        reconfigure the mirror list in %s if a mirror path was invalid
-        or the chosen mirror was down.
+Mirror import exited.  Now imported distributions can be added 
+to ShadowManager.  Note any errors above, you may have to 
+reconfigure the mirror list in %s if a mirror path was invalid
+or the chosen mirror was down.
 
         """
 
@@ -252,24 +252,31 @@ def provisioning_init(websvc, args):
         kernel = distro_data["kernel"]
         initrd = distro_data["initrd"]
         name   = distro_data["name"]
-        arch   = ARCH_CONVERT(distro_data["arch"].lower())
+        arch   = ARCH_CONVERT[distro_data["arch"].lower()]
 
         print """
 
-        Adding distribution to ShadowManager.
+Adding distribution to ShadowManager.
 
-        name:         %s
-        kernel:       %s
-        initrd:       %s
-        architecture: %s
+   name:         %s
+   kernel:       %s
+   initrd:       %s
+   architecture: %s
 
-        """
+        """ % (name, kernel, initrd, arch)
 
-        distribution.distribution_add({
+        # FIXME: this code will generally break on duplicate names, so we really want to do a distribution_list to
+        # see if any exist prior to add.  (can't do a get, because that's id based... kind of prompts a find_by_name
+        # later, most likely)
+
+        distribution.distribution_add(websvc,{
            "kernel" : kernel,
            "initrd" : initrd,
            "name"   : name,
-           "architecture" : architecture,
+           "architecture" : arch,
+           "options" : "",
+           "kickstart" : "",
+           "kickstart_metadata" : ""
         })
            
 
@@ -282,13 +289,13 @@ def provisioning_init(websvc, args):
 
      print """
 
-     Unless there's an error above somewhere, we're done with ShadowManager 
-     imports.  ShadowManager is now set up for provisioning.
+Unless there's an error above somewhere, we're done with ShadowManager 
+imports.  ShadowManager is now set up for provisioning.
      
-     Should you want to add different distributions, you can update your mirror list and
-     run "shadow import" at a later date with additional rsync mirrors. 
+Should you want to add different distributions, you can update your mirror list and
+run "shadow import" at a later date with additional rsync mirrors. 
 
-     Now log in through the Web UI...  You're good to go.
+Now log in through the Web UI...  You're good to go.
 
      """
 
