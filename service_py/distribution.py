@@ -104,7 +104,9 @@ def distribution_add(websvc,args):
          websvc.connection.commit()
      except Exception:
          lock.release()
-         raise SQLException(traceback.format_exc())
+         tb = traceback.format_exc()
+         print tb # I need to see this error even if caught later ...
+         raise SQLException(tb)
 
      id = websvc.cursor.lastrowid
      lock.release()

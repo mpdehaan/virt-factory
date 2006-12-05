@@ -1,0 +1,37 @@
+Ongoing TODO items (phase 1)
+
+Backend
+-------
+- return types are always a hash, potential fields:
+     return_data  : {}, [], or int
+     stacktrace   : ""
+     error_fields : {  "field1" : REASON_CODE, "field2" : REASON_CODE }
+     job_id       : int
+- add an actions table
+- image "type" field gets renamed to is_container and made boolean
+- machine "type" gets renamed by "valid_targets"
+- more validation code
+- finish cobbler sync code (distro import already done)
+- single distro import (w/o rsync) for development
+- actions table and associated API changes.
+- more backend methods (start/stop/VM/etc)
+- RPM packaging
+- install/upgrade process refinement/plan
+
+WUI
+---
+
+- implement backend features
+- field validation on error (show why)
+- lookup tables for error messages
+- RPM packaging
+- Scott: fill in
+
+
+General
+-------
+
+- How to handle migrations?
+- ...
+
+
