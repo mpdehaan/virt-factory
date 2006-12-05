@@ -41,6 +41,54 @@ import machine
 import shadow
 import codes
 import config
+import deployment
+
+ENOROOT = """
+\nThe provisioning components typically require root access.  If you
+encounter errors, switch to root.\n
+"""
+
+NOW_CONFIGURING = """\n
+Now configuring the provisioning subcomponent using settings from %s\n
+"""
+
+MIRROR_EXITED = """
+\nMirror import exited.  Now imported distributions can be added 
+to ShadowManager.  Note any errors above, you may have to 
+reconfigure the mirror list in %s if a mirror path was invalid
+or the chosen mirror was down.\n
+"""
+
+MIRROR_INFO = """
+\nProcessing rsync mirror named: %s
+Address                      : %s\n
+"""
+
+NOW_SAVING = """
+\nNow saving the temporary provisioning configuration.\n
+"""
+
+NOW_IMPORTING = """
+\nNow importing configured mirrors.  This may take a relatively long amount of time.\n
+"""
+
+NOW_ADDING = """ 
+\nNow adding distribution to ShadowManager.\n
+   name:         %s
+   kernel:       %s
+   initrd:       %s
+   architecture: %s\n
+"""
+
+FINISHED = """
+\nUnless there's an error above somewhere, we're done with ShadowManager 
+imports.  ShadowManager is now set up for provisioning.
+     
+Should you want to add different distributions, you can update your mirror list and
+run "shadow import" at a later date with additional rsync mirrors. 
+
+Now log in through the Web UI...  You're good to go.\n
+"""
 
 class CobblerTranslatedItem:
    def add(self):
@@ -140,7 +188,7 @@ def provisioning_sync(websvc, args):
          for i in images:
              CobblerTranslatedProfile(api,i).add()
          for p in machines:
-             CobblerTranslatedSystem(api,p).add()
+             CobblerTranslatedSystem(api,None,p).add()
          api.serialize()
          api.sync()
      except:
@@ -168,48 +216,27 @@ def provisioning_init(websvc, args):
 
      if os.getuid() != 0:
 
-         print """
-  
-The provisioning setup tools generally require root access.  If there is a failure below
-related to permissions, try running as root.
-
-         """
+         print ENOROOT 
 
 
      # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
      api = cobbler.api.BootAPI()
      settings = api.settings().to_datastruct()
-     print "=== COBBLER\n"
-     print settings
      (rc, shadow_config) = config.config_list(websvc,{})
      if rc!=0:
          raise ShadowManagerException("config retrieval failed")
-     print "=== SHADOWMANAGER\n"
-     print shadow_config
 
-     print """
-
-Now configuring the provisioning subcomponent using settings from %s
-
-     """ % config.CONFIG_FILE
+     print NOW_CONFIGURING % config.CONFIG_FILE
 
      settings["server"] = shadow_config["this_server"]["address"]
      settings["next_server"] = shadow_config["this_server"]["address"]
      # FIXME: load other defaults that the user might want to configure in cobbler
 
-     print """
- 
-Now saving the temporary provisioning configuration.
-
-     """
+     print NOW_SAVING
 
      api.serialize() 
 
-     print """
- 
-     Now importing configured mirrors.  This may take a relatively long amount of time.
-
-     """
+     print NOW_IMPORTING
 
      # FIXME
 
@@ -218,12 +245,7 @@ Now saving the temporary provisioning configuration.
          
         mirror_url = shadow_config["mirrors"][mirror_name]
 
-        print """
- 
-Processing rsync mirror named: %s
-Address                      : %s
-
-        """ % (mirror_name, mirror_url)
+        print MIRROR_INFO % (mirror_name, mirror_url)
 
 
         # run the cobbler mirror import
@@ -233,14 +255,7 @@ Address                      : %s
 
         api.import_tree(None,mirror_url,mirror_name)
 
-        print """
- 
-Mirror import exited.  Now imported distributions can be added 
-to ShadowManager.  Note any errors above, you may have to 
-reconfigure the mirror list in %s if a mirror path was invalid
-or the chosen mirror was down.
-
-        """
+        print MIRROR_EXITED
 
      api.serialize()
 
@@ -254,16 +269,7 @@ or the chosen mirror was down.
         name   = distro_data["name"]
         arch   = ARCH_CONVERT[distro_data["arch"].lower()]
 
-        print """
-
-Adding distribution to ShadowManager.
-
-   name:         %s
-   kernel:       %s
-   initrd:       %s
-   architecture: %s
-
-        """ % (name, kernel, initrd, arch)
+        print NOW_ADDING % (name, kernel, initrd, arch)
 
         # FIXME: this code will generally break on duplicate names, so we really want to do a distribution_list to
         # see if any exist prior to add.  (can't do a get, because that's id based... kind of prompts a find_by_name
@@ -287,17 +293,7 @@ Adding distribution to ShadowManager.
      # now the records are in the table, and we won't be reading cobbler config data again ...
      # we'll just be writing it.  The distribution bootstrapping is complete.
 
-     print """
-
-Unless there's an error above somewhere, we're done with ShadowManager 
-imports.  ShadowManager is now set up for provisioning.
-     
-Should you want to add different distributions, you can update your mirror list and
-run "shadow import" at a later date with additional rsync mirrors. 
-
-Now log in through the Web UI...  You're good to go.
-
-     """
+     print FINISHED
 
      lock.release()
      return success()
