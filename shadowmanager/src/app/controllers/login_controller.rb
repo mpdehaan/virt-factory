@@ -16,7 +16,7 @@ class LoginController < ApplicationControllerUnlocked
       (rc, token) = @@server.call("user_login",f_username,f_password)
       if not rc == ERR_SUCCESS
           # FIXME: look up error codes in string table
-          @flash[:notice] = "Login failed (#{rc})."
+          @flash[:notice] = "Login failed (#{ERRORS[rc]})."
           redirect_to :action => "input"
           return
       else

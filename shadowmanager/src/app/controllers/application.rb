@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
         unless rc == ERR_SUCCESS
             # token has timed out, so redirect here and get a new one
             # rather than having to do a lot of duplicate error handling in other places
-            @flash[:notice] = "Session timeout (#{rc.class})."
+            @flash[:notice] = "Session timeout (#{ERRORS[rc]})."
             redirect_to :controller => "login", :action => "input"
             return false
         end
