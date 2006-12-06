@@ -4,7 +4,6 @@
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
-      <%= f.hidden_field :distribution_id if @operation == "Edit" %>
       <TABLE BORDER=0>
          <TR>
             <TD>Address</TD>
@@ -12,7 +11,7 @@
          </TR>
          <TR>
             <TD>Architecture</TD>
-            <TD><%= f.text_field :architecture %></TD>
+            <TD><%= f.select :architecture, ARCHITECTURES_SELECT %></TD>
          </TR>
          <TR> 
             <TD>Procesor Speed</TD>
@@ -27,12 +26,8 @@
             <TD><%= f.text_field :memory %></TD>
          </TR>
          <TR>
-            <TD>Distribution</TD>
-            <TD><%= if @operation == "Add"
-	                f.select :distribution_id, @distributions
-	            else
- 	                @item.distribution.name if @item.distribution
-                    end %>
+            <TD>Image</TD>
+            <TD><%= f.select :image_id, @images %>
              </TD>
          </TR>
          <TR>
@@ -46,6 +41,14 @@
          <TR>
             <TD>List Group</TD>
             <TD><%= f.text_field :list_group %></TD>
+         </TR>
+         <TR>
+            <TD>Mac Address</TD>
+            <TD><%= f.text_field :mac_address %></TD>
+         </TR>
+         <TR>
+            <TD>Appliance Container</TD>
+            <TD><%= f.select :is_container, BOOLEAN_SELECT %></TD>
          </TR>
          <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>

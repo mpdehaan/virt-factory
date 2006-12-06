@@ -28,29 +28,33 @@
                           <TD>Name</TD>
                           <TD><%= @item.distribution.name %></TD>
                        </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
                        <TR>
                           <TD>Kernel</TD>
                           <TD><%= @item.distribution.kernel %></TD>
                        </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
                        <TR>
                           <TD>Initrd</TD>
                           <TD><%= @item.distribution.initrd %></TD>
                        </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
                        <TR>
                           <TD>Options</TD>
                           <TD><%= @item.distribution.options %></TD>
                        </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
                        <TR>
                           <TD>Kickstart</TD>
                           <TD><%= @item.distribution.kickstart %></TD>
+                       </TR>
+                       <TR>
+                         <TD>Architecture</TD>
+                         <TD><%= ARCHITECTURES[@item.distribution.architecture] %></TD>
+                       </TR>
+                       <TR>
+                         <TD>Kernel Options</TD>
+                         <TD><%= @item.distribution.kernel_options %></TD>
+                       </TR>
+                       <TR>
+                         <TD>Kickstart Metadata</TD>
+                         <TD><%= @item.distribution.kickstart_metadata %></TD>
                        </TR>
                     </TABLE>
                 <% end %>
@@ -67,6 +71,18 @@
          <TR>
             <TD>Kickstart Metadata</TD>
             <TD><%= @item.kickstart_metadata %></TD>
+         </TR>
+         <TR>
+            <TD>Kernel Options</TD>
+            <TD><%= @item.kernel_options %></TD>
+         </TR>
+         <TR>
+            <TD>Valid Targets</TD>
+            <TD><%= VALID_TARGETS[@item.valid_targets] %></TD>
+         </TR>
+         <TR>
+            <TD>Appliance Container</TD>
+            <TD><%= @item.is_container ? "Yes" : "No" %></TD>
          </TR>
       </TABLE>
       </div>

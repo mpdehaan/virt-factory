@@ -6,11 +6,13 @@ class Machine < ManagedObject
                   :processor_speed => {:type => Integer}, 
                   :processor_count => {:type => Integer}, 
                   :memory => {:type => Integer},
-                  :distribution_id => {:type => Integer}, 
-                  :distribution => { :type => Distribution, :id_attr => :distribution_id}, 
+                  :image_id => {:type => Integer}, 
+                  :image => { :type => Image, :id_attr => :image_id},
                   :kernel_options => {:type => String}, 
                   :kickstart_metadata => {:type => String}, 
-                  :list_group => {:type => String} }
+                  :list_group => {:type => String}, 
+                  :mac_address => {:type => String}, 
+                  :is_container => {:type => Boolean} }
     self.set_attrs(ATTR_LIST)
     METHOD_PREFIX = "machine"
 end

@@ -1,4 +1,5 @@
 require "util/codes"
+require "util/code-lookup"
 require "xmlrpc/client"
 @@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 

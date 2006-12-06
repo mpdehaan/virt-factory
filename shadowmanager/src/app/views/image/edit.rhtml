@@ -44,6 +44,18 @@
             <TD><%= f.text_field :kickstart_metadata %></TD>
          </TR>
          <TR>
+            <TD>Kernel Options</TD>
+            <TD><%= f.text_field :kernel_options %></TD>
+         </TR>
+         <TR>
+            <TD>Valid Targets</TD>
+            <TD><%= f.select :valid_targets, VALID_TARGETS_SELECT %></TD>
+         </TR>
+         <TR>
+            <TD>Appliance Container</TD>
+            <TD><%= f.select :is_container, BOOLEAN_SELECT %></TD>
+         </TR>
+         <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>
          </TR>
       </TABLE>

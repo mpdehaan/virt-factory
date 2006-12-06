@@ -8,7 +8,11 @@ class Image < ManagedObject
                   :distribution => { :type => Distribution, :id_attr => :distribution_id}, 
                   :virt_storage_size => {:type => Integer}, 
                   :virt_ram => {:type => Integer}, 
-                  :kickstart_metadata => {:type => String} }
+                  :kickstart_metadata => {:type => String},
+                  :kernel_options => {:type => String},
+                  :valid_targets => {:type => Integer},
+                  :is_container => {:type => Boolean} }
+                   
     self.set_attrs(ATTR_LIST)
     METHOD_PREFIX = "image"
 

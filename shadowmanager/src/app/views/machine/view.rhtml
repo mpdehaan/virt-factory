@@ -9,7 +9,7 @@
          </TR>
          <TR>
             <TD>Architecture</TD>
-            <TD><%= @item.architecture %></TD>
+            <TD><%= ARCHITECTURES[@item.architecture] %></TD>
          </TR>
          <TR> 
             <TD>Procesor Speed</TD>
@@ -24,38 +24,26 @@
             <TD><%= @item.memory %></TD>
          </TR>
          <TR>
-            <TD>Distribution</TD>
+            <TD>Image</TD>
             <TD>
-                <% if @item.distribution %>
+                <% if @item.image %>
                     <TABLE BORDER=0>
-                       <TR>
-                          <TD>Name</TD>
-                          <TD><%= @item.distribution.name %></TD>
-                       </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
-                       <TR>
-                          <TD>Kernel</TD>
-                          <TD><%= @item.distribution.kernel %></TD>
-                       </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
-                       <TR>
-                          <TD>Initrd</TD>
-                          <TD><%= @item.distribution.initrd %></TD>
-                       </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
-                       <TR>
-                          <TD>Options</TD>
-                          <TD><%= @item.distribution.options %></TD>
-                       </TR>
-                    </TABLE>
-                    <TABLE BORDER=0>
-                       <TR>
-                          <TD>Kickstart</TD>
-                          <TD><%= @item.distribution.kickstart %></TD>
-                       </TR>
+                        <TR>
+                            <TD>Name</TD>
+                            <TD><%= @item.image.name %></TD>
+                        </TR>
+                        <TR> 
+                            <TD>Version</TD>
+                            <TD><%= @item.image.version %></TD>
+                        </TR>
+                        <TR> 
+                            <TD>Filename</TD>
+                            <TD><%= @item.image.filename %></TD>
+                        </TR>
+                        <TR>
+                            <TD>Specfile</TD>
+                            <TD><%= @item.image.specfile %></TD>
+                        </TR>
                     </TABLE>
                 <% end %>
             </TD>
@@ -71,6 +59,14 @@
          <TR>
             <TD>List Group</TD>
             <TD><%= @item.list_group %></TD>
+         </TR>
+         <TR>
+            <TD>Mac Address</TD>
+            <TD><%= @item.mac_address %></TD>
+         </TR>
+         <TR>
+            <TD>Appliance Container</TD>
+            <TD><%= @item.is_container ? "Yes" : "No" %></TD>
          </TR>
       </TABLE>
       </div>

@@ -4,7 +4,6 @@
       <div id="content-main">
       <TABLE class='listing'>
          <TR>
-            <TD>ID</TD>
             <TD>Name</TD>
             <TD>Version</TD>
             <TD>Filename</TD>
@@ -13,13 +12,15 @@
             <TD>Virtual Storage Size</TD>
             <TD>Virtual RAM</TD>
             <TD>Kickstart Metadata</TD>
+            <TD>Kernel Options</TD>
+            <TD>Valid Targets</TD>
+            <TD>Is Container</TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= item.id %> </TD>
              <TD> <%= link_to item.name, :controller => "image", :action=> "view", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
              <TD> <%= item.filename %> </TD>
@@ -28,6 +29,9 @@
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= item.kickstart_metadata %> </TD>
+             <TD> <%= item.kernel_options %> </TD>
+             <TD> <%= VALID_TARGETS[item.kernel_options] %> </TD>
+             <TD> <%= item.is_container ? "Yes" : "No" %> </TD>
              <TD> <%= link_to "edit", :controller => "image", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "image", :action=> "delete", :id=> item.id %></TD>
          </TR>

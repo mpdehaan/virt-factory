@@ -9,10 +9,12 @@
             <TD>Processor Speed</TD>
             <TD>Processor Count</TD>
             <TD>Memory</TD>
-            <TD>Distribution</TD>
+            <TD>Image</TD>
             <TD>Kernel Options</TD>
             <TD>Kickstart Metadata</TD>
             <TD>List Group</TD>
+            <TD>Mac Address</TD>
+            <TD>Appliance Container</TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
@@ -20,14 +22,16 @@
          <TR>
              
              <TD> <%= link_to item.address, :controller => "machine", :action=> "view", :id=> item.id %></TD>
-             <TD> <%= item.architecture %> </TD>
+             <TD> <%= ARCHITECTURES[item.architecture] %> </TD>
              <TD> <%= item.processor_speed %> </TD>
              <TD> <%= item.processor_count %> </TD>
              <TD> <%= item.memory %> </TD>
-             <TD> <%= item.distribution.name if item.distribution %> </TD>
+             <TD> <%= link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id if item.image %></TD>
              <TD> <%= item.kernel_options %> </TD>
              <TD> <%= item.kickstart_metadata %> </TD>
              <TD> <%= item.list_group %> </TD>
+             <TD> <%= item.mac_address %> </TD>
+             <TD> <%= item.is_container ? "Yes" : "No" %> </TD>
              <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
          </TR>

@@ -1,5 +1,8 @@
 class ManagedObject
 
+    # marker class to identify boolean attribute types
+    class Boolean
+    end
     def initialize(session)
         @session = session
     end
@@ -61,6 +64,8 @@ class ManagedObject
                         else
                             newval = newval.to_i 
                         end
+                    elsif (attr_type == Boolean)
+                        newval = [true, "true"].include?(newval) ? true : false
                     else
                         newval = attr_type.new(newval)
                     end
