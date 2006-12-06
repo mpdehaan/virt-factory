@@ -8,8 +8,12 @@ Backend
      error_fields : {  "field1" : REASON_CODE, "field2" : REASON_CODE }
      job_id       : int
 - add an actions table
-- image "type" field gets renamed to is_container and made boolean
-- machine "type" gets renamed by "valid_targets"
+- add an API method to return status and return_data for a given job_id
+- machine "type" field gets renamed to is_container and made boolean
+- image "type" field gets replaced with "valid_targets" (BAREMETAL,
+  VIRT, or BAREMETAL_OR_VIRT) and boolean
+  is_container. is_container=true implies that valid_targets =
+  BAREMETAL. These fields could possibly combined into one.
 - more validation code
 - finish cobbler sync code (distro import already done)
 - single distro import (w/o rsync) for development
@@ -21,9 +25,9 @@ Backend
 WUI
 ---
 
-- implement backend features
-- field validation on error (show why)
-- lookup tables for error messages
+- implement backend features listed above
+- field validation on error (show why when error_fields are filled in)
+- lookup tables for error messages, and select lists (architecture, etc.)
 - RPM packaging
 - Scott: fill in
 
