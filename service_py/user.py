@@ -14,28 +14,29 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
+import os
 import base64
-from codes import *
-from errors import *
-import baseobj
 import traceback
 import threading
 
+from codes import *
+import baseobj
+
 class User(baseobj.BaseObject):
 
-    def _produce(klass, args,operation=None):
+    def _produce(klass, user_args,operation=None):
         """
         Factory method.  Create a user object from input data, optionally
         running it through validation, which will vary depending on what
         operation is creating the user object.
         """
         self = User()
-        self.from_datastruct(args)
+        self.from_datastruct(user_args)
         self.validate(operation)
         return self
     produce = classmethod(_produce)
 
-    def from_datastruct(self,args):
+    def from_datastruct(self,user_args):
         """
         Helper method to fill in the object's internal variables from
         a hash.  Note that we *don't* want to do this and then call
@@ -43,14 +44,14 @@ class User(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         user object for interaction with the ORM.  See methods below for examples.
         """
-        self.id          = self.load(args,"id")
-        self.username    = self.load(args,"username")
-        self.password    = self.load(args,"password")
-        self.first       = self.load(args,"first")
-        self.middle      = self.load(args,"middle")
-        self.last        = self.load(args,"last")
-        self.description = self.load(args,"description")
-        self.email       = self.load(args,"email")
+        self.id          = self.load(user_args,"id")
+        self.username    = self.load(user_args,"username")
+        self.password    = self.load(user_args,"password")
+        self.first       = self.load(user_args,"first")
+        self.middle      = self.load(user_args,"middle")
+        self.last        = self.load(user_args,"last")
+        self.description = self.load(user_args,"description")
+        self.email       = self.load(user_args,"email")
 
     def to_datastruct_internal(self):
         """
@@ -111,25 +112,25 @@ def user_login(websvc,username,password):
          # user needs to run two steps on the server.  "shadow init" to create the
          # default config and "shadow import" to import distributions.  Once this is done
          # they will be able to reload and use the WUI,
-         raise MisconfiguredException("/var/lib/shadowmanager/settings doesn't exist")
+         raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
 
      websvc.cursor.execute(st, { "username" : username })
      results = websvc.cursor.fetchone()
      if results is None:
-         raise UserInvalidException()
+         raise UserInvalidException(comment=username)
      elif results[1] != password:
-         raise PasswordInvalidException()
+         raise PasswordInvalidException(comment=username)
      else:
          urandom = open("/dev/urandom")
          token = base64.b64encode(urandom.read(100)) 
          urandom.close()
-         return success(token)
+         return success(data=token)
 
-def user_add(websvc,args):
+def user_add(websvc,user_args):
      """
-     Create a user.  args should contain all user fields except ID.
+     Create a user.  user_args should contain all user fields except ID.
      """
-     u = User.produce(args,OP_ADD)
+     u = User.produce(user_args,OP_ADD)
      # u.id = websvc.get_uid()
      st = """
      INSERT INTO users (username,password,first,middle,last,description,email)
@@ -142,21 +143,21 @@ def user_add(websvc,args):
          websvc.connection.commit()
      except Exception:
          lock.release()
-         raise SQLException(traceback.format_exc())
-     id = websvc.cursor.lastrowid
+         raise SQLException(traceback=traceback.format_exc())
+     rowid = websvc.cursor.lastrowid
      lock.release()
-     return success(id)
+     return success(rowid)
 
-def user_edit(websvc,args):
+def user_edit(websvc,user_args):
      """
-     Edit a user.  args should contain all user fields that need to
+     Edit a user.  user_args should contain all user fields that need to
      be changed.
      """
      # FIXME: allow the password field to NOT be sent, therefore not
      #        changing it.  (OR) just always do XMLRPC/HTTPS and use a 
      #        HTML password field.  Either way.  (We're going to be
      #        wanting HTTPS anyhow).
-     u = User.produce(args,OP_EDIT) # force validation
+     u = User.produce(user_args,OP_EDIT) # force validation
      st = """
      UPDATE users
      SET password=:password,
@@ -175,11 +176,11 @@ def user_edit(websvc,args):
 # FIXME: don't allow delete if only 1 user left.
 # FIXME: consider an undeletable but modifiable admin user
 
-def user_delete(websvc,args):
+def user_delete(websvc,user_args):
      """
-     Deletes a user.  The args must only contain the id field.
+     Deletes a user.  The user_args must only contain the id field.
      """
-     u = User.produce(args,OP_DELETE) # force validation
+     u = User.produce(user_args,OP_DELETE) # force validation
      st = """
      DELETE FROM users WHERE users.id=:id
      """
@@ -188,19 +189,19 @@ def user_delete(websvc,args):
      # FIXME: failure based on existance
      return success()
 
-def user_list(websvc,args):
+def user_list(websvc,user_args):
      """
-     Return a list of users.  The args list is currently *NOT*
+     Return a list of users.  The user_args list is currently *NOT*
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
      # FIXME: limit query support
      offset = 0
      limit  = 100
-     if args.has_key("offset"):
-        offset = args["offset"]
-     if args.has_key("limit"):
-        limit = args["limit"]
+     if user_args.has_key("offset"):
+        offset = user_args["offset"]
+     if user_args.has_key("limit"):
+        limit = user_args["limit"]
      st = """
      SELECT id,username,password,first,middle,last,description,email FROM users LIMIT ?,?
      """ 
@@ -221,18 +222,18 @@ def user_list(websvc,args):
          users.append(User.produce(data).to_datastruct(True))
      return success(users)
 
-def user_get(websvc,args):
+def user_get(websvc,user_args):
      """
-     Return a specific user record.  Only the "id" is required in args.
+     Return a specific user record.  Only the "id" is required in user_args.
      """
-     u = User.produce(args,OP_GET) # force validation
+     u = User.produce(user_args,OP_GET) # force validation
      st = """
      SELECT id,username,password,first,middle,last,description,email from users where users.id=:id
      """
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException("user_get")
+         raise NoSuchObjectException(comment="user_get")
      data = {
             "id"          : x[0],
             "username"    : x[1],

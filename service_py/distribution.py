@@ -14,17 +14,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-import base64
 from codes import *
-from errors import *
 import baseobj
 import traceback
 import threading
 import provisioning
 
+#------------------------------------------------------------
+
 class Distribution(baseobj.BaseObject):
 
-    def _produce(klass, args,operation=None):
+    def _produce(klass, dist_args,operation=None):
         """
         Factory method.  Create a distribution object from input data, optionally
         running it through validation, which will vary depending on what
@@ -32,14 +32,14 @@ class Distribution(baseobj.BaseObject):
         """
 
         self = Distribution()
-        self.from_datastruct(args)
+        self.from_datastruct(dist_args)
         self.validate(operation)
 
         return self
 
     produce = classmethod(_produce)
 
-    def from_datastruct(self,args):
+    def from_datastruct(self,dist_args):
         """
         Helper method to fill in the object's internal variables from
         a hash.  Note that we *don't* want to do this and then call
@@ -48,15 +48,14 @@ class Distribution(baseobj.BaseObject):
         distribution object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id           = self.load(args,"id")
-        self.kernel       = self.load(args,"kernel")
-        self.initrd       = self.load(args,"initrd")
-        self.options      = self.load(args,"options")
-        self.kickstart    = self.load(args,"kickstart")
-        self.name         = self.load(args,"name")
-        self.architecture = self.load(args,"architecture") 
-        self.kernel_options = self.load(args,"kernel_options")
-        self.kickstart_metadata = self.load(args,"kickstart_metadata")
+        self.id                 = self.load(dist_args,"id")
+        self.kernel             = self.load(dist_args,"kernel")
+        self.initrd             = self.load(dist_args,"initrd")
+        self.kickstart          = self.load(dist_args,"kickstart")
+        self.name               = self.load(dist_args,"name")
+        self.architecture       = self.load(dist_args,"architecture") 
+        self.kernel_options     = self.load(dist_args,"kernel_options")
+        self.kickstart_metadata = self.load(dist_args,"kickstart_metadata")
 
     def to_datastruct_internal(self):
         """
@@ -64,14 +63,13 @@ class Distribution(baseobj.BaseObject):
         """
 
         return {
-            "id"           : self.id,
-            "kernel"       : self.kernel,
-            "initrd"       : self.initrd,
-            "options"      : self.options,
-            "kickstart"    : self.kickstart,
-            "name"         : self.name,
-            "architecture" : self.architecture,
-            "kernel_options" : self.kernel_options,
+            "id"                 : self.id,
+            "kernel"             : self.kernel,
+            "initrd"             : self.initrd,
+            "kickstart"          : self.kickstart,
+            "name"               : self.name,
+            "architecture"       : self.architecture,
+            "kernel_options"     : self.kernel_options,
             "kickstart_metadata" : self.kickstart_metadata
         }
 
@@ -84,16 +82,32 @@ class Distribution(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def distribution_add(websvc,args):
+#-----------------------------------------------------------------
+
+def distribution_add(websvc,dist_args):
      """
-     Create a distribution.  args should contain all distribution fields except ID.
+     Create a distribution.  dist_args should contain all distribution fields except ID.
      """
 
-     u = Distribution.produce(args,OP_ADD)
+     u = Distribution.produce(dist_args,OP_ADD)
 
      st = """
-     INSERT INTO distributions (kernel,initrd,options,kickstart,name,architecture,kickstart_metadata)
-     VALUES (:kernel,:initrd,:options,:kickstart,:name, :architecture, :kickstart_metadata)
+     INSERT INTO distributions (
+     kernel, 
+     initrd, 
+     kickstart, 
+     name, 
+     architecture, 
+     kernel_options, 
+     kickstart_metadata)
+     VALUES (
+     :kernel,
+     :initrd,
+     :kickstart,
+     :name, 
+     :architecture,
+     :kernel_options, 
+     :kickstart_metadata)
      """
 
      lock = threading.Lock()
@@ -106,23 +120,24 @@ def distribution_add(websvc,args):
          lock.release()
          tb = traceback.format_exc()
          print tb # I need to see this error even if caught later ...
-         raise SQLException(tb)
+         raise SQLException(traceback=tb)
 
-     id = websvc.cursor.lastrowid
+     rowid = websvc.cursor.lastrowid
      lock.release()
      provisioning.provisioning_sync(websvc,{})
 
-     return success(id)
+     return success(rowid)
 
-def distribution_edit(websvc,args): 
+#-----------------------------------------------------------------
 
-     u = Distribution.produce(args,OP_EDIT)
+def distribution_edit(websvc,dist_args): 
+
+     u = Distribution.produce(dist_args,OP_EDIT)
 
      st = """
      UPDATE distributions SET
      kernel=:kernel,
      initrd=:initrd,
-     options=:options,
      kickstart=:kickstart,
      name=:name,
      architecture=:architecture,
@@ -136,32 +151,23 @@ def distribution_edit(websvc,args):
      websvc.connection.commit()
      provisioning.provisioning_sync(websvc,{})
 
-     return success(u.to_datastruct())
+     return success(ds)
 
-def distribution_delete(websvc,args):
+#-----------------------------------------------------------------
 
-     st = """
-     SELECT machines.id FROM machines, distributions WHERE
-     machines.distribution_id = distributions.id AND
-     distributions.id = :id
-     """
-
-     u = Distribution.produce(args)
-     websvc.cursor.execute(st,u.to_datastruct())
-     x = websvc.cursor.fetchone()
-     if x is not None:
-         raise OrphanedObjectException("machines.distribution_id")
+def distribution_delete(websvc,dist_args):
 
      st = """
      SELECT images.id FROM images, distributions WHERE
-     images.distribution_id = distributions.id
+     images.distribution_id = :id
      """
 
+     u = Distribution.produce(dist_args, OP_DELETE)
      websvc.cursor.execute(st, u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is not None:
-         raise OrphanedObjectException("images.distribution_id")
-     u = Distribution.produce(args,OP_DELETE) # force validation
+         raise OrphanedObjectException(comment="images.distribution_id")
+     u = Distribution.produce(dist_args,OP_DELETE) # force validation
 
      st = """
      DELETE FROM distributions WHERE distributions.id=:id
@@ -172,22 +178,24 @@ def distribution_delete(websvc,args):
 
      return success()
 
-def distribution_list(websvc,args):
+#-----------------------------------------------------------------
+
+def distribution_list(websvc,dist_args):
      """
-     Return a list of distributions.  The args list is currently *NOT*
+     Return a list of distributions.  The dist_args list is currently *NOT*
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
 
      offset = 0
      limit  = 100
-     if args.has_key("offset"):
-        offset = args["offset"]
-     if args.has_key("limit"):
-        limit = args["limit"]
+     if dist_args.has_key("offset"):
+        offset = dist_args["offset"]
+     if dist_args.has_key("limit"):
+        limit = dist_args["limit"]
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name,architecture,kernel_options,kickstart_metadata
+     SELECT id,kernel,initrd,kickstart,name,architecture,kernel_options,kickstart_metadata
      FROM distributions LIMIT ?,?
      """ 
 
@@ -200,46 +208,48 @@ def distribution_list(websvc,args):
             "id"           : x[0],
             "kernel"       : x[1],
             "initrd"       : x[2],
-            "options"      : x[3],
-            "kickstart"    : x[4],
-            "name"         : x[5],
-            "architecture" : x[6],
-            "kernel_options" : x[7],
-            "kickstart_metadata" : x[8]
+            "kickstart"    : x[3],
+            "name"         : x[4],
+            "architecture" : x[5],
+            "kernel_options" : x[6],
+            "kickstart_metadata" : x[7]
          }
          distributions.append(Distribution.produce(data).to_datastruct())
      return success(distributions)
 
-def distribution_get(websvc,args):
+#-----------------------------------------------------------------
+
+def distribution_get(websvc,dist_args):
      """
-     Return a specific distribution record.  Only the "id" is required in args.
+     Return a specific distribution record.  Only the "id" is required in dist_args.
      """
 
-     u = Distribution.produce(args,OP_GET) # force validation
+     u = Distribution.produce(dist_args,OP_GET) # force validation
 
      st = """
-     SELECT id,kernel,initrd,options,kickstart,name,architecture,kernel_options,kickstart_metadata
+     SELECT id,kernel,initrd,kickstart,name,architecture,kernel_options,kickstart_metadata
      FROM distributions WHERE distributions.id=:id
      """
 
      websvc.cursor.execute(st,{ "id" : u.id })
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException("distribution_get")
+         raise NoSuchObjectException(comment="distribution_get")
 
      data = {
-            "id"               : x[0],
-            "kernel"           : x[1],
-            "initrd"           : x[2],
-            "options"          : x[3],
-            "kickstart"        : x[4],
-            "name"             : x[5],
-            "architecture"     : x[6],
-            "kernel_options"   : x[7],
-            "kickstart_metadata" : x[8]
+            "id"                 : x[0],
+            "kernel"             : x[1],
+            "initrd"             : x[2],
+            "kickstart"          : x[3],
+            "name"               : x[4],
+            "architecture"       : x[5],
+            "kernel_options"     : x[6],
+            "kickstart_metadata" : x[7]
      }
 
      return success(Distribution.produce(data).to_datastruct())
+
+#-----------------------------------------------------------------
 
 def register_rpc(handlers):
      """

@@ -13,10 +13,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-from sqlalchemy import *
 import SimpleXMLRPCServer
 import os
-import traceback
 import time
 import logging
 import subprocess
@@ -31,9 +29,7 @@ SERVE_ON = (None,None)
 
 
 from codes import *
-from errors import *
 import user
-import event
 import image
 import deployment
 import machine
@@ -50,14 +46,14 @@ class XmlRpcInterface:
        Constructor sets up SQLAlchemy (database ORM) and logging.
        """
 
-       self.is_local = False # non-local instances are subject to token checks
-
        if not os.path.exists(config.CONFIG_FILE):
-           print "No %s found." % config.CONFIG_FILE
+           print "\nNo %s found.\n" % config.CONFIG_FILE
            return
 
-       (ok, self.config) = config.config_list()
+       config_result = config.config_list()
+       self.config = config_result.data
        self.dbpath = self.config["databases"]["primary"]
+
        self.tables = {}
        self.tokens = []
        self.__setup_handlers()
@@ -92,19 +88,19 @@ class XmlRpcInterface:
    # FIXME: find some more elegant way to surface the handlers?
    # FIXME: aforementioned login/session token requirement
 
-   def user_login(self,user,password):
+   def user_login(self,username,password):
        """
        Wrapper around the user login code in user.py.
        If login succeeds, create a token and return it to the caller.
        """
-       self.logger.debug("login attempt: %s" % user)
+       self.logger.debug("login attempt: %s" % username)
        try:
-           (rc, data) = self.handlers["user_login"](self,user,password)
-           if rc == 0:
-               self.tokens.append([data,time.time()])
-           return (rc, data)
+           login_result = user.user_login(self,username,password)
+           if login_result.error_code == 0:
+               self.tokens.append([login_result.data,time.time()])
+           return login_result.to_datastruct()
        except ShadowManagerException, e:
-           return from_exception(e)
+           return e.to_datastruct()
 
    def token_check(self,token):
        """
@@ -114,8 +110,6 @@ class XmlRpcInterface:
        This is a feature, mainly since Rails (and other language bindings) can better
        grok tracebacks this way.
        """
-       if not self.is_local:
-           return
        self.logger.debug("token check")
        now = time.time()
        for t in self.tokens:
@@ -127,7 +121,7 @@ class XmlRpcInterface:
                # update the expiration counter
                t[1] = time.time()
                #return SuccessException()
-               return ERR_SUCCESS
+               return success()
        raise TokenInvalidException()
 
    #======================================================
@@ -138,97 +132,94 @@ class XmlRpcInterface:
    # but in the modules, they all consistantly take 3.  This may possibly
    # benefit from cleanup later.
 
-   def user_list(self,token,args={}):
-       return self.__dispatch("user_list",token,args)
+   def user_list(self,token, dargs={}):
+       return self.__dispatch("user_list",token,dargs)
 
-   def user_get(self, token, args):
-       return self.__dispatch("user_get",token,args)
+   def user_get(self, token, dargs):
+       return self.__dispatch("user_get",token,dargs)
 
-   def user_add(self, token, args):
-       return self.__dispatch("user_add",token,args)
+   def user_add(self, token, dargs):
+       return self.__dispatch("user_add",token,dargs)
 
-   def user_edit(self, token, args):
-       return self.__dispatch("user_edit",token,args)
+   def user_edit(self, token, dargs):
+       return self.__dispatch("user_edit",token,dargs)
 
-   def user_delete(self, token, args):
-       return self.__dispatch("user_delete",token,args)
+   def user_delete(self, token, dargs):
+       return self.__dispatch("user_delete",token,dargs)
  
-   def machine_list(self,token,args={}):
-       return self.__dispatch("machine_list",token,args)
+   def machine_list(self,token,dargs={}):
+       return self.__dispatch("machine_list",token,dargs)
 
-   def machine_get(self, token, args):
-       return self.__dispatch("machine_get",token,args)
+   def machine_get(self, token,dargs ):
+       return self.__dispatch("machine_get",token,dargs)
 
-   def machine_add(self, token, args):
-       return self.__dispatch("machine_add",token,args)
+   def machine_add(self, token, dargs):
+       return self.__dispatch("machine_add",token,dargs)
 
-   def machine_edit(self, token, args):
-       return self.__dispatch("machine_edit",token,args)
+   def machine_edit(self, token, dargs):
+       return self.__dispatch("machine_edit",token,dargs)
 
-   def machine_delete(self, token, args):
-       return self.__dispatch("machine_delete",token,args)
+   def machine_delete(self, token, dargs):
+       return self.__dispatch("machine_delete",token,dargs)
  
-   def image_list(self,token,args={}):
-       return self.__dispatch("image_list",token,args)
+   def image_list(self,token,dargs={}):
+       return self.__dispatch("image_list",token,dargs)
 
-   def image_get(self, token, args):
-       return self.__dispatch("image_get",token,args)
+   def image_get(self, token, dargs):
+       return self.__dispatch("image_get",token,dargs)
 
-   def image_add(self, token, args):
-       return self.__dispatch("image_add",token,args)
+   def image_add(self, token, dargs):
+       return self.__dispatch("image_add",token,dargs)
 
-   def image_edit(self, token, args):
-       return self.__dispatch("image_edit",token,args)
+   def image_edit(self, token, dargs):
+       return self.__dispatch("image_edit",token,dargs)
 
-   def image_delete(self, token, args):
-       return self.__dispatch("image_delete",token,args)
+   def image_delete(self, token, dargs):
+       return self.__dispatch("image_delete",token,dargs)
    
-   def deployment_list(self,token,args={}):
-       return self.__dispatch("deployment_list",token,args={})
+   def deployment_list(self,token,dargs={}):
+       return self.__dispatch("deployment_list",token,dargs)
 
-   def deployment_get(self, token, args):
-       return self.__dispatch("deployment_get",token,args)
+   def deployment_get(self, token, dargs):
+       return self.__dispatch("deployment_get",token,dargs)
 
-   def deployment_add(self, token, args):
-       return self.__dispatch("deployment_add",token,args)
+   def deployment_add(self, token, dargs):
+       return self.__dispatch("deployment_add",token,dargs)
 
-   def deployment_edit(self, token, args):
-       return self.__dispatch("deployment_edit",token,args)
+   def deployment_edit(self, token, dargs):
+       return self.__dispatch("deployment_edit",token,dargs)
    
-   def deployment_delete(self, token, args):
-       return self.__dispatch("deployment_delete",token,args)
+   def deployment_delete(self, token, dargs):
+       return self.__dispatch("deployment_delete",token,dargs)
 
-   def distribution_get(self, token, args):
-       return self.__dispatch("distribution_get", token, args)
+   def distribution_get(self, token, dargs):
+       return self.__dispatch("distribution_get", token, dargs)
 
-   def distribution_list(self, token, args={}):
-       return self.__dispatch("distribution_list",token,args)
+   def distribution_list(self, token, dargs={}):
+       return self.__dispatch("distribution_list",token,dargs)
 
-   def distribution_add(self, token, args):
-       return self.__dispatch("distribution_add",token,args)
+   def distribution_add(self, token, dargs):
+       return self.__dispatch("distribution_add",token,dargs)
 
-   def distribution_edit(self, token, args):
-       return self.__dispatch("distribution_edit",token,args)
+   def distribution_edit(self, token, dargs):
+       return self.__dispatch("distribution_edit",token,dargs)
 
-   def distribution_delete(self, token, args):
-       return self.__dispatch("distribution_delete",token,args)
-
-   def provisioning_sync(self, token, args):
-       return self.__dispatch("provisioning_sync", token, args)
-
-   def config_list(self, token, args):
-       return self.__dispatch("config_list", token, args)
+   def distribution_delete(self, token, dargs):
+       return self.__dispatch("distribution_delete",token,dargs)
    
-   def config_reset(self, token, args):
-       return self.__dispatch("config_reset", token, args)
+   def provisioning_init(self, token, dargs):
+       return self.__dispatch("provisioning_init", token, dargs)
 
-   def provisioning_init(self, token, args):
-       return self.__dispatch("provisioning_init", token, args)
+   def provisioning_sync(self, token, dargs):
+       return self.__dispatch("provisioning_sync", token, dargs)
 
-   def provisioning_sync(self, token, args):
-       return self.__dispatch("provisioning_sync", token, args)
+   def config_list(self, token, dargs):
+       return self.__dispatch("config_list", token, dargs)
+   
+   def config_reset(self, token, dargs):
+       return self.__dispatch("config_reset", token, dargs)
 
-   def __dispatch(self, method, token, args=[]):
+   def __dispatch(self, method, token, dispatch_args=[]):
        """
        Dispatch is a wrapper around all API functions other
        than user_login and token_check.  It is intended that
@@ -244,19 +235,13 @@ class XmlRpcInterface:
 
        Tracebacks are also logged in the configured log location.
        """ 
-       self.logger.debug("calling %s, args=%s" % (method,args))
+       self.logger.debug("calling %s, dispatch_=%s" % (method,dispatch_args))
        try:
            self.token_check(token)
-           rc = self.handlers[method](self,args)
-           return rc
+           rc = self.handlers[method](self,dispatch_args)
+           return rc.to_datastruct()
        except ShadowManagerException, e:
-           return from_exception(e)
-       # this is nice in theory but I really want the real TB's now
-       # may reconsider for later.
-       #except Exception, e2:
-       #    tb = traceback.format_exc()
-       #    self.logger.error(tb)
-       #    return from_exception(UncaughtException(tb))    
+           return e.to_datastruct()
 
 def database_reset():
     """
@@ -271,10 +256,10 @@ def database_reset():
     p = DATABASE_PATH
     p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
     p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
-    p2.communicate()[0]
+    p2.communicate()
     p3 = subprocess.Popen(["cat","../setup/populate.sql"], stdout=subprocess.PIPE)
     p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
-    p4.communicate()[0]
+    p4.communicate()
 
 def serve(websvc):
     """
@@ -295,10 +280,8 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         if sys.argv[1].lower() == "init":
             # FIXME: do any other first time setup here...
-            print "reseting configuration...\n"
             config.config_reset(websvc,{})
         elif sys.argv[1].lower() == "import":
-            print "importing configuration...\n"
             provisioning.provisioning_init(websvc,{})
         else:
             print """

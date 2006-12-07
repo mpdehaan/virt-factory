@@ -17,15 +17,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 # file, and _potentially_ used by a CLI for initial setup/install...
 
 import os
-import cobbler.api
-import traceback
-import threading
 import yaml
 
 from codes import *
-from errors import *
-import baseobj
-import shadow
 
 CONFIG_FILE = "/var/lib/shadowmanager/settings"
 
@@ -49,10 +43,10 @@ defaults = {
     }
 }
 
-def config_list(websvc=None,args=None):
+def config_list(websvc=None,config_args=None):
 
    if not os.path.exists(CONFIG_FILE):
-       raise MisconfiguredException("%s missing" % CONFIG_FILE)
+       raise MisconfiguredException(comment=CONFIG_FILE)
 
    config_file = open(CONFIG_FILE)
    data = config_file.read()
@@ -60,14 +54,13 @@ def config_list(websvc=None,args=None):
 
    return success(ds)
 
-def config_reset(websvc=None,args=None):
+def config_reset(websvc=None,config_args=None):
    
    config_file = open(CONFIG_FILE,"w+")
    data = yaml.dump(defaults)
    config_file.write(data)
 
    print """
-
    The configuration values in %s have been reset.
 
    Next steps:

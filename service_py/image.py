@@ -15,16 +15,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 from codes import *
-from errors import *
 import baseobj
 import traceback
 import threading
 import distribution
 import provisioning
 
+#------------------------------------------------------
+
 class Image(baseobj.BaseObject):
 
-    def _produce(klass, args,operation=None):
+    def _produce(klass, image_args,operation=None):
         """
         Factory method.  Create a image object from input data, optionally
         running it through validation, which will vary depending on what
@@ -32,13 +33,13 @@ class Image(baseobj.BaseObject):
         """
 
         self = Image()
-        self.from_datastruct(args)
+        self.from_datastruct(image_args)
         self.validate(operation)
         return self
 
     produce = classmethod(_produce)
 
-    def from_datastruct(self,args):
+    def from_datastruct(self,image_args):
         """
         Helper method to fill in the object's internal variables from
         a hash.  Note that we *don't* want to do this and then call
@@ -47,17 +48,18 @@ class Image(baseobj.BaseObject):
         image object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id                 = self.load(args,"id")
-        self.name               = self.load(args,"name")
-        self.version            = self.load(args,"version")
-        self.filename           = self.load(args,"filename")
-        self.specfile           = self.load(args,"specfile")
-        self.distribution_id    = self.load(args,"distribution_id")
-        self.virt_storage_size  = self.load(args,"virt_storage_size")
-        self.virt_ram           = self.load(args,"virt_ram")
-        self.kickstart_metadata = self.load(args,"kickstart_metadata")
-        self.kernel_options     = self.load(args,"kernel_options")
-        self.type               = self.load(args,"type")
+        self.id                 = self.load(image_args,"id")
+        self.name               = self.load(image_args,"name")
+        self.version            = self.load(image_args,"version")
+        self.filename           = self.load(image_args,"filename")
+        self.specfile           = self.load(image_args,"specfile")
+        self.distribution_id    = self.load(image_args,"distribution_id")
+        self.virt_storage_size  = self.load(image_args,"virt_storage_size")
+        self.virt_ram           = self.load(image_args,"virt_ram")
+        self.kickstart_metadata = self.load(image_args,"kickstart_metadata")
+        self.kernel_options     = self.load(image_args,"kernel_options")
+        self.valid_targets      = self.load(image_args,"valid_targets")
+        self.is_container       = self.load(image_args,"is_container")
 
     def to_datastruct_internal(self):
         """
@@ -75,7 +77,8 @@ class Image(baseobj.BaseObject):
             "virt_ram"           : self.virt_ram,
             "kickstart_metadata" : self.kickstart_metadata,
             "kernel_options"     : self.kernel_options,
-            "type"               : self.type  
+            "valid_targets"      : self.valid_targets,
+            "is_container"       : self.is_container  
         }
 
     def validate(self,operation):
@@ -87,25 +90,29 @@ class Image(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def image_add(websvc,args):
+#----------------------------------------------------------
+
+def image_add(websvc,image_args):
      """
-     Create a image.  args should contain all fields except ID.
+     Create a image.  image_args should contain all fields except ID.
      """
 
      st = """
      INSERT INTO images (name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,type)
+     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
+     valid_targets,is_container)
      VALUES (:name,:version,:filename,:specfile,:distribution_id,
-     :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,:type)
+     :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
+     :valid_targets,:is_container)
      """
 
-     u = Image.produce(args,OP_ADD)
+     u = Image.produce(image_args,OP_ADD)
 
      if u.distribution_id is not None:
          try:
              distribution.distribution_get(websvc, { "id" : u.distribution_id})
          except ShadowManagerException:
-             raise OrphanedObjectExcception('distribution_id')
+             raise OrphanedObjectException(comment='distribution_id')
 
      lock = threading.Lock()
      lock.acquire()
@@ -116,28 +123,31 @@ def image_add(websvc,args):
      except Exception:
          lock.release()
          # FIXME: be more fined grained (find where IntegrityError is defined)
-         raise SQLException(traceback.format_exc())
+         raise SQLException(traceback=traceback.format_exc())
 
-     id = websvc.cursor.lastrowid
+     rowid = websvc.cursor.lastrowid
      lock.release()
 
      provisioning.provisioning_sync(websvc, {})
 
-     return success(id)
+     return success(rowid)
 
-def image_edit(websvc,args):
+#----------------------------------------------------------
+
+def image_edit(websvc,image_args):
      """
-     Edit a image.  args should contain all fields that need to
+     Edit a image.  image_args should contain all fields that need to
      be changed.
      """
 
-     u = Image.produce(args,OP_EDIT) # force validation
+     u = Image.produce(image_args,OP_EDIT) # force validation
 
      st = """
      UPDATE images 
      SET name=:name, version=:version, filename=:filename, specfile=:specfile,
      virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
-     kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, type=:type
+     kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
+     valid_targets=:valid_targets, is_container=:is_container
      WHERE id=:id
      """
 
@@ -148,12 +158,14 @@ def image_edit(websvc,args):
 
      return success(u.to_datastruct(True))
 
-def image_delete(websvc,args):
+#----------------------------------------------------------
+
+def image_delete(websvc,image_args):
      """
-     Deletes a image.  The args must only contain the id field.
+     Deletes a image.  The image_args must only contain the id field.
      """
 
-     u = Image.produce(args,OP_DELETE) # force validation
+     u = Image.produce(image_args,OP_DELETE) # force validation
  
      st = """
      DELETE FROM images WHERE images.id=:id
@@ -166,15 +178,15 @@ def image_delete(websvc,args):
      """
 
      # check to see that what we are deleting exists
-     (rc, data) = image_get(websvc,u.to_datastruct())
-     if not rc == 0:
-        raise NoSuchObjectException("image_delete")
+     image_result = image_get(websvc,u.to_datastruct())
+     if not image_result.error_code == 0:
+        raise NoSuchObjectException(comment="image_delete")
 
      # check to see that deletion won't orphan a deployment
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
-        raise OrphanedObjectException("deployment")
+        raise OrphanedObjectException(comment="deployment")
 
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
@@ -182,19 +194,21 @@ def image_delete(websvc,args):
      # no need to sync provisioning as the image isn't hurting anything
      return success()
 
-def image_list(websvc,args):
+#----------------------------------------------------------
+
+def image_list(websvc,image_args):
      """
-     Return a list of images.  The args list is currently *NOT*
+     Return a list of images.  The image_args list is currently *NOT*
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
 
      offset = 0
      limit  = 100
-     if args.has_key("offset"):
-        offset = args["offset"]
-     if args.has_key("limit"):
-        limit = args["limit"]
+     if image_args.has_key("offset"):
+        offset = image_args["offset"]
+     if image_args.has_key("limit"):
+        limit = image_args["limit"]
 
      st = """
      SELECT 
@@ -208,7 +222,8 @@ def image_list(websvc,args):
      images.virt_ram,
      images.kickstart_metadata,
      images.kernel_options,
-     images.type,
+     images.valid_targets,
+     images.is_container,
      distributions.id,
      distributions.kernel,
      distributions.initrd,
@@ -243,36 +258,40 @@ def image_list(websvc,args):
             "virt_ram"           : x[7],
             "kickstart_metadata" : x[8],
             "kernel_options"     : x[9],
-            "type"               : x[10]
+            "valid_targets"      : x[10],
+            "is_container"       : x[11]
          }).to_datastruct(True)
      
          if x[11] is not None and x[11] != -1:
              data["distribution"] = distribution.Distribution.produce({
-                 "id"             : x[11],
-                 "kernel"         : x[12],
-                 "initrd"         : x[13],
-                 "options"        : x[14],
-                 "kickstart"      : x[15],
-                 "name"           : x[16],
-                 "architecture"   : x[17],
-                 "kernel_options" : x[18],
-                 "kickstart_metadata" : x[19]
+                 "id"                 : x[9],
+                 "kernel"             : x[10],
+                 "initrd"             : x[11],
+                 "options"            : x[12],
+                 "kickstart"          : x[13],
+                 "name"               : x[14],
+                 "architecture"       : x[15],
+                 "kernel_options"     : x[16],
+                 "kickstart_metadata" : x[17]
              }).to_datastruct(True)
      
          images.append(data)
   
      return success(images)
 
-def image_get(websvc,args):
+#--------------------------------------------------------
+
+def image_get(websvc,image_args):
      """
-     Return a specific image record.  Only the "id" is required in args.
+     Return a specific image record.  Only the "id" is required in image_args.
      """
 
-     u = Image.produce(args,OP_GET) # force validation
+     u = Image.produce(image_args,OP_GET) # force validation
 
      st = """
      SELECT id,name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,type
+     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
+     valid_targets,is_container
      FROM images WHERE id=:id
      """
 
@@ -280,31 +299,34 @@ def image_get(websvc,args):
      x = websvc.cursor.fetchone()
 
      if x is None:
-         raise NoSuchObjectException("image_get")
+         raise NoSuchObjectException(comment="image_get")
 
      data = {
-            "id"       : x[0],
-            "name"     : x[1],
-            "version"  : x[2],
-            "filename" : x[3],
-            "specfile" : x[4],
-            "distribution_id" : x[5],
-            "virt_storage_size" : x[6],
-            "virt_ram" : x[7],
+            "id"                 : x[0],
+            "name"               : x[1],
+            "version"            : x[2],
+            "filename"           : x[3],
+            "specfile"           : x[4],
+            "distribution_id"    : x[5],
+            "virt_storage_size"  : x[6],
+            "virt_ram"           : x[7],
             "kickstart_metadata" : x[8],
-            "kernel_options" : x[9],
-            "type" : x[10]
+            "kernel_options"     : x[9],
+            "valid_targets"      : x[10],
+            "is_container"       : x[11]
      }
 
      data = Image.produce(data).to_datastruct(True)
 
      if x[5] is not None:
-         (rc, dist) = distribution.distribution_get(websvc, { "id" : x[5] })
-         if rc != 0:
-             raise OrphanedObjectException("distribution_id")
-         data["distribution"] = dist
+         distribution_results = distribution.distribution_get(websvc, { "id" : x[5] })
+         if not distribution_results.ok():
+             raise OrphanedObjectException(comment="distribution_id")
+         data["distribution"] = distribution_results.data
 
      return success(data)
+
+#--------------------------------------------------------
 
 def register_rpc(handlers):
      """
