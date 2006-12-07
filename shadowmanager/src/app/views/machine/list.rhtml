@@ -31,7 +31,7 @@
              <TD> <%= item.kickstart_metadata %> </TD>
              <TD> <%= item.list_group %> </TD>
              <TD> <%= item.mac_address %> </TD>
-             <TD> <%= (item.is_container == 1) ? "Yes" : "No" %> </TD>
+             <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %> </TD>
              <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
          </TR>
