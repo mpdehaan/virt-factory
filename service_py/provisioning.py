@@ -33,7 +33,6 @@ import os
 import cobbler.api
 
 from codes import *
-from errors import *
 import baseobj
 import distribution
 import image
@@ -42,6 +41,8 @@ import shadow
 import codes
 import config
 import deployment
+
+#--------------------------------------------------------------------
 
 ENOROOT = """
 \nThe provisioning components typically require root access.  If you
@@ -90,9 +91,7 @@ run "shadow import" at a later date with additional rsync mirrors.
 Now log in through the Web UI...  You're good to go.\n
 """
 
-class CobblerTranslatedItem:
-   def add(self):
-       pass
+#--------------------------------------------------------------------
 
 class CobblerTranslatedDistribution:
    def __init__(self,api,from_db):
@@ -110,6 +109,8 @@ class CobblerTranslatedDistribution:
        api.distros().add(new_item)
        """
        pass
+
+#--------------------------------------------------------------------
 
 class CobblerTranslatedProfile:
    def __init__(self,api,from_db):
@@ -135,6 +136,8 @@ class CobblerTranslatedProfile:
        """
        pass
 
+#--------------------------------------------------------------------
+
 class CobblerTranslatedSystem:
    def __init__(self,api,deployments,from_db):
        NOTYET = """
@@ -156,11 +159,14 @@ class CobblerTranslatedSystem:
        new_item.set_pxe_paddress(from_db["pxe_address"])
        api.systems().add(new_item)
        """
+       pass
+
+#--------------------------------------------------------------------
 
 # FIXME: need another ShadowManager backend object that will need to sync with
 # /var/lib/cobbler/settings
 
-def provisioning_sync(websvc, args):
+def provisioning_sync(websvc, prov_args):
      
      return True # disable until later...     
 
@@ -193,13 +199,15 @@ def provisioning_sync(websvc, args):
          api.sync()
      except:
          lock.release()
-         raise UncaughtException(traceback.format_exc())
+         raise UncaughtException(traceback=traceback.format_exc())
  
 
      lock.release()
      return success()
 
-def provisioning_init(websvc, args):
+#--------------------------------------------------------------------
+
+def provisioning_init(websvc, prov_args):
 
      """
      Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
@@ -222,9 +230,10 @@ def provisioning_init(websvc, args):
      # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
      api = cobbler.api.BootAPI()
      settings = api.settings().to_datastruct()
-     (rc, shadow_config) = config.config_list(websvc,{})
-     if rc!=0:
-         raise ShadowManagerException("config retrieval failed")
+     config_results = config.config_list(websvc,{})
+     if not config_results.ok():
+         raise ShadowManagerException(comment="config retrieval failed")
+     shadow_config = config_results.data
 
      print NOW_CONFIGURING % config.CONFIG_FILE
 
@@ -297,6 +306,8 @@ def provisioning_init(websvc, args):
 
      lock.release()
      return success()
+
+#--------------------------------------------------------------------
 
 def register_rpc(handlers): 
     handlers["provisioning_init"]   = provisioning_init

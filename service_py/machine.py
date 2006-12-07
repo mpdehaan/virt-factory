@@ -15,16 +15,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 from codes import *
-from errors import *
 import baseobj
 import traceback
 import threading
-import distribution
 import provisioning
+import image
+
+#------------------------------------------------------
 
 class Machine(baseobj.BaseObject):
 
-    def _produce(klass, args,operation=None):
+    def _produce(klass, machine_args,operation=None):
         """
         Factory method.  Create a machine object from input data, optionally
         running it through validation, which will vary depending on what
@@ -32,13 +33,13 @@ class Machine(baseobj.BaseObject):
         """
 
         self = Machine()
-        self.from_datastruct(args)
+        self.from_datastruct(machine_args)
         self.validate(operation)
         return self
 
     produce = classmethod(_produce)
 
-    def from_datastruct(self,args):
+    def from_datastruct(self,machine_args):
         """
         Helper method to fill in the object's internal variables from
         a hash.  Note that we *don't* want to do this and then call
@@ -47,18 +48,18 @@ class Machine(baseobj.BaseObject):
         machine object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id               = self.load(args,"id")
-        self.address          = self.load(args,"address")
-        self.architecture     = self.load(args,"architecture")
-        self.processor_speed  = self.load(args,"processor_speed")
-        self.processor_count  = self.load(args,"processor_count")
-        self.memory           = self.load(args,"memory")
-        self.distribution_id  = self.load(args,"distribution_id")
-        self.kernel_options   = self.load(args,"kernel_options")
-        self.kickstart_metadata = self.load(args, "kickstart_metadata")
-        self.list_group         = self.load(args, "list_group")
-        self.mac_address        = self.load(args, "mac_address")
-        self.type               = self.load(args, "type")
+        self.id                 = self.load( machine_args, "id" )
+        self.address            = self.load( machine_args, "address" )
+        self.architecture       = self.load( machine_args, "architecture" )
+        self.processor_speed    = self.load( machine_args, "processor_speed" )
+        self.processor_count    = self.load( machine_args, "processor_count" )
+        self.memory             = self.load( machine_args, "memory" )
+        self.kernel_options     = self.load( machine_args, "kernel_options" )
+        self.kickstart_metadata = self.load( machine_args, "kickstart_metadata" )
+        self.list_group         = self.load( machine_args, "list_group" )
+        self.mac_address        = self.load( machine_args, "mac_address" )
+        self.is_container       = self.load( machine_args, "is_container" )
+        self.image_id           = self.load( machine_args, "image_id" )
 
     def to_datastruct_internal(self):
         """
@@ -72,12 +73,12 @@ class Machine(baseobj.BaseObject):
             "processor_speed"    : self.processor_speed,
             "processor_count"    : self.processor_count,
             "memory"             : self.memory,
-            "distribution_id"    : self.distribution_id,
             "kernel_options"     : self.kernel_options,
             "kickstart_metadata" : self.kickstart_metadata,
             "list_group"         : self.list_group,
             "mac_address"        : self.mac_address,
-            "type"               : self.type
+            "is_container"       : self.is_container,
+            "image_id"           : self.image_id
         }
 
     def validate(self,operation):
@@ -85,28 +86,48 @@ class Machine(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
-def machine_add(websvc,args):
+#------------------------------------------------------
+
+def machine_add(websvc,machine_args):
      """
-     Create a machine.  args should contain all fields except ID.
+     Create a machine.  machine_args should contain all fields except ID.
      """
 
-     u = Machine.produce(args,OP_ADD)
+     u = Machine.produce(machine_args,OP_ADD)
 
      st = """
-     INSERT INTO machines (address,architecture,processor_speed,
-     processor_count,memory,distribution_id,
-     kernel_options,kickstart_metadata,list_group, mac_address, type)
-     VALUES (:address,:architecture,:processor_speed,
-     :processor_count,:memory,:distribution_id, 
-     :kernel_options, :kickstart_metadata, :list_group, :mac_address, :type)
+     INSERT INTO machines (
+     address,
+     architecture,
+     processor_speed,
+     processor_count,
+     memory,
+     kernel_options,
+     kickstart_metadata,
+     list_group, 
+     mac_address, 
+     is_container, 
+     image_id) 
+     VALUES (
+     :address,
+     :architecture,
+     :processor_speed,
+     :processor_count,
+     :memory,
+     :kernel_options, 
+     :kickstart_metadata, 
+     :list_group, 
+     :mac_address, 
+     :is_container, 
+     :image_id)
      """
 
-     u = Machine.produce(args,OP_ADD)
-     if u.distribution_id is not None:
+     u = Machine.produce(machine_args,OP_ADD)
+     if u.image_id is not None:
          try:
-             obj = distribution.distribution_get(websvc, { "id" : u.distribution_id })
+             image.image_get(websvc, { "id" : u.image_id })
          except ShadowManagerException:
-             raise OrphanedObjectException("distribution_id")
+             raise OrphanedObjectException(comment="image_id")
 
      lock = threading.Lock()
      lock.acquire()
@@ -117,21 +138,23 @@ def machine_add(websvc,args):
      except Exception:
          # FIXME: be more fined grained (IntegrityError only)
          lock.release()
-         raise SQLException(traceback.format_exc())
+         raise SQLException(traceback=traceback.format_exc())
 
-     id = websvc.cursor.lastrowid
+     rowid = websvc.cursor.lastrowid
      lock.release() 
 
      provisioning.provisioning_sync(websvc, {})
 
-     return success(id)
+     return success(rowid)
 
-def machine_edit(websvc,args):
+#------------------------------------------------------
+
+def machine_edit(websvc,machine_args):
      """
      Edit a machine.
      """
 
-     u = Machine.produce(args,OP_EDIT) # force validation
+     u = Machine.produce(machine_args,OP_EDIT) # force validation
 
      st = """
      UPDATE machines 
@@ -144,9 +167,16 @@ def machine_edit(websvc,args):
      kickstart_metadata=:kickstart_metadata,
      list_group=:list_group,
      mac_address=:mac_address,
-     type=:type
+     is_container=:is_container,
+     image_id=:image_id
      WHERE id=:id
      """
+
+     if u.image_id is not None:
+        try:
+            image.image_get(websvc, { "id" : u.image_id })
+        except ShadowManagerException:
+            raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
      websvc.cursor.execute(st, u.to_datastruct())
      websvc.connection.commit()
@@ -155,30 +185,32 @@ def machine_edit(websvc,args):
 
      return success(u.to_datastruct(True))
 
-def machine_delete(websvc,args):
+#------------------------------------------------------
+
+def machine_delete(websvc,machine_args):
      """
-     Deletes a machine.  The args must only contain the id field.
+     Deletes a machine.  The machine_args must only contain the id field.
      """
 
-     u = Machine.produce(args,OP_DELETE) # force validation
+     u = Machine.produce(machine_args,OP_DELETE) # force validation
 
      st = """
      DELETE FROM machines WHERE machines.id=:id
      """
 
      st2 = """
-     SELECT machines.id FROM deployments,machines where deployments.machine_id = machines.id
+     SELECT machines.id FROM images,machines where machines.image_id = images.id
      AND machines.id=:id
      """
      # check to see that what we are deleting exists
-     rc = machine_get(websvc,args)
+     rc = machine_get(websvc,machine_args)
      if not rc:
-        raise NoSuchObjectException("machine_delete")
+        raise NoSuchObjectException(comment="machine_delete")
 
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
-        raise OrphanedObjectException("deployment")
+        raise OrphanedObjectException(comment="image")
 
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
@@ -186,19 +218,21 @@ def machine_delete(websvc,args):
      # FIXME: failure based on existance
      return success()
 
-def machine_list(websvc,args):
+#------------------------------------------------------
+
+def machine_list(websvc,machine_args):
      """
-     Return a list of machines.  The args list is currently *NOT*
+     Return a list of machines.  The machine_args list is currently *NOT*
      used.  Ideally we need to include LIMIT information here for
      GUI pagination when we start worrying about hundreds of systems.
      """
 
      offset = 0
      limit  = 100
-     if args.has_key("offset"):
-        offset = args["offset"]
-     if args.has_key("limit"):
-        limit = args["limit"]
+     if machine_args.has_key("offset"):
+        offset = machine_args["offset"]
+     if machine_args.has_key("limit"):
+        limit = machine_args["limit"]
 
      st = """
      SELECT machines.id AS mid, 
@@ -207,22 +241,25 @@ def machine_list(websvc,args):
      machines.processor_speed,
      machines.processor_count,
      machines.memory,
-     distributions.id AS did,
      machines.kernel_options,
      machines.kickstart_metadata,
      machines.list_group,
      machines.mac_address,
-     machines.type,
-     distributions.kernel,
-     distributions.initrd,
-     distributions.options,
-     distributions.kickstart,
-     distributions.name,
-     distributions.architecture,
-     distributions.kernel_options,
-     distributions.kickstart_metadata
+     machines.is_container,
+     machines.image_id,
+     images.name,
+     images.version,
+     images.filename,
+     images.specfile,
+     images.distribution_id,
+     images.virt_storage_size,
+     images.virt_ram,
+     images.kickstart_metadata,
+     images.kernel_options,
+     images.valid_targets,
+     images.is_container
      FROM machines
-     LEFT OUTER JOIN distributions ON machines.distribution_id = distributions.id  
+     LEFT OUTER JOIN images ON machines.image_id = images.id  
      LIMIT ?,?
      """ 
 
@@ -242,72 +279,80 @@ def machine_list(websvc,args):
              "processor_speed"    : x[3],
              "processor_count"    : x[4],
              "memory"             : x[5],
-             "distribution_id"    : x[6],
-             "kernel_options"     : x[7],
-             "kickstart_metadata" : x[8],
-             "list_group"         : x[9],
-             "mac_address"        : x[10],
-             "type"               : x[11]
+             "kernel_options"     : x[6],
+             "kickstart_metadata" : x[7],
+             "list_group"         : x[8],
+             "mac_address"        : x[9],
+             "is_container"       : x[10],
+             "image_id"           : x[11]
          }).to_datastruct(True)
 
          if x[6] is not None and x[6] != -1:
-             data["distribution"] = distribution.Distribution.produce({
-                 "id"             : x[6],
-                 "kernel"         : x[12],
-                 "initrd"         : x[13],
-                 "options"        : x[14],
-                 "kickstart"      : x[15],
-                 "name"           : x[16],
-                 "architecture"   : x[17],
-                 "kernel_options" : x[18],
-                 "kickstart_metadata" : x[19]
+             data["image"] = image.Image.produce({
+                  "name"               : x[12],
+                  "version"            : x[13],
+                  "filename"           : x[14],
+                  "specfile"           : x[15],
+                  "distribution_id"    : x[16],
+                  "virt_storage_size"  : x[17],
+                  "virt_ram"           : x[18],
+                  "kickstart_metadata" : x[19],
+                  "kernel_options"     : x[20],
+                  "valid_targets"      : x[21],
+                  "is_container"       : x[22]
              }).to_datastruct(True)
      
          machines.append(data)
 
      return success(machines)
 
-def machine_get(websvc,args):
+#------------------------------------------------------
+
+def machine_get(websvc,machine_args):
      """
-     Return a specific machine record.  Only the "id" is required in args.
+     Return a specific machine record.  Only the "id" is required in machine_args.
      """
 
-     u = Machine.produce(args,OP_GET) # force validation
+     u = Machine.produce(machine_args,OP_GET) # force validation
 
      st = """
      SELECT id,address,architecture,processor_speed,processor_count,memory,
-     distribution_id, kernel_options, kickstart_metadata, list_group, mac_address, type
+     kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id
      FROM machines WHERE id=:id
      """
      websvc.cursor.execute(st,u.to_datastruct())
      x = websvc.cursor.fetchone()
      if x is None:
-         raise NoSuchObjectException("machine_get")
+         raise NoSuchObjectException(comment="machine_get")
 
      data = {
-            "id"              : x[0],
-            "address"         : x[1],
-            "architecture"    : x[2],
-            "processor_speed" : x[3],
-            "processor_count" : x[4],
-            "memory"          : x[5],
-            "distribution_id" : x[6],
-            "kernel_options"  : x[7],
-            "kickstart_metadata" : x[8],
-            "list_group"         : x[9],
-            "mac_address"        : x[10],
-            "type"               : x[11]
+            "id"                 : x[0],
+            "address"            : x[1],
+            "architecture"       : x[2],
+            "processor_speed"    : x[3],
+            "processor_count"    : x[4],
+            "memory"             : x[5],
+            "kernel_options"     : x[6],
+            "kickstart_metadata" : x[7],
+            "list_group"         : x[8],
+            "mac_address"        : x[9],
+            "is_container"       : x[10],
+            "image_id"           : x[11]
      }
 
-     data = Machine.produce(data).to_datastruct(True)
+     filtered = Machine.produce(data).to_datastruct(True)
 
-     if x[6] is not None and x[6] != -1:
-         (rc, dist) = distribution.distribution_get(websvc, {"id":x[6]})
-         if rc != 0:
-             raise OrphanedObjectException("distribution_id")
-         data["distribution"] = dist
+     # FIXME: redo this with image id
 
-     return success(data)
+     if x[11] is not None and x[11] != -1:
+         image_results = image.image_get(websvc, {"id":x[11]})
+         if not image_results.ok():
+             raise OrphanedObjectException(comment="image_id")
+         filtered["image"] = image_results.data
+
+     return success(filtered)
+
+#------------------------------------------------------
 
 def register_rpc(handlers):
      """
