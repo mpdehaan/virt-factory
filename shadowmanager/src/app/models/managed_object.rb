@@ -94,8 +94,8 @@ class ManagedObject
     def self.call_server(method_name, session, args, errmsg = "")
         (rc, results) = @@server.call(method_name, session[:login], args)
         unless rc == ERR_SUCCESS
-            raise XMLRPCClientException.new("#{method_name} failed (#{ERRORS[rc]}): #{errmsg}", results)
+            raise XMLRPCClientException.new("#{method_name} failed (#{ERRORS[rc]}): #{errmsg}", results["traceback"])
         end
-        results
+        results["values"]
     end
 end
