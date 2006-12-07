@@ -344,26 +344,19 @@ class DistributionTests(BaseCrudTests):
        self.failUnlessEqual(rc1a, 0, "machine_get")
        self.failUnlessEqual(data1a["image"], data0a, "machine contains nested image: %s, %s" % (data1a["image"],data0a))       
 
-       # FIXME: rewrite this part, should be "machine contains nested distribution"
-       # though the above code sets distribution_id to None, which is wrong.
-
-       # 
-       #image["image_id"] = data0
-       #(rc2, raw_data2) = self.call(self.api.image_add, image)
-       #data2 = raw_data2["data"]
-       #self.failUnlessEqual(rc2, 0, "image_add")
-       #(rc2b, raw_data2b) = self.call(self.api.image_list, {})
-       #data2b = raw_data2b["data"]
-       #self.failUnlessEqual(rc2b, 0, "image list ok")
-       #self.failUnlessEqual(len(data2b), 1, "correct number of images returned")
-       #(rc2a, raw_data2a) = self.call(self.api.image_get, { "id" : data2 })
-       #data2a = raw_data2a["data"]
-       #self.failUnlessEqual(rc2a, 0, "image_get: %s, %s" % (rc2a, data2a))
-       #self.failUnlessEqual(data2a["image"], data0a, "image contains nested distribution")
-       # 
-       #(rc3, raw_data3) = self.call(self.api.distribution_delete, { "id" : data0 })
-       #data3 = raw_data3["data"]
-       #self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT, "cannot delete distribution if in use")
+       image["image_id"] = data0
+       image["name"] = "this is not the same one"
+       (rc2, raw_data2) = self.call(self.api.image_add, image)
+       self.failUnlessEqual(rc2, 0, "image_add: %s, %s" % (rc2, raw_data2))
+       data2 = raw_data2["data"]
+       (rc2b, raw_data2b) = self.call(self.api.image_list, {})
+       data2b = raw_data2b["data"]
+       self.failUnlessEqual(rc2b, 0, "image list ok")
+       self.failUnlessEqual(len(data2b), 2, "correct number of images returned")
+       (rc2a, raw_data2a) = self.call(self.api.image_get, { "id" : data2 })
+       data2a = raw_data2a["data"]
+       self.failUnlessEqual(rc2a, 0, "image_get: %s, %s" % (rc2a, data2a))
+       (rc3, raw_data3) = self.call(self.api.distribution_delete, { "id" : data0 })
  
 
 class UserTests(BaseCrudTests):
@@ -423,20 +416,17 @@ class DeploymentTests(BaseTest):
        self.test_add_one()
        (rc0, raw_data0) = self.call(self.api.deployment_list)
        data0 = raw_data0["data"]
-       obj = data0[0]
+       obj = data0[0] # this is the deployment
        (rc1, raw_data1) = self.call(self.api.image_delete, { "id" : obj["image_id"] })
        self.failUnlessEqual(rc1, codes.ERR_ORPHANED_OBJECT)
        (rc2, raw_data2) = self.call(self.api.image_get, { "id" : obj["image_id"] })
        data2 = raw_data2["data"]
        self.failUnlessEqual(rc2, 0, "image get ok")
        self.failUnlessEqual(data2, obj["image"], "image unchanged")
-       (rc3, raw_data3) = self.call(self.api.machine_delete, { "id" : obj["machine_id"] })
-       # FIXME: testcase looks broken
-       self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT)
-       (rc4, raw_data4) = self.call(self.api.machine_get, { "id" : obj["machine_id"] })
-       data4 = raw_data4["data"]
-       self.failUnlessEqual(rc4, 0, "machine get ok")
-       self.failUnlessEqual(data4, obj["machine"], "machine unchanged") 
+       (rc3, raw_data3) = self.call(self.api.image_delete, { "id" : obj["image_id"] })
+       self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT, "image delete block")
+       (rc4, raw_data4) = self.call(self.api.machine_delete, { "id" : obj["machine_id"] })
+       self.failUnlessEqual(rc4, codes.ERR_ORPHANED_OBJECT, "machine delete block")
 
    def test_edit(self):
        self.test_add_one()

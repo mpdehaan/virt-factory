@@ -112,7 +112,7 @@ def image_add(websvc,image_args):
          try:
              distribution.distribution_get(websvc, { "id" : u.distribution_id})
          except ShadowManagerException:
-             raise OrphanedObjectException(comment='distribution_id')
+             raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
 
      lock = threading.Lock()
      lock.acquire()

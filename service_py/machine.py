@@ -198,8 +198,9 @@ def machine_delete(websvc,machine_args):
      DELETE FROM machines WHERE machines.id=:id
      """
 
+     # deployment orphan prevention
      st2 = """
-     SELECT machines.id FROM images,machines where machines.image_id = images.id
+     SELECT machines.id FROM deployments,machines where machines.id = deployments.image_id
      AND machines.id=:id
      """
      # check to see that what we are deleting exists
