@@ -176,17 +176,27 @@ def image_delete(websvc,image_args):
      WHERE deployments.image_id = images.id
      AND images.id=:id
      """
+     
+     st3 = """
+     SELECT images.id FROM machines,images 
+     WHERE machines.image_id = images.id
+     AND images.id=:id
+     """
 
      # check to see that what we are deleting exists
      image_result = image_get(websvc,u.to_datastruct())
      if not image_result.error_code == 0:
         raise NoSuchObjectException(comment="image_delete")
 
-     # check to see that deletion won't orphan a deployment
+     # check to see that deletion won't orphan a deployment or machine
      websvc.cursor.execute(st2, { "id" : u.id })
      results = websvc.cursor.fetchall()
      if results is not None and len(results) != 0:
         raise OrphanedObjectException(comment="deployment")
+     websvc.cursor.execute(st3, { "id" : u.id })
+     results = websvc.cursor.fetchall()
+     if results is not None and len(results) != 0:
+        raise OrphanedObjectException(comment="machine")
 
      websvc.cursor.execute(st, { "id" : u.id })
      websvc.connection.commit()
