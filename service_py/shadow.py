@@ -112,7 +112,8 @@ class XmlRpcInterface:
        """
 
        if not os.path.exists("/var/lib/shadowmanager/settings"):
-            raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
+            x = MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
+            return x.to_datastruct()
 
        self.logger.debug("token check")
        now = time.time()
