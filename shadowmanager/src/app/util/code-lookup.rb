@@ -14,6 +14,7 @@ BOOLEAN_SELECT = { "Yes" => true, "No" => false }
 BOOLEAN_INT_SELECT = { "Yes" => MACHINE_IS_CONTAINER, "No" => MACHINE_IS_NOT_CONTAINER }
 
 ERRORS = { ERR_INTERNAL_ERROR => "Internal Error",
+           ERR_MISCONFIGURED => "The shadow XMLRPC interface is not set up yet. Please consult the installation instructions",
            ERR_INVALID_ARGUMENTS => "Invalid Arguments",
            ERR_NO_SUCH_OBJECT => "No Such Object",
            ERR_ORPHANED_OBJECT => "Orphaned Object",
