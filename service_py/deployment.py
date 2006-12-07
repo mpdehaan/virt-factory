@@ -248,32 +248,33 @@ def deployment_list(websvc,deployment_dep_args):
      for x in results:
 
          image_data = image.Image.produce({
-                "id"       : x[4],
-                "name"     : x[5],
-                "version"  : x[6],
-                "filename" : x[7],
-                "specfile" : x[8],
-                "virt_storage_size"  : x[9],
-                "virt_ram"           : x[10],
-                "kickstart_metadata" : x[11],
-                "kernel_options"     : x[12],
-                "valid_targets"      : x[13],
-                "is_container"       : x[14]
+                "id"                 : x[4],
+                "name"               : x[5],
+                "version"            : x[6],
+                "filename"           : x[7],
+                "specfile"           : x[8],
+                "distribtuion_id"    : x[9],
+                "virt_storage_size"  : x[10],
+                "virt_ram"           : x[11],
+                "kickstart_metadata" : x[12],
+                "kernel_options"     : x[13],
+                "valid_targets"      : x[14],
+                "is_container"       : x[15]
          }).to_datastruct(True)
 
          machine_data = machine.Machine.produce({
-                "id"              : x[15],
-                "address"         : x[16],
-                "architecture"    : x[17],
-                "processor_speed" : x[18],
-                "processor_count" : x[19],
-                "memory"          : x[20],
-                "distribution_id" : x[21],
-                "kernel_options"  : x[22],
+                "id"                 : x[16],
+                "address"            : x[17],
+                "architecture"       : x[18],
+                "processor_speed"    : x[19],
+                "processor_count"    : x[20],
+                "memory"             : x[21],
+                "kernel_options"     : x[22],
                 "kickstart_metadata" : x[23],
                 "list_group"         : x[24],
                 "mac_address"        : x[25],
-                "type"               : x[26]
+                "is_container"       : x[26],
+                "image_id"           : x[27]
          }).to_datastruct(True)
 
          data = Deployment.produce({         
@@ -312,8 +313,8 @@ def deployment_get(websvc,deployment_dep_args):
 
      # exceptions will be raised by these next two calls, so no RC
      # checking is required
-     (rc1, machine1) = machine.machine_get(websvc, { "id" : x[1] })
-     (rc2, image1)   = image.image_get(websvc, { "id" : x[2] })
+     machine_results = machine.machine_get(websvc, { "id" : x[1] })
+     image_results   = image.image_get(websvc, { "id" : x[2] })
 
      data = Deployment.produce({
             "id"         : x[0],
@@ -322,8 +323,8 @@ def deployment_get(websvc,deployment_dep_args):
             "state"      : x[3],
      }).to_datastruct(True)
 
-     data["machine"] = machine1
-     data["image"]   = image1
+     data["machine"] = machine_results.data
+     data["image"]   = image_results.data
 
      return success(data)
 
