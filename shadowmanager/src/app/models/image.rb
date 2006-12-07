@@ -11,7 +11,7 @@ class Image < ManagedObject
                   :kickstart_metadata => {:type => String},
                   :kernel_options => {:type => String},
                   :valid_targets => {:type => Integer},
-                  :is_container => {:type => Boolean} }
+                  :is_container => {:type => Integer} }
                    
     self.set_attrs(ATTR_LIST)
     METHOD_PREFIX = "image"

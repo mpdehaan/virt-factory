@@ -11,6 +11,7 @@ VALID_TARGETS = { 0 => "Bare Metal",
 ARCHITECTURES_SELECT = ARCHITECTURES.invert
 VALID_TARGETS_SELECT = VALID_TARGETS.invert
 BOOLEAN_SELECT = { "Yes" => true, "No" => false }
+BOOLEAN_INT_SELECT = { "Yes" => 1, "No" => 0 }
 
 ERRORS = { ERR_INTERNAL_ERROR => "Internal Error",
            ERR_INVALID_ARGUMENTS => "Invalid Arguments",

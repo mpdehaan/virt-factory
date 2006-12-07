@@ -12,7 +12,7 @@ class Machine < ManagedObject
                   :kickstart_metadata => {:type => String}, 
                   :list_group => {:type => String}, 
                   :mac_address => {:type => String}, 
-                  :is_container => {:type => Boolean} }
+                  :is_container => {:type => Integer} }
     self.set_attrs(ATTR_LIST)
     METHOD_PREFIX = "machine"
 end
