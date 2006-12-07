@@ -43,14 +43,14 @@ ARCH_X86 = 200
 ARCH_X86_64 = 201
 ARCH_IA64 = 202
 
+# machine is_container field
+MACHINE_IS_CONTAINER = True
+MACHINE_IS_NOT_CONTAINER = False
+
 # image valid_targets field 
 IMAGE_IS_VIRT = 301
 IMAGE_IS_BAREMETAL = 302
 IMAGE_IS_EITHER = 303
-
-# machine is_container values
-MACHINE_IS_CONTAINER = 1
-MACHINE_IS_NOT_CONTAINER = 0
 
 # failure codes for invalid arguments
 REASON_NONE  = 400

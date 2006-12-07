@@ -5,9 +5,9 @@ require "xmlrpc/client"
 
 class XMLRPCClientException < Exception
     attr_accessor :notice, :errmsg
-    def initialize(notice, errmsg)
+    def initialize(notice, result)
         @rc = notice
-        @data = errmsg
+        @result = result
     end    
 end
 

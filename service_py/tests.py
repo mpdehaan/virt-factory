@@ -278,7 +278,7 @@ class DistributionTests(BaseCrudTests):
          "initrd"       : "initrd",
          "kickstart"    : "kickstart",
          "name"         : "name",
-         "architecture" : 123456789,
+         "architecture" : 1,
          "kernel_options" : "?",
          "kickstart_metadata" : "??"
       }
@@ -405,14 +405,14 @@ class DeploymentTests(BaseTest):
 
    def test_delete(self):
        self.test_add_one()
-       (rc0, raw_data0) = self.call(self.api.deployment_list)
-       data0 = raw_data0["data"]
+       (rc0, data0) = self.call(self.api.deployment_list)
        self.failUnlessEqual(rc0, 0, "list ok")
        self.failUnlessEqual(len(data0),1,"cardinality")
        record = data0[0]
        id = record["id"]
        (rc1, raw_data1) = self.call(self.api.deployment_delete, { "id" : id})
-       self.failUnlessEqual(rc1, 0, "delete ok: %s" % (rc1))
+       data1 = raw_data1["data"]
+       self.failUnlessEqual(rc1, 0, "delete ok: %s, %s" % (rc1, data1))
        (rc2, raw_data2) = self.call(self.api.deployment_list)
        data2 = raw_data2["data"]
        self.failUnlessEqual(rc2, 0, "list ok")
@@ -425,13 +425,14 @@ class DeploymentTests(BaseTest):
        data0 = raw_data0["data"]
        obj = data0[0]
        (rc1, raw_data1) = self.call(self.api.image_delete, { "id" : obj["image_id"] })
+       data1 = raw_data1["data"]
        self.failUnlessEqual(rc1, codes.ERR_ORPHANED_OBJECT)
        (rc2, raw_data2) = self.call(self.api.image_get, { "id" : obj["image_id"] })
        data2 = raw_data2["data"]
        self.failUnlessEqual(rc2, 0, "image get ok")
        self.failUnlessEqual(data2, obj["image"], "image unchanged")
        (rc3, raw_data3) = self.call(self.api.machine_delete, { "id" : obj["machine_id"] })
-       # FIXME: testcase looks broken
+       data3 = raw_data3["data"]
        self.failUnlessEqual(rc3, codes.ERR_ORPHANED_OBJECT)
        (rc4, raw_data4) = self.call(self.api.machine_get, { "id" : obj["machine_id"] })
        data4 = raw_data4["data"]
@@ -458,11 +459,15 @@ class DeploymentTests(BaseTest):
        image_id = obj["image_id"]
        obj["machine_id"] = None
        (rc3, raw_data3) = self.call(self.api.deployment_edit, obj)
+       data3 = raw_data3["data"]
        self.failUnlessEqual(rc3, codes.ERR_INVALID_ARGUMENTS, "edit fail: %s" % rc3)
+       self.failUnlessEqual(data3, "machine_id", "listed the arg")
        obj["machine_id"] = machine_id
        obj["image_id"] = -2 
        (rc4, raw_data4) = self.call(self.api.deployment_edit, obj)
+       data4 = raw_data4["data"]
        self.failUnlessEqual(rc4, codes.ERR_INVALID_ARGUMENTS, "invalid id")
+       self.failUnlessEqual(data4, "image_id", "listed the arg: %s" % data3)
        (rc5, raw_data5) = self.call(self.api.deployment_get, { "id" : obj["id"]})
        data5 = raw_data5["data"]
        obj["image_id"] = image_id
@@ -490,7 +495,8 @@ class DeploymentTests(BaseTest):
            "kickstart_metadata" : "foo=bar baz=foo 12345",
            "kernel_options"     : "-----",
            "valid_targets"      : 0,
-           "is_container"       : 0
+           "is_container"       : 0,
+           "distribution_id"    : None
        }
        sample_machine = {
            "address"            : "foo.example.com",
@@ -502,7 +508,8 @@ class DeploymentTests(BaseTest):
            "kickstart_metadata" : "bar=foo baz=foo foo=bar",
            "list_group"         : "server room 5",
            "mac_address"        : "BB:EE:EE:EE:FF",
-           "is_container"       : 0
+           "is_container"       : 0,
+           "image_id"           : None
        }
        sample_deployment = {
            "machine_id"         : None,
@@ -540,8 +547,6 @@ class DeploymentTests(BaseTest):
        self.failUnlessEqual(type(data3[0]), dict, "first element is a dict")
        self.failUnlessEqual(data3[0].has_key("machine"), True, "machine filled out")
        self.failUnlessEqual(type(data3[0]["machine"]), dict, "machine is a dict")
-       # make next comparision test work
-       sample_machine["id"] = data3[0]["machine"]["id"] # for purposes of comparison
        self.failUnlessEqual(cmp(data3[0]["machine"],sample_machine),0,"machine equal: \n%s\n%s" % (data3[0]["machine"], sample_machine))
        self.failUnlessEqual(data3[0].has_key("image"), True, "image filled out")
        self.failUnlessEqual(type(data3[0]["image"]), dict, "image is a dict")
