@@ -11,8 +11,7 @@ class AbstractObjectController < ApplicationController
             @items = ManagedObject.retrieve_all(object_class, @session)
         rescue XMLRPCClientException => ex
             @items = []
-            @flash[:notice] = ex.notice
-            @flash[:errmsg] = ex.errmsg
+            set_flash_on_exception(ex)
         end
     end
 
@@ -32,8 +31,7 @@ class AbstractObjectController < ApplicationController
                 @item = ManagedObject.retrieve(object_class,@session, @params[:id])
             rescue XMLRPCClientException => ex
                 @item = object_class.new(@session)
-                @flash[:notice] = ex.notice
-                @flash[:errmsg] = ex.errmsg
+                set_flash_on_exception(ex)
             end
         end
     end
@@ -52,8 +50,7 @@ class AbstractObjectController < ApplicationController
             redirect_to :action => 'list'
             return
         rescue XMLRPCClientException => ex
-            @flash[:notice] = ex.notice
-            @flash[:errmsg] = ex.errmsg
+            set_flash_on_exception(ex)
         end
         redirect_to :action => "edit"
     end
@@ -63,17 +60,16 @@ class AbstractObjectController < ApplicationController
             ManagedObject.delete(object_class, @params[:id] )
             @flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{@params[:id]}"
         rescue XMLRPCClientException => ex
-            @flash[:notice] = ex.notice
-            @flash[:errmsg] = ex.errmsg
+            set_flash_on_exception(ex)
         end
         redirect_to :action => "list"
         return
     end
 
-    def viewedit
-    end
-
-    def viewedit_submit
+    def set_flash_on_exception(ex)
+        @flash[:notice] = ex.notice
+        @flash[:errmsg] = ex.result["traceback"]
+        @flash[:fielderrors] = ex.result["invalid-fields"]
     end
 
 end
