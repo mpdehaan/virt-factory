@@ -110,6 +110,11 @@ class XmlRpcInterface:
        This is a feature, mainly since Rails (and other language bindings) can better
        grok tracebacks this way.
        """
+
+       if not os.path.exists("/var/lib/shadowmanager/settings"):
+            x = MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
+            return x.to_datastruct()
+
        self.logger.debug("token check")
        now = time.time()
        for t in self.tokens:
