@@ -121,13 +121,13 @@ class XmlRpcInterface:
            # remove tokens older than 1/2 hour
            if (now - t[1]) > 1800:
                self.tokens.remove(t)
-               raise TokenExpiredException()
+               return TokenExpiredException().to_datastruct()
            if t[0] == token:
                # update the expiration counter
                t[1] = time.time()
                #return SuccessException()
                return success()
-       raise TokenInvalidException()
+       return TokenInvalidException().to_datastruct()
 
    #======================================================
    # lots of wrappers to API functions.  See __dispatch for details.
