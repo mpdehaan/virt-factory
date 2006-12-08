@@ -68,8 +68,8 @@ class AbstractObjectController < ApplicationController
 
     def set_flash_on_exception(ex)
         @flash[:notice] = ex.notice
-        @flash[:errmsg] = ex.result["traceback"]
-        @flash[:fielderrors] = ex.result["invalid-fields"]
+        @flash[:errmsg] = ex.result["stacktrace"]
+        @flash[:fielderrors] = ex.result["invalid_fields"]
     end
 
 end

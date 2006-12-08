@@ -34,8 +34,8 @@ class ApplicationController < ActionController::Base
             # token has timed out, so redirect here and get a new one
             # rather than having to do a lot of duplicate error handling in other places
             @flash[:notice] = "Session timeout (#{ERRORS[rc]})."
-            traceback = data["traceback"]
-            @flash[:errmsg] = traceback if traceback
+            stacktrace = data["stacktrace"]
+            @flash[:errmsg] = stacktrace if stacktrace
             redirect_to :controller => "login", :action => "input"
             return false
         end

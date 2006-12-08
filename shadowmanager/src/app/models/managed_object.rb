@@ -96,6 +96,6 @@ class ManagedObject
         unless rc == ERR_SUCCESS
             raise XMLRPCClientException.new("#{method_name} failed (#{ERRORS[rc]}): #{errmsg}", results)
         end
-        results["values"]
+        results["data"]
     end
 end

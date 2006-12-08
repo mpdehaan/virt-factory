@@ -13,14 +13,14 @@ class LoginController < ApplicationControllerUnlocked
    def submit
       f_username = @params["form"]["username"]
       f_password = @params["form"]["password"]
-      (rc, token) = @@server.call("user_login",f_username,f_password)
+      (rc, results) = @@server.call("user_login",f_username,f_password)
       if not rc == ERR_SUCCESS
           # FIXME: look up error codes in string table
           @flash[:notice] = "Login failed (#{ERRORS[rc]})."
           redirect_to :action => "input"
           return
       else
-          @session[:login] = token
+          @session[:login] = results["data"]
           redirect_to :controller => 'user', :action => 'list'
           return
       end
