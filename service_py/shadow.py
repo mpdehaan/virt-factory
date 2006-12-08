@@ -126,7 +126,7 @@ class XmlRpcInterface:
                # update the expiration counter
                t[1] = time.time()
                #return SuccessException()
-               return success()
+               return success().to_datastruct()
        return TokenInvalidException().to_datastruct()
 
    #======================================================
