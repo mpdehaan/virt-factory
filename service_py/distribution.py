@@ -213,7 +213,7 @@ def distribution_list(websvc,dist_args):
             "kernel_options" : x[6],
             "kickstart_metadata" : x[7]
          }
-         distributions.append(Distribution.produce(data).to_datastruct())
+         distributions.append(Distribution.produce(data).to_datastruct(True))
      return success(distributions)
 
 #-----------------------------------------------------------------
