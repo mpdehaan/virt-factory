@@ -26,7 +26,7 @@
              <TD> <%= item.processor_speed %> </TD>
              <TD> <%= item.processor_count %> </TD>
              <TD> <%= item.memory %> </TD>
-             <TD> <%= link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id if item.image %></TD>
+             <TD> <%= (link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id) if item.image %></TD>
              <TD> <%= item.kernel_options %> </TD>
              <TD> <%= item.kickstart_metadata %> </TD>
              <TD> <%= item.list_group %> </TD>

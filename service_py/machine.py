@@ -290,6 +290,7 @@ def machine_list(websvc,machine_args):
 
          if x[6] is not None and x[6] != -1:
              data["image"] = image.Image.produce({
+                  "id"                 : x[11],
                   "name"               : x[12],
                   "version"            : x[13],
                   "filename"           : x[14],

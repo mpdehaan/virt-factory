@@ -30,7 +30,7 @@
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= item.kickstart_metadata %> </TD>
              <TD> <%= item.kernel_options %> </TD>
-             <TD> <%= VALID_TARGETS[item.kernel_options] %> </TD>
+             <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
              <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %> </TD>
              <TD> <%= link_to "edit", :controller => "image", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "image", :action=> "delete", :id=> item.id %></TD>
