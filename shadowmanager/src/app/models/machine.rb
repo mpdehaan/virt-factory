@@ -15,4 +15,9 @@ class Machine < ManagedObject
                   :is_container => {:type => Integer} }
     self.set_attrs(ATTR_LIST)
     METHOD_PREFIX = "machine"
+
+    def save
+        self.is_container = self.image.is_container if self.get_image
+        super
+    end
 end
