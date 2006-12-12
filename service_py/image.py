@@ -263,7 +263,7 @@ def image_list(websvc,image_args):
             "version"   : x[2],
             "filename"  : x[3],
             "specfile"  : x[4],
-            "distribution_id"    : x[9],
+            "distribution_id"    : x[5],
             "virt_storage_size"  : x[6],
             "virt_ram"           : x[7],
             "kickstart_metadata" : x[8],
@@ -272,17 +272,17 @@ def image_list(websvc,image_args):
             "is_container"       : x[11]
          }).to_datastruct(True)
      
-         if x[11] is not None and x[11] != -1:
+         if x[12] is not None and x[12] != -1:
              data["distribution"] = distribution.Distribution.produce({
-                 "id"                 : x[9],
-                 "kernel"             : x[10],
-                 "initrd"             : x[11],
-                 "options"            : x[12],
-                 "kickstart"          : x[13],
-                 "name"               : x[14],
-                 "architecture"       : x[15],
-                 "kernel_options"     : x[16],
-                 "kickstart_metadata" : x[17]
+                 "id"                 : x[12],
+                 "kernel"             : x[13],
+                 "initrd"             : x[14],
+                 "options"            : x[15],
+                 "kickstart"          : x[16],
+                 "name"               : x[17],
+                 "architecture"       : x[18],
+                 "kernel_options"     : x[19],
+                 "kickstart_metadata" : x[20]
              }).to_datastruct(True)
      
          images.append(data)

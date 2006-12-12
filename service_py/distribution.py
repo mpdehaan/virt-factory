@@ -246,7 +246,7 @@ def distribution_get(websvc,dist_args):
             "kickstart_metadata" : x[7]
      }
 
-     return success(Distribution.produce(data).to_datastruct())
+     return success(Distribution.produce(data).to_datastruct(True))
 
 #-----------------------------------------------------------------
 
