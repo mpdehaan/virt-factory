@@ -1,12 +1,8 @@
 ARCHITECTURES = { ARCH_IA64 => "ia64", ARCH_X86 => "x86", ARCH_X86_64 => "x86_64"}
 
-#hard-coding for now
-VALID_TARGETS = { 0 => "Bare Metal",
-                  1 => "Virtual",
-                  2 => "Either"}
-#VALID_TARGETS = { IMAGE_TYPE_BAREMETAL => "Bare Metal",
-#                  IMAGE_TYPE_VIRT => "Virtual",
-#                  IMAGE_TYPE_EITHER => "Either"}
+VALID_TARGETS = { IMAGE_IS_BAREMETAL => "Bare Metal",
+                  IMAGE_IS_VIRT => "Virtual",
+                  IMAGE_IS_EITHER => "Either"}
 
 ARCHITECTURES_SELECT = ARCHITECTURES.invert
 VALID_TARGETS_SELECT = VALID_TARGETS.invert
