@@ -255,7 +255,7 @@ def provisioning_init(websvc, prov_args):
         mirror_url = shadow_config["mirrors"][mirror_name]
 
         print MIRROR_INFO % (mirror_name, mirror_url)
-
+        
 
         # run the cobbler mirror import
         # FIXME: more of a cobbler issue, but cobbler needs 
@@ -284,7 +284,7 @@ def provisioning_init(websvc, prov_args):
         # see if any exist prior to add.  (can't do a get, because that's id based... kind of prompts a find_by_name
         # later, most likely)
 
-        distribution.distribution_add(websvc,{
+        add_data =  {
            "kernel" : kernel,
            "initrd" : initrd,
            "name"   : name,
@@ -292,7 +292,9 @@ def provisioning_init(websvc, prov_args):
            "options" : "",
            "kickstart" : "",
            "kickstart_metadata" : ""
-        })
+        }
+        print "cobbler distro add: %s" % add_data
+        distribution.distribution_add(websvc,add_data)
            
 
         # don't have to delete the cobbler distribution entries as they are going to be rewritten
