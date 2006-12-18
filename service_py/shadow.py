@@ -288,6 +288,9 @@ if __name__ == "__main__":
             config.config_reset(websvc,{})
         elif sys.argv[1].lower() == "import":
             provisioning.provisioning_init(websvc,{})
+        elif sys.argv[1].lower() == "sync":
+            # FIXME: this is just for testing and should be removed in prod.
+            provisioning.provisioning_sync(websvc,{})
         else:
             print """
 

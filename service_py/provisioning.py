@@ -95,7 +95,6 @@ Now log in through the Web UI...  You're good to go.\n
 
 class CobblerTranslatedDistribution:
    def __init__(self,api,from_db):
-       NOTYET = """
        new_item = api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -107,59 +106,93 @@ class CobblerTranslatedDistribution:
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
        api.distros().add(new_item)
-       """
-       pass
 
 #--------------------------------------------------------------------
 
 class CobblerTranslatedProfile:
-   def __init__(self,api,from_db):
-       NOTYET = """
-       if not from_db.has_key("distribution"):
-           # this data element is being used for testing or 
-           # otherwise doesn't have a distribution assigned,
-           # therefore there is no way for cobbler to provision it.
-           return
-       new_item = api.new_image()
+   def __init__(self,api,distributions,from_db):
+       new_item = api.new_profile()
        new_item.set_name(from_db["name"])
-       new_item.set_distro(from_db["distribution"])
+       
+       distribution_id = from_db["distribution_id"]
+       distribution_name = None
+       for d in distributions:
+           if d["id"] == distribution_id:
+               distribution_name = d["name"]
+               break    
+
+       assert distribution_name is not None, "has distribution name"
+
+       new_item.set_distro(distribution_name)
+
        if from_db.has_key("kickstart"):
            new_item.set_kickstart(from_db["kickstart"])
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
+       
        new_item.set_virt_name(from_db["name"])
-       new_item.set_virt_file_size(from_db["virt_file_size"])
-       new_item.set_virt_ram(from_db["virt_ram"])
+       
+       virt_size = 0
+       virt_ram  = 0
+       if from_db.has_key("virt_storage_size"):
+           virt_size = from_db["virt_storage_size"]
+       if from_db.has_key("virt_ram"):
+           virt_ram  = from_db["virt_ram"]
+
+       new_item.set_virt_file_size(virt_size)
+       new_item.set_virt_ram(virt_ram)
+
+
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
        api.profiles().add(new_item)
-       """
-       pass
 
 #--------------------------------------------------------------------
 
 class CobblerTranslatedSystem:
-   def __init__(self,api,deployments,from_db):
-       NOTYET = """
+   def __init__(self,api,deployments,images,from_db):
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
+ 
+       machine_id = from_db["id"]
 
-       if found == -1:
+       
+       # FIXME: custom query code is needed in places like this,
+       # processing flat lists won't scale well for really large
+       # deployments
+       image_id = -1
+       for d in deployments:
+           if d["machine_id"] == machine_id:
+               image_id = d["image_id"]
+               break               
+
+       if image_id == -1:
           # no deployment found for this machine, which means
           # we have no idea how to provision it.  it should
           # at least have a APPLIANCE_CONTAINER or ORDINARY_MACHINE
           # deployment set up for it.
+          assert "no image id found for system"
+
+       # FIXME: inefficient, again, write some query stuff here.
+       image_name = None
+       for i in images:
+           if i["id"] == image_id:
+               image_name = i["name"] 
+               break
+
+       if image_name == None:
+           assert "no image name found"
 
        new_item = api.new_system()
        new_item.set_name(from_db["mac_address"])
-       # new_item.set_profile
-       # new_item.set_kernel_options
-       # new_item.set_ksmeta
-       new_item.set_pxe_paddress(from_db["pxe_address"])
+       print "image name is %s" % image_name
+       new_item.set_profile(image_name)
+       # FIXME: do we need to make sure these are stored as spaces and not "None" ?
+       new_item.set_kernel_options(from_db["kernel_options"])
+       new_item.set_ksmeta(from_db["kickstart_metadata"])
+       new_item.set_pxe_address(from_db["address"])
        api.systems().add(new_item)
-       """
-       pass
 
 #--------------------------------------------------------------------
 
@@ -168,38 +201,49 @@ class CobblerTranslatedSystem:
 
 def provisioning_sync(websvc, prov_args):
      
-     return True # disable until later...     
-
-     (rc0, distributions) = distribution.distribution_list(websvc,{})
-     (rc1, images)        = image.image_list(websvc,{})
-     (rc2, machines)      = machine.machine_list(websvc,{})
-     (rc3, deployments)   = deployment.deployment_list(websvc, {})
+     distributions       = distribution.distribution_list(websvc,{})
+     images              = image.image_list(websvc,{})
+     machines            = machine.machine_list(websvc,{})
+     deployments         = deployment.deployment_list(websvc, {})
 
      # cobbler can't be run multiple times at once...
      lock = threading.Lock()
      lock.acquire()
+
+     distributions = distributions.data
+     images = images.data
+     machines = machines.data
+     deployments = deployments.data
 
      # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
      # the server field might have changed.
 
      try:
          api = cobbler.api.BootAPI()
-         api.distros().clear()
-         api.profiles().clear()
-         api.systems().clear()
+         cobbler_distros  = api.distros()
+         cobbler_profiles = api.profiles()
+         cobbler_systems  = api.systems()
+         cobbler_distros.clear()
+         cobbler_profiles.clear()
+         cobbler_systems.clear()
+        
          # cobbler can/will could raise exceptions on failure at any point...
          # return code checking is not needed.
          for d in distributions:
-             CobblerTranslatedDistribution(api,d).add()
+             print "- distribution: %s" % d
+             CobblerTranslatedDistribution(api,d)
          for i in images:
-             CobblerTranslatedProfile(api,i).add()
+             print "- image: %s" % i
+             CobblerTranslatedProfile(api,distributions,i)
          for p in machines:
-             CobblerTranslatedSystem(api,None,p).add()
+             print "- machine: %s" % p
+             CobblerTranslatedSystem(api,deployments,images,p)
          api.serialize()
-         api.sync()
+         api.sync(dryrun=False)
      except:
+         traceback.print_exc()
          lock.release()
-         raise UncaughtException(traceback=traceback.format_exc())
+         raise codes.UncaughtException(traceback=traceback.format_exc())
  
 
      lock.release()
