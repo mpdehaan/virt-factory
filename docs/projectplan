@@ -1,0 +1,62 @@
+
+database model --
+
+   add new system_id table
+
+       deployment_id INT,
+       machine_id INT,
+       system_id VARCHAR(255) not NULL
+  
+   deployment gets address field that includes address of last check in
+
+shadowmanager svc task engine -- needs backend task engine with job id support.  
+
+shadowmanger svc provisioning -- complete cobbler integration and also add a mechanism
+for templating kickstarts (above and beyond Cobbler) that allows for install of
+shadowvassal (see below), puppet, SSH key, and system ID in all provisioned systems.  
+SSH infrastructure is the setup for shadowvassal.
+
+shadowvassal -- add initd script to server that checks in via unauthed ping
+to central server.  server runs shadowvassal by SSH, returns XML.  Initial infrastructure
+by SSH until later (much later) QPID can be considered.  shadowvassal supports functions
+like migrations and querying aspects of the system.   there is an analog to RHN system ID
+stored on the system that uniquely identifies the system installed (which is also cached
+in the shadowmanager svc database)
+
+image import tool -- tool to import appliance definitions (maybe packaged as tar, XML, etc)
+into the DB.  The idea is that the WUI will not contain knobs initially for configuring
+the appliance though we'll ship with a few by default and make it easy for server admins
+to install more definitions.
+
+shadowmanager WUI -- support everything, and reduce user buttons, making it less of a CRUD
+interface.  Add buttons for actions such as migrations/start/stop/etc.
+
+
+puppet integration -- integrate shadowmanager backend with puppet, such that puppet is automatically provisioned
+and configured, and that puppet manifests are configured to do the right thing.
+
+====
+
+OLDER MISC INFO
+
+Backend
+-------
+- add an actions table
+- add an API method to return status and return_data for a given job_id
+- more validation code
+- finish cobbler sync code (distro import already done)
+- actions table and associated API changes.
+- more backend methods (start/stop/VM/etc)
+- RPM packaging
+- install/upgrade process refinement/plan
+
+WUI
+---
+
+- implement backend features listed above
+- field validation on error (show why when error_fields are filled in)
+- lookup tables for error messages, and select lists (architecture, etc.)
+- RPM packaging
+- Scott: fill in
+
+
