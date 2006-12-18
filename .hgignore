@@ -1,3 +1,4 @@
 .*\.ruby_sess*
 ~$
 setup/rubygems*
+.*\.pyc*
