@@ -36,6 +36,7 @@ import machine
 import distribution
 import config
 import provisioning
+import registration
 
 "/opt/shadowmanager/primary_db"
 
@@ -67,40 +68,40 @@ class XmlRpcInterface:
        self.logger.setLevel(logging.DEBUG)
 
    def sqlite_connect(self):
-       """
-       Workaround for "can't connect to full and/or unicode path" weirdness
-       """
-       current = os.getcwd()
-       os.chdir(os.path.dirname(self.dbpath))
-       conn = sqlite.connect(os.path.basename(self.dbpath))
-       os.chdir(current)
-       return conn 
-
+      """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
+      
+      current = os.getcwd() 
+      os.chdir(os.path.dirname(self.dbpath))
+      conn = sqlite.connect(os.path.basename(self.dbpath))
+      os.chdir(current)
+      return conn 
+   
+       
    def __setup_handlers(self):
-       """
+      """
        Add RPC functions from each class to the global list so they can be called.
        FIXME: eventually calling most functions should go from here through getattr.
        """
-       self.handlers = {}
-       for x in [user,machine,image,deployment,distribution,config,provisioning]:
-           x.register_rpc(self.handlers)
-
-   # FIXME: find some more elegant way to surface the handlers?
-   # FIXME: aforementioned login/session token requirement
+      self.handlers = {}
+      for x in [user,machine,image,deployment,distribution,config,provisioning, registration]:
+         x.register_rpc(self.handlers)
+         
+         # FIXME: find some more elegant way to surface the handlers?
+         # FIXME: aforementioned login/session token requirement
 
    def user_login(self,username,password):
-       """
-       Wrapper around the user login code in user.py.
-       If login succeeds, create a token and return it to the caller.
-       """
-       self.logger.debug("login attempt: %s" % username)
-       try:
-           login_result = user.user_login(self,username,password)
-           if login_result.error_code == 0:
-               self.tokens.append([login_result.data,time.time()])
-           return login_result.to_datastruct()
-       except ShadowManagerException, e:
-           return e.to_datastruct()
+      """
+      Wrapper around the user login code in user.py.
+      If login succeeds, create a token and return it to the caller.
+      """
+      self.logger.debug("login attempt: %s" % username)
+      try:
+         login_result = user.user_login(self,username,password)
+         if login_result.error_code == 0:
+            self.tokens.append([login_result.data,time.time()])
+         return login_result.to_datastruct()
+      except ShadowManagerException, e:
+         return e.to_datastruct()
 
    def token_check(self,token):
        """
@@ -218,6 +219,9 @@ class XmlRpcInterface:
    def provisioning_sync(self, token, dargs):
        return self.__dispatch("provisioning_sync", token, dargs)
 
+   def register_add(self, dargs):
+      return self.__dispatch("register_add", dargs)
+
    def config_list(self, token, dargs):
        return self.__dispatch("config_list", token, dargs)
    
@@ -271,9 +275,17 @@ def serve(websvc):
     Code for starting the XMLRPC service. 
     FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
     """
-    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
+#    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
+    server = ShadowXMLRPCServer(("127.0.0.1", 5150))
     server.register_instance(websvc)
     server.serve_forever()
+
+
+class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+   def __init__(self, args):
+      self.allow_reuse_address = True
+      SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
+      
 
 if __name__ == "__main__":
     """
