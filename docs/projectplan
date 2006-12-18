@@ -16,10 +16,10 @@ for templating kickstarts (above and beyond Cobbler) that allows for install of
 shadowvassal (see below), puppet, SSH key, and system ID in all provisioned systems.  
 SSH infrastructure is the setup for shadowvassal.
 
-shadowvassal -- add initd script to server that checks in via unauthed ping
+shadowvassal -- add initd script to managed node that checks in via unauthed ping
 to central server.  server runs shadowvassal by SSH, returns XML.  Initial infrastructure
 by SSH until later (much later) QPID can be considered.  shadowvassal supports functions
-like migrations and querying aspects of the system.   there is an analog to RHN system ID
+like migrations and querying aspects of the managed instance.   there is an analog to RHN system ID
 stored on the system that uniquely identifies the system installed (which is also cached
 in the shadowmanager svc database)
 

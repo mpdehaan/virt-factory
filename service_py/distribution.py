@@ -186,6 +186,8 @@ def distribution_list(websvc,dist_args):
      GUI pagination when we start worrying about hundreds of systems.
      """
 
+     print "DEBUG: distribution list called"
+
      offset = 0
      limit  = 100
      if dist_args.has_key("offset"):
@@ -203,6 +205,9 @@ def distribution_list(websvc,dist_args):
      distributions = []
 
      for x in results:
+
+         print "DEBUG: appending distribution item"
+
          data = {         
             "id"           : x[0],
             "kernel"       : x[1],
@@ -214,6 +219,9 @@ def distribution_list(websvc,dist_args):
             "kickstart_metadata" : x[7]
          }
          distributions.append(Distribution.produce(data).to_datastruct(True))
+
+     print "DEBUG: returning distributions: %s" % distributions
+
      return success(distributions)
 
 #-----------------------------------------------------------------
