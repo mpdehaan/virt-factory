@@ -298,7 +298,7 @@ if __name__ == "__main__":
             """
             sys.exit(1)
     else:
-        print "serving on...\n"
+        print "serving...\n"
         serve(websvc)
 
     # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
