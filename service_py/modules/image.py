@@ -86,22 +86,62 @@ class Image(baseobj.BaseObject):
         Cast variables appropriately and raise InvalidArgumentException
         where appropriate.
         """
-        # FIXME
+        invalid_fields = {}
+        
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            self.id = int(self.id)
+            try:
+                self.id = int(self.id)
+            except:
+                invalid_fields["id"] = REASON_FORMAT
  
-        # TO DO:
-        # name is printable
-        # no restrictions on version
-        # filename references a file on the filesystem that is readable, or is None
-        # specfile references a file on the filesystem that is readable, or is None
-        # either filename or specfile is not None
-        # distribution_id references an existing distribution
-        # virt_storage_size is numeric or None
-        # virt_ram is numeric or None, and is >256
-        # kernel_options allows anything
-        # valid_targets contains one of the valid_targets constants in codes.py
-        # is_container matches codes in codes.py
+        if operation in [OP_ADD, OP_EDIT]:
+            # name is printable
+            if not self.is_printable(self.name):
+                invalid_fields["name"] = REASON_FORMAT
+
+            # no restrictions on version other than printable?
+            if not self.is_printable(self.version):
+                invalid_fields["version"] = REASON_FORMAT
+
+            # filename references a file on the filesystem that is readable, or is None
+            if not filename is None and notos.path.isfile(self.filename):
+                invalid_fields["filename"] = REASON_NOFILE
+            
+            # specfile references a file on the filesystem that is readable, or is None
+            if not specifle is None and not os.path.isfile(self.specfile):
+                invalid_fields["specfile"] = REASON_NOFILE
+
+            # either filename or specfile is not None
+            if self.specfile is None and self.filename is None:
+                invalid_fields["specfile"] = REASON_REQUIRED
+                invalid_fields["filename"] = REASON_REQUIRED
+
+            # distribution_id references an existing distribution
+            # this is actually done by the add and need not be done here
+            # edit can't change it as it's not in the SQL code.
+
+            # virt_storage_size is numeric or None
+            if type(self.virt_storage_size) != int and self.virt_storage_size is not None:
+                invalid_fields["virt_storage_size"] = REASON_FORMAT
+
+            # virt_ram is numeric or None, and is >256
+            if type(self.virt_ram) != int and self.virt_ram is not None:
+                invalid_fields["virt_ram"] = REASON_FORMAT
+
+            # kernel_options allows almost anything
+            if self.kernel_options is not None and not self.is_printable(self.kernel_options):
+                invalid_fields["kernel_options"] = REASON_FORMAT
+
+            # valid_targets contains one of the valid_targets constants in codes.py
+            if not self.valid_targets in VALID_TARGETS:
+                invalid_fields["valid_targets"] = REASON_RANGE
+
+            # is_container matches codes in codes.py
+            if not self.is_container in VALID_CONTAINERS:
+                invalid_fields["is_container"] = REASON_RANGE
+
+        if len(invalid_fields) > 0:
+            raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 
 #----------------------------------------------------------
