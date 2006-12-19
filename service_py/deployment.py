@@ -86,9 +86,12 @@ class Deployment(baseobj.BaseObject):
             except:
                 passed = False
                 invalid["id"] = REASON_TYPE
+        
+        # TODO: state is in one of the valid states
 
         if not passed:
             raise InvalidArgumentsException(invalid_fields=invalid)
+
 
 #---------------------------------------------------------
 

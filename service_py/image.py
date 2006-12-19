@@ -89,6 +89,20 @@ class Image(baseobj.BaseObject):
         # FIXME
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
+ 
+        # TO DO:
+        # name is printable
+        # no restrictions on version
+        # filename references a file on the filesystem that is readable, or is None
+        # specfile references a file on the filesystem that is readable, or is None
+        # either filename or specfile is not None
+        # distribution_id references an existing distribution
+        # virt_storage_size is numeric or None
+        # virt_ram is numeric or None, and is >256
+        # kernel_options allows anything
+        # valid_targets contains one of the valid_targets constants in codes.py
+        # is_container matches codes in codes.py
+
 
 #----------------------------------------------------------
 

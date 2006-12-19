@@ -82,6 +82,15 @@ class Distribution(baseobj.BaseObject):
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
             self.id = int(self.id)
 
+        # TODO
+        # kernel references file on filesystem
+        # initrd references file on filesystem
+        # kickstart references file on filesystem
+        # name is printable
+        # architecture is one of the architecture constants in codes.py
+        # no restrictions on kernel options
+        # kickstart metadata is composed of space delimited a=b pairs, or None/blank
+
 #-----------------------------------------------------------------
 
 def distribution_add(websvc,dist_args):
