@@ -1,6 +1,6 @@
 
 
-FILES           = __init__ config deployment distribution image machines \
+FILES           = __init__ config deployment distribution image machine \
 		  provisioning registration user  
 
 PYFILES         = $(addsuffix .py, $(FILES))
