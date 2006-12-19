@@ -82,10 +82,51 @@ class Machine(baseobj.BaseObject):
         }
 
     def validate(self,operation):
-        # FIXME
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            self.id = int(self.id)
 
+        invalid_args = {}
+
+        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
+            try:
+                self.id = int(self.id)
+            except:
+                invalid_args["id"] = REASON_FORMAT
+
+        if operation in [OP_ADD, OP_EDIT]:
+
+           # address is valid (need an RFC compliant module to do this right)
+           if not self.is_printable(self.address):
+               invalid_args["address"] = REASON_FORMAT
+
+           # architecture is one of the listed arches
+           if not self.architecture in VALID_ARCHS:
+               invalid_args["architecture"] = REASON_RANGE
+
+           # processor speed is a positive int
+           if not type(self.processor_speed) == int and self.processor_speed > 0:
+               invalid_args["processor_speed"] = REASON_FORMAT
+
+           # processor count is a positive int
+           if not type(self.processor_count) == int and self.processor_count > 0:
+               invalid_args["processor_count"] = REASON_FORMAT
+
+           # memory is a positive int
+           if not type(self.memory) == int and self.memory > 0:
+               invalid_args["memory"] = REASON_FORMAT
+
+           # kernel_options is printable or None
+           if self.kernel_options is None and not self.is_printable(self.kernel_options):
+               invalid_args["kernel_options"] = REASON_FORMAT
+           # kickstart metadata is printable or None
+           if self.kickstart_metadata is None and not self.is_printable(self.kickstart_metadata):
+               invalid_args["kickstart_metadata"] = REASON_FORMAT
+           # list group is printable or None
+           if self.list_group is not None and not self.is_printable(self.list_group):
+               invalid_args["list_group"] = REASON_FORMAT
+           
+
+        if len(invalid_args) > 0:
+            raise InvalidArgumentsException(invalid_args=invalid_args)
+ 
 #------------------------------------------------------
 
 def machine_add(websvc,machine_args):
