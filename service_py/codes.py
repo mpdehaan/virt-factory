@@ -43,6 +43,13 @@ ARCH_X86 = 200
 ARCH_X86_64 = 201
 ARCH_IA64 = 202
 
+# used to convert to cobbler values
+COBBLER_ARCH_MAPPING = {
+   ARCH_X86    : "x86",
+   ARCH_X86_64 : "x86_64",
+   ARCH_IA64   : "ia64"
+}
+
 # image valid_targets field 
 IMAGE_IS_VIRT = 301
 IMAGE_IS_BAREMETAL = 302

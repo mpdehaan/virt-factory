@@ -94,24 +94,23 @@ Now log in through the Web UI...  You're good to go.\n
 #--------------------------------------------------------------------
 
 class CobblerTranslatedDistribution:
-   def __init__(self,api,from_db):
-       new_item = api.new_distro()
+   def __init__(self,cobbler_api,from_db):
+       new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
        new_item.set_initrd(from_db["initrd"])
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
-       # FIXME: mapping...
-       # new_item.set_arch
+       new_item.set_arch(codes.COBBLER_ARCH_MAPPING[from_db["architecture"]])
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
-       api.distros().add(new_item)
+       cobbler_api.distros().add(new_item)
 
 #--------------------------------------------------------------------
 
 class CobblerTranslatedProfile:
-   def __init__(self,api,distributions,from_db):
-       new_item = api.new_profile()
+   def __init__(self,cobbler_api,distributions,from_db):
+       new_item = cobbler_api.new_profile()
        new_item.set_name(from_db["name"])
        
        distribution_id = from_db["distribution_id"]
@@ -145,12 +144,12 @@ class CobblerTranslatedProfile:
 
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
-       api.profiles().add(new_item)
+       cobbler_api.profiles().add(new_item)
 
 #--------------------------------------------------------------------
 
 class CobblerTranslatedSystem:
-   def __init__(self,api,deployments,images,from_db):
+   def __init__(self,cobbler_api,deployments,images,from_db):
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
@@ -184,7 +183,7 @@ class CobblerTranslatedSystem:
        if image_name == None:
            assert "no image name found"
 
-       new_item = api.new_system()
+       new_item = cobbler_api.new_system()
        new_item.set_name(from_db["mac_address"])
        print "image name is %s" % image_name
        new_item.set_profile(image_name)
@@ -192,7 +191,7 @@ class CobblerTranslatedSystem:
        new_item.set_kernel_options(from_db["kernel_options"])
        new_item.set_ksmeta(from_db["kickstart_metadata"])
        new_item.set_pxe_address(from_db["address"])
-       api.systems().add(new_item)
+       cobbler_api.systems().add(new_item)
 
 #--------------------------------------------------------------------
 
@@ -219,10 +218,10 @@ def provisioning_sync(websvc, prov_args):
      # the server field might have changed.
 
      try:
-         api = cobbler.api.BootAPI()
-         cobbler_distros  = api.distros()
-         cobbler_profiles = api.profiles()
-         cobbler_systems  = api.systems()
+         cobbler_api = cobbler.api.BootAPI()
+         cobbler_distros  = cobbler_api.distros()
+         cobbler_profiles = cobbler_api.profiles()
+         cobbler_systems  = cobbler_api.systems()
          cobbler_distros.clear()
          cobbler_profiles.clear()
          cobbler_systems.clear()
@@ -231,15 +230,15 @@ def provisioning_sync(websvc, prov_args):
          # return code checking is not needed.
          for d in distributions:
              print "- distribution: %s" % d
-             CobblerTranslatedDistribution(api,d)
+             CobblerTranslatedDistribution(cobbler_api,d)
          for i in images:
              print "- image: %s" % i
-             CobblerTranslatedProfile(api,distributions,i)
+             CobblerTranslatedProfile(cobbler_api,distributions,i)
          for p in machines:
              print "- machine: %s" % p
-             CobblerTranslatedSystem(api,deployments,images,p)
-         api.serialize()
-         api.sync(dryrun=False)
+             CobblerTranslatedSystem(cobbler_api,deployments,images,p)
+         cobbler_api.serialize()
+         cobbler_api.sync(dryrun=False)
      except:
          traceback.print_exc()
          lock.release()
@@ -272,8 +271,8 @@ def provisioning_init(websvc, prov_args):
 
 
      # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
-     api = cobbler.api.BootAPI()
-     settings = api.settings().to_datastruct()
+     cobbler_api = cobbler.api.BootAPI()
+     settings = cobbler_api.settings().to_datastruct()
      config_results = config.config_list(websvc,{})
      if not config_results.ok():
          raise ShadowManagerException(comment="config retrieval failed")
@@ -287,7 +286,7 @@ def provisioning_init(websvc, prov_args):
 
      print NOW_SAVING
 
-     api.serialize() 
+     cobbler_api.serialize() 
 
      print NOW_IMPORTING
 
@@ -306,14 +305,14 @@ def provisioning_init(websvc, prov_args):
         # to detect rsync failures such as mirrors that are shut down
         # but don't have any files available.
 
-        api.import_tree(None,mirror_url,mirror_name)
+        cobbler_api.import_tree(None,mirror_url,mirror_name)
 
         print MIRROR_EXITED
 
-     api.serialize()
+     cobbler_api.serialize()
 
      # go through the distribution list in cobbler and make shadowmanager distribution entries
-     cobbler_distros = api.distros()
+     cobbler_distros = cobbler_api.distros()
 
      for distro in cobbler_distros:
         distro_data = distro.to_datastruct()
