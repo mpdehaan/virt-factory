@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 from codes import *
+import os
 import baseobj
 import traceback
 import threading
@@ -104,11 +105,11 @@ class Image(baseobj.BaseObject):
                 invalid_fields["version"] = REASON_FORMAT
 
             # filename references a file on the filesystem that is readable, or is None
-            if not filename is None and notos.path.isfile(self.filename):
+            if not self.filename is None and not os.path.isfile(self.filename):
                 invalid_fields["filename"] = REASON_NOFILE
             
             # specfile references a file on the filesystem that is readable, or is None
-            if not specifle is None and not os.path.isfile(self.specfile):
+            if not self.specfile is None and not os.path.isfile(self.specfile):
                 invalid_fields["specfile"] = REASON_NOFILE
 
             # either filename or specfile is not None
