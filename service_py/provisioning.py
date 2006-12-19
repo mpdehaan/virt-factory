@@ -333,12 +333,32 @@ def provisioning_init(websvc, prov_args):
            "name"   : name,
            "architecture" : arch,
            "options" : "",
-           "kickstart" : "",
+
+           # this next line doesn't account for the possibility of one kickstart not being enough for different
+           # distros.  If this becomes an issue, I'd recommend Cobbler templating be used for those parts, rather
+           # than having to specify a kickstart file on distro import.  Preferably we keep distro kickstarts
+           # very simple and don't use a lot of fancy features for them, though this could get complicated later.
+           # something to watch.  It may be that the shadowmanager config file needs to specify both the
+           # rsync mirror and the kickstart, though this probably asks a bit too much of the person installing
+           # the app.  Another way to do this (similar to what cobbler does on import) is to look at the
+           # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
+           # directory structure.  See cobbler's action_import.py for that.
+
+           "kickstart" : "/etc/shadowmanager/default.ks",
            "kickstart_metadata" : ""
         }
         print "cobbler distro add: %s" % add_data
-        distribution.distribution_add(websvc,add_data)
-           
+        
+
+        try:
+            distribution.distribution_add(websvc,add_data)
+        except SQLException, se:
+            # if running import again to acquire new distros, the add could result in a duplicate data item.
+            # this allows for such problems, as caught by the UNIQUE constraint on the distro name.       
+            # note that if this happens, we can't delete and re-add as other things might be depending on the distro.
+            # though there shouldn't be any fields we want to change.  As a result, we'll just ignore the error
+            # if it's one from the SQL insert, which is normally tested to work.  Other exceptions need to go through.
+            pass  
 
         # don't have to delete the cobbler distribution entries as they are going to be rewritten
         # on provisioning_sync (with similar data)

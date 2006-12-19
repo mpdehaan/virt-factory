@@ -14,10 +14,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-from codes import *
-import baseobj
+import os
 import traceback
 import threading
+
+from codes import *
+import baseobj
 import provisioning
 
 #------------------------------------------------------------
@@ -75,21 +77,48 @@ class Distribution(baseobj.BaseObject):
 
     def validate(self,operation):
 
+        invalid_fields = {} 
+
         if self.id is None:
             # -1 is for sqlite to say "use your own counter".
             self.id = -1 
 
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            self.id = int(self.id)
+            try:
+                self.id = int(self.id)
+            except:
+                invalid_fields["id"] = REASON_FORMAT
 
-        # TODO
-        # kernel references file on filesystem
-        # initrd references file on filesystem
-        # kickstart references file on filesystem
-        # name is printable
-        # architecture is one of the architecture constants in codes.py
-        # no restrictions on kernel options
+        if operation in [OP_EDIT,OP_ADD]:
+            # TODO
+            # kernel references file on filesystem
+            if not os.path.isfile(self.kernel):
+                invalid_fields["kernel"] = REASON_NOFILE
+
+            # initrd references file on filesystem
+            if not os.path.isfile(self.initrd):
+                invalid_fields["initrd"] = REASON_NOFILE
+
+            if (self.kickstart is not None) and (not os.path.isfile(self.kickstart)):
+                invalid_fields["kickstart"] = REASON_NOFILE
+
+            # name is printable
+            # FIXME: this is lame, replace with regex module stuff later.
+            if (self.kernel_options is not None) and (not self.is_printable(self.kernel_options)):
+                invalid_fields["name"] = REASON_FORMAT
+      
+            # architecture is one of the architecture constants in codes.py
+            if not self.architecture in VALID_ARCHS:
+                invalid_fields["architecture"] = REASON_RANGE   
+
+            # kernel options is printable, space delimited a=b pairs 
+            if (self.kernel_options is not None) and (not self.is_printable(self.kernel_options)):
+                invalid_fields["kernel_options"] = REASON_FORMAT
+
         # kickstart metadata is composed of space delimited a=b pairs, or None/blank
+
+        if len(invalid_fields) != 0:
+            raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 #-----------------------------------------------------------------
 

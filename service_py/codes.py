@@ -42,6 +42,7 @@ ERR_UNCAUGHT = 999
 ARCH_X86 = 200
 ARCH_X86_64 = 201
 ARCH_IA64 = 202
+VALID_ARCHS = [ ARCH_X86, ARCH_X86_64, ARCH_IA64 ]
 
 # used to convert to cobbler values
 COBBLER_ARCH_MAPPING = {
@@ -66,6 +67,7 @@ REASON_ID = 402
 REASON_TYPE = 403
 REASON_REQUIRED = 404
 REASON_FORMAT = 405
+REASON_NOFILE = 406
 
 class ShadowManagerException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR

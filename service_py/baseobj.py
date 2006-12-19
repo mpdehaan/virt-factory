@@ -13,6 +13,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import string
 import exceptions
 
 class BaseObject(object):
@@ -76,3 +77,13 @@ class BaseObject(object):
            x = newx
        return x
 
+    # ========================
+    # random utility functions
+
+   def is_printable(self, stringy):
+        # FIXME: use regex package
+        assert stringy is not None, "string cannot be None"
+        for letter in stringy:
+            if letter not in string.printable:
+                return False
+        return True
