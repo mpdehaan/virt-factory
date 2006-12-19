@@ -9,8 +9,8 @@ PYCFILES        = $(addsuffix .pyc, $(FILES))
 PYCHECKER       = /usr/bin/pychecker
 
 clean::
-	@rm -fv *.pyc *~ .*~ 
-	@find . -name .\#\* -exec rm -fv {} \;
+	@rm -fv *.pyc *~ .*~ \#*\# 
+#	@find . -name .\#\* -exec rm -fv {} \;
 	@rm -fv *.rpm
 
 pychecker:: 

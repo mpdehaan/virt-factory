@@ -33,11 +33,11 @@ import os
 import cobbler.api
 
 from codes import *
+
 import baseobj
 import distribution
 import image
 import machine
-import shadow
 import codes
 import config
 import deployment

@@ -14,10 +14,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import SimpleXMLRPCServer
-import os
-import time
 import logging
+import os
 import subprocess
+import time
+
 from pysqlite2 import dbapi2 as sqlite
 
 SERVE_ON = (None,None)
@@ -29,16 +30,16 @@ SERVE_ON = (None,None)
 
 
 from codes import *
-import user
-import image
-import deployment
-import machine
-import distribution
-import config
-import provisioning
-import registration
 
-"/opt/shadowmanager/primary_db"
+from modules import config
+from modules import deployment
+from modules import distribution
+from modules import image
+from modules import machine
+from modules import provisioning
+from modules import registration
+from modules import user
+
 
 class XmlRpcInterface:
 
@@ -275,7 +276,6 @@ def serve(websvc):
     Code for starting the XMLRPC service. 
     FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
     """
-#    server = SimpleXMLRPCServer.SimpleXMLRPCServer(("127.0.0.1", 5150))
     server = ShadowXMLRPCServer(("127.0.0.1", 5150))
     server.register_instance(websvc)
     server.serve_forever()
