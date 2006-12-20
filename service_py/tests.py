@@ -13,12 +13,14 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import shadow
-import codes
+import os
 import unittest
 import traceback
 import time
 import sys
+
+import shadow
+import codes
 
 class BaseTest(unittest.TestCase):
 
@@ -43,6 +45,9 @@ class BaseTest(unittest.TestCase):
            if rc != 0:
                self.fail("default user account missing: %s" % rc)
            self.TOKEN = raw_results["data"]
+       if not os.path.exists("/tmp/test_service_file"):
+           fh = open("/tmp/test_service_file","w+")
+           fh.close()
 
    def tearDown(self):
        pass
@@ -206,15 +211,15 @@ class ImageTests(BaseCrudTests):
       self.sample = {
          "name" : "foo",
          "version" : "1.01",
-         "filename" : "/tmp/foo",
-         "specfile" : "/tmp/bar",
+         "filename" : "/tmp/service_test_file",
+         "specfile" : "/tmp/service_test_file",
          "distribution_id" : None, 
          "virt_storage_size" : 500,
          "virt_ram" : 2048,
          "kickstart_metadata" : "???",
          "kernel_options" : "????",
-         "valid_targets" : 0,
-         "is_container" : 0
+         "valid_targets" : codes.IMAGE_IS_EITHER,
+         "is_container" : codes.IMAGE_IS_BAREMETAL
       } 
       self.funcs = {
          "add_func"    : self.api.image_add,
@@ -240,17 +245,17 @@ class MachineTests(BaseCrudTests):
 
    def custom_setup(self):
       self.sample = {
-         "address" : "foo",
-         "architecture" : 1,
-         "processor_speed" : 2200,
-         "processor_count" : 2,
-         "memory" : 1024,
-         "kernel_options" : "ksdevice=eth0 text",
+         "address"            : "foo",
+         "architecture"       : codes.ARCH_X86,
+         "processor_speed"    : 2200,
+         "processor_count"    : 2,
+         "memory"             : 1024,
+         "kernel_options"     : "ksdevice=eth0 text",
          "kickstart_metadata" : "",
-         "list_group" : "building three",
-         "mac_address" : "AA:BB:CC:DD:EE:FF",
-         "is_container" : 0,
-         "image_id" : None
+         "list_group"         : "building three",
+         "mac_address"        : "AA:BB:CC:DD:EE:FF",
+         "is_container"       : codes.IMAGE_IS_EITHER,
+         "image_id"           : None
       } 
       self.funcs = {
          "add_func"    : self.api.machine_add,
@@ -274,11 +279,11 @@ class DistributionTests(BaseCrudTests):
 
    def custom_setup(self):
       self.sample = {
-         "kernel"       : "kernel",
-         "initrd"       : "initrd",
+         "kernel"       : "/tmp/test_service_file",
+         "initrd"       : "/tmp/test_service_file",
          "kickstart"    : "kickstart",
          "name"         : "name",
-         "architecture" : 123456789,
+         "architecture" : codes.ARCH_X86_64,
          "kernel_options" : "?",
          "kickstart_metadata" : "??"
       }
@@ -304,7 +309,7 @@ class DistributionTests(BaseCrudTests):
        distro = self.sample.copy()
        machine = {
           "address" : "foo",
-          "architecture" : 1,
+          "architecture" : ARCH_IA64,
           "processor_speed" : 2200,
           "processor_count" : 2,
           "memory" : 1024,
@@ -312,21 +317,21 @@ class DistributionTests(BaseCrudTests):
           "kickstart_metadata" : "",
           "list_group" : "building three",
           "mac_address" : "FF:FF:FF:FF:FF:FF",
-          "is_container" : 0,
+          "is_container" : codes.MACHINE_IS_NOT_CONTAINER,
           "image_id" : None
        }
        image = { 
           "name" : "foo",
           "version" : "1.01",
-          "filename" : "/tmp/foo",
-          "specfile" : "/tmp/bar",
+          "filename" : "/tmp/test_service_file",
+          "specfile" : "/tmp/test_service_file",
           "distribution_id" : None,
           "virt_storage_size" : 500,
           "virt_ram" : 2048,
           "kickstart_metadata" : "@@",
           "kernel_options" : "@@@",
-          "valid_targets" : 0,
-          "is_container" : 0
+          "valid_targets" : codes.IMAGE_IS_EITHER,
+          "is_container" : codes.MACHINE_IS_NOT_CONTAINER
        }
        (rc0, raw_data0) = self.call(self.api.image_add, image)
        self.failUnlessEqual(rc0, 0, "image_add")
@@ -473,18 +478,18 @@ class DeploymentTests(BaseTest):
        sample_image = {
            "name"               : "dep_image",
            "version"            : "5150.812",
-           "filename"           : "/dev/null", 
-           "specfile"           : "/dev/true",
+           "filename"           : "/tmp/test_service_file", 
+           "specfile"           : "/tmp/test_service_file",
            "virt_storage_size"  : 456,
            "virt_ram"           : 789,
            "kickstart_metadata" : "foo=bar baz=foo 12345",
            "kernel_options"     : "-----",
-           "valid_targets"      : 0,
-           "is_container"       : 0
+           "valid_targets"      : codes.ARCH_X86_64,
+           "is_container"       : codes.IMAGE_IS_EITHER
        }
        sample_machine = {
            "address"            : "foo.example.com",
-           "architecture"       : 1,
+           "architecture"       : codes.ARCH_X86_64,
            "processor_speed"    : 3000,
            "processor_count"    : 1,
            "memory"             : 4096,
@@ -492,12 +497,12 @@ class DeploymentTests(BaseTest):
            "kickstart_metadata" : "bar=foo baz=foo foo=bar",
            "list_group"         : "server room 5",
            "mac_address"        : "BB:EE:EE:EE:FF",
-           "is_container"       : 0
+           "is_container"       : codes.MACHINE_IS_CONTAINER
        }
        sample_deployment = {
            "machine_id"         : None,
            "image_id"           : None,
-           "state"              : 0
+           "state"              : codes.STATE_RUNNING
        }
 
        # add the image
