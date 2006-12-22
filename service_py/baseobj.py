@@ -82,7 +82,9 @@ class BaseObject(object):
 
    def is_printable(self, stringy):
         # FIXME: use regex package
-        assert stringy is not None, "string cannot be None"
+
+        if stringy == None:
+           return False
         for letter in stringy:
             if letter not in string.printable:
                 return False
