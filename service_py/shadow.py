@@ -41,6 +41,18 @@ from modules import registration
 from modules import user
 
 
+
+# this is kind of handy, so keep it around for now
+# but we really need to fix out server side logging and error
+# reporting so we don't need it
+import string
+import traceback
+def trace_me():
+   x = traceback.extract_stack()
+   bar = string.join(traceback.format_list(x))
+   print bar
+
+
 class XmlRpcInterface:
 
    def __init__(self):
@@ -139,6 +151,18 @@ class XmlRpcInterface:
    # but in the modules, they all consistantly take 3.  This may possibly
    # benefit from cleanup later.
 
+
+
+   # the SimpleXMLRPCServer class will call _dispatch if it doesn't
+   # find a handler method 
+   def _dispatch(self, method, params):
+      # FIXME: eventually, this will be all of self.handlers 
+      if method in ["register_test", "register_add"]:
+         mh = self.handlers[method]
+         print mh
+         return mh(*params)
+         
+
    def user_list(self,token, dargs={}):
        return self.__dispatch("user_list",token,dargs)
 
@@ -220,8 +244,6 @@ class XmlRpcInterface:
    def provisioning_sync(self, token, dargs):
        return self.__dispatch("provisioning_sync", token, dargs)
 
-   def register_add(self, dargs):
-      return self.__dispatch("register_add", dargs)
 
    def config_list(self, token, dargs):
        return self.__dispatch("config_list", token, dargs)
