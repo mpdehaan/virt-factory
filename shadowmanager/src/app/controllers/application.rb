@@ -69,9 +69,9 @@ class XMLRPCClientException < Exception
 
     end    
 
-    def get_human_readable(operation)
-        what = codes.ERRORS(@return_code)
-        basics = "operation #{operation} failed, #{how}."
+    def get_human_readable()
+        how = ERRORS[@return_code] # from util/codes.rb
+        basics = "Operation failed, #{how}."
         
         if @invalid_fields then
            basics = basics + "<br/>"
