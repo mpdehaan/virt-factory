@@ -1,3 +1,6 @@
+# FIXME: we are not using rails to access the database so we need
+# to modify this file such that there is no DB connection eventually.
+
 # MySQL (default setup).  Versions 4.1 and 5.0 are recommended.
 #
 # Install the MySQL driver:

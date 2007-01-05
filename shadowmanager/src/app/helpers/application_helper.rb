@@ -66,6 +66,7 @@ module ApplicationHelper
                          <% items.each do |second| %>
                             <TD>
                             <% if secondary == second %>
+                               <!-- <%= secondary %> | <%= second %> -->
                                <SPAN ID="secondary_menu_selected">
                                   <%= @STRINGS[second] %>
                                </SPAN>
