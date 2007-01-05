@@ -92,6 +92,8 @@ class ManagedObject
     end
 
     def self.call_server(method_name, session, args, errmsg = "")
+        # the return signature for a backend API method is usually (rc, hash) where hash contains
+        # one or more of the following fields.  See explanation in XMLRPCClientException class.
         (rc, results) = @@server.call(method_name, session[:login], args)
         unless rc == ERR_SUCCESS
             raise XMLRPCClientException.new("#{method_name} failed (#{ERRORS[rc]}): #{errmsg}", results)

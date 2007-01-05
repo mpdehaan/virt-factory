@@ -1,37 +1,73 @@
 <html xmlns="http://ww.w3.org/1999/xhtml" lang="en-US" xml:lang="en-US">
+
   <head>
+
      <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+     
+     <!-- dynamically filled in page title -->
      <title>ShadowManager: <%= @page_title %></title>
+     
      <link rel="stylesheet" href="/style.css" type="text/css" />
+
   </head>
+
   <body>
+      
       <div id="topbar">
-      <div id="page-title">
-      <h1 id="product-name">ShadowManager: <%= @page_title %>
-      </h1>
-      </div>
+
+          <div id="page-title">
+          
+              <!-- dynamically filled in page title -->
+              <h1 id="product-name">ShadowManager: <%= @page_title %></h1>
+         
+          </div>
  
-      <div class="topbar-line">
+          <div class="topbar-line">
+
       </div>
 
+      <!-- fill in main page content -->
       <%= yield %>
+
       <div class="content-right">
-      <div class="callout-1">
-         <%= @callout_1 %>
-      </div>
-      <% if @flash[:notice] %>
-      <div class = "callout-2">
-         <%= @flash[:notice] %>
-      </div>
-      <% end %>
+        
+          <!-- primary informational section, always present -->
+          <div class="callout-1">
+
+              <!-- FIXME: global usage should be further minimized -->
+              <%= @callout_1 %>
+
+          </div>
+
+          <!-- secondary informational section, if applicable -->
+          <% if @flash[:notice] %>
+
+              <div class = "callout-2">
+
+                  <%= @flash[:notice] %>
+
+              </div>
+
+          <% end %>
+
       </div> 
+      
+      <!-- error message section, if applicable -->
       <% if @flash[:errmsg] %>
-      <div class = "errmsg">
-	<pre>
-         <%= @flash[:errmsg] %>
-	</pre>
-      </div>
+
+          <div class = "errmsg">
+
+	      <pre>
+
+                 <%= @flash[:errmsg] %>
+
+	      </pre>
+
+          </div>
+
       <% end %>
 
   </body>
+
 </html>
+

@@ -67,9 +67,24 @@ class AbstractObjectController < ApplicationController
     end
 
     def set_flash_on_exception(ex)
-        @flash[:notice] = ex.notice
-        @flash[:errmsg] = ex.result["stacktrace"]
-        @flash[:fielderrors] = ex.result["invalid_fields"]
+
+        # mdehaan: updating this to use the new return model
+        # some of these values may be null if they are not filled in in the
+        # return object.  This is expected, just don't display those fields 
+        # in the WUI when it comes time to render what is in the WUI notice
+        # boxes.
+ 
+        @flash[:return_code]    = ex.return_code
+        @flash[:comment]        = ex.comment
+        @flash[:job_id]         = ex.job_id
+        @flash[:data]           = ex.data
+        @flash[:invalid_fields] = ex.invalid_fields
+
+        if !ex.result.nil?
+            @flash[:errmsg] = ex.result["stacktrace"]
+            @flash[:fielderrors] = ex.result["invalid_fields"]
+        end
+
     end
 
 end
