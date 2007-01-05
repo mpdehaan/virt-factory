@@ -15,6 +15,10 @@ require "util/code-lookup"
 require "xmlrpc/client"
 @@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
+# the ShadowManager WUI automatically converts return codes that represent failure into Ruby exception
+# objects -- XMLRPCClientExceptions.  These exceptions split out meaningful data out of the return and
+# know how to explain themselves, on screen in the html page, to the user.
+
 class XMLRPCClientException < Exception
 
     # the return code format for all ShadowManager methods is of the form (integer, hash) where
@@ -68,6 +72,10 @@ class XMLRPCClientException < Exception
         # the human readable representation of the error occurance.
 
     end    
+
+    # produce a string suitable for inclusion in a floating error DIV or the right callout,
+    # that explains what went wrong with the last operation.  It should be human readable
+    # and as understandable as possible.
 
     def get_human_readable()
         how = ERRORS[@return_code] # from util/codes.rb
