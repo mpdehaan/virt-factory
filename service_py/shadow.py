@@ -162,8 +162,13 @@ class XmlRpcInterface:
       if method in self.handlers:
          mh = self.handlers[method]
          print mh
-         return mh(*params)
-         
+         rc = mh(*params)
+         # FIXME: I really don't like this for some reason.
+         # parse out the SuccessExpection, and return data in some
+         # format that the client likes. I'd really like to see the methods
+         # return data in the correct format directly. It's a bit more duplicated
+         # code, but I think it makes it much easier to see whats going on. 
+         return rc.to_datastruct()
 
 
    def __dispatch(self, method, token, dispatch_args=[]):
