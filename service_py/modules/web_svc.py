@@ -17,11 +17,10 @@ from codes import *
 
 import baseobj
 import config_data
-
+import logger
 
 from pysqlite2 import dbapi2 as sqlite
 
-import logging
 import os
 import threading
 import time
@@ -44,12 +43,8 @@ class WebSvc(object):
         
     def __init_log(self):
         # lets see what happens when we c&p the stuff from shadow.py 
-        self.logger = logging.getLogger("svc")
-        handler = logging.FileHandler(self.config["logs"]["service"], "a")
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        handler.setFormatter(formatter)
-        self.logger.addHandler(handler)
-        self.logger.setLevel(logging.DEBUG)
+        log = logger.Logger()
+        self.logger = log.logger
     
     def register_rpc(self, handlers):
         for meth in self.methods:
