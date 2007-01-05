@@ -31,6 +31,8 @@ SERVE_ON = (None,None)
 
 from codes import *
 
+import config_data
+
 from modules import config
 from modules import deployment
 from modules import distribution
@@ -52,6 +54,13 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    print bar
 
+exported_methods =  ["register_test",
+                     "register_add",
+                     "machine_add",
+                     "machine_delete",
+                     "machine_edit",
+                     "machine_list",
+                     "machine_get"]
 
 class XmlRpcInterface:
 
@@ -60,12 +69,13 @@ class XmlRpcInterface:
        Constructor sets up SQLAlchemy (database ORM) and logging.
        """
 
-       if not os.path.exists(config.CONFIG_FILE):
-           print "\nNo %s found.\n" % config.CONFIG_FILE
+       if not os.path.exists(config_data.CONFIG_FILE):
+           print "\nNo %s found.\n" % config_data.CONFIG_FILE
            return
 
-       config_result = config.config_list()
-       self.config = config_result.data
+       config_obj = config_data.Config()
+       self.config = config_obj.get()
+       
        self.dbpath = self.config["databases"]["primary"]
 
        self.tables = {}
@@ -157,99 +167,12 @@ class XmlRpcInterface:
    # find a handler method 
    def _dispatch(self, method, params):
       # FIXME: eventually, this will be all of self.handlers 
-      if method in ["register_test", "register_add"]:
+      if method in self.handlers:
          mh = self.handlers[method]
          print mh
          return mh(*params)
          
 
-   def user_list(self,token, dargs={}):
-       return self.__dispatch("user_list",token,dargs)
-
-   def user_get(self, token, dargs):
-       return self.__dispatch("user_get",token,dargs)
-
-   def user_add(self, token, dargs):
-       return self.__dispatch("user_add",token,dargs)
-
-   def user_edit(self, token, dargs):
-       return self.__dispatch("user_edit",token,dargs)
-
-   def user_delete(self, token, dargs):
-       return self.__dispatch("user_delete",token,dargs)
- 
-   def machine_list(self,token,dargs={}):
-       return self.__dispatch("machine_list",token,dargs)
-
-   def machine_get(self, token,dargs ):
-       return self.__dispatch("machine_get",token,dargs)
-
-   def machine_add(self, token, dargs):
-       return self.__dispatch("machine_add",token,dargs)
-
-   def machine_edit(self, token, dargs):
-       return self.__dispatch("machine_edit",token,dargs)
-
-   def machine_delete(self, token, dargs):
-       return self.__dispatch("machine_delete",token,dargs)
- 
-   def image_list(self,token,dargs={}):
-       return self.__dispatch("image_list",token,dargs)
-
-   def image_get(self, token, dargs):
-       return self.__dispatch("image_get",token,dargs)
-
-   def image_add(self, token, dargs):
-       return self.__dispatch("image_add",token,dargs)
-
-   def image_edit(self, token, dargs):
-       return self.__dispatch("image_edit",token,dargs)
-
-   def image_delete(self, token, dargs):
-       return self.__dispatch("image_delete",token,dargs)
-   
-   def deployment_list(self,token,dargs={}):
-       return self.__dispatch("deployment_list",token,dargs)
-
-   def deployment_get(self, token, dargs):
-       return self.__dispatch("deployment_get",token,dargs)
-
-   def deployment_add(self, token, dargs):
-       return self.__dispatch("deployment_add",token,dargs)
-
-   def deployment_edit(self, token, dargs):
-       return self.__dispatch("deployment_edit",token,dargs)
-   
-   def deployment_delete(self, token, dargs):
-       return self.__dispatch("deployment_delete",token,dargs)
-
-   def distribution_get(self, token, dargs):
-       return self.__dispatch("distribution_get", token, dargs)
-
-   def distribution_list(self, token, dargs={}):
-       return self.__dispatch("distribution_list",token,dargs)
-
-   def distribution_add(self, token, dargs):
-       return self.__dispatch("distribution_add",token,dargs)
-
-   def distribution_edit(self, token, dargs):
-       return self.__dispatch("distribution_edit",token,dargs)
-
-   def distribution_delete(self, token, dargs):
-       return self.__dispatch("distribution_delete",token,dargs)
-   
-   def provisioning_init(self, token, dargs):
-       return self.__dispatch("provisioning_init", token, dargs)
-
-   def provisioning_sync(self, token, dargs):
-       return self.__dispatch("provisioning_sync", token, dargs)
-
-
-   def config_list(self, token, dargs):
-       return self.__dispatch("config_list", token, dargs)
-   
-   def config_reset(self, token, dargs):
-       return self.__dispatch("config_reset", token, dargs)
 
    def __dispatch(self, method, token, dispatch_args=[]):
        """
