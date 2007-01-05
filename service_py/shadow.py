@@ -54,14 +54,6 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    print bar
 
-exported_methods =  ["register_test",
-                     "register_add",
-                     "machine_add",
-                     "machine_delete",
-                     "machine_edit",
-                     "machine_list",
-                     "machine_get"]
-
 class XmlRpcInterface:
 
    def __init__(self):
