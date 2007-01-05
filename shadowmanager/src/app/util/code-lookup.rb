@@ -1,3 +1,5 @@
+# this file contains numerous codes and strings that are internal to the WUI implementation.
+# TODO: not important now, but strings eventually ought to be more i18n-able.
 
 # ==============================================
 # display names for the various codes

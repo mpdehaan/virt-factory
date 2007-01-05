@@ -7,7 +7,8 @@ require 'erb'
 module ApplicationHelper
 
    # mapping between primary/secondary menu items
-   # and controller/action pages
+   # and controller/action pages.  
+   # this allows for generation of menus via the menubar calls also in this helper.
    @NAVIGATION = [
       [ "machine" , [ "list", "edit" ] ],
       [ "image" , [ "list", "edit" ] ],
@@ -15,7 +16,8 @@ module ApplicationHelper
       [ "user" , [ "list", "edit", "logout" ] ]
    ]
 
-   # FIXME: use better stringification
+   # FIXME: use better stringification, plans for i18n can come later
+   # mapping of URL components to (English) display names.
    @STRINGS = {
        "machine" => "Machines",
        "edit" => "Add",
@@ -26,11 +28,20 @@ module ApplicationHelper
        "image" => "Images"
    }
 
+   # this renders both the top and bottom menubar.  A call to this menubar function 
+   # must be made in every template (rhtml) file in this application that needs to render
+   # navigation.  The template must pass in the first parameter that corresponds to the controller
+   # name (ex: machine) and a second parameter that corresponds to a controller action (ex: list).
+   # these parameters tell the menu which items to indicate as selected.  Selected links will not be clickable
+   # but will appear more prominent and bold-like so folks can tell where they are in the navigation hierarchy.
+
    def ApplicationHelper.menubar(primary,secondary)
        html = ApplicationHelper.top_menubar(primary)
        html += ApplicationHelper.bottom_menubar(primary,secondary)
        return "<DIV ID='navigation'>" + html + "</DIV>"
    end
+
+   # the top half of the menubar, corresponding to the controller portions (i.e. image, machine, deployment, etc) 
 
    def ApplicationHelper.top_menubar(primary)
        template = <<-EOF
@@ -56,6 +67,8 @@ module ApplicationHelper
        EOF
        return ERB.new(template, 0, '%').result(binding)
    end
+
+   # the bottom half of the menubar, corresponding to controller actions (edit, list, etc)
 
    def ApplicationHelper.bottom_menubar(primary,secondary)
        items = @NAVIGATION.find { |a| a[0] == primary }[1]

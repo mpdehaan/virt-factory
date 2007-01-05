@@ -2,6 +2,9 @@
 # run python codes.py to get more recent constants for this file, and replace
 # the contents below.
 
+# These are constants that the web service can return for various things, or that
+# it expects for input to various function calls.
+
 ARCH_IA64 = 202
 ARCH_X86 = 200
 ARCH_X86_64 = 201
