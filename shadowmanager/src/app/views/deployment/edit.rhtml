@@ -1,5 +1,5 @@
       <% @page_title = @operation + " Deployment" %>
-      <%= ApplicationHelper.menubar("deployment","list") %>
+      <%= ApplicationHelper.menubar("deployment","edit") %>
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
