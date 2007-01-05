@@ -57,16 +57,43 @@ class XMLRPCClientException < Exception
         @raw_data    = raw_data
   
         # for convience, rip certain data out of the hash
-        @job_id         = nil
-        @invalid_fields = nil
-        @data           = nil
-        @comment        = nil
-        
-        @job_id         = raw_data["job_id"]         if raw_data.has_key?("job_id")
-        @invalid_fields = raw_data["invalid_fields"] if raw_data.has_key?("invalid_fields") 
-        @data           = raw_data["data"]           if raw_data.has_key?("data")
-        @comment        = raw_data["comment"]        if raw_data.has_key?("comment")
+        @job_id         = raw_data["job_id"]
+        @invalid_fields = raw_data["invalid_fields"] 
+        @data           = raw_data["data"]
+        @comment        = raw_data["comment"]
+        @stacktrace     = raw_data["stacktrace"]
+
+        # note that data and job_id are pretty much always 
+        # going to be null, so we'll ignore them when producing
+        # the human readable representation of the error occurance.
+
     end    
+
+    def get_human_readable(operation)
+        what = codes.ERRORS(@return_code)
+        basics = "operation #{operation} failed, #{how}."
+        
+        if @invalid_fields then
+           basics = basics + "<br/>"
+           # FIXME: TODO: also show reasons
+           basics = "The following fields were invalid: #{@invalid_fields.keys()}"
+        end
+
+        if @stacktrace then
+           basics = basics + "<br/>"
+           basics = basics + "Stacktrace: #{@stacktrace}"
+        end        
+ 
+        if @comment then
+           basics = basics + "<br/>"
+           basics = basics + "Additional info: #{@comment}"
+        end
+
+        return basics
+ 
+
+    end
+
 end
 
 class ApplicationController < ActionController::Base

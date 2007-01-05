@@ -66,27 +66,10 @@ class AbstractObjectController < ApplicationController
         return
     end
 
-    def set_flash_on_exception(ex)
-
-        # mdehaan: updating this to use the new return model
-        # some of these values may be null if they are not filled in in the
-        # return object.  This is expected, just don't display those fields 
-        # in the WUI when it comes time to render what is in the WUI notice
-        # boxes.
- 
-        @flash[:return_code]    = ex.return_code
-        @flash[:comment]        = ex.comment
-        @flash[:job_id]         = ex.job_id
-        @flash[:data]           = ex.data
-        @flash[:invalid_fields] = ex.invalid_fields
-
-        if ex.return_code !=0:
-            # FIXME: this error reporting needs overhaul.
-            # needs to construct an English string explaining what
-            # went wrong and if invalid_fields, which ones and why.
-            @flash[:errmsg] = "error: %s" % ex.return_code
-        end
-
+    def set_flash_on_exception()
+        # populate @flash with a human readable error string suitable by
+        # display in the layout (right column callout #2)
+        @flash[:errmsg] = ex.get_human_readable()
     end
 
 end

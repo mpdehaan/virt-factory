@@ -98,6 +98,12 @@ class ManagedObject
         unless rc == ERR_SUCCESS
             raise XMLRPCClientException.new(rc, rawdata)
         end
-        results["data"]
+
+        # the call succeeded, so go ahead and return the data object.
+        # TODO: in some cases, the job_id field will prove important
+        # though what the WUI needs to do with it would be TBA.  AJAXy
+        # job_id tracking by keeping a list in @session would rock.
+
+        return rawdata["data"]
     end
 end
