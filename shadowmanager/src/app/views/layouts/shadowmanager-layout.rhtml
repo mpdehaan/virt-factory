@@ -40,11 +40,21 @@
           </div>
 
           <!-- secondary informational section, if applicable -->
-          <% if @flash[:notice] %>
+          <% if @flash[:notice] or @flash[:errmsg] %>
 
               <div class = "callout-2">
 
-                  <%= @flash[:notice] %>
+                  <% if @flash[:notice] %>
+                      <%= @flash[:notice] %>
+                  <% end %>
+
+                  <% if @flash[:notice] and @flash[:errmsg] %>
+                      <br/>
+                  <% end %>
+
+                  <% if @flash[:errmsg] %>
+                      <%= @flash[:errmsg] %>
+                  <% end %>
 
               </div>
 
@@ -52,20 +62,6 @@
 
       </div> 
       
-      <!-- error message section, if applicable -->
-      <% if @flash[:errmsg] %>
-
-          <div class = "errmsg">
-
-	      <pre>
-
-                 <%= @flash[:errmsg] %>
-
-	      </pre>
-
-          </div>
-
-      <% end %>
 
   </body>
 

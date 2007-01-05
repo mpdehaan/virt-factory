@@ -80,9 +80,11 @@ class AbstractObjectController < ApplicationController
         @flash[:data]           = ex.data
         @flash[:invalid_fields] = ex.invalid_fields
 
-        if !ex.result.nil?
-            @flash[:errmsg] = ex.result["stacktrace"]
-            @flash[:fielderrors] = ex.result["invalid_fields"]
+        if ex.return_code !=0:
+            # FIXME: this error reporting needs overhaul.
+            # needs to construct an English string explaining what
+            # went wrong and if invalid_fields, which ones and why.
+            @flash[:errmsg] = "error: %s" % ex.return_code
         end
 
     end

@@ -53,16 +53,15 @@ class XMLRPCClientException < Exception
     def initialize(return_code, raw_data)
 
         # direct return values from service
-        @return_code = result_code
+        @return_code = return_code
         @raw_data    = raw_data
   
         # for convience, rip certain data out of the hash
-        @result         = nil
         @job_id         = nil
         @invalid_fields = nil
         @data           = nil
         @comment        = nil
-        @result         = raw_data["result"]         if raw_data.has_key?("result")
+        
         @job_id         = raw_data["job_id"]         if raw_data.has_key?("job_id")
         @invalid_fields = raw_data["invalid_fields"] if raw_data.has_key?("invalid_fields") 
         @data           = raw_data["data"]           if raw_data.has_key?("data")
