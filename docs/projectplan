@@ -16,12 +16,9 @@ for templating kickstarts (above and beyond Cobbler) that allows for install of
 shadowvassal (see below), puppet, SSH key, and system ID in all provisioned systems.  
 SSH infrastructure is the setup for shadowvassal.
 
-shadowvassal -- add initd script to managed node that checks in via unauthed ping
-to central server.  server runs shadowvassal by SSH, returns XML.  Initial infrastructure
-by SSH until later (much later) QPID can be considered.  shadowvassal supports functions
-like migrations and querying aspects of the managed instance.   there is an analog to RHN system ID
-stored on the system that uniquely identifies the system installed (which is also cached
-in the shadowmanager svc database)
+node control -- add initd script to managed node that checks in with central server.
+backend code to manage nodes might be able to use the Kevin Smith XMLRPC-over-Jabber bus
+for now, possibly.  Or just use variant of main backend code.
 
 image import tool -- tool to import appliance definitions (maybe packaged as tar, XML, etc)
 into the DB.  The idea is that the WUI will not contain knobs initially for configuring
@@ -31,13 +28,12 @@ to install more definitions.
 shadowmanager WUI -- support everything, and reduce user buttons, making it less of a CRUD
 interface.  Add buttons for actions such as migrations/start/stop/etc.
 
-
 puppet integration -- integrate shadowmanager backend with puppet, such that puppet is automatically provisioned
 and configured, and that puppet manifests are configured to do the right thing.
 
 ====
 
-OLDER MISC INFO
+OLDER MISC INFO (and Miscellaneous details)
 
 Backend
 -------
@@ -57,6 +53,9 @@ WUI
 - field validation on error (show why when error_fields are filled in)
 - lookup tables for error messages, and select lists (architecture, etc.)
 - RPM packaging
+- fix display bug where CSS callout overlaps body text
+- don't show fields that aren't relevant, i.e. if not virt, don't show virt fields.
 - Scott: fill in
+
 
 
