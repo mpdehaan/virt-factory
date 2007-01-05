@@ -5,7 +5,8 @@ class AbstractObjectController < ApplicationController
 
     include ApplicationHelper
 
-    # FIXME: comment on what this does?
+    # this is a variable that is used in making a blank entry in dropdowns for various things.  
+    # FIXME: does this belong in this class?  Not sure.
     EMPTY_ENTRY = ["-None-", ""]
 
     # by default, requesting a URL of the form /controller instead of /controller/action will
