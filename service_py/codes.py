@@ -13,8 +13,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import sys
 import exceptions
+import string
+import sys
+import traceback
 
 # internal codes for the types of operations (used by validation logic)
 OP_ADD = 101
@@ -68,7 +70,7 @@ REASON_RANGE = 401
 REASON_ID = 402
 REASON_TYPE = 403
 REASON_REQUIRED = 404
-REASON_FORMAT = 405
+xREASON_FORMAT = 405
 REASON_NOFILE = 406
 
 class ShadowManagerException(exceptions.Exception):
@@ -80,7 +82,22 @@ class ShadowManagerException(exceptions.Exception):
        self.invalid_fields = self.load(kwargs,"invalid_fields")
        self.data           = self.load(kwargs,"data")
        self.comment        = self.load(kwargs,"comment")
+       self.tb_data = traceback.extract_stack()
        exceptions.Exception.__init__(self)
+
+
+   def format(self):
+      str = """
+Exception Name: %s
+Exception Comment: %s
+Exception Data: %s
+Stack Trace:
+%s""" % (self.__class__, self.comment, self.data,
+         string.join(traceback.format_list(self.tb_data)))
+
+      return str
+      #"
+   
 
    def ok(self):
        return self.error_code == 0

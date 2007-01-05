@@ -52,7 +52,7 @@ import traceback
 def trace_me():
    x = traceback.extract_stack()
    bar = string.join(traceback.format_list(x))
-   print bar
+   return bar
 
 class XmlRpcInterface:
 
@@ -161,13 +161,20 @@ class XmlRpcInterface:
          mh = self.handlers[method]
          self.logger.debug("methods: %s params: %s" % (method, params))
          print mh, method
-         rc = mh(*params)
+         try:
+            rc = mh(*params)
+         except Exception, e:
+            #FIXME: this is a bit lame, but it will help us debug stuff
+            self.logger.debug("Exception occured: %s" % sys.exc_type )
+            self.logger.debug("Exception value: %s" % sys.exc_value)
+            self.logger.debug("%s" % e.format())
+            raise
          self.logger.debug("return code: %s" % rc)
          # FIXME: I really don't like this for some reason.
          # parse out the SuccessExpection, and return data in some
          # format that the client likes. I'd really like to see the methods
          # return data in the correct format directly. It's a bit more duplicated
-         # code, but I think it makes it much easier to see whats going on. 
+         # code, but I think it makes it much easier to see whats going on.
          return rc.to_datastruct()
       else:
          print "method: ", method
