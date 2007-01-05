@@ -20,6 +20,9 @@ import os
 import yaml
 
 from codes import *
+import config_data
+
+import web_svc
 
 CONFIG_FILE = "/var/lib/shadowmanager/settings"
 
@@ -43,41 +46,38 @@ defaults = {
     }
 }
 
-def config_list(websvc=None,config_args=None):
+class Config(web_svc.AuthWebSvc):
+     def __init__(self):
+        self.methods = {"config_list": self.list,
+                        "config_reset": self.reset}
+        web_svc.AuthWebSvc.__init__(self)
+        config_data_obj = config_data.Config()
+        self.config_data = config_data_obj.get()
 
-   if not os.path.exists(CONFIG_FILE):
-       raise MisconfiguredException(comment=CONFIG_FILE)
+     def list(self, config_args=None):
 
-   config_file = open(CONFIG_FILE)
-   data = config_file.read()
-   ds = yaml.load(data).next()
+        return success(self.config_data)
 
-   return success(ds)
+     def reset(self, config_args=None):
 
-def config_reset(websvc=None,config_args=None):
-   
-   config_file = open(CONFIG_FILE,"w+")
-   data = yaml.dump(defaults)
-   config_file.write(data)
+        self.config_data.reset()
+      
+        print """
+      The configuration values in %s have been reset.
 
-   print """
-   The configuration values in %s have been reset.
+      Next steps:
+         (1) Edit the address field and mirror list in %s
+             Change other settings as desired.
+         (2) Run 'shadow import' to import distributions from your selected mirrors.
+         (3) Test the configuration by logging in using the Web UI.  It should now be ready for use.
 
-   Next steps:
-      (1) Edit the address field and mirror list in %s
-          Change other settings as desired.
-      (2) Run 'shadow import' to import distributions from your selected mirrors.
-      (3) Test the configuration by logging in using the Web UI.  It should now be ready for use.
+      """ % (CONFIG_FILE, CONFIG_FILE)
 
-   """ % (CONFIG_FILE, CONFIG_FILE)
-
-   return success(0)
+        return success(0)
 
 
-def register_rpc(handlers):
-   handlers["config_list"] = config_list
-   handlers["config_reset"] = config_reset
-
+methods = Config()
+register_rpc = methods.register_rpc
 
 
 

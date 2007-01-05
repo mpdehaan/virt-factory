@@ -13,18 +13,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-
-from codes import *
-import os
 import baseobj
-import traceback
-import threading
+from codes import *
+
 import distribution
 import provisioning
+import web_svc
+
+import os
+import threading
+import traceback
 
 #------------------------------------------------------
 
-class Image(baseobj.BaseObject):
+class ImageData(baseobj.BaseObject):
 
     def _produce(klass, image_args,operation=None):
         """
@@ -33,7 +35,7 @@ class Image(baseobj.BaseObject):
         operation is creating the image object.
         """
 
-        self = Image()
+        self = ImageData()
         self.from_datastruct(image_args)
         self.validate(operation)
         return self
@@ -145,262 +147,260 @@ class Image(baseobj.BaseObject):
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 
-#----------------------------------------------------------
+class Image(web_svc.AuthWebSvc):
+    def __init__(self):
+        self.methods = {"image_add": self.add}
+        web_svc.AuthWebSvc.__init__(self)
 
-def image_add(websvc,image_args):
-     """
-     Create a image.  image_args should contain all fields except ID.
-     """
 
-     st = """
-     INSERT INTO images (name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-     valid_targets,is_container)
-     VALUES (:name,:version,:filename,:specfile,:distribution_id,
-     :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
-     :valid_targets,:is_container)
-     """
+    def add(self,image_args):
+         """
+         Create a image.  image_args should contain all fields except ID.
+         """
 
-     u = Image.produce(image_args,OP_ADD)
+         st = """
+         INSERT INTO images (name,version,filename,specfile,
+         distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
+         valid_targets,is_container)
+         VALUES (:name,:version,:filename,:specfile,:distribution_id,
+         :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
+         :valid_targets,:is_container)
+         """
 
-     if u.distribution_id is not None:
+         u = ImageData.produce(image_args,OP_ADD)
+
+         if u.distribution_id is not None:
+             try:
+                 self.distribution = distribution.Distribution()
+                 self.distribution.get(websvc, { "id" : u.distribution_id})
+             except ShadowManagerException:
+                 raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
+
+         lock = threading.Lock()
+         lock.acquire()
+
          try:
-             distribution.distribution_get(websvc, { "id" : u.distribution_id})
-         except ShadowManagerException:
-             raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
+             self.cursor.execute(st, u.to_datastruct())
+             self.connection.commit()
+         except Exception:
+             lock.release()
+             # FIXME: be more fined grained (find where IntegrityError is defined)
+             raise SQLException(traceback=traceback.format_exc())
 
-     lock = threading.Lock()
-     lock.acquire()
-
-     try:
-         websvc.cursor.execute(st, u.to_datastruct())
-         websvc.connection.commit()
-     except Exception:
+         rowid = self.cursor.lastrowid
          lock.release()
-         # FIXME: be more fined grained (find where IntegrityError is defined)
-         raise SQLException(traceback=traceback.format_exc())
 
-     rowid = websvc.cursor.lastrowid
-     lock.release()
+         self.__provisioning_sync()
+         
+         return success(rowid)
 
-     provisioning.provisioning_sync(websvc, {})
+    def __provisiong_sync(self):
+        if not self.provisiong:
+            self.provisioning = provisioning.Provisioning()
+        self.provisioning.sync( {} )
 
-     return success(rowid)
 
-#----------------------------------------------------------
+    def edit(self,image_args):
+         """
+         Edit a image.  image_args should contain all fields that need to
+         be changed.
+         """
 
-def image_edit(websvc,image_args):
-     """
-     Edit a image.  image_args should contain all fields that need to
-     be changed.
-     """
+         u = ImageData.produce(image_args,OP_EDIT) # force validation
 
-     u = Image.produce(image_args,OP_EDIT) # force validation
+         st = """
+         UPDATE images 
+         SET name=:name, version=:version, filename=:filename, specfile=:specfile,
+         virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
+         kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
+         valid_targets=:valid_targets, is_container=:is_container
+         WHERE id=:id
+         """
 
-     st = """
-     UPDATE images 
-     SET name=:name, version=:version, filename=:filename, specfile=:specfile,
-     virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
-     kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
-     valid_targets=:valid_targets, is_container=:is_container
-     WHERE id=:id
-     """
+         self.cursor.execute(st, u.to_datastruct())
+         self.connection.commit()
 
-     websvc.cursor.execute(st, u.to_datastruct())
-     websvc.connection.commit()
+         self.__provisioning_sync({} )
 
-     provisioning.provisioning_sync(websvc,{})
+         return success(u.to_datastruct(True))
 
-     return success(u.to_datastruct(True))
 
-#----------------------------------------------------------
+    def delete(self,image_args):
+         """
+         Deletes a image.  The image_args must only contain the id field.
+         """
 
-def image_delete(websvc,image_args):
-     """
-     Deletes a image.  The image_args must only contain the id field.
-     """
+         u = ImageData.produce(image_args,OP_DELETE) # force validation
 
-     u = Image.produce(image_args,OP_DELETE) # force validation
- 
-     st = """
-     DELETE FROM images WHERE images.id=:id
-     """
+         st = """
+         DELETE FROM images WHERE images.id=:id
+         """
 
-     st2 = """
-     SELECT images.id FROM deployments,images 
-     WHERE deployments.image_id = images.id
-     AND images.id=:id
-     """
-     
-     st3 = """
-     SELECT images.id FROM machines,images 
-     WHERE machines.image_id = images.id
-     AND images.id=:id
-     """
+         st2 = """
+         SELECT images.id FROM deployments,images 
+         WHERE deployments.image_id = images.id
+         AND images.id=:id
+         """
 
-     # check to see that what we are deleting exists
-     image_result = image_get(websvc,u.to_datastruct())
-     if not image_result.error_code == 0:
-        raise NoSuchObjectException(comment="image_delete")
+         st3 = """
+         SELECT images.id FROM machines,images 
+         WHERE machines.image_id = images.id
+         AND images.id=:id
+         """
 
-     # check to see that deletion won't orphan a deployment or machine
-     websvc.cursor.execute(st2, { "id" : u.id })
-     results = websvc.cursor.fetchall()
-     if results is not None and len(results) != 0:
-        raise OrphanedObjectException(comment="deployment")
-     websvc.cursor.execute(st3, { "id" : u.id })
-     results = websvc.cursor.fetchall()
-     if results is not None and len(results) != 0:
-        raise OrphanedObjectException(comment="machine")
+         # check to see that what we are deleting exists
+         image_result = image_get(websvc,u.to_datastruct())
+         if not image_result.error_code == 0:
+            raise NoSuchObjectException(comment="image_delete")
 
-     websvc.cursor.execute(st, { "id" : u.id })
-     websvc.connection.commit()
+         # check to see that deletion won't orphan a deployment or machine
+         self.cursor.execute(st2, { "id" : u.id })
+         results = self.cursor.fetchall()
+         if results is not None and len(results) != 0:
+            raise OrphanedObjectException(comment="deployment")
+         self.cursor.execute(st3, { "id" : u.id })
+         results = self.cursor.fetchall()
+         if results is not None and len(results) != 0:
+            raise OrphanedObjectException(comment="machine")
 
-     # no need to sync provisioning as the image isn't hurting anything
-     return success()
+         self.cursor.execute(st, { "id" : u.id })
+         self.connection.commit()
 
-#----------------------------------------------------------
+         # no need to sync provisioning as the image isn't hurting anything
+         return success()
 
-def image_list(websvc,image_args):
-     """
-     Return a list of images.  The image_args list is currently *NOT*
-     used.  Ideally we need to include LIMIT information here for
-     GUI pagination when we start worrying about hundreds of systems.
-     """
 
-     offset = 0
-     limit  = 100
-     if image_args.has_key("offset"):
-        offset = image_args["offset"]
-     if image_args.has_key("limit"):
-        limit = image_args["limit"]
+    def list(self,image_args):
+         """
+         Return a list of images.  The image_args list is currently *NOT*
+         used.  Ideally we need to include LIMIT information here for
+         GUI pagination when we start worrying about hundreds of systems.
+         """
 
-     st = """
-     SELECT 
-     images.id,
-     images.name,
-     images.version,
-     images.filename,
-     images.specfile,
-     images.distribution_id, 
-     images.virt_storage_size,
-     images.virt_ram,
-     images.kickstart_metadata,
-     images.kernel_options,
-     images.valid_targets,
-     images.is_container,
-     distributions.id,
-     distributions.kernel,
-     distributions.initrd,
-     distributions.options,
-     distributions.kickstart,
-     distributions.name,
-     distributions.architecture,
-     distributions.kernel_options,
-     distributions.kickstart_metadata
-     FROM images 
-     LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
-     LIMIT ?,?
-     """ 
+         offset = 0
+         limit  = 100
+         if image_args.has_key("offset"):
+            offset = image_args["offset"]
+         if image_args.has_key("limit"):
+            limit = image_args["limit"]
 
-     results = websvc.cursor.execute(st, (offset,limit))
-     results = websvc.cursor.fetchall()
-     if results is None:
-         return success([])
+         st = """
+         SELECT 
+         images.id,
+         images.name,
+         images.version,
+         images.filename,
+         images.specfile,
+         images.distribution_id, 
+         images.virt_storage_size,
+         images.virt_ram,
+         images.kickstart_metadata,
+         images.kernel_options,
+         images.valid_targets,
+         images.is_container,
+         distributions.id,
+         distributions.kernel,
+         distributions.initrd,
+         distributions.options,
+         distributions.kickstart,
+         distributions.name,
+         distributions.architecture,
+         distributions.kernel_options,
+         distributions.kickstart_metadata
+         FROM images 
+         LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
+         LIMIT ?,?
+         """ 
 
-     images = []
-     for x in results:
-         # note that the distribution is *not* expanded as it may
-         # not be valid in all cases
-         data = Image.produce({         
-            "id"        : x[0],
-            "name"      : x[1],
-            "version"   : x[2],
-            "filename"  : x[3],
-            "specfile"  : x[4],
-            "distribution_id"    : x[5],
-            "virt_storage_size"  : x[6],
-            "virt_ram"           : x[7],
-            "kickstart_metadata" : x[8],
-            "kernel_options"     : x[9],
-            "valid_targets"      : x[10],
-            "is_container"       : x[11]
-         }).to_datastruct(True)
-     
-         if x[12] is not None and x[12] != -1:
-             data["distribution"] = distribution.Distribution.produce({
-                 "id"                 : x[12],
-                 "kernel"             : x[13],
-                 "initrd"             : x[14],
-                 "options"            : x[15],
-                 "kickstart"          : x[16],
-                 "name"               : x[17],
-                 "architecture"       : x[18],
-                 "kernel_options"     : x[19],
-                 "kickstart_metadata" : x[20]
+         results = self.cursor.execute(st, (offset,limit))
+         results = self.cursor.fetchall()
+         if results is None:
+             return success([])
+
+         images = []
+         for x in results:
+             # note that the distribution is *not* expanded as it may
+             # not be valid in all cases
+             data = ImageData.produce({         
+                "id"        : x[0],
+                "name"      : x[1],
+                "version"   : x[2],
+                "filename"  : x[3],
+                "specfile"  : x[4],
+                "distribution_id"    : x[5],
+                "virt_storage_size"  : x[6],
+                "virt_ram"           : x[7],
+                "kickstart_metadata" : x[8],
+                "kernel_options"     : x[9],
+                "valid_targets"      : x[10],
+                "is_container"       : x[11]
              }).to_datastruct(True)
-     
-         images.append(data)
-  
-     return success(images)
 
-#--------------------------------------------------------
+             if x[12] is not None and x[12] != -1:
+                 data["distribution"] = distribution.Distribution.produce({
+                     "id"                 : x[12],
+                     "kernel"             : x[13],
+                     "initrd"             : x[14],
+                     "options"            : x[15],
+                     "kickstart"          : x[16],
+                     "name"               : x[17],
+                     "architecture"       : x[18],
+                     "kernel_options"     : x[19],
+                     "kickstart_metadata" : x[20]
+                 }).to_datastruct(True)
 
-def image_get(websvc,image_args):
-     """
-     Return a specific image record.  Only the "id" is required in image_args.
-     """
+             images.append(data)
 
-     u = Image.produce(image_args,OP_GET) # force validation
+         return success(images)
 
-     st = """
-     SELECT id,name,version,filename,specfile,
-     distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-     valid_targets,is_container
-     FROM images WHERE id=:id
-     """
 
-     websvc.cursor.execute(st,{ "id" : u.id })
-     x = websvc.cursor.fetchone()
+    def get(self, image_args):
+         """
+         Return a specific image record.  Only the "id" is required in image_args.
+         """
 
-     if x is None:
-         raise NoSuchObjectException(comment="image_get")
+         u = ImageData.produce(image_args,OP_GET) # force validation
 
-     data = {
-            "id"                 : x[0],
-            "name"               : x[1],
-            "version"            : x[2],
-            "filename"           : x[3],
-            "specfile"           : x[4],
-            "distribution_id"    : x[5],
-            "virt_storage_size"  : x[6],
-            "virt_ram"           : x[7],
-            "kickstart_metadata" : x[8],
-            "kernel_options"     : x[9],
-            "valid_targets"      : x[10],
-            "is_container"       : x[11]
-     }
+         st = """
+         SELECT id,name,version,filename,specfile,
+         distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
+         valid_targets,is_container
+         FROM images WHERE id=:id
+         """
 
-     data = Image.produce(data).to_datastruct(True)
+         self.cursor.execute(st,{ "id" : u.id })
+         x = self.cursor.fetchone()
 
-     if x[5] is not None:
-         distribution_results = distribution.distribution_get(websvc, { "id" : x[5] })
-         if not distribution_results.ok():
-             raise OrphanedObjectException(comment="distribution_id")
-         data["distribution"] = distribution_results.data
+         if x is None:
+             raise NoSuchObjectException(comment="image_get")
 
-     return success(data)
+         data = {
+                "id"                 : x[0],
+                "name"               : x[1],
+                "version"            : x[2],
+                "filename"           : x[3],
+                "specfile"           : x[4],
+                "distribution_id"    : x[5],
+                "virt_storage_size"  : x[6],
+                "virt_ram"           : x[7],
+                "kickstart_metadata" : x[8],
+                "kernel_options"     : x[9],
+                "valid_targets"      : x[10],
+                "is_container"       : x[11]
+         }
 
-#--------------------------------------------------------
+         data = ImageData.produce(data).to_datastruct(True)
 
-def register_rpc(handlers):
-     """
-     This adds RPC functions to the global list of handled functions.
-     """
+         if x[5] is not None:
+             distribution_results = distribution.distribution_get(websvc, { "id" : x[5] })
+             if not distribution_results.ok():
+                 raise OrphanedObjectException(comment="distribution_id")
+             data["distribution"] = distribution_results.data
 
-     handlers["image_add"]    = image_add
-     handlers["image_delete"] = image_delete
-     handlers["image_list"]   = image_list
-     handlers["image_get"]    = image_get
-     handlers["image_edit"]   = image_edit
+         return success(data)
+
+
+
+methods = Image()
+register_rpc = methods.register_rpc
 

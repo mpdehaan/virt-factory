@@ -1,17 +1,18 @@
-"""
-ShadowManager backend code.
-
-Copyright 2006, Red Hat, Inc
-Michael DeHaan <mdehaan@redhat.com>
-Scott Seago <sseago@redhat.com>
-
-This software may be freely redistributed under the terms of the GNU
-general public license.
-
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-"""
+#!/usr/bin/python
+## ShadowManager backend code.
+##
+## Copyright 2006, Red Hat, Inc
+## Michael DeHaan <mdehaan@redhat.com>
+## Scott Seago <sseago@redhat.com>
+## Adrian Likins <alikins@redhat.com>
+##
+## This software may be freely redistributed under the terms of the GNU
+## general public license.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+##
 
 # note:  this contains helper code for working with cobbler.  methods here
 # should not be surfaced in the external API, but should be methods on 
@@ -27,19 +28,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 # cobbler land...  MORAL: put the data in the database right,
 # don't expect cobbler to validate it or otherwise fix it.
 
-import traceback
-import threading
-import os
+
 import cobbler.api
 
 from codes import *
+
 import baseobj
+import config
+import deployment
 import distribution
 import image
 import machine
-import codes
-import config
-import deployment
+import web_svc
+
+import os
+import threading
+import traceback
 
 #--------------------------------------------------------------------
 
@@ -197,182 +201,189 @@ class CobblerTranslatedSystem:
 # FIXME: need another ShadowManager backend object that will need to sync with
 # /var/lib/cobbler/settings
 
-def provisioning_sync(websvc, prov_args):
-     
-     distributions       = distribution.distribution_list(websvc,{})
-     images              = image.image_list(websvc,{})
-     machines            = machine.machine_list(websvc,{})
-     deployments         = deployment.deployment_list(websvc, {})
+class Provisioning(web_svc.AuthWebSvc):
+   def __init__(self):
+      self.methods = {"provisioning_sync": self.sync,
+                      "provisioning_init": self.init}
+      web_svc.AuthWebSvc.__init__(self)                      
 
-     # cobbler can't be run multiple times at once...
-     lock = threading.Lock()
-     lock.acquire()
+   def sync(self, prov_args):
 
-     distributions = distributions.data
-     images = images.data
-     machines = machines.data
-     deployments = deployments.data
+        distributions       = distribution.distribution_list(websvc,{})
+        images              = image.image_list(websvc,{})
+        machines            = machine.machine_list(websvc,{})
+        deployments         = deployment.deployment_list(websvc, {})
 
-     # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
-     # the server field might have changed.
+        # cobbler can't be run multiple times at once...
+        lock = threading.Lock()
+        lock.acquire()
 
-     try:
-         cobbler_api = cobbler.api.BootAPI()
-         cobbler_distros  = cobbler_api.distros()
-         cobbler_profiles = cobbler_api.profiles()
-         cobbler_systems  = cobbler_api.systems()
-         cobbler_distros.clear()
-         cobbler_profiles.clear()
-         cobbler_systems.clear()
-        
-         # cobbler can/will could raise exceptions on failure at any point...
-         # return code checking is not needed.
-         for d in distributions:
-             print "- distribution: %s" % d
-             CobblerTranslatedDistribution(cobbler_api,d)
-         for i in images:
-             print "- image: %s" % i
-             CobblerTranslatedProfile(cobbler_api,distributions,i)
-         for p in machines:
-             print "- machine: %s" % p
-             CobblerTranslatedSystem(cobbler_api,deployments,images,p)
-         cobbler_api.serialize()
-         cobbler_api.sync(dryrun=False)
-     except:
-         traceback.print_exc()
-         lock.release()
-         raise codes.UncaughtException(traceback=traceback.format_exc())
- 
+        distributions = distributions.data
+        images = images.data
+        machines = machines.data
+        deployments = deployments.data
 
-     lock.release()
-     return success()
-
-#--------------------------------------------------------------------
-
-def provisioning_init(websvc, prov_args):
-
-     """
-     Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
-     """
-
-     ARCH_CONVERT = {
-        "x86"    : codes.ARCH_X86,
-        "x86_64" : codes.ARCH_X86_64,
-        "ia64"   : codes.ARCH_IA64
-     }
-
-     lock = threading.Lock()
-     lock.acquire()
-
-     if os.getuid() != 0:
-
-         print ENOROOT 
-
-
-     # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
-     cobbler_api = cobbler.api.BootAPI()
-     settings = cobbler_api.settings().to_datastruct()
-     config_results = config.config_list(websvc,{})
-     if not config_results.ok():
-         raise ShadowManagerException(comment="config retrieval failed")
-     shadow_config = config_results.data
-
-     print NOW_CONFIGURING % config.CONFIG_FILE
-
-     settings["server"] = shadow_config["this_server"]["address"]
-     settings["next_server"] = shadow_config["this_server"]["address"]
-     # FIXME: load other defaults that the user might want to configure in cobbler
-
-     print NOW_SAVING
-
-     cobbler_api.serialize() 
-
-     print NOW_IMPORTING
-
-     # FIXME
-
-     # read the config entry to find out cobbler's mirror locations
-     for mirror_name in shadow_config["mirrors"]:
-         
-        mirror_url = shadow_config["mirrors"][mirror_name]
-
-        print MIRROR_INFO % (mirror_name, mirror_url)
-        
-
-        # run the cobbler mirror import
-        # FIXME: more of a cobbler issue, but cobbler needs 
-        # to detect rsync failures such as mirrors that are shut down
-        # but don't have any files available.
-
-        cobbler_api.import_tree(None,mirror_url,mirror_name)
-
-        print MIRROR_EXITED
-
-     cobbler_api.serialize()
-
-     # go through the distribution list in cobbler and make shadowmanager distribution entries
-     cobbler_distros = cobbler_api.distros()
-
-     for distro in cobbler_distros:
-        distro_data = distro.to_datastruct()
-        kernel = distro_data["kernel"]
-        initrd = distro_data["initrd"]
-        name   = distro_data["name"]
-        arch   = ARCH_CONVERT[distro_data["arch"].lower()]
-
-        print NOW_ADDING % (name, kernel, initrd, arch)
-
-        # FIXME: this code will generally break on duplicate names, so we really want to do a distribution_list to
-        # see if any exist prior to add.  (can't do a get, because that's id based... kind of prompts a find_by_name
-        # later, most likely)
-
-        add_data =  {
-           "kernel" : kernel,
-           "initrd" : initrd,
-           "name"   : name,
-           "architecture" : arch,
-           "options" : "",
-
-           # this next line doesn't account for the possibility of one kickstart not being enough for different
-           # distros.  If this becomes an issue, I'd recommend Cobbler templating be used for those parts, rather
-           # than having to specify a kickstart file on distro import.  Preferably we keep distro kickstarts
-           # very simple and don't use a lot of fancy features for them, though this could get complicated later.
-           # something to watch.  It may be that the shadowmanager config file needs to specify both the
-           # rsync mirror and the kickstart, though this probably asks a bit too much of the person installing
-           # the app.  Another way to do this (similar to what cobbler does on import) is to look at the
-           # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
-           # directory structure.  See cobbler's action_import.py for that.
-
-           "kickstart" : "/etc/shadowmanager/default.ks",
-           "kickstart_metadata" : ""
-        }
-        print "cobbler distro add: %s" % add_data
-        
+        # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
+        # the server field might have changed.
 
         try:
-            distribution.distribution_add(websvc,add_data)
-        except SQLException, se:
-            # if running import again to acquire new distros, the add could result in a duplicate data item.
-            # this allows for such problems, as caught by the UNIQUE constraint on the distro name.       
-            # note that if this happens, we can't delete and re-add as other things might be depending on the distro.
-            # though there shouldn't be any fields we want to change.  As a result, we'll just ignore the error
-            # if it's one from the SQL insert, which is normally tested to work.  Other exceptions need to go through.
-            pass  
+            cobbler_api = cobbler.api.BootAPI()
+            cobbler_distros  = cobbler_api.distros()
+            cobbler_profiles = cobbler_api.profiles()
+            cobbler_systems  = cobbler_api.systems()
+            cobbler_distros.clear()
+            cobbler_profiles.clear()
+            cobbler_systems.clear()
 
-        # don't have to delete the cobbler distribution entries as they are going to be rewritten
-        # on provisioning_sync (with similar data)
+            # cobbler can/will could raise exceptions on failure at any point...
+            # return code checking is not needed.
+            for d in distributions:
+                print "- distribution: %s" % d
+                CobblerTranslatedDistribution(cobbler_api,d)
+            for i in images:
+                print "- image: %s" % i
+                CobblerTranslatedProfile(cobbler_api,distributions,i)
+            for p in machines:
+                print "- machine: %s" % p
+                CobblerTranslatedSystem(cobbler_api,deployments,images,p)
+            cobbler_api.serialize()
+            cobbler_api.sync(dryrun=False)
+        except:
+            traceback.print_exc()
+            lock.release()
+            raise codes.UncaughtException(traceback=traceback.format_exc())
 
 
-     # now the records are in the table, and we won't be reading cobbler config data again ...
-     # we'll just be writing it.  The distribution bootstrapping is complete.
+        lock.release()
+        return success()
 
-     print FINISHED
 
-     lock.release()
-     return success()
+   def init(self, prov_args):
 
-#--------------------------------------------------------------------
+        """
+        Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
+        """
 
-def register_rpc(handlers): 
-    handlers["provisioning_init"]   = provisioning_init
-    handlers["provisioning_sync"]   = provisioning_sync
+        ARCH_CONVERT = {
+           "x86"    : codes.ARCH_X86,
+           "x86_64" : codes.ARCH_X86_64,
+           "ia64"   : codes.ARCH_IA64
+        }
+
+        lock = threading.Lock()
+        lock.acquire()
+
+        if os.getuid() != 0:
+
+            print ENOROOT 
+
+
+        # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
+        cobbler_api = cobbler.api.BootAPI()
+        settings = cobbler_api.settings().to_datastruct()
+        config_obj = config_data.Config()
+        shadow_config = config_obj.get()
+
+        # FIXME: probably should just except on config read failures
+#        if not config_results.ok():
+#            raise ShadowManagerException(comment="config retrieval failed")
+#        shadow_config = config_results.data
+
+        print NOW_CONFIGURING % config_data.CONFIG_FILE
+
+        settings["server"] = shadow_config["this_server"]["address"]
+        settings["next_server"] = shadow_config["this_server"]["address"]
+        # FIXME: load other defaults that the user might want to configure in cobbler
+
+        print NOW_SAVING
+
+        cobbler_api.serialize() 
+
+        print NOW_IMPORTING
+
+        # FIXME
+
+        # read the config entry to find out cobbler's mirror locations
+        for mirror_name in shadow_config["mirrors"]:
+
+           mirror_url = shadow_config["mirrors"][mirror_name]
+
+           print MIRROR_INFO % (mirror_name, mirror_url)
+
+
+           # run the cobbler mirror import
+           # FIXME: more of a cobbler issue, but cobbler needs 
+           # to detect rsync failures such as mirrors that are shut down
+           # but don't have any files available.
+
+           cobbler_api.import_tree(None,mirror_url,mirror_name)
+
+           print MIRROR_EXITED
+
+        cobbler_api.serialize()
+
+        # go through the distribution list in cobbler and make shadowmanager distribution entries
+        cobbler_distros = cobbler_api.distros()
+
+        for distro in cobbler_distros:
+           distro_data = distro.to_datastruct()
+           kernel = distro_data["kernel"]
+           initrd = distro_data["initrd"]
+           name   = distro_data["name"]
+           arch   = ARCH_CONVERT[distro_data["arch"].lower()]
+
+           print NOW_ADDING % (name, kernel, initrd, arch)
+
+           # FIXME: this code will generally break on duplicate names, so we really want to do a distribution_list to
+           # see if any exist prior to add.  (can't do a get, because that's id based... kind of prompts a find_by_name
+           # later, most likely)
+
+           add_data =  {
+              "kernel" : kernel,
+              "initrd" : initrd,
+              "name"   : name,
+              "architecture" : arch,
+              "options" : "",
+
+              # this next line doesn't account for the possibility of one kickstart not being enough for different
+              # distros.  If this becomes an issue, I'd recommend Cobbler templating be used for those parts, rather
+              # than having to specify a kickstart file on distro import.  Preferably we keep distro kickstarts
+              # very simple and don't use a lot of fancy features for them, though this could get complicated later.
+              # something to watch.  It may be that the shadowmanager config file needs to specify both the
+              # rsync mirror and the kickstart, though this probably asks a bit too much of the person installing
+              # the app.  Another way to do this (similar to what cobbler does on import) is to look at the
+              # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
+              # directory structure.  See cobbler's action_import.py for that.
+
+              "kickstart" : "/etc/shadowmanager/default.ks",
+              "kickstart_metadata" : ""
+           }
+           print "cobbler distro add: %s" % add_data
+
+
+           try:
+               distribution.distribution_add(websvc,add_data)
+           except SQLException, se:
+               # if running import again to acquire new distros, the add could result in a duplicate data item.
+               # this allows for such problems, as caught by the UNIQUE constraint on the distro name.       
+               # note that if this happens, we can't delete and re-add as other things might be depending on the distro.
+               # though there shouldn't be any fields we want to change.  As a result, we'll just ignore the error
+               # if it's one from the SQL insert, which is normally tested to work.  Other exceptions need to go through.
+               pass  
+
+           # don't have to delete the cobbler distribution entries as they are going to be rewritten
+           # on provisioning_sync (with similar data)
+
+
+        # now the records are in the table, and we won't be reading cobbler config data again ...
+        # we'll just be writing it.  The distribution bootstrapping is complete.
+
+        print FINISHED
+
+        lock.release()
+        return success()
+
+
+methods = Provisioning()
+register_rpc = methods.register_rpc
+

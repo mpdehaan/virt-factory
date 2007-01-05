@@ -14,9 +14,12 @@
 ##
 
 from codes import *
-import baseobj
 
-import config
+import baseobj
+import config_data
+
+
+from pysqlite2 import dbapi2 as sqlite
 
 import logging
 import os
@@ -28,9 +31,16 @@ import traceback
 class WebSvc(object):
     def __init__(self):
 
-        config_result = config.config_list()
-        self.config = config_result.data
+        config_obj = config_data.Config()
+        config_result = config_obj.get()
+        self.config = config_result
+        self.dbpath = self.config["databases"]["primary"]
         self.__init_log()
+        self.__init_sql()
+
+    def __init_sql(self):
+        self.connection = self.sqlite_connect()
+        self.cursor = self.connection.cursor()
         
     def __init_log(self):
         # lets see what happens when we c&p the stuff from shadow.py 
@@ -45,6 +55,15 @@ class WebSvc(object):
         for meth in self.methods:
             print meth
             handlers[meth] = self.methods[meth]
+
+    def sqlite_connect(self):
+      """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
+      
+      current = os.getcwd() 
+      os.chdir(os.path.dirname(self.dbpath))
+      conn = sqlite.connect(os.path.basename(self.dbpath))
+      os.chdir(current)
+      return conn 
 
 
 class AuthWebSvc(WebSvc):
