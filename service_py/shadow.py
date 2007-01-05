@@ -14,7 +14,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import SimpleXMLRPCServer
-import logging
 import os
 import subprocess
 import time
@@ -32,6 +31,7 @@ SERVE_ON = (None,None)
 from codes import *
 
 import config_data
+import logger
 
 from modules import config
 from modules import deployment
@@ -72,15 +72,13 @@ class XmlRpcInterface:
 
        self.tables = {}
        self.tokens = []
+
+       self.logger = logger.Logger().logger
+
        self.__setup_handlers()
        self.connection = self.sqlite_connect()
        self.cursor = self.connection.cursor()
-       self.logger = logging.getLogger("svc")
-       handler = logging.FileHandler(self.config["logs"]["service"], "a")
-       formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-       handler.setFormatter(formatter)
-       self.logger.addHandler(handler)
-       self.logger.setLevel(logging.DEBUG)
+       
 
    def sqlite_connect(self):
       """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
@@ -91,7 +89,6 @@ class XmlRpcInterface:
       os.chdir(current)
       return conn 
    
-       
    def __setup_handlers(self):
       """
        Add RPC functions from each class to the global list so they can be called.
@@ -100,6 +97,7 @@ class XmlRpcInterface:
       self.handlers = {}
       for x in [user,machine,image,deployment,distribution,config,provisioning, registration]:
          x.register_rpc(self.handlers)
+         self.logger.debug("adding %s" % x)
          
          # FIXME: find some more elegant way to surface the handlers?
          # FIXME: aforementioned login/session token requirement
@@ -161,14 +159,19 @@ class XmlRpcInterface:
       # FIXME: eventually, this will be all of self.handlers 
       if method in self.handlers:
          mh = self.handlers[method]
-         print mh
+         self.logger.debug("methods: %s params: %s" % (method, params))
+         print mh, method
          rc = mh(*params)
+         self.logger.debug("return code: %s" % rc)
          # FIXME: I really don't like this for some reason.
          # parse out the SuccessExpection, and return data in some
          # format that the client likes. I'd really like to see the methods
          # return data in the correct format directly. It's a bit more duplicated
          # code, but I think it makes it much easier to see whats going on. 
          return rc.to_datastruct()
+      else:
+         print "method: ", method
+         print "params: ", params
 
 
    def __dispatch(self, method, token, dispatch_args=[]):
