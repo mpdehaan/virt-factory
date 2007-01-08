@@ -50,6 +50,16 @@ class BaseObject(object):
       """
       raise exceptions.NotImplementedError
 
+   def deserialize(self, need_fields, args):
+      for x in need_fields:
+         setattr(self, x, args[x])
+
+   def serialize(self, need_fields):
+      result = {}
+      for x in need_fields:
+         result[x] = getattr(self, x, None)
+      return result
+
    def remove_nulls(self, x):
        """
        If any entries are None in the datastructure, prune them.
@@ -89,3 +99,4 @@ class BaseObject(object):
             if letter not in string.printable:
                 return False
         return True
+

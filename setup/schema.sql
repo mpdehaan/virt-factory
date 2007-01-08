@@ -1,3 +1,13 @@
+CREATE TABLE actions (
+   id INTEGER PRIMARY KEY,
+   machine_id INTEGER,
+   deployment_id INTEGER,
+   user_id INTEGER,
+   operation INTEGER,
+   parameters VARCHAR,
+   state INTEGER,
+   time INTEGER
+);
 
 CREATE TABLE users (
    id INTEGER PRIMARY KEY,

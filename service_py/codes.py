@@ -19,35 +19,36 @@ import sys
 import traceback
 
 # internal codes for the types of operations (used by validation logic)
-OP_ADD = 101
-OP_EDIT = 102
-OP_DELETE = 103
-OP_LIST = 104
-OP_METHOD = 105
-OP_GET = 106
+OP_ADD = "add"
+OP_EDIT = "edit"
+OP_DELETE = "delete"
+OP_LIST = "list"
+OP_METHOD = "method"
+OP_GET = "get"
 
 # error codes for the web service.
-SUCCESS = ERR_SUCCESS = 0
-ERR_TOKEN_EXPIRED = 1
-ERR_TOKEN_INVALID = 2
-ERR_USER_INVALID  = 3
-ERR_PASSWORD_INVALID = 4
-ERR_INTERNAL_ERROR = 5 
-ERR_INVALID_ARGUMENTS = 6
-ERR_NO_SUCH_OBJECT = 7
-ERR_ORPHANED_OBJECT = 8
-ERR_SQL = 9
-ERR_MISCONFIGURED = 10
-ERR_INVALID_METHOD = 11
-ERR_UNCAUGHT = 999
+SUCCESS = ERR_SUCCESS = "success"
+ERR_TOKEN_EXPIRED = "expired"
+ERR_TOKEN_INVALID = "token_invalid"
+ERR_USER_INVALID  = "user_invalid"
+ERR_PASSWORD_INVALID = "password_invalid"
+ERR_INTERNAL_ERROR = "internal_error"
+ERR_INVALID_ARGUMENTS = "invalid_arguments"
+ERR_NO_SUCH_OBJECT = "no_such_object"
+ERR_ORPHANED_OBJECT = "orphaned_object"
+ERR_SQL = "sql"
+ERR_MISCONFIGURED = "misconfigured"
+ERR_UNCAUGHT = "uncaught_exception"
+ERR_INVALID_METHOD = "invalid_method"
 
 # architecture field for machines and images
-ARCH_X86 = 200
-ARCH_X86_64 = 201
-ARCH_IA64 = 202
+ARCH_X86 = "x86"
+ARCH_X86_64 = "x86_64"
+ARCH_IA64 = "ia64"
 VALID_ARCHS = [ ARCH_X86, ARCH_X86_64, ARCH_IA64 ]
 
 # used to convert to cobbler values
+# FIXME: apparently it's 1:1 now, so this is redundant
 COBBLER_ARCH_MAPPING = {
    ARCH_X86    : "x86",
    ARCH_X86_64 : "x86_64",
@@ -55,9 +56,9 @@ COBBLER_ARCH_MAPPING = {
 }
 
 # image valid_targets field 
-IMAGE_IS_VIRT = 301
-IMAGE_IS_BAREMETAL = 302
-IMAGE_IS_EITHER = 303
+IMAGE_IS_VIRT = "is_virt"
+IMAGE_IS_BAREMETAL = "is_baremetal"
+IMAGE_IS_EITHER = "is_either"
 VALID_TARGETS = [ IMAGE_IS_VIRT, IMAGE_IS_BAREMETAL, IMAGE_IS_EITHER ]
 
 # machine is_container values
@@ -66,13 +67,39 @@ MACHINE_IS_NOT_CONTAINER = 0
 VALID_CONTAINERS = [ MACHINE_IS_CONTAINER, MACHINE_IS_NOT_CONTAINER ]
 
 # failure codes for invalid arguments
-REASON_NONE  = 400
-REASON_RANGE = 401
-REASON_ID = 402
-REASON_TYPE = 403
-REASON_REQUIRED = 404
-xREASON_FORMAT = 405
-REASON_NOFILE = 406
+REASON_NONE  = "no_reason"
+REASON_RANGE = "range"
+REASON_ID = "id"
+REASON_TYPE = "type"
+REASON_REQUIRED = "required"
+REASON_FORMAT = "format"
+REASON_NOFILE = "no_file"
+
+# operations types for queued actions
+ACTION_TYPE_PROVISIONING_COBBLER_SYNC = "cobbler_sync"
+ACTION_TYPE_PROVISIONING_INSTALL_METAL = "install_metal"
+ACTION_TYPE_PROVISIONING_INSTALL_VIRT = "install_virt"
+ACTION_TYPE_PROVISIONING_PUPPET_SYNC = "puppet_sync"
+VALID_ACTION_TYPES = [
+   ACTION_TYPE_PROVISIONING_COBBLER_SYNC,
+   ACTION_TYPE_PROVISIONING_INSTALL_METAL,
+   ACTION_TYPE_PROVISIONING_INSTALL_VIRT,
+   ACTION_TYPE_PROVISIONING_PUPPET_SYNC
+]
+
+# states for queued actions
+ACTION_STATE_QUEUED = "queued"
+ACTION_STATE_RUNNING = "running"
+ACTION_STATE_PAUSED = "paused"
+ACTION_STATE_FAILED = "failed"
+ACTION_STATE_FINISHED = "finished"
+VALID_ACTION_STATES = [
+   ACTION_STATE_QUEUED,
+   ACTION_STATE_RUNNING,
+   ACTION_STATE_PAUSED,
+   ACTION_STATE_FAILED,
+   ACTION_STATE_FINISHED
+]
 
 class ShadowManagerException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR
