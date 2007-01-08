@@ -146,7 +146,7 @@ class XmlRpcInterface:
             self.logger.debug("Exception value: %s" % sys.exc_value)
             self.logger.debug("%s" % e.format())
             raise
-         self.logger.debug("return code: %s" % rc)
+         self.logger.debug("return code for %s: %s" % (method, rc))
          # FIXME: I really don't like this for some reason.
          # parse out the SuccessExpection, and return data in some
          # format that the client likes. I'd really like to see the methods

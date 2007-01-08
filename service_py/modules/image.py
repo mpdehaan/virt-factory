@@ -149,7 +149,11 @@ class ImageData(baseobj.BaseObject):
 
 class Image(web_svc.AuthWebSvc):
     def __init__(self):
-        self.methods = {"image_add": self.add}
+        self.methods = {"image_add": self.add,
+                        "image_edit": self.edit,
+                        "image_delete": self.delete,
+                        "image_get": self.get,
+                        "image_list": self.list}
         web_svc.AuthWebSvc.__init__(self)
 
 
