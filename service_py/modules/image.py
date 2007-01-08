@@ -153,7 +153,7 @@ class Image(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
 
 
-    def add(self,image_args):
+    def add(self, token, image_args):
          """
          Create a image.  image_args should contain all fields except ID.
          """
@@ -200,7 +200,7 @@ class Image(web_svc.AuthWebSvc):
         self.provisioning.sync( {} )
 
 
-    def edit(self,image_args):
+    def edit(self, token, image_args):
          """
          Edit a image.  image_args should contain all fields that need to
          be changed.
@@ -225,7 +225,7 @@ class Image(web_svc.AuthWebSvc):
          return success(u.to_datastruct(True))
 
 
-    def delete(self,image_args):
+    def delete(self, token, image_args):
          """
          Deletes a image.  The image_args must only contain the id field.
          """
@@ -270,7 +270,7 @@ class Image(web_svc.AuthWebSvc):
          return success()
 
 
-    def list(self,image_args):
+    def list(self, token, image_args):
          """
          Return a list of images.  The image_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
@@ -354,7 +354,7 @@ class Image(web_svc.AuthWebSvc):
          return success(images)
 
 
-    def get(self, image_args):
+    def get(self, token, image_args):
          """
          Return a specific image record.  Only the "id" is required in image_args.
          """

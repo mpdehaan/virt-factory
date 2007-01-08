@@ -134,7 +134,7 @@ class Distribution(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
 
 
-    def add(self,dist_args):
+    def add(self, token, dist_args):
          """
          Create a distribution.  dist_args should contain all distribution fields except ID.
          """
@@ -182,7 +182,7 @@ class Distribution(web_svc.AuthWebSvc):
             self.provisioning = provisioning.Provisioning()
         self.provisioning.sync( {} )
         
-    def edit(self,dist_args): 
+    def edit(self, token, dist_args): 
 
          u = DistributionData.produce(dist_args,OP_EDIT)
 
@@ -206,7 +206,7 @@ class Distribution(web_svc.AuthWebSvc):
          return success(ds)
 
 
-    def delete(self,dist_args):
+    def delete(self, token, dist_args):
 
          st = """
          SELECT images.id FROM images, distributions WHERE
@@ -230,7 +230,7 @@ class Distribution(web_svc.AuthWebSvc):
          return success()
 
 
-    def list(self,dist_args):
+    def list(self, token, dist_args):
          """
          Return a list of distributions.  The dist_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
@@ -276,7 +276,7 @@ class Distribution(web_svc.AuthWebSvc):
          return success(distributions)
 
 
-    def get(self, dist_args):
+    def get(self, token, dist_args):
          """
          Return a specific distribution record.  Only the "id" is required in dist_args.
          """

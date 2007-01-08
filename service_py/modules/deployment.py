@@ -111,7 +111,7 @@ class Deployment(web_svc.AuthWebSvc):
         self.image = image.Image()
                         
 
-    def add(self,deployment_dep_args):
+    def add(self, token, deployment_dep_args):
          """
          Create a deployment.  deployment_dep_args should contain all fields except ID.
          """
@@ -151,7 +151,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          return success(rowid)
 
-    def edit(self,deployment_dep_args):
+    def edit(self, token, deployment_dep_args):
          """
          Edit a deployment.  deployment_dep_args should contain all fields that need to
          be changed.
@@ -181,7 +181,7 @@ class Deployment(web_svc.AuthWebSvc):
          return success(u.to_datastruct(True))
 
 
-    def delete(self,deployment_dep_args):
+    def delete(self, token, deployment_dep_args):
          """
          Deletes a deployment.  The deployment_dep_args must only contain the id field.
          """
@@ -203,7 +203,7 @@ class Deployment(web_svc.AuthWebSvc):
          return success()
 
 
-    def list(self, deployment_dep_args):
+    def list(self, token, deployment_dep_args):
          """
          Return a list of deployments.  The deployment_dep_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
@@ -306,7 +306,7 @@ class Deployment(web_svc.AuthWebSvc):
          return success(deployments)
 
 
-    def get(self, deployment_dep_args):
+    def get(self, token, deployment_dep_args):
          """
          Return a specific deployment record.  Only the "id" is required in deployment_dep_args.
          """

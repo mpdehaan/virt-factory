@@ -48,7 +48,6 @@ class WebSvc(object):
     
     def register_rpc(self, handlers):
         for meth in self.methods:
-            print meth
             handlers[meth] = self.methods[meth]
 
     def sqlite_connect(self):
@@ -62,11 +61,11 @@ class WebSvc(object):
 
 
 class AuthWebSvc(WebSvc):
+    tokens = []
     def __init__(self):
-        self.tokens = []
         WebSvc.__init__(self)
 
-    def token_check(self, token):
+    def token_check1(self, token):
         return 1
 
     # FIXME: not sure if those code make anysense to me. It seems to be

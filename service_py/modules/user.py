@@ -24,6 +24,7 @@ import web_svc
 import os
 import base64
 import threading
+import time
 import traceback
 
 class UserData(baseobj.BaseObject):
@@ -99,51 +100,16 @@ class UserData(baseobj.BaseObject):
 
 class User(web_svc.AuthWebSvc):
     def __init__(self):
-        self.methods = {"user_login": self.login,
-                        "user_add": self.add,
+        self.methods = {"user_add": self.add,
                         "user_edit": self.edit,
                         "user_delete": self.delete,
                         "user_list": self.list,
-                        "user_get": self.get}
+                        "user_get": self.get,}
+
         web_svc.AuthWebSvc.__init__(self)
 
-    def login(self, username, password):
-         """
-         Try to log in user with (user,password) and return a token, or raise
-         UserInvalidException or PasswordInvalidException on error.
-         """
-         # this method is the exception to the rule and doesn't do object validation.
-         # login is the only special method like this in the whole API.  It's also
-         # the only method that doesn't take a hash for a parameter, though this
-         # should probably change for consistancy.
-         st = """
-         SELECT id, password FROM users WHERE username=:username
-         """
 
-         if not os.path.exists("/var/lib/shadowmanager/settings"):
-             # the app isn't configured.  What this means is that there are (at minimum) no
-             # distributions configured and it's basically unusuable.  The WUI here should
-             # show a simple splash screen saying the service isn't configured and that the
-             # user needs to run two steps on the server.  "shadow init" to create the
-             # default config and "shadow import" to import distributions.  Once this is done
-             # they will be able to reload and use the WUI,
-             raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
-
-         self.cursor.execute(st, { "username" : username })
-         results = self.cursor.fetchone()
-         if results is None:
-             raise UserInvalidException(comment=username)
-         elif results[1] != password:
-             raise PasswordInvalidException(comment=username)
-         else:
-             urandom = open("/dev/urandom")
-             token = base64.b64encode(urandom.read(100)) 
-             urandom.close()
-
-         print "token", token
-         return success(data=token)
-
-    def add(self, user_args):
+    def add(self, token, user_args):
          """
          Create a user.  user_args should contain all user fields except ID.
          """
@@ -165,7 +131,7 @@ class User(web_svc.AuthWebSvc):
          lock.release()
          return success(rowid)
 
-    def edit(self, user_args):
+    def edit(self, token, user_args):
          """
          Edit a user.  user_args should contain all user fields that need to
          be changed.
@@ -193,7 +159,7 @@ class User(web_svc.AuthWebSvc):
      # FIXME: don't allow delete if only 1 user left
      # FIXME: consider an undeletable but modifiable admin user
 
-    def delete(self,user_args):
+    def delete(self, token, user_args):
          """
          Deletes a user.  The user_args must only contain the id field.
          """
@@ -206,7 +172,7 @@ class User(web_svc.AuthWebSvc):
          # FIXME: failure based on existance
          return success()
 
-    def list(self,user_args):
+    def list(self, token, user_args):
          """
          Return a list of users.  The user_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
@@ -239,7 +205,7 @@ class User(web_svc.AuthWebSvc):
              users.append(UserData.produce(data).to_datastruct(True))
          return success(users)
 
-    def get(self,user_args):
+    def get(self, token, user_args):
          """
          Return a specific user record.  Only the "id" is required in user_args.
          """
@@ -263,7 +229,7 @@ class User(web_svc.AuthWebSvc):
          }
          return success(UserData.produce(data).to_datastruct(True))
 
-
+ 
 methods = User()
 register_rpc = methods.register_rpc
 

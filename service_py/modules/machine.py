@@ -36,11 +36,8 @@ class MachineData(baseobj.BaseObject):
         """
 
         self = MachineData()
-        print "gh 10"
         self.from_datastruct(machine_args)
-        print "gh 20"
         self.validate(operation)
-        print "MachineData.produce", self
         return self
 
     produce = classmethod(_produce)
@@ -97,20 +94,16 @@ class MachineData(baseobj.BaseObject):
             except:
                 invalid_args["id"] = REASON_FORMAT
 
-        print "gh 30"
         if operation in [OP_ADD, OP_EDIT]:
 
-           print "gh 40" 
            # address is valid (need an RFC compliant module to do this right)
            if not self.is_printable(self.address):
                invalid_args["address"] = REASON_FORMAT
 
-           print "gh 50"
            # architecture is one of the listed arches
            if not self.architecture in VALID_ARCHS:
                invalid_args["architecture"] = REASON_RANGE
 
-           print "gh 60"
            # processor speed is a positive int
            if not type(self.processor_speed) == int and self.processor_speed > 0:
                invalid_args["processor_speed"] = REASON_FORMAT
@@ -119,7 +112,6 @@ class MachineData(baseobj.BaseObject):
            if not type(self.processor_count) == int and self.processor_count > 0:
                invalid_args["processor_count"] = REASON_FORMAT
 
-           print "gh 100"
            # memory is a positive int
            if not type(self.memory) == int and self.memory > 0:
                invalid_args["memory"] = REASON_FORMAT
@@ -133,7 +125,6 @@ class MachineData(baseobj.BaseObject):
            # list group is printable or None
            if self.list_group is not None and not self.is_printable(self.list_group):
                invalid_args["list_group"] = REASON_FORMAT
-           print "gh 200"
 
         if len(invalid_args) > 0:
             print invalid_args
@@ -150,7 +141,6 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_get": self.get}
         web_svc.AuthWebSvc.__init__(self)
 
-        print "image", image
 
 
     def add(self, token, args):
@@ -158,7 +148,6 @@ class Machine(web_svc.AuthWebSvc):
        Create a machine.  machine_args should contain all fields except ID.
        """
 
-       print "gh1", args
 #       self.token_check(token)
        u = MachineData.produce(args,OP_ADD)
        
@@ -189,22 +178,18 @@ class Machine(web_svc.AuthWebSvc):
        :image_id)
        """
 
-       print "foobar", 
        u = MachineData.produce(args,OP_ADD)
        if u.image_id is not None:
            try:
                self.image = image.Image()
-               print "self.image", self.image
-               print "u.image_id", u.image_id
                self.image.get( { "id" : u.image_id } )
            except ShadowManagerException:
-               print "gh Orphaned"
                raise OrphanedObjectException(comment="image_id")
 
        lock = threading.Lock()
        lock.acquire()
 
-       print "gh 425"
+
        try:
            self.cursor.execute(st, u.to_datastruct())
            self.connection.commit()
@@ -213,13 +198,11 @@ class Machine(web_svc.AuthWebSvc):
            lock.release()
            raise SQLException(traceback=traceback.format_exc())
 
-       print "gh 500"
        rowid = self.cursor.lastrowid
        lock.release() 
 
        self.__provisioning_sync()
 
-       print "rowid", rowid
        return rowid
 
     def __provisiong_sync(self):
@@ -227,7 +210,7 @@ class Machine(web_svc.AuthWebSvc):
             self.provisioning = provisioning.Provisioning()
             self.provisioning.sync( {} )
            
-    def edit(self,machineargs):
+    def edit(self, token, machineargs):
          """
          Edit a machine.
          """
@@ -264,7 +247,7 @@ class Machine(web_svc.AuthWebSvc):
          return success(u.to_datastruct(True))
 
 
-    def delete(self, machine_args):
+    def delete(self, token, machine_args):
          """
          Deletes a machine.  The machine_args must only contain the id field.
          """
@@ -298,7 +281,7 @@ class Machine(web_svc.AuthWebSvc):
          return success()
 
 
-    def list(self, machine_args):
+    def list(self, token, machine_args):
          """
          Return a list of machines.  The machine_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
@@ -386,7 +369,7 @@ class Machine(web_svc.AuthWebSvc):
          return success(machines)
 
 
-    def get(self, machine_args):
+    def get(self, token, machine_args):
          """
          Return a specific machine record.  Only the "id" is required in machine_args.
          """

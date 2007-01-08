@@ -33,6 +33,7 @@ from codes import *
 import config_data
 import logger
 
+from modules import authentication
 from modules import config
 from modules import deployment
 from modules import distribution
@@ -78,6 +79,7 @@ class XmlRpcInterface:
        self.__setup_handlers()
        self.connection = self.sqlite_connect()
        self.cursor = self.connection.cursor()
+       self.auth = authentication.Authentication()
        
 
    def sqlite_connect(self):
@@ -95,53 +97,17 @@ class XmlRpcInterface:
        FIXME: eventually calling most functions should go from here through getattr.
        """
       self.handlers = {}
-      for x in [user,machine,image,deployment,distribution,config,provisioning, registration]:
+      for x in [user, machine,
+                image, deployment,
+                distribution,config,
+                provisioning, registration,
+                authentication]:
          x.register_rpc(self.handlers)
          self.logger.debug("adding %s" % x)
-         
+
          # FIXME: find some more elegant way to surface the handlers?
          # FIXME: aforementioned login/session token requirement
 
-   def user_login(self,username,password):
-      """
-      Wrapper around the user login code in user.py.
-      If login succeeds, create a token and return it to the caller.
-      """
-      self.logger.debug("login attempt: %s" % username)
-      try:
-         login_result = user.user_login(self,username,password)
-         if login_result.error_code == 0:
-            self.tokens.append([login_result.data,time.time()])
-         return login_result.to_datastruct()
-      except ShadowManagerException, e:
-         return e.to_datastruct()
-
-   def token_check(self,token):
-       """
-       Validate that the token passed in to any method call other than user_login
-       is correct, and if not, raise an Exception.  Note that all exceptions are
-       caught in dispatch, so methods give failing return codes rather than XMLRPCFaults.
-       This is a feature, mainly since Rails (and other language bindings) can better
-       grok tracebacks this way.
-       """
-
-       if not os.path.exists("/var/lib/shadowmanager/settings"):
-            x = MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
-            return x.to_datastruct()
-
-       self.logger.debug("token check")
-       now = time.time()
-       for t in self.tokens:
-           # remove tokens older than 1/2 hour
-           if (now - t[1]) > 1800:
-               self.tokens.remove(t)
-               return TokenExpiredException().to_datastruct()
-           if t[0] == token:
-               # update the expiration counter
-               t[1] = time.time()
-               #return SuccessException()
-               return success().to_datastruct()
-       return TokenInvalidException().to_datastruct()
 
    #======================================================
    # lots of wrappers to API functions.  See __dispatch for details.
@@ -161,10 +127,21 @@ class XmlRpcInterface:
          mh = self.handlers[method]
          self.logger.debug("methods: %s params: %s" % (method, params))
          print mh, method
+         
+         if method not in ["user_login", "token_check"]:
+            print "\ncalling self.token_check\n", params
+            self.auth.token_check(params)
+            
          try:
             rc = mh(*params)
          except Exception, e:
             #FIXME: this is a bit lame, but it will help us debug stuff
+            self.logger.debug("Exception occured: %s" % sys.exc_type )
+            self.logger.debug("Exception value: %s" % sys.exc_value)
+            self.logger.debug("%s" % e.format())
+            raise
+         except:
+            self.logger.debug("Not a shadowmanager specific exception")
             self.logger.debug("Exception occured: %s" % sys.exc_type )
             self.logger.debug("Exception value: %s" % sys.exc_value)
             self.logger.debug("%s" % e.format())
@@ -177,6 +154,7 @@ class XmlRpcInterface:
          # code, but I think it makes it much easier to see whats going on.
          return rc.to_datastruct()
       else:
+         print "unhandled method"
          print "method: ", method
          print "params: ", params
 
@@ -199,11 +177,12 @@ class XmlRpcInterface:
        """ 
        self.logger.debug("calling %s, dispatch_=%s" % (method,dispatch_args))
        try:
-           self.token_check(token)
+           self.authentication.token_check(token)
            rc = self.handlers[method](self,dispatch_args)
            return rc.to_datastruct()
        except ShadowManagerException, e:
            return e.to_datastruct()
+
 
 def database_reset():
     """

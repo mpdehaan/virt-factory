@@ -33,7 +33,7 @@ class Registration(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
 
 
-    def add(self, args):
+    def add(self, token, args):
         """
         register a system. Connects an instances with a hostname and mac address
         """
