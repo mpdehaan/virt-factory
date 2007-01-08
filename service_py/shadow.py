@@ -154,10 +154,8 @@ class XmlRpcInterface:
          # code, but I think it makes it much easier to see whats going on.
          return rc.to_datastruct()
       else:
-         print "unhandled method"
-         print "method: ", method
-         print "params: ", params
-
+         self.logger.debug("Got an unhandled method call for method: %s with params: %s" % (method, params))
+         raise codes.InvalidMethodException
 
    def __dispatch(self, method, token, dispatch_args=[]):
        """

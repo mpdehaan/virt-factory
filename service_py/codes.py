@@ -38,6 +38,7 @@ ERR_NO_SUCH_OBJECT = 7
 ERR_ORPHANED_OBJECT = 8
 ERR_SQL = 9
 ERR_MISCONFIGURED = 10
+ERR_INVALID_METHOD = 11
 ERR_UNCAUGHT = 999
 
 # architecture field for machines and images
@@ -179,6 +180,10 @@ class NoSuchObjectException(ShadowManagerException):
    The id passed in doesn't refer to an object.
    """
    error_code = ERR_NO_SUCH_OBJECT
+
+class InvalidMethodException(ShadowManagerException):
+   """The method called does not exist"""
+   error_code = ERR_INVALID_METHOD
 
 class UncaughtException(ShadowManagerException):
    """
