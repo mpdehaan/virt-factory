@@ -62,9 +62,115 @@ class WebSvc(object):
 
 
 class AuthWebSvc(WebSvc):
+
     def __init__(self):
         self.tokens = []
         WebSvc.__init__(self)
+
+    def __validate_foreign_key(self, field_value, field_name, module_instance, null_field_ok=True):
+        """
+        Used to validate foreign key relationships prior to SQL statements.
+        Particularly useful in sqlite, where there are no foreign keys.
+        """
+        if field is None and null_field_ok:
+            return
+        try:
+            # see if there is an object with this ID.
+            module_instance.get({ "id" : field_value})
+        except ShadowManagerException:
+            raise OrphanedObjectException(comment=field_name,traceback=traceback.format_exc())
+
+
+    def __get_limit_parms(self, args):
+         """
+         Extract limit query information from XMLRPC arguments.
+         """
+         offset = 0
+         limit  = 100
+         if args.has_key("offset"):
+            offset = image_args["offset"]
+         if args.has_key("limit"):
+            limit = image_args["limit"]
+         return (offset, limit) 
+
+    def __simple_list(self, args, need_fields, table_name):
+        """
+        Shorthand for writing a select * from foo
+        """
+
+        (offset, limit) = self.__get_limit_parms(args)
+        buf = "SELECT * FROM " + DB_SCHEMA["table"] + " WHERE " + DB_SCHEMA["fields"].join(",") + " LIMIT ?,?"
+        results = self.cursor.execute(st, (offset,limit))
+        results = self.cursor.fetchall()
+ 
+        if results is None:
+             return success()
+
+        data_list = []
+        for x in results:
+            data_hash = dict(zip(need_fields, result))
+            data_list.append(data_hash)
+
+        return success(data)
+
+    def __simple_get(self, args, need_fields, table_name):
+        """
+        Shorthand for writing a one table select.  
+        """
+        buf = "SELECT " + DB_SCHEMA["fields"].join(",") + " FROM " + DB_SCHEMA["table"] + " WHERE id=:id"
+        self.cursor.execute(buf, { "id" : args["id"] })
+        result = self.cursor.fetchone()
+
+        if result is None:
+            raise NoSuchObjectException(comment=table_name)
+
+        data_hash = dict(zip(need_fields, result))
+        return success(data_hash)
+
+    def __simple_edit(self, args):
+        """
+        Shorthand for writing an edit statement.
+        """
+        buf = "UPDATE " + DB_SCHEMA["table"] + " SET "
+        for x in DB_SCHEMA["edit"]:
+            buf = buf + x + "=:" + x
+        buf = buf + " WHERE id=:id"
+        self.cursor.execute(buf, args)
+        self.connection.commit()
+        return success(u.to_datastruct())
+
+    def __simple_add(self, args):
+        """
+        Shorthand for simple insert.
+        """
+
+        buf = "INSERT INTO " + DB_SCHEMA["table"] + "(" + DB_SCHEMA["add"].join(",") + ") "
+        labels = [":%s" for entry in DB_SCHEMA["add"]]
+        buf = buf + "VALUES (" + labels.join(",") + ")"
+
+        lock = threading.lock()
+        lock.acquire() 
+
+        try:
+            self.cursor.execute(buf, args)
+            self.connection.commit()
+        except Exception:
+            lock.release()
+            raise SQLException(traceback=traceback.format_exc())
+         
+        rowid = self.cursor.lastrowid
+        lock.release()
+    
+        return success(rowid)
+
+    def __simple_delete(self,args):
+        """
+        Shorthand for basic delete by id.
+        """
+        buf = "DELETE FROM " + DB_SCHEMA["table"] + " WHERE id=:id" 
+        self.cursor.execute(st, args)
+        self.connection.commit()
+        return success()
 
     def token_check(self, token):
         return 1
@@ -97,4 +203,4 @@ class AuthWebSvc(WebSvc):
                #return SuccessException()
                return success().to_datastruct()
        return TokenInvalidException().to_datastruct()
-    
+   
