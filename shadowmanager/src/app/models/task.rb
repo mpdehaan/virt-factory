@@ -1,7 +1,7 @@
 # Tasks (actually called Actions on the backend, Action is reserved by rails) represent
 # background states for long running tasks.   
 
-class Image < ManagedObject
+class Task < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { 

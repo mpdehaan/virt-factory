@@ -10,22 +10,26 @@ module ApplicationHelper
    # and controller/action pages.  
    # this allows for generation of menus via the menubar calls also in this helper.
    @NAVIGATION = [
-      [ "machine" , [ "list", "edit" ] ],
-      [ "image" , [ "list", "edit" ] ],
+      [ "machine"    , [ "list", "edit" ] ],
+      # FIXME: production will have no image add in the menu (remote it later)
+      [ "image"      , [ "list", "edit" ] ],
       [ "deployment" , [ "list", "edit" ] ],
-      [ "user" , [ "list", "edit", "logout" ] ]
+      # FIXME: production will have no task add in the menu (remove it later)
+      [ "task"       , [ "list", "edit" ] ],
+      [ "user"       , [ "list", "edit", "logout" ] ]
    ]
 
    # FIXME: use better stringification, plans for i18n can come later
    # mapping of URL components to (English) display names.
    @STRINGS = {
-       "machine" => "Machines",
-       "edit" => "Add",
-       "list" => "List",
+       "machine"    => "Machines",
+       "edit"       => "Add",
+       "list"       => "List",
        "deployment" => "Deployments",
-       "user" => "Users",
-       "logout" => "Logout",
-       "image" => "Images"
+       "user"       => "Users",
+       "logout"     => "Logout",
+       "image"      => "Images",
+       "task"       => "Task Queue"
    }
 
    # this renders both the top and bottom menubar.  A call to this menubar function 

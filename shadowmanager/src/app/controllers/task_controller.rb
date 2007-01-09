@@ -12,4 +12,3 @@ class TaskController < AbstractObjectController
    end
 
 end
-~           
