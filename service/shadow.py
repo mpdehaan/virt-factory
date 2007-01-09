@@ -126,10 +126,8 @@ class XmlRpcInterface:
             
          try:
             rc = mh(*params)
-         except Exception, e:
-            #FIXME: this is a bit lame, but it will help us debug stuff
-            self.__log_exc()
-            raise
+         except ShadowManagerException, e:
+            return e.to_datastruct()
          except:
             self.logger.debug("Not a shadowmanager specific exception")
             self.__log_exc()

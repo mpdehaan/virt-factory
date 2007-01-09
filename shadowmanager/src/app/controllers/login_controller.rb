@@ -27,7 +27,7 @@ class LoginController < ApplicationControllerUnlocked
 
       if rc != 0
           # FIXME: look up error codes in string table
-          @flash[:notice] = "Login failed (#{rc}, #{results})."
+          @flash[:notice] = "Login failed (#{ERRORS[rc]})."
           # ask the user to input the fields again 
           # (the right error messages will show up on redirect because of @flash)
           redirect_to :action => "input"
