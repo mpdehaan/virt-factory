@@ -15,7 +15,7 @@ class Image < ManagedObject
                   :virt_ram => {:type => Integer}, 
                   :kickstart_metadata => {:type => String},
                   :kernel_options => {:type => String},
-                  :valid_targets => {:type => Integer},
+                  :valid_targets => {:type => String},
                   :is_container => {:type => Integer} }
                    
     self.set_attrs(ATTR_LIST)
