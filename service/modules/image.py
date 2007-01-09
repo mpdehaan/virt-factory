@@ -194,11 +194,11 @@ class Image(web_svc.AuthWebSvc):
          rowid = self.db.cursor.lastrowid
          lock.release()
 
-         self.__provisioning_sync()
+         self.sync()
          
          return success(rowid)
 
-    def __provisiong_sync(self):
+    def sync(self):
         if not self.provisiong:
             self.provisioning = provisioning.Provisioning()
         self.provisioning.sync( {} )
@@ -224,7 +224,7 @@ class Image(web_svc.AuthWebSvc):
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
-         self.__provisioning_sync({} )
+         self.sync({} )
 
          return success(u.to_datastruct(True))
 
@@ -341,7 +341,7 @@ class Image(web_svc.AuthWebSvc):
              }).to_datastruct(True)
 
              if x[12] is not None and x[12] != -1:
-                 data["distribution"] = distribution.Distribution.produce({
+                 data["distribution"] = distribution.DistributionData.produce({
                      "id"                 : x[12],
                      "kernel"             : x[13],
                      "initrd"             : x[14],

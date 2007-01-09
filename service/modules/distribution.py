@@ -173,11 +173,11 @@ class Distribution(web_svc.AuthWebSvc):
 
          rowid = self.db.cursor.lastrowid
          lock.release()
-         self.__provisioning_sync( {} )
+         self.sync( {} )
 
          return success(rowid)
 
-    def __provisioning_sync(self):
+    def sync(self):
         if not self.provisiong:
             self.provisioning = provisioning.Provisioning()
         self.provisioning.sync( {} )
@@ -201,7 +201,7 @@ class Distribution(web_svc.AuthWebSvc):
          ds = u.to_datastruct()
          self.db.cursor.execute(st, ds)
          self.db.connection.commit()
-         self.__provisioning_sync( {} )
+         self.sync( {} )
 
          return success(ds)
 

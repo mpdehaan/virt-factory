@@ -204,8 +204,8 @@ class CobblerTranslatedSystem:
 
 class Provisioning(web_svc.AuthWebSvc):
    def __init__(self):
-      self.methods = {"provisioning_sync": self.sync,
-                      "provisioning_init": self.init}
+      self.methods = {"sync": self.sync,
+                      "init": self.init}
       web_svc.AuthWebSvc.__init__(self)                      
       
 
@@ -381,7 +381,7 @@ class Provisioning(web_svc.AuthWebSvc):
                pass  
 
            # don't have to delete the cobbler distribution entries as they are going to be rewritten
-           # on provisioning_sync (with similar data)
+           # on sync (with similar data)
 
 
         # now the records are in the table, and we won't be reading cobbler config data again ...
