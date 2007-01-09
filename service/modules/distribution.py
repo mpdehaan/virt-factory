@@ -177,7 +177,7 @@ class Distribution(web_svc.AuthWebSvc):
 
          return success(rowid)
 
-    def __provisiong_sync(self):
+    def __provisioning_sync(self):
         if not self.provisiong:
             self.provisioning = provisioning.Provisioning()
         self.provisioning.sync( {} )
