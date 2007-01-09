@@ -25,9 +25,9 @@ class LoginController < ApplicationControllerUnlocked
       # FIXME: this really needs to be https in the future.
       (rc, results) = @@server.call("user_login",f_username,f_password)
 
-      if not rc == ERR_SUCCESS
+      if rc != 0
           # FIXME: look up error codes in string table
-          @flash[:notice] = "Login failed (#{ERRORS[rc]})."
+          @flash[:notice] = "Login failed (#{rc}, #{results})."
           # ask the user to input the fields again 
           # (the right error messages will show up on redirect because of @flash)
           redirect_to :action => "input"

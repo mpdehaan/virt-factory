@@ -27,19 +27,19 @@ OP_METHOD = "method"
 OP_GET = "get"
 
 # error codes for the web service.
-SUCCESS = ERR_SUCCESS = "success"
-ERR_TOKEN_EXPIRED = "expired"
-ERR_TOKEN_INVALID = "token_invalid"
-ERR_USER_INVALID  = "user_invalid"
-ERR_PASSWORD_INVALID = "password_invalid"
-ERR_INTERNAL_ERROR = "internal_error"
-ERR_INVALID_ARGUMENTS = "invalid_arguments"
-ERR_NO_SUCH_OBJECT = "no_such_object"
-ERR_ORPHANED_OBJECT = "orphaned_object"
-ERR_SQL = "sql"
-ERR_MISCONFIGURED = "misconfigured"
-ERR_UNCAUGHT = "uncaught_exception"
-ERR_INVALID_METHOD = "invalid_method"
+SUCCESS = ERR_SUCCESS = 0
+ERR_TOKEN_EXPIRED     = 1
+ERR_TOKEN_INVALID     = 2
+ERR_USER_INVALID      = 3
+ERR_PASSWORD_INVALID  = 4
+ERR_INTERNAL_ERROR    = 5
+ERR_INVALID_ARGUMENTS = 6
+ERR_NO_SUCH_OBJECT    = 7
+ERR_ORPHANED_OBJECT   = 8
+ERR_SQL               = 9
+ERR_MISCONFIGURED     = 10
+ERR_UNCAUGHT          = 11 
+ERR_INVALID_METHOD    = 12
 
 # architecture field for machines and images
 ARCH_X86 = "x86"
