@@ -105,7 +105,12 @@ class XmlRpcInterface:
    # benefit from cleanup later.
 
 
-
+   def __log_exc(self):
+      (t, v, tb) = sys.exc_info()
+      self.logger.debug("Exception occured: %s" % t )
+      self.logger.debug("Exception value: %s" % v)
+      self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+      
    # the SimpleXMLRPCServer class will call _dispatch if it doesn't
    # find a handler method 
    def _dispatch(self, method, params):
@@ -123,15 +128,11 @@ class XmlRpcInterface:
             rc = mh(*params)
          except Exception, e:
             #FIXME: this is a bit lame, but it will help us debug stuff
-            self.logger.debug("Exception occured: %s" % sys.exc_type )
-            self.logger.debug("Exception value: %s" % sys.exc_value)
-            self.logger.debug("%s" % e.format())
+            self.__log_exc()
             raise
          except:
             self.logger.debug("Not a shadowmanager specific exception")
-            self.logger.debug("Exception occured: %s" % sys.exc_type )
-            self.logger.debug("Exception value: %s" % sys.exc_value)
-            self.logger.debug("%s" % e.format())
+            self.__log_exc()
             raise
          self.logger.debug("return code for %s: %s" % (method, rc.to_datastruct()))
          # FIXME: I really don't like this for some reason.
