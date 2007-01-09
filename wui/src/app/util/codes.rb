@@ -1,15 +1,20 @@
-# FIXME: eventually I want the build system to do this, but for now, it does not.
-# run python codes.py to get more recent constants for this file, and replace
-# the contents below.
+# generated from python's codes.py
 
-# These are constants that the web service can return for various things, or that
-# it expects for input to various function calls.
-
-ARCH_IA64 = 202
-ARCH_X86 = 200
-ARCH_X86_64 = 201
+ACTION_OPERATION_PROVISIONING_COBBLER_SYNC = "cobbler_sync"
+ACTION_OPERATION_PROVISIONING_INSTALL_METAL = "install_metal"
+ACTION_OPERATION_PROVISIONING_INSTALL_VIRT = "install_virt"
+ACTION_OPERATION_PROVISIONING_PUPPET_SYNC = "puppet_sync"
+ACTION_STATE_FAILED = "failed"
+ACTION_STATE_FINISHED = "finished"
+ACTION_STATE_PAUSED = "paused"
+ACTION_STATE_QUEUED = "queued"
+ACTION_STATE_RUNNING = "running"
+ARCH_IA64 = "ia64"
+ARCH_X86 = "x86"
+ARCH_X86_64 = "x86_64"
 ERR_INTERNAL_ERROR = 5
 ERR_INVALID_ARGUMENTS = 6
+ERR_INVALID_METHOD = 12
 ERR_MISCONFIGURED = 10
 ERR_NO_SUCH_OBJECT = 7
 ERR_ORPHANED_OBJECT = 8
@@ -18,24 +23,24 @@ ERR_SQL = 9
 ERR_SUCCESS = 0
 ERR_TOKEN_EXPIRED = 1
 ERR_TOKEN_INVALID = 2
-ERR_UNCAUGHT = 999
+ERR_UNCAUGHT = 11
 ERR_USER_INVALID = 3
-IMAGE_IS_VIRT = 301
-IMAGE_IS_BAREMETAL = 302
-IMAGE_IS_EITHER = 303
+IMAGE_IS_BAREMETAL = "is_baremetal"
+IMAGE_IS_EITHER = "is_either"
+IMAGE_IS_VIRT = "is_virt"
 MACHINE_IS_CONTAINER = 1
 MACHINE_IS_NOT_CONTAINER = 0
-OP_ADD = 101
-OP_DELETE = 103
-OP_EDIT = 102
-OP_GET = 106
-OP_LIST = 104
-OP_METHOD = 105
-REASON_FORMAT = 405
-REASON_ID = 402
-REASON_NONE = 400
-REASON_RANGE = 401
-REASON_REQUIRED = 404
-REASON_TYPE = 403
+OP_ADD = "add"
+OP_DELETE = "delete"
+OP_EDIT = "edit"
+OP_GET = "get"
+OP_LIST = "list"
+OP_METHOD = "method"
+REASON_FORMAT = "format"
+REASON_ID = "id"
+REASON_NOFILE = "no_file"
+REASON_NONE = "no_reason"
+REASON_RANGE = "range"
+REASON_REQUIRED = "required"
+REASON_TYPE = "type"
 SUCCESS = 0
-

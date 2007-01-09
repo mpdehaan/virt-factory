@@ -266,4 +266,8 @@ if __name__ == "__main__":
    for x in sorted(module.__dict__.keys()):
        obj = module.__dict__[x]
        if (type(obj) == int or type(obj) == str) and not x.startswith("__"):
-           print "%s = %s" % (x, obj)
+           if type(obj) == int:
+               print "%s = %s" % (x, obj)
+           else:
+               print "%s = \"%s\"" % (x, obj)
+
