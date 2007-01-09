@@ -32,6 +32,7 @@
 import cobbler.api
 
 from codes import *
+import config_data
 
 import baseobj
 import config
@@ -289,8 +290,7 @@ class Provisioning(web_svc.AuthWebSvc):
         # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
         cobbler_api = cobbler.api.BootAPI()
         settings = cobbler_api.settings().to_datastruct()
-        config_obj = config_data.Config()
-        shadow_config = config_obj.get()
+        shadow_config = self.config
 
         # FIXME: probably should just except on config read failures
 #        if not config_results.ok():
