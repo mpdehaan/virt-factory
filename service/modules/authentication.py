@@ -77,24 +77,30 @@ class Authentication(web_svc.WebSvc):
         grok tracebacks this way.
         """
 
+        # for methods calling other methods, they will inadvertently run token check
+        # more than once, so they can just pass in None.  None is safe because you can't
+        # send it over XMLRPC.
+        # FIXME -- is this true, should not be going through dispatch then.
+
+        if token is None:
+            return SuccessException()
         
         if not os.path.exists("/var/lib/shadowmanager/settings"):
-            x = MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
-            return x.to_datastruct()
+            raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
 
-        self.logger.debug("token check, token: %s giventoken: %s" % (self.tokens, token))
+        self.logger.debug("self.tokens: %s" % self.tokens)
+        self.logger.debug("token: %s" % type(token))
         now = time.time()
         for t in self.tokens:
             # remove tokens older than 1/2 hour
             if (now - t[1]) > 1800:
                 self.tokens.remove(t)
-                return TokenExpiredException().to_datastruct()
+                raise TokenExpiredException()
             if t[0] == token:
                 # update the expiration counter
                 t[1] = time.time()
                 return SuccessException()
-                #return success().to_datastruct()
-        return TokenInvalidException().to_datastruct()
+        raise TokenInvalidException()
    
 
 

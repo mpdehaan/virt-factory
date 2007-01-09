@@ -117,14 +117,15 @@ class XmlRpcInterface:
       # FIXME: eventually, this will be all of self.handlers 
       if method in self.handlers:
          mh = self.handlers[method]
+         self.logger.debug("(X) -------------------------------------------")
          self.logger.debug("methods: %s params: %s" % (method, params))
          
-         if method not in ["user_login", "token_check"]:
-            self.auth.token_check(params)
-
          try:
+            if method not in ["user_login", "token_check"]:
+               self.auth.token_check(params[0])
             rc = mh(*params)
          except ShadowManagerException, e:
+            self.__log_exc()
             return e.to_datastruct()
          except:
             self.logger.debug("Not a shadowmanager specific exception")
