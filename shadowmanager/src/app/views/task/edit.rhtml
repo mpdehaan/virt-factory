@@ -12,31 +12,61 @@
       <TABLE BORDER=0>
          <TR>
             <TD>Machine</TD>
-            <TD><%= :machine %></TD>
+            <TD><%= if @operation == "Add"
+                        f.select :machine_id, @machines
+                    else
+                        @item.machine.name if @item.machine
+                    end %>
+            </TD>
          </TR>
          <TR> 
             <TD>Deployment</TD>
-            <TD><%= :deployment %></TD>
-         </TR>
-         <TR> 
-            <TD>User</TD>
-            <TD><%= :user %></TD>
-         </TR>
-         <TR> 
-            <TD>Operation</TD>
-            <TD><%= :operation %></TD>
-         </TR>
-         <TR> 
-            <TD>Parameters</TD>
-            <TD><%= :parameters %></TD>
+            <TD><%= if @operation == "Add"
+                        f.select :deployment_id, @deployment
+                    else
+                        @item.deployment.name if @item.deployment
+                    end
+                %>
+            </TD>
          </TR>
          <TR> 
             <TD>State</TD>
-            <TD><%= f.text_field :state %></TD>
+            <%# FIXME: different types of valid states depending on add vs. edit %>
+            <TD><%= f.select :state, @states %></TD>
+         </TR>
+         <TR> 
+            <TD>Operation</TD>
+            <TD><%= if @operation == "Add"
+                       f.select :operation, @operations
+                    else
+                       @item.operation
+                    end
+                %>
+            </TD>
+         </TR>
+         <TR> 
+            <TD>Parameters</TD>
+            <TD><%= if @operation == "Add"
+                       f.text_field :parameters 
+                    else
+                       @item.parameters
+                    end    
+                 %>
+            </TD>
+         </TR>
+         <TR> 
+            <TD>State</TD>
+            <TD><%= f.select :state, @states %></TD>
          </TR>
          <TR> 
             <TD>Time</TD>
-            <TD><%= :time %></TD>
+            <TD><%= if @opeartion == "Add"
+                        now
+                    else
+                        @item.time
+                    end
+                 %>
+            </TD>
          </TR>
          <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>
@@ -45,4 +75,4 @@
       <% end %>
       </div>
 
-      <% @callout_1 = @operation + " a user" %>
+      <% @callout_1 = @operation + " a task" %>

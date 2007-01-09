@@ -76,15 +76,15 @@ REASON_FORMAT = "format"
 REASON_NOFILE = "no_file"
 
 # operations types for queued actions
-ACTION_TYPE_PROVISIONING_COBBLER_SYNC = "cobbler_sync"
-ACTION_TYPE_PROVISIONING_INSTALL_METAL = "install_metal"
-ACTION_TYPE_PROVISIONING_INSTALL_VIRT = "install_virt"
-ACTION_TYPE_PROVISIONING_PUPPET_SYNC = "puppet_sync"
-VALID_ACTION_TYPES = [
-   ACTION_TYPE_PROVISIONING_COBBLER_SYNC,
-   ACTION_TYPE_PROVISIONING_INSTALL_METAL,
-   ACTION_TYPE_PROVISIONING_INSTALL_VIRT,
-   ACTION_TYPE_PROVISIONING_PUPPET_SYNC
+ACTION_OPERATION_PROVISIONING_COBBLER_SYNC = "cobbler_sync"
+ACTION_OPERATION_PROVISIONING_INSTALL_METAL = "install_metal"
+ACTION_OPERATION_PROVISIONING_INSTALL_VIRT = "install_virt"
+ACTION_OPERATION_PROVISIONING_PUPPET_SYNC = "puppet_sync"
+VALID_ACTION_OPERATION = [
+   ACTION_OPERATION_PROVISIONING_COBBLER_SYNC,
+   ACTION_OPERATION_PROVISIONING_INSTALL_METAL,
+   ACTION_OPERATION_PROVISIONING_INSTALL_VIRT,
+   ACTION_OPERATION_PROVISIONING_PUPPET_SYNC
 ]
 
 # states for queued actions
@@ -100,6 +100,7 @@ VALID_ACTION_STATES = [
    ACTION_STATE_FAILED,
    ACTION_STATE_FINISHED
 ]
+
 
 class ShadowManagerException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR
@@ -264,5 +265,5 @@ if __name__ == "__main__":
    module = sys.modules[__name__]
    for x in sorted(module.__dict__.keys()):
        obj = module.__dict__[x]
-       if type(obj) == int:
+       if (type(obj) == int or type(obj) == str) and not x.startswith("__"):
            print "%s = %s" % (x, obj)
