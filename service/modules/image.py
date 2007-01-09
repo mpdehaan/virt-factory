@@ -200,7 +200,7 @@ class Image(web_svc.AuthWebSvc):
 
     def sync(self):
         self.provisioning = provisioning.Provisioning()
-        self.provisioning.sync( {} )
+        self.provisioning.sync(None, {} )
 
 
     def edit(self, token, image_args):
