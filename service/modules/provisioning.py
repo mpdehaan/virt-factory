@@ -206,59 +206,67 @@ class Provisioning(web_svc.AuthWebSvc):
       self.methods = {"provisioning_sync": self.sync,
                       "provisioning_init": self.init}
       web_svc.AuthWebSvc.__init__(self)                      
+      
 
-   def sync(self, prov_args):
+   def sync(self, token, prov_args):
 
-        distributions       = distribution.distribution_list(websvc,{})
-        images              = image.image_list(websvc,{})
-        machines            = machine.machine_list(websvc,{})
-        deployments         = deployment.deployment_list(websvc, {})
+      self.distribution = distribution.Distribution()
+      distributions = self.distribution.list(token, {})
 
-        # cobbler can't be run multiple times at once...
-        lock = threading.Lock()
-        lock.acquire()
+      self.image = image.Image()
+      images = self.image.list(token, {})
 
-        distributions = distributions.data
-        images = images.data
-        machines = machines.data
-        deployments = deployments.data
+      self.machine = machine.Machine() 
+      machines  = self.machine.list(token, {})
 
-        # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
-        # the server field might have changed.
+      self.deployment = deployment.Deployment()
+      deployments = self.deployment.list(token, {})
+      
+      # cobbler can't be run multiple times at once...
+      lock = threading.Lock()
+      lock.acquire()
+      
+      distributions = distributions.data
+      images = images.data
+      machines = machines.data
+      deployments = deployments.data
+      
+      # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
+      # the server field might have changed.
+      
+      try:
+         cobbler_api = cobbler.api.BootAPI()
+         cobbler_distros  = cobbler_api.distros()
+         cobbler_profiles = cobbler_api.profiles()
+         cobbler_systems  = cobbler_api.systems()
+         cobbler_distros.clear()
+         cobbler_profiles.clear()
+         cobbler_systems.clear()
+         
+         # cobbler can/will could raise exceptions on failure at any point...
+         # return code checking is not needed.
+         for d in distributions:
+            print "- distribution: %s" % d
+            CobblerTranslatedDistribution(cobbler_api,d)
+         for i in images:
+            print "- image: %s" % i
+            CobblerTranslatedProfile(cobbler_api,distributions,i)
+         for p in machines:
+            print "- machine: %s" % p
+            CobblerTranslatedSystem(cobbler_api,deployments,images,p)
+         cobbler_api.serialize()
+         cobbler_api.sync(dryrun=False)
+      except:
+         traceback.print_exc()
+         lock.release()
+         raise UncaughtException(traceback=traceback.format_exc())
 
-        try:
-            cobbler_api = cobbler.api.BootAPI()
-            cobbler_distros  = cobbler_api.distros()
-            cobbler_profiles = cobbler_api.profiles()
-            cobbler_systems  = cobbler_api.systems()
-            cobbler_distros.clear()
-            cobbler_profiles.clear()
-            cobbler_systems.clear()
 
-            # cobbler can/will could raise exceptions on failure at any point...
-            # return code checking is not needed.
-            for d in distributions:
-                print "- distribution: %s" % d
-                CobblerTranslatedDistribution(cobbler_api,d)
-            for i in images:
-                print "- image: %s" % i
-                CobblerTranslatedProfile(cobbler_api,distributions,i)
-            for p in machines:
-                print "- machine: %s" % p
-                CobblerTranslatedSystem(cobbler_api,deployments,images,p)
-            cobbler_api.serialize()
-            cobbler_api.sync(dryrun=False)
-        except:
-            traceback.print_exc()
-            lock.release()
-            raise UncaughtException(traceback=traceback.format_exc())
+      lock.release()
+      return success()
 
 
-        lock.release()
-        return success()
-
-
-   def init(self, prov_args):
+   def init(self, token. prov_args):
 
         """
         Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
@@ -362,7 +370,8 @@ class Provisioning(web_svc.AuthWebSvc):
 
 
            try:
-               distribution.distribution_add(websvc,add_data)
+              dist = distribution.Distribution()
+              dist.add(token, add_data)
            except SQLException, se:
                # if running import again to acquire new distros, the add could result in a duplicate data item.
                # this allows for such problems, as caught by the UNIQUE constraint on the distro name.       
