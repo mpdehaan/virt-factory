@@ -127,7 +127,8 @@ class MachineData(baseobj.BaseObject):
                invalid_args["list_group"] = REASON_FORMAT
 
         if len(invalid_args) > 0:
-            print invalid_args
+            print "Invalid args:", invalid_args
+            
             raise InvalidArgumentsException(invalid_args=invalid_args)
  
 #------------------------------------------------------
@@ -181,7 +182,7 @@ class Machine(web_svc.AuthWebSvc):
        if u.image_id is not None:
            try:
                self.image = image.Image()
-               self.image.get( { "id" : u.image_id } )
+               self.image.get( token, { "id" : u.image_id } )
            except ShadowManagerException:
                raise OrphanedObjectException(comment="image_id")
 
@@ -202,7 +203,7 @@ class Machine(web_svc.AuthWebSvc):
 
        self.__provisioning_sync()
 
-       return rowid
+       return success(rowid)
 
     def __provisiong_sync(self):
         if not self.provisiong:
