@@ -51,7 +51,7 @@ CREATE TABLE images (
    version    VARCHAR (255) NOT NULL,
    filename   VARCHAR (255),
    specfile   VARCHAR (255),
-   distribution_id    INT,
+   distribution_id    INT NOT NULL,
    virt_storage_size  INT NOT NULL,
    virt_ram           INT NOT NULL,
    kickstart_metadata VARCHAR(255),
