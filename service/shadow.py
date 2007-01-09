@@ -118,12 +118,10 @@ class XmlRpcInterface:
       if method in self.handlers:
          mh = self.handlers[method]
          self.logger.debug("methods: %s params: %s" % (method, params))
-         print mh, method
          
          if method not in ["user_login", "token_check"]:
-            print "\ncalling self.token_check\n", params
             self.auth.token_check(params)
-            
+
          try:
             rc = mh(*params)
          except ShadowManagerException, e:
@@ -132,13 +130,10 @@ class XmlRpcInterface:
             self.logger.debug("Not a shadowmanager specific exception")
             self.__log_exc()
             raise
+         
          self.logger.debug("return code for %s: %s" % (method, rc.to_datastruct()))
-         # FIXME: I really don't like this for some reason.
-         # parse out the SuccessExpection, and return data in some
-         # format that the client likes. I'd really like to see the methods
-         # return data in the correct format directly. It's a bit more duplicated
-         # code, but I think it makes it much easier to see whats going on.
          return rc.to_datastruct()
+      
       else:
          self.logger.debug("Got an unhandled method call for method: %s with params: %s" % (method, params))
          raise InvalidMethodException
@@ -215,11 +210,11 @@ if __name__ == "__main__":
             config_obj.reset()
         elif sys.argv[1].lower() == "import":
             prov_obj = provisioning.Provisioning()
-            prov_obj.init({})
+            prov_obj.init(None, {})
         elif sys.argv[1].lower() == "sync":
             # FIXME: this is just for testing and should be removed in prod.
             prov_obj = provisioning.Provisioning()
-            prov_obj.sync({})
+            prov_obj.sync(None, {})
         else:
             print """
 
