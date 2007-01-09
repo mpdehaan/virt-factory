@@ -127,9 +127,8 @@ class MachineData(baseobj.BaseObject):
                invalid_args["list_group"] = REASON_FORMAT
 
         if len(invalid_args) > 0:
-            print "Invalid args:", invalid_args
             
-            raise InvalidArgumentsException(invalid_args=invalid_args)
+            raise InvalidArgumentsException(invalid_fields=invalid_args)
  
 #------------------------------------------------------
 

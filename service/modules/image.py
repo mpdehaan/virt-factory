@@ -395,7 +395,8 @@ class Image(web_svc.AuthWebSvc):
          data = ImageData.produce(data).to_datastruct(True)
 
          if x[5] is not None:
-             distribution_results = distribution.distribution_get(None, { "id" : x[5] })
+             distribution_obj = distribution.Distribution()
+             distribution_results = distribution_obj.get(None, { "id" : x[5] })
              if not distribution_results.ok():
                  raise OrphanedObjectException(comment="distribution_id")
              data["distribution"] = distribution_results.data
