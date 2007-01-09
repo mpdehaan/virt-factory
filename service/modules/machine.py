@@ -206,7 +206,7 @@ class Machine(web_svc.AuthWebSvc):
        return success(rowid)
 
     def sync(self):
-        if not self.provisiong:
+        if not self.provisioning:
             self.provisioning = provisioning.Provisioning()
             self.provisioning.sync( {} )
            
