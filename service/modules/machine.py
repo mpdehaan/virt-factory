@@ -145,65 +145,65 @@ class Machine(web_svc.AuthWebSvc):
 
 
     def add(self, token, args):
-       """
-       Create a machine.  machine_args should contain all fields except ID.
-       """
+        """
+        Create a machine.  machine_args should contain all fields except ID.
+        """
 
-       u = MachineData.produce(args,OP_ADD)
+        u = MachineData.produce(args,OP_ADD)
        
-       st = """
-       INSERT INTO machines (
-       address,
-       architecture,
-       processor_speed,
-       processor_count,
-       memory,
-       kernel_options,
-       kickstart_metadata,
-       list_group, 
-       mac_address, 
-       is_container, 
-       image_id) 
-       VALUES (
-       :address,
-       :architecture,
-       :processor_speed,
-       :processor_count,
-       :memory,
-       :kernel_options, 
-       :kickstart_metadata, 
-       :list_group, 
-       :mac_address, 
-       :is_container, 
-       :image_id)
-       """
+        st = """
+        INSERT INTO machines (
+        address,
+        architecture,
+        processor_speed,
+        processor_count,
+        memory,
+        kernel_options,
+        kickstart_metadata,
+        list_group, 
+        mac_address, 
+        is_container, 
+        image_id) 
+        VALUES (
+        :address,
+        :architecture,
+        :processor_speed,
+        :processor_count,
+        :memory,
+        :kernel_options, 
+        :kickstart_metadata, 
+        :list_group, 
+        :mac_address, 
+        :is_container, 
+        :image_id)
+        """
 
-       u = MachineData.produce(args,OP_ADD)
-       if u.image_id is not None:
-           try:
-               self.image = image.Image()
-               self.image.get( token, { "id" : u.image_id } )
-           except ShadowManagerException:
-               raise OrphanedObjectException(comment="image_id")
+        u = MachineData.produce(args,OP_ADD)
+        if u.image_id is not None:
+            try:
+                self.image = image.Image()
+                self.image.get( token, { "id" : u.image_id } )
+            except ShadowManagerException:
+                raise OrphanedObjectException(comment="image_id")
 
-       lock = threading.Lock()
-       lock.acquire()
+        lock = threading.Lock()
+        lock.acquire()
 
 
-       try:
-           self.db.cursor.execute(st, u.to_datastruct())
-           self.db.connection.commit()
-       except Exception:
-           # FIXME: be more fined grained (IntegrityError only)
-           lock.release()
-           raise SQLException(traceback=traceback.format_exc())
+        try:
+            self.db.cursor.execute(st, u.to_datastruct())
+            self.db.connection.commit()
+        except Exception:
+            # FIXME: be more fined grained (IntegrityError only)
+            lock.release()
+            raise SQLException(traceback=traceback.format_exc())
 
-       rowid = self.db.cursor.lastrowid
-       lock.release() 
+        rowid = self.db.cursor.lastrowid
+        lock.release() 
 
-       self.sync()
+        self.sync()
 
-       return success(rowid)
+        return success(rowid)
 
     def sync(self):
         self.provisioning = provisioning.Provisioning()
