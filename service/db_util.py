@@ -102,7 +102,7 @@ class DbUtil(object):
         """
         Shorthand for writing a one table select.  
         """
-        buf = "SELECT " + self.db_schema["fields"].join(",") + " FROM " + self.db_schema["table"] + " WHERE id=:id"
+        buf = "SELECT " + string.join(self.db_schema["fields"], ',')  + " FROM " + self.db_schema["table"] + " WHERE id=:id"
         self.cursor.execute(buf, { "id" : args["id"] })
         result = self.cursor.fetchone()
 
@@ -129,7 +129,7 @@ class DbUtil(object):
         Shorthand for simple insert.
         """
 
-        buf = "INSERT INTO " + self.db_schema["table"] + "(" + self.db_schema["add"].join(",") + ") "
+        buf = "INSERT INTO " + self.db_schema["table"] + " (" + string.join(self.db_schema["add"], ',')  + ") "
 
         # icky...
         labels = [":%s" for entry in self.db_schema["add"]]
