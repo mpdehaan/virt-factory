@@ -1,0 +1,48 @@
+      <% @page_title = @operation + " User" %>
+      <%= ApplicationHelper.menubar("task","edit") %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+
+      <!-- FIXME: all of this display stuff does not generate the right hyperlinks
+           right now and many fields are nullable.  Column oriented display here
+           needs to be replaced -->
+
+      <TABLE BORDER=0>
+         <TR>
+            <TD>Machine</TD>
+            <TD><%= :machine %></TD>
+         </TR>
+         <TR> 
+            <TD>Deployment</TD>
+            <TD><%= :deployment %></TD>
+         </TR>
+         <TR> 
+            <TD>User</TD>
+            <TD><%= :user %></TD>
+         </TR>
+         <TR> 
+            <TD>Operation</TD>
+            <TD><%= :operation %></TD>
+         </TR>
+         <TR> 
+            <TD>Parameters</TD>
+            <TD><%= :parameters %></TD>
+         </TR>
+         <TR> 
+            <TD>State</TD>
+            <TD><%= f.text_field :state %></TD>
+         </TR>
+         <TR> 
+            <TD>Time</TD>
+            <TD><%= :time %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+
+      <% @callout_1 = @operation + " a user" %>
