@@ -155,7 +155,7 @@ class DbUtil(object):
         Shorthand for basic delete by id.
         """
         buf = "DELETE FROM " + self.db_schema["table"] + " WHERE id=:id" 
-        self.cursor.execute(st, args)
+        self.cursor.execute(buf, args)
         self.connection.commit()
         return success()
 
