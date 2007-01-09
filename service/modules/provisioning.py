@@ -266,7 +266,7 @@ class Provisioning(web_svc.AuthWebSvc):
       return success()
 
 
-   def init(self, token. prov_args):
+   def init(self, token, prov_args):
 
         """
         Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
