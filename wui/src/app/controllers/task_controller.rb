@@ -25,6 +25,11 @@ class TaskController < AbstractObjectController
    end
 
    def edit
+       # allows adding or changing a task (state only), depending on how invoked
+       super
+       @deployments = ManagedObject.retrieve_all(Deployment, @session).collect do |entry|
+           [ entry.name, entry.id ]
+       end
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |entry|
            [ entry.name, entry.id ]
        end
@@ -36,6 +41,10 @@ class TaskController < AbstractObjectController
        end
        @states = []
        @operations = []
+       @deployments.insert(0,EMPTY_ENTRY)
+       @machines.insert(0,EMPTY_ENTRY)
+       @images.insert(0,EMPTY_ENTRY)
+       @users.insert(0,EMPTY_ENTRY)
 
        # FIXME: finish
     end

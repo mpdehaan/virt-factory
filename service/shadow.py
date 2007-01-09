@@ -211,13 +211,15 @@ if __name__ == "__main__":
      
     if len(sys.argv) > 1:
         if sys.argv[1].lower() == "init":
-            # FIXME: do any other first time setup here...
-            config.config_reset(websvc,{})
+            config_obj = config_data.Config()
+            config_obj.reset()
         elif sys.argv[1].lower() == "import":
-            provisioning.provisioning_init(websvc,{})
+            prov_obj = provisioning.Provisioning()
+            prov_obj.init({})
         elif sys.argv[1].lower() == "sync":
             # FIXME: this is just for testing and should be removed in prod.
-            provisioning.provisioning_sync(websvc,{})
+            prov_obj = provisioning.Provisioning()
+            prov_obj.sync({})
         else:
             print """
 

@@ -104,7 +104,7 @@ class CobblerTranslatedDistribution:
        new_item.set_initrd(from_db["initrd"])
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
-       new_item.set_arch(codes.COBBLER_ARCH_MAPPING[from_db["architecture"]])
+       new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
        cobbler_api.distros().add(new_item)
@@ -251,7 +251,7 @@ class Provisioning(web_svc.AuthWebSvc):
         except:
             traceback.print_exc()
             lock.release()
-            raise codes.UncaughtException(traceback=traceback.format_exc())
+            raise UncaughtException(traceback=traceback.format_exc())
 
 
         lock.release()
@@ -265,9 +265,9 @@ class Provisioning(web_svc.AuthWebSvc):
         """
 
         ARCH_CONVERT = {
-           "x86"    : codes.ARCH_X86,
-           "x86_64" : codes.ARCH_X86_64,
-           "ia64"   : codes.ARCH_IA64
+           "x86"    : ARCH_X86,
+           "x86_64" : ARCH_X86_64,
+           "ia64"   : ARCH_IA64
         }
 
         lock = threading.Lock()

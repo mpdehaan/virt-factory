@@ -22,7 +22,7 @@
          <TR> 
             <TD>Deployment</TD>
             <TD><%= if @operation == "Add"
-                        f.select :deployment_id, @deployment
+                        f.select :deployment_id, @deployments
                     else
                         @item.deployment.name if @item.deployment
                     end
