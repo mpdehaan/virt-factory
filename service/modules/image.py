@@ -176,7 +176,7 @@ class Image(web_svc.AuthWebSvc):
          if u.distribution_id is not None:
              try:
                  self.distribution = distribution.Distribution()
-                 self.distribution.get(websvc, { "id" : u.distribution_id})
+                 self.distribution.get(None, { "id" : u.distribution_id})
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
 
@@ -253,7 +253,7 @@ class Image(web_svc.AuthWebSvc):
          """
 
          # check to see that what we are deleting exists
-         image_result = image_get(websvc,u.to_datastruct())
+         image_result = image_get(None,u.to_datastruct())
          if not image_result.error_code == 0:
             raise NoSuchObjectException(comment="image_delete")
 
@@ -396,7 +396,7 @@ class Image(web_svc.AuthWebSvc):
          data = ImageData.produce(data).to_datastruct(True)
 
          if x[5] is not None:
-             distribution_results = distribution.distribution_get(websvc, { "id" : x[5] })
+             distribution_results = distribution.distribution_get(None, { "id" : x[5] })
              if not distribution_results.ok():
                  raise OrphanedObjectException(comment="distribution_id")
              data["distribution"] = distribution_results.data

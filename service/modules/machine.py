@@ -265,7 +265,7 @@ class Machine(web_svc.AuthWebSvc):
          """
          # check to see that what we are deleting exists
          # FIXME
-#         rc = machine_get(websvc,machine_args)
+#         rc = get(None,machine_args)
          if not rc:
             raise NoSuchObjectException(comment="machine_delete")
 

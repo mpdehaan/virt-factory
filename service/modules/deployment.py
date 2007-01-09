@@ -171,7 +171,7 @@ class Deployment(web_svc.AuthWebSvc):
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
-             self.image.get(websvc, { "id" : u.image_id })
+             self.image.get(None, { "id" : u.image_id })
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
