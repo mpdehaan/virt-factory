@@ -152,6 +152,11 @@ class CobblerTranslatedProfile:
 
 #--------------------------------------------------------------------
 
+# FIXME: note that asserts don't work in XMLRPCServer
+# and need to replace with exceptions.  Also for some
+# reason image_name is ending up as None, and this needs
+# to be fixed.
+
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,deployments,images,from_db):
        # cobbler systems must know their profile.
