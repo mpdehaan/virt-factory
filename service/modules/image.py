@@ -184,14 +184,14 @@ class Image(web_svc.AuthWebSvc):
          lock.acquire()
 
          try:
-             self.cursor.execute(st, u.to_datastruct())
-             self.connection.commit()
+             self.db.cursor.execute(st, u.to_datastruct())
+             self.db.connection.commit()
          except Exception:
              lock.release()
              # FIXME: be more fined grained (find where IntegrityError is defined)
              raise SQLException(traceback=traceback.format_exc())
 
-         rowid = self.cursor.lastrowid
+         rowid = self.db.cursor.lastrowid
          lock.release()
 
          self.__provisioning_sync()
@@ -221,8 +221,8 @@ class Image(web_svc.AuthWebSvc):
          WHERE id=:id
          """
 
-         self.cursor.execute(st, u.to_datastruct())
-         self.connection.commit()
+         self.db.cursor.execute(st, u.to_datastruct())
+         self.db.connection.commit()
 
          self.__provisioning_sync({} )
 
@@ -258,17 +258,17 @@ class Image(web_svc.AuthWebSvc):
             raise NoSuchObjectException(comment="image_delete")
 
          # check to see that deletion won't orphan a deployment or machine
-         self.cursor.execute(st2, { "id" : u.id })
-         results = self.cursor.fetchall()
+         self.db.cursor.execute(st2, { "id" : u.id })
+         results = self.db.cursor.fetchall()
          if results is not None and len(results) != 0:
             raise OrphanedObjectException(comment="deployment")
-         self.cursor.execute(st3, { "id" : u.id })
-         results = self.cursor.fetchall()
+         self.db.cursor.execute(st3, { "id" : u.id })
+         results = self.db.cursor.fetchall()
          if results is not None and len(results) != 0:
             raise OrphanedObjectException(comment="machine")
 
-         self.cursor.execute(st, { "id" : u.id })
-         self.connection.commit()
+         self.db.cursor.execute(st, { "id" : u.id })
+         self.db.connection.commit()
 
          # no need to sync provisioning as the image isn't hurting anything
          return success()
@@ -316,8 +316,8 @@ class Image(web_svc.AuthWebSvc):
          LIMIT ?,?
          """ 
 
-         results = self.cursor.execute(st, (offset,limit))
-         results = self.cursor.fetchall()
+         results = self.db.cursor.execute(st, (offset,limit))
+         results = self.db.cursor.fetchall()
          if results is None:
              return success([])
 
@@ -372,8 +372,8 @@ class Image(web_svc.AuthWebSvc):
          FROM images WHERE id=:id
          """
 
-         self.cursor.execute(st,{ "id" : u.id })
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st,{ "id" : u.id })
+         x = self.db.cursor.fetchone()
 
          if x is None:
              raise NoSuchObjectException(comment="image_get")

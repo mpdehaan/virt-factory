@@ -89,71 +89,73 @@ class Action(web_svc.AuthWebSvc):
        "edit"  : [ "state" ]
     }
 
-    def __init__(self):
-        """
-        Constructor.  Add methods that we want registered.
-        """
-
-        self.methods = {
-            "action_add"    : self.add,
-            "action_list"   : self.list,
-            "action_get"    : self.get,
-            "action_delete" : self.delete
-        }
-        web_svc.AuthWebSvc.__init__(self)
-
-
-    def add(self,args):
-         """
-         Create a image.  image_args should contain all fields except ID.
-         """
-
-         u = ActionData.produce(args,OP_ADD)
-
-         self.__validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
-         self.__validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
-         self.__validate_foreign_key(u.user_id,       'user_id',       user.User())
-
-         return self.__simple_add(ActionData,args)
-
-
-    def edit(self,args):
-         """
-         Edit object.  Args should contain all fields that need to be changed.
-         """
-
-         u = ActionData.produce(image_args,OP_EDIT) # force validation
-         return self.__simple_edit(ActionData,args)
-
-
-    def delete(self,args):
-         """
-         Deletes an object.  args must only contain the id field.
-         """
-
-         u = ActionData.produce(args,OP_DELETE) # force validation
-         return self.__simple_delete(ActionData,args)
-
-
-    def list(self,args):
-         """
-         Return a list of objects.  The args list is currently *NOT*
-         used.  Ideally we need to include LIMIT information here for
-         GUI pagination when we start worrying about hundreds of systems.
-         """
-
-         return self.__simple_list(ActionData,args)
-
-
-    def get(self, args):
-         """
-         Return a specific record.  Only the "id" is required in args.
-         """
+   def __init__(self):
+       """
+       Constructor.  Add methods that we want registered.
+       """
        
-         u = ActionData.produce(args, OP_GET) # validate
-         return self.__simple_get(ActionData, args)
+       self.methods = {
+           "action_add"    : self.add,
+           "action_list"   : self.list,
+           "action_get"    : self.get,
+           "action_delete" : self.delete
+           }
+       web_svc.AuthWebSvc.__init__(self)
+
+       # FIXME: could go in the baseclass...
+       self.db.db_schema = self.DB_SCHEMA
+
+   def add(self, token, args):
+       """
+       Create a image.  image_args should contain all fields except ID.
+       """
+       
+       u = ActionData.produce(args,OP_ADD)
+       
+       self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
+       self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
+       self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
+       
+       return self.db.simple_add(ActionData,args)
 
 
-methods = Image()
+   def edit(self, token, args):
+       """
+       Edit object.  Args should contain all fields that need to be changed.
+       """
+       
+       u = ActionData.produce(image_args,OP_EDIT) # force validation
+       return self.db.simple_edit(ActionData,args)
+
+
+   def delete(self, token, args):
+       """
+       Deletes an object.  args must only contain the id field.
+       """
+       
+       u = ActionData.produce(args,OP_DELETE) # force validation
+       return self.db.simple_delete(ActionData,args)
+   
+
+   def list(self, token, args):
+       """
+       Return a list of objects.  The args list is currently *NOT*
+       used.  Ideally we need to include LIMIT information here for
+       GUI pagination when we start worrying about hundreds of systems.
+       """
+       
+       return self.db.simple_list(args, self.DB_SCHEMA['fields'], self.DB_SCHEMA['table'])
+
+
+   def get(self, token, args):
+       """
+       Return a specific record.  Only the "id" is required in args.
+       """
+       
+       u = ActionData.produce(args, OP_GET) # validate
+       return self.db.simple_get(ActionData, args)
+   
+
+methods = Action()
 register_rpc = methods.register_rpc
 

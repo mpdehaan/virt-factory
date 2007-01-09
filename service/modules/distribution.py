@@ -164,14 +164,14 @@ class Distribution(web_svc.AuthWebSvc):
          lock.acquire()
 
          try:
-             self.cursor.execute(st, u.to_datastruct())
-             self.connection.commit()
+             self.db.cursor.execute(st, u.to_datastruct())
+             self.db.connection.commit()
          except Exception:
              lock.release()
              tb = traceback.format_exc()
              raise SQLException(traceback=tb)
 
-         rowid = self.cursor.lastrowid
+         rowid = self.db.cursor.lastrowid
          lock.release()
          self.__provisioning_sync( {} )
 
@@ -199,8 +199,8 @@ class Distribution(web_svc.AuthWebSvc):
          """
 
          ds = u.to_datastruct()
-         self.cursor.execute(st, ds)
-         self.connection.commit()
+         self.db.cursor.execute(st, ds)
+         self.db.connection.commit()
          self.__provisioning_sync( {} )
 
          return success(ds)
@@ -214,8 +214,8 @@ class Distribution(web_svc.AuthWebSvc):
          """
 
          u = DistributionData.produce(dist_args, OP_DELETE)
-         self.cursor.execute(st, u.to_datastruct())
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st, u.to_datastruct())
+         x = self.db.cursor.fetchone()
          if x is not None:
              raise OrphanedObjectException(comment="images.distribution_id")
          u = DistributionData.produce(dist_args,OP_DELETE) # force validation
@@ -224,8 +224,8 @@ class Distribution(web_svc.AuthWebSvc):
          DELETE FROM distributions WHERE distributions.id=:id
          """
 
-         self.cursor.execute(st, { "id" : u.id })
-         self.connection.commit()
+         self.db.cursor.execute(st, { "id" : u.id })
+         self.db.connection.commit()
 
          return success()
 
@@ -251,8 +251,8 @@ class Distribution(web_svc.AuthWebSvc):
          FROM distributions LIMIT ?,?
          """ 
 
-         results = self.cursor.execute(st, (offset,limit))
-         results = self.cursor.fetchall()
+         results = self.db.cursor.execute(st, (offset,limit))
+         results = self.db.cursor.fetchall()
          distributions = []
 
          for x in results:
@@ -288,8 +288,8 @@ class Distribution(web_svc.AuthWebSvc):
          FROM distributions WHERE distributions.id=:id
          """
 
-         self.cursor.execute(st,{ "id" : u.id })
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st,{ "id" : u.id })
+         x = self.db.cursor.fetchone()
          if x is None:
              raise NoSuchObjectException(comment="distribution_get")
 

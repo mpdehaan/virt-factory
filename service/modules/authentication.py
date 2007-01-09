@@ -53,8 +53,8 @@ class Authentication(web_svc.WebSvc):
              # they will be able to reload and use the WUI,
              raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
 
-         self.cursor.execute(st, { "username" : username })
-         results = self.cursor.fetchone()
+         self.db.cursor.execute(st, { "username" : username })
+         results = self.db.cursor.fetchone()
          if results is None:
              raise UserInvalidException(comment=username)
          elif results[1] != password:
@@ -64,6 +64,7 @@ class Authentication(web_svc.WebSvc):
              token = base64.b64encode(urandom.read(100)) 
              urandom.close()
 
+         print "token: ------------------ %s" % token
          self.tokens.append([token, time.time()])
          return success(data=token)
 
@@ -91,7 +92,6 @@ class Authentication(web_svc.WebSvc):
             if t[0] == token:
                 # update the expiration counter
                 t[1] = time.time()
-                print "SUCCESS"
                 return SuccessException()
                 #return success().to_datastruct()
         return TokenInvalidException().to_datastruct()

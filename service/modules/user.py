@@ -122,12 +122,12 @@ class User(web_svc.AuthWebSvc):
          lock = threading.Lock()
          lock.acquire()
          try:
-             self.cursor.execute(st, u.to_datastruct())
-             self.connection.commit()
+             self.db.cursor.execute(st, u.to_datastruct())
+             self.db.connection.commit()
          except Exception:
              lock.release()
              raise SQLException(traceback=traceback.format_exc())
-         rowid = self.cursor.lastrowid
+         rowid = self.db.cursor.lastrowid
          lock.release()
          return success(rowid)
 
@@ -152,8 +152,8 @@ class User(web_svc.AuthWebSvc):
          WHERE id=:id
          """
          ds = u.to_datastruct()
-         self.cursor.execute(st, ds)
-         self.connection.commit()
+         self.db.cursor.execute(st, ds)
+         self.db.connection.commit()
          return success(u.to_datastruct())
 
      # FIXME: don't allow delete if only 1 user left
@@ -167,8 +167,8 @@ class User(web_svc.AuthWebSvc):
          st = """
          DELETE FROM users WHERE users.id=:id
          """
-         self.cursor.execute(st, { "id" : u.id })
-         self.connection.commit()
+         self.db.cursor.execute(st, { "id" : u.id })
+         self.db.connection.commit()
          # FIXME: failure based on existance
          return success()
 
@@ -188,8 +188,8 @@ class User(web_svc.AuthWebSvc):
          st = """
          SELECT id,username,password,first,middle,last,description,email FROM users LIMIT ?,?
          """ 
-         results = self.cursor.execute(st, (offset,limit))
-         results = self.cursor.fetchall()
+         results = self.db.cursor.execute(st, (offset,limit))
+         results = self.db.cursor.fetchall()
          users = []
          for x in results:
              data = {         
@@ -213,8 +213,8 @@ class User(web_svc.AuthWebSvc):
          st = """
          SELECT id,username,password,first,middle,last,description,email from users where users.id=:id
          """
-         self.cursor.execute(st,{ "id" : u.id })
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st,{ "id" : u.id })
+         x = self.db.cursor.fetchone()
          if x is None:
              raise NoSuchObjectException(comment="user_get")
          data = {

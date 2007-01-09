@@ -33,6 +33,7 @@ from codes import *
 import config_data
 import logger
 
+from modules import action
 from modules import authentication
 from modules import config
 from modules import deployment
@@ -69,28 +70,14 @@ class XmlRpcInterface:
        config_obj = config_data.Config()
        self.config = config_obj.get()
        
-       self.dbpath = self.config["databases"]["primary"]
-
        self.tables = {}
        self.tokens = []
 
        self.logger = logger.Logger().logger
 
        self.__setup_handlers()
-       self.connection = self.sqlite_connect()
-       self.cursor = self.connection.cursor()
        self.auth = authentication.Authentication()
        
-
-   def sqlite_connect(self):
-      """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
-      
-      current = os.getcwd() 
-      os.chdir(os.path.dirname(self.dbpath))
-      conn = sqlite.connect(os.path.basename(self.dbpath))
-      os.chdir(current)
-      return conn 
-   
    def __setup_handlers(self):
       """
        Add RPC functions from each class to the global list so they can be called.
@@ -101,7 +88,7 @@ class XmlRpcInterface:
                 image, deployment,
                 distribution,config,
                 provisioning, registration,
-                authentication]:
+                authentication, action]:
          x.register_rpc(self.handlers)
          self.logger.debug("adding %s" % x)
 
@@ -146,7 +133,7 @@ class XmlRpcInterface:
             self.logger.debug("Exception value: %s" % sys.exc_value)
             self.logger.debug("%s" % e.format())
             raise
-         self.logger.debug("return code for %s: %s" % (method, rc))
+         self.logger.debug("return code for %s: %s" % (method, rc.to_datastruct()))
          # FIXME: I really don't like this for some reason.
          # parse out the SuccessExpection, and return data in some
          # format that the client likes. I'd really like to see the methods
@@ -155,7 +142,7 @@ class XmlRpcInterface:
          return rc.to_datastruct()
       else:
          self.logger.debug("Got an unhandled method call for method: %s with params: %s" % (method, params))
-         raise codes.InvalidMethodException
+         raise InvalidMethodException
 
    def __dispatch(self, method, token, dispatch_args=[]):
        """

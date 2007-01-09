@@ -139,14 +139,14 @@ class Deployment(web_svc.AuthWebSvc):
          lock.acquire()
 
          try:
-             self.cursor.execute(st, u.to_datastruct())
-             self.connection.commit()
+             self.db.cursor.execute(st, u.to_datastruct())
+             self.db.connection.commit()
          except Exception:
              lock.release()
              # FIXME: be more fined grained (find where IntegrityError is defined)
              raise SQLException(traceback=traceback.format_exc())
 
-         rowid = self.cursor.lastrowid
+         rowid = self.db.cursor.lastrowid
          lock.release()
 
          return success(rowid)
@@ -175,8 +175,8 @@ class Deployment(web_svc.AuthWebSvc):
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-         self.cursor.execute(st, u.to_datastruct())
-         self.connection.commit()
+         self.db.cursor.execute(st, u.to_datastruct())
+         self.db.connection.commit()
 
          return success(u.to_datastruct(True))
 
@@ -196,8 +196,8 @@ class Deployment(web_svc.AuthWebSvc):
          if not rc:
             raise NoSuchObjectException()
 
-         self.cursor.execute(st, u.to_datastruct())
-         self.connection.commit()
+         self.db.cursor.execute(st, u.to_datastruct())
+         self.db.connection.commit()
 
          # FIXME: failure based on existance
          return success()
@@ -253,8 +253,8 @@ class Deployment(web_svc.AuthWebSvc):
          LIMIT ?,?
          """ 
 
-         results = self.cursor.execute(st, (offset,limit))
-         results = self.cursor.fetchall()
+         results = self.db.cursor.execute(st, (offset,limit))
+         results = self.db.cursor.fetchall()
          if results is None:
              return success([])
 
@@ -320,8 +320,8 @@ class Deployment(web_svc.AuthWebSvc):
          images.id = deployments.image_id AND machines.id = deployments.machine_id
          """
 
-         self.cursor.execute(st,{ "id" : u.id })
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st,{ "id" : u.id })
+         x = self.db.cursor.fetchone()
          if x is None:
              raise NoSuchObjectException()
 

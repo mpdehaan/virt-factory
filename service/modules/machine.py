@@ -148,7 +148,6 @@ class Machine(web_svc.AuthWebSvc):
        Create a machine.  machine_args should contain all fields except ID.
        """
 
-#       self.token_check(token)
        u = MachineData.produce(args,OP_ADD)
        
        st = """
@@ -191,14 +190,14 @@ class Machine(web_svc.AuthWebSvc):
 
 
        try:
-           self.cursor.execute(st, u.to_datastruct())
-           self.connection.commit()
+           self.db.cursor.execute(st, u.to_datastruct())
+           self.db.connection.commit()
        except Exception:
            # FIXME: be more fined grained (IntegrityError only)
            lock.release()
            raise SQLException(traceback=traceback.format_exc())
 
-       rowid = self.cursor.lastrowid
+       rowid = self.db.cursor.lastrowid
        lock.release() 
 
        self.__provisioning_sync()
@@ -239,8 +238,8 @@ class Machine(web_svc.AuthWebSvc):
             except ShadowManagerException:
                 raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
-         websvc.cursor.execute(st, u.to_datastruct())
-         websvc.connection.commit()
+         self.db.cursor.execute(st, u.to_datastruct())
+         self.db.connection.commit()
 
          self.__provisioning_sync( {} )
 
@@ -269,13 +268,13 @@ class Machine(web_svc.AuthWebSvc):
          if not rc:
             raise NoSuchObjectException(comment="machine_delete")
 
-         self.cursor.execute(st2, { "id" : u.id })
-         results = self.cursor.fetchall()
+         self.db.cursor.execute(st2, { "id" : u.id })
+         results = self.db.cursor.fetchall()
          if results is not None and len(results) != 0:
             raise OrphanedObjectException(comment="image")
 
-         self.cursor.execute(st, { "id" : u.id })
-         self.connection.commit()
+         self.db.cursor.execute(st, { "id" : u.id })
+         self.db.connection.commit()
 
          # FIXME: failure based on existance
          return success()
@@ -324,8 +323,8 @@ class Machine(web_svc.AuthWebSvc):
          LIMIT ?,?
          """ 
 
-         results = self.cursor.execute(st, (offset,limit))
-         results = self.cursor.fetchall()
+         results = self.db.cursor.execute(st, (offset,limit))
+         results = self.db.cursor.fetchall()
 
          if results is None:
              return success([])
@@ -381,8 +380,8 @@ class Machine(web_svc.AuthWebSvc):
          kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id
          FROM machines WHERE id=:id
          """
-         self.cursor.execute(st,u.to_datastruct())
-         x = self.cursor.fetchone()
+         self.db.cursor.execute(st,u.to_datastruct())
+         x = self.db.cursor.fetchone()
          if x is None:
              raise NoSuchObjectException(comment="machine_get")
 
