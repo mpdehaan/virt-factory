@@ -138,30 +138,6 @@ class XmlRpcInterface:
          self.logger.debug("Got an unhandled method call for method: %s with params: %s" % (method, params))
          raise InvalidMethodException
 
-   def __dispatch(self, method, token, dispatch_args=[]):
-       """
-       Dispatch is a wrapper around all API functions other
-       than user_login and token_check.  It is intended that
-       there be no other exceptions to this rule.
-
-       This function calls the registered API method and catches
-       all exceptions, turing them (if subclassed from ShadowManagerException)
-       into the proper return codes.  Uncaught exceptions are returned
-       with an UNCAUGHT_EXCEPTION return code. 
-
-       Since we are already logged in, we can send tracebacks to Ruby
-       (the user is already valid, so it's not a security problem).
-
-       Tracebacks are also logged in the configured log location.
-       """ 
-       self.logger.debug("calling %s, dispatch_=%s" % (method,dispatch_args))
-       try:
-           self.authentication.token_check(token)
-           rc = self.handlers[method](self,dispatch_args)
-           return rc.to_datastruct()
-       except ShadowManagerException, e:
-           return e.to_datastruct()
-
 
 def database_reset():
     """
