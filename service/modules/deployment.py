@@ -107,8 +107,6 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_get": self.get}
 
         web_svc.AuthWebSvc.__init__(self)
-        self.machine = machine.Machine()
-        self.image = image.Image()
                         
 
     def add(self, token, deployment_dep_args):

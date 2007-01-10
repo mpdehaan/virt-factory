@@ -19,10 +19,12 @@
 from codes import *
 import config_data
 
+import threading
 from pysqlite2 import dbapi2 as sqlite
 
 import os
 import string
+import baseobj
 
 class DbUtil(object):
     def __init__(self):
@@ -57,11 +59,13 @@ class DbUtil(object):
         Used to validate foreign key relationships prior to SQL statements.
         Particularly useful in sqlite, where there are no foreign keys.
         """
-        if field is None and null_field_ok:
+        # FIXME: log instead of print
+        print "validating foreign key %s of %s" % (field_name, field_value)
+        if field_value is None and null_field_ok:
             return
         try:
             # see if there is an object with this ID.
-            module_instance.get({ "id" : field_value})
+            module_instance.get(None, { "id" : field_value})
         except ShadowManagerException:
             raise OrphanedObjectException(comment=field_name,traceback=traceback.format_exc())
 
@@ -79,7 +83,7 @@ class DbUtil(object):
          return (offset, limit) 
 
     # FIXME: is this right? -akl
-    def simple_list(self, args, need_fields, table_name):
+    def simple_list(self, args):
         """
         Shorthand for writing a select * from foo
         """
@@ -89,16 +93,19 @@ class DbUtil(object):
         results = self.cursor.fetchall()
  
         if results is None:
-             return success()
+             return success([])
 
         data_list = []
         for x in results:
-            data_hash = dict(zip(need_fields, result))
+            data_hash = dict(zip(self.db_schema["fields"], x))
             data_list.append(data_hash)
 
-        return success(data_list)
+        print "SUCCESS, list=%s" % data_list
 
-    def simple_get(self, args, need_fields, table_name):
+        base_obj = baseobj.BaseObject()
+        return success(base_obj.remove_nulls(data_list))
+
+    def simple_get(self, args):
         """
         Shorthand for writing a one table select.  
         """
@@ -109,8 +116,10 @@ class DbUtil(object):
         if result is None:
             raise NoSuchObjectException(comment=table_name)
 
-        data_hash = dict(zip(need_fields, result))
-        return success(data_hash)
+        data_hash = dict(zip(self.db_schema["fields"], result))
+        
+        base_obj = baseobj.BaseObject()
+        return success(base_obj.remove_nulls(data_hash))
 
     def simple_edit(self, args):
         """
@@ -122,7 +131,7 @@ class DbUtil(object):
         buf = buf + " WHERE id=:id"
         self.cursor.execute(buf, args)
         self.connection.commit()
-        return success(u.to_datastruct())
+        return success()  # FIXME: is this what edit should return?
 
     def simple_add(self, args):
         """
@@ -132,22 +141,27 @@ class DbUtil(object):
         buf = "INSERT INTO " + self.db_schema["table"] + " (" + string.join(self.db_schema["add"], ',')  + ") "
 
         # icky...
-        labels = [":%s" for entry in self.db_schema["add"]]
-        buf = buf + "VALUES (" + labels.join(",") + ")"
+        labels = [":%s" % entry for entry in self.db_schema["add"]]
+        buf = buf + "VALUES (" + string.join(labels, ",") + ")"
 
-        lock = threading.lock()
+        lock = threading.Lock()
         lock.acquire() 
 
         try:
+            print "SQL = %s" % buf
+            print "ARGS = %s" % args
             self.cursor.execute(buf, args)
             self.connection.commit()
         except Exception:
             lock.release()
+            # temporary...
+            traceback.print_exc()
             raise SQLException(traceback=traceback.format_exc())
          
         rowid = self.cursor.lastrowid
         lock.release()
     
+        print "SUCCESS, rowid= %s" % rowid
         return success(rowid)
 
     def simple_delete(self,args):
