@@ -33,7 +33,7 @@ from codes import *
 import config_data
 import logger
 
-from modules import action
+from modules import task 
 from modules import authentication
 from modules import config
 from modules import deployment
@@ -88,7 +88,7 @@ class XmlRpcInterface:
                 image, deployment,
                 distribution,config,
                 provisioning, registration,
-                authentication, action]:
+                authentication, task]:
          x.register_rpc(self.handlers)
          self.logger.debug("adding %s" % x)
 

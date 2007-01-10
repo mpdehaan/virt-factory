@@ -1,5 +1,5 @@
 """
-ShadowManager backend code for actions framework.
+ShadowManager backend code for task (background ops) framework.
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -83,7 +83,7 @@ class ActionData(baseobj.BaseObject):
 class Action(web_svc.AuthWebSvc):
     
    DB_SCHEMA = {
-       "table" : "actions",
+       "table" : "tasks",
        "fields" : ActionData.FIELDS,
        "add"   : [ "machine_id", "deployment_id", "user_id", "operation", "parameters", "state" ],
        "edit"  : [ "state" ]
@@ -95,10 +95,10 @@ class Action(web_svc.AuthWebSvc):
        """
        
        self.methods = {
-           "action_add"    : self.add,
-           "action_list"   : self.list,
-           "action_get"    : self.get,
-           "action_delete" : self.delete
+           "task_add"    : self.add,
+           "task_list"   : self.list,
+           "task_get"    : self.get,
+           "task_delete" : self.delete
            }
        web_svc.AuthWebSvc.__init__(self)
 

@@ -1,4 +1,4 @@
-CREATE TABLE actions (
+CREATE TABLE tasks (
    id INTEGER PRIMARY KEY,
    machine_id INTEGER,
    deployment_id INTEGER,
