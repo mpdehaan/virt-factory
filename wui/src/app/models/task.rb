@@ -18,7 +18,7 @@ class Task < ManagedObject
     self.set_attrs(ATTR_LIST)
 
     # web service methods start with this
-    METHOD_PREFIX = "action"
+    METHOD_PREFIX = "task"
 
     # when showing an image onscreen, just use the name field in the database
     def objname

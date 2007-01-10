@@ -26,9 +26,11 @@ class TaskController < AbstractObjectController
 
    def edit
        # allows adding or changing a task (state only), depending on how invoked
+       # NOTE: this is mainly for development purposes, we probably won't allow this directly once released
+       # may be good to have the list though.
        super
        @deployments = ManagedObject.retrieve_all(Deployment, @session).collect do |entry|
-           [ entry.name, entry.id ]
+           [ entry.id, entry.id ]
        end
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |entry|
            [ entry.name, entry.id ]
