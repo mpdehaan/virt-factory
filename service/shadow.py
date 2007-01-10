@@ -173,22 +173,21 @@ class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
       self.allow_reuse_address = True
       SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
       
-
-if __name__ == "__main__":
+def main(argv):
     """
     Start things up.
     """
     
     websvc = XmlRpcInterface()
      
-    if len(sys.argv) > 1:
-        if sys.argv[1].lower() == "init":
+    if len(argv) > 1:
+        if argv[1].lower() == "init":
             config_obj = config_data.Config()
             config_obj.reset()
-        elif sys.argv[1].lower() == "import":
+        elif argv[1].lower() == "import":
             prov_obj = provisioning.Provisioning()
             prov_obj.init(None, {})
-        elif sys.argv[1].lower() == "sync":
+        elif argv[1].lower() == "sync":
             # FIXME: this is just for testing and should be removed in prod.
             prov_obj = provisioning.Provisioning()
             prov_obj.sync(None, {})
@@ -204,6 +203,9 @@ if __name__ == "__main__":
     else:
         print "serving...\n"
         serve(websvc)
+
+if __name__ == "__main__":
+    main(sys.argv)
 
     # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
     # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
