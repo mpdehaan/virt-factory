@@ -404,7 +404,8 @@ class Machine(web_svc.AuthWebSvc):
          # FIXME: redo this with image id
 
          if x[11] is not None and x[11] != -1:
-             image_results = self.image.get({"id":x[11]})
+             image_obj = image.Image()
+             image_results = image_obj.get(token, {"id":x[11]})
              if not image_results.ok():
                  raise OrphanedObjectException(comment="image_id")
              filtered["image"] = image_results.data

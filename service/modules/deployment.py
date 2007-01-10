@@ -126,12 +126,14 @@ class Deployment(web_svc.AuthWebSvc):
          fields = {}
 
          try:
-             self.machine.get({ "id" : deployment_dep_args["machine_id"]})
+             machine_obj = machine.Machine()
+             machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
          try:
-             self.image.get({ "id" : deployment_dep_args["image_id"]})
+             image_obj = image.Image()
+             image_obj.get(token, { "id" : deployment_dep_args["image_id"]})
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'image_id':REASON_ID})
 
