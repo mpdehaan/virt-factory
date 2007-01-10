@@ -179,6 +179,14 @@ class CobblerTranslatedSystem:
        #  NOTE that the way this is invoked, this works bare metal only,
        #  so we use method two.
 
+       #  I **think** it should be sufficient to not keep cobbler system
+       #  definitions for virtual systems, that is, unless we get into networking
+       #  issues later and require that we set their MAC addresses (which probably
+       #  isn't needed)?  The question comes down to whether we really need to
+       #  use cobbler's manage_dhcp bits or not, and the answer is probably no.
+       #  that is, we can provision bare metal and use the registration process
+       #  to learn the IP info, thus we don't need to deal with DHCP reservations.
+
        #image_id = -1
        #for d in deployments:
        #    if d["machine_id"] == machine_id:
