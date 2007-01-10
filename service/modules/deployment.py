@@ -168,12 +168,14 @@ class Deployment(web_svc.AuthWebSvc):
          """
 
          try:
-             self.machine.get( { "id" : u.machine_id })
+             machine_obj = machine.Machine()
+             machine_obj.get(token, { "id" : u.machine_id })
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
-             self.image.get(None, { "id" : u.image_id })
+             image_obj = image.Image()
+             image_obj.get(token, { "id" : u.image_id })
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
@@ -329,8 +331,10 @@ class Deployment(web_svc.AuthWebSvc):
 
          # exceptions will be raised by these next two calls, so no RC
          # checking is required
-         machine_results = self.machine.get( { "id" : x[1] })
-         image_results   = self.image.get( { "id" : x[2] })
+         machine_obj = machine.Machine()
+         image_obj = image.Image()
+         machine_results = machine_obj.get(token, { "id" : x[1] })
+         image_results   = image_obj.get(token, { "id" : x[2] })
 
          data = DeploymentData.produce({
                 "id"         : x[0],
