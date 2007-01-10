@@ -169,20 +169,28 @@ class CobblerTranslatedSystem:
        # FIXME: custom query code is needed in places like this,
        # processing flat lists won't scale well for really large
        # deployments
-       image_id = -1
-       for d in deployments:
-           if d["machine_id"] == machine_id:
-               image_id = d["image_id"]
-               break               
 
-       if image_id == -1:
-          # no deployment found for this machine, which means
-          # we have no idea how to provision it.  it should
-          # at least have a APPLIANCE_CONTAINER or ORDINARY_MACHINE
-          # deployment set up for it.
-          assert "no image id found for system"
+       # to find out the cobbler profile name
+       #    if this is virtual:
+       #       look through deployments and find one that has a machine_id
+       #       of the given machine.
+       #    if this is bare metal:
+       #        just get the image_id 
+       #  NOTE that the way this is invoked, this works bare metal only,
+       #  so we use method two.
+
+       #image_id = -1
+       #for d in deployments:
+       #    if d["machine_id"] == machine_id:
+       #        image_id = d["image_id"]
+       #        break               
+
+       image_id = from_db["image_id"]
+
+       print "this machine has image_id = %s" % image_id
 
        # FIXME: inefficient, again, write some query stuff here.
+       # cobbler is going to need the name of the image.
        image_name = None
        for i in images:
            if i["id"] == image_id:
