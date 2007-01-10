@@ -173,7 +173,6 @@ class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
       self.allow_reuse_address = True
       SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
       
-
 def main(argv):
     """
     Start things up.
@@ -205,7 +204,12 @@ def main(argv):
         print "serving...\n"
         serve(websvc)
 
+if __name__ == "__main__":
+    main(sys.argv)
 
+    # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
+    # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
+    #        (and might not be enough for RHEL, but is good for Fedora/Centos)
 if __name__ == "__main__":
     main(sys.argv)
 
