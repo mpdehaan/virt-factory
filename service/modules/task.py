@@ -115,16 +115,19 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args,OP_ADD)
-       print "ADD ARGUMENTS: %s" % args
-       print "CONVERTED: %s" % u
-       print u.machine_id
-       print type(u.machine_id)
+       
+       # FIXME: note that user_id is currently not supplied by the web form and should be determined
+       # probably by the token.  until then, just use user id 1.
+
+       args["user_id"] = 1
  
        self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
        self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
-       self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
        
-       return self.db.simple_add(TaskData,args)
+       # FIXME: same note as above
+       # self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
+
+       return self.db.simple_add(args)
 
 
    def edit(self, token, args):
@@ -132,8 +135,8 @@ class Task(web_svc.AuthWebSvc):
        Edit object.  Args should contain all fields that need to be changed.
        """
        
-       u = TaskData.produce(image_args,OP_EDIT) # force validation
-       return self.db.simple_edit(TaskData,args)
+       u = TaskData.produce(args,OP_EDIT) # force validation
+       return self.db.simple_edit(args)
 
 
    def delete(self, token, args):
@@ -142,7 +145,7 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args,OP_DELETE) # force validation
-       return self.db.simple_delete(TaskData,args)
+       return self.db.simple_delete(args)
    
 
    def list(self, token, args):
@@ -152,7 +155,7 @@ class Task(web_svc.AuthWebSvc):
        GUI pagination when we start worrying about hundreds of systems.
        """
        
-       return self.db.simple_list(args, self.DB_SCHEMA['fields'], self.DB_SCHEMA['table'])
+       return self.db.simple_list(args)
 
 
    def get(self, token, args):
@@ -161,7 +164,7 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args, OP_GET) # validate
-       return self.db.simple_get(TaskData, args)
+       return self.db.simple_get(args)
    
 
 methods = Task()
