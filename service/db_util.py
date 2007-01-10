@@ -57,11 +57,13 @@ class DbUtil(object):
         Used to validate foreign key relationships prior to SQL statements.
         Particularly useful in sqlite, where there are no foreign keys.
         """
-        if field is None and null_field_ok:
+        # FIXME: log instead of print
+        print "validating foreign key %s of %s" % (field_name, field_value)
+        if field_value is None and null_field_ok:
             return
         try:
             # see if there is an object with this ID.
-            module_instance.get({ "id" : field_value})
+            module_instance.get(None, { "id" : field_value})
         except ShadowManagerException:
             raise OrphanedObjectException(comment=field_name,traceback=traceback.format_exc())
 

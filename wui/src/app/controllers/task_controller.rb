@@ -33,7 +33,7 @@ class TaskController < AbstractObjectController
            [ entry.id, entry.id ]
        end
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |entry|
-           [ entry.name, entry.id ]
+           [ entry.mac_address, entry.id ]
        end
        @images = ManagedObject.retrieve_all(Image, @session).collect do |entry|
            [ entry.name, entry.id ]
@@ -41,8 +41,20 @@ class TaskController < AbstractObjectController
        @users = ManagedObject.retrieve_all(User, @session).collect do |entry|
            [ entry.username, entry.id ]
        end
-       @states = []
-       @operations = []
+       # FIXME: for consistancy this should be in codes-lookup.rb
+       @states = [ 
+           [ "Queued",   ACTION_STATE_QUEUED   ],
+           [ "Running",  ACTION_STATE_RUNNING  ],
+           [ "Paused",   ACTION_STATE_PAUSED   ],
+           [ "Failed",   ACTION_STATE_FAILED   ],
+           [ "Finished", ACTION_STATE_FINISHED ]
+       ]
+       @operations = [ 
+           [ "Sync Provisioning",            ACTION_OPERATION_PROVISIONING_COBBLER_SYNC  ],
+           [ "Install Baremetal System",     ACTION_OPERATION_PROVISIONING_INSTALL_METAL ],
+           [ "Install Virtualized System",   ACTION_OPERATION_PROVISIONING_INSTALL_VIRT  ],
+           [ "Sync Recipes",                 ACTION_OPERATION_PROVISIONING_PUPPET_SYNC   ]
+       ]
        @deployments.insert(0,EMPTY_ENTRY)
        @machines.insert(0,EMPTY_ENTRY)
        @images.insert(0,EMPTY_ENTRY)

@@ -17,7 +17,9 @@ import string
 import exceptions
 
 class BaseObject(object):
- 
+
+   FIELDS = []  # subclasses should define a list of db column names here
+
    def load(self,hash,key,default=None):
       """
       Access a hash element safely...
@@ -50,13 +52,19 @@ class BaseObject(object):
       """
       raise exceptions.NotImplementedError
 
-   def deserialize(self, need_fields, args):
-      for x in need_fields:
-         setattr(self, x, args[x])
+   def deserialize(self, args):
+      print "deserializing ..."
+      print args
+      print "---"
+      for x in self.FIELDS:
+          if args.has_key(x):
+              setattr(self, x, args[x])
+          else:
+              setattr(self, x, None)
 
-   def serialize(self, need_fields):
+   def serialize(self):
       result = {}
-      for x in need_fields:
+      for x in self.FIELDS:
          result[x] = getattr(self, x, None)
       return result
 

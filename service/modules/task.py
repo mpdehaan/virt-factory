@@ -15,6 +15,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import baseobj
 from codes import *
 
+import machine
+import deployment
+import user
+
 #import distribution
 #import provisioning
 import web_svc
@@ -25,7 +29,7 @@ import traceback
 
 #------------------------------------------------------
 
-class ActionData(baseobj.BaseObject):
+class TaskData(baseobj.BaseObject):
 
     FIELDS = [ "id", "machine_id", "deployment_id", "user_id", "operation", "parameters", "state" ] 
 
@@ -36,7 +40,7 @@ class ActionData(baseobj.BaseObject):
         operation is creating the image object.
         """
 
-        self = ActionData()
+        self = TaskData()
         self.from_datastruct(image_args)
         self.validate(operation)
         return self
@@ -80,11 +84,11 @@ class ActionData(baseobj.BaseObject):
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 
-class Action(web_svc.AuthWebSvc):
+class Task(web_svc.AuthWebSvc):
     
    DB_SCHEMA = {
        "table" : "tasks",
-       "fields" : ActionData.FIELDS,
+       "fields" : TaskData.FIELDS,
        "add"   : [ "machine_id", "deployment_id", "user_id", "operation", "parameters", "state" ],
        "edit"  : [ "state" ]
     }
@@ -110,13 +114,17 @@ class Action(web_svc.AuthWebSvc):
        Create a image.  image_args should contain all fields except ID.
        """
        
-       u = ActionData.produce(args,OP_ADD)
-       
+       u = TaskData.produce(args,OP_ADD)
+       print "ADD ARGUMENTS: %s" % args
+       print "CONVERTED: %s" % u
+       print u.machine_id
+       print type(u.machine_id)
+ 
        self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
        self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
        self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
        
-       return self.db.simple_add(ActionData,args)
+       return self.db.simple_add(TaskData,args)
 
 
    def edit(self, token, args):
@@ -124,8 +132,8 @@ class Action(web_svc.AuthWebSvc):
        Edit object.  Args should contain all fields that need to be changed.
        """
        
-       u = ActionData.produce(image_args,OP_EDIT) # force validation
-       return self.db.simple_edit(ActionData,args)
+       u = TaskData.produce(image_args,OP_EDIT) # force validation
+       return self.db.simple_edit(TaskData,args)
 
 
    def delete(self, token, args):
@@ -133,8 +141,8 @@ class Action(web_svc.AuthWebSvc):
        Deletes an object.  args must only contain the id field.
        """
        
-       u = ActionData.produce(args,OP_DELETE) # force validation
-       return self.db.simple_delete(ActionData,args)
+       u = TaskData.produce(args,OP_DELETE) # force validation
+       return self.db.simple_delete(TaskData,args)
    
 
    def list(self, token, args):
@@ -152,10 +160,10 @@ class Action(web_svc.AuthWebSvc):
        Return a specific record.  Only the "id" is required in args.
        """
        
-       u = ActionData.produce(args, OP_GET) # validate
-       return self.db.simple_get(ActionData, args)
+       u = TaskData.produce(args, OP_GET) # validate
+       return self.db.simple_get(TaskData, args)
    
 
-methods = Action()
+methods = Task()
 register_rpc = methods.register_rpc
 
