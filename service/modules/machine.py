@@ -208,7 +208,7 @@ class Machine(web_svc.AuthWebSvc):
         self.provisioning = provisioning.Provisioning()
         self.provisioning.sync(None, {} )
            
-    def edit(self, token, machineargs):
+    def edit(self, token, machine_args):
          """
          Edit a machine.
          """
@@ -233,14 +233,15 @@ class Machine(web_svc.AuthWebSvc):
 
          if u.image_id is not None:
             try:
-                self.image.get( { "id" : u.image_id })
+                image_obj = image.Image()
+                image_obj.get(token, { "id" : u.image_id })
             except ShadowManagerException:
                 raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
-         self.sync( {} )
+         self.sync()
 
          return success(u.to_datastruct(True))
 
