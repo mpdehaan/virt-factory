@@ -252,7 +252,7 @@ class Image(web_svc.AuthWebSvc):
          """
 
          # check to see that what we are deleting exists
-         image_result = image_get(None,u.to_datastruct())
+         image_result = self.get(None,u.to_datastruct())
          if not image_result.error_code == 0:
             raise NoSuchObjectException(comment="image_delete")
 
