@@ -108,7 +108,7 @@ class AbstractObjectController < ApplicationController
 
     def delete
         begin
-            ManagedObject.delete(object_class, @params[:id] )
+            ManagedObject.delete(object_class, @params[:id], @session)
             @flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{@params[:id]}"
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)

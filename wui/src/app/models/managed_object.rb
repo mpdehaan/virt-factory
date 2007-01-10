@@ -65,9 +65,9 @@ class ManagedObject
 
     # deleting an object, only the id is a required argument.
 
-    def self.delete(object_class,id)
+    def self.delete(object_class,id,session)
         self.call_server("#{object_class::METHOD_PREFIX}_delete", 
-                         @session, { "id" => id }, id.to_s)
+                         session, { "id" => id }, id.to_s)
     end
 
     # this is a call usable in the controller to get all of the objects that the backend knows about
