@@ -3,10 +3,10 @@ CREATE TABLE tasks (
    machine_id INTEGER,
    deployment_id INTEGER,
    user_id INTEGER,
-   operation INTEGER,
+   operation INTEGER NOT NULL,
    parameters VARCHAR,
-   state INTEGER,
-   time INTEGER
+   state INTEGER NOT NULL,
+   time INTEGER NOT NULL
 );
 
 CREATE TABLE users (
@@ -22,14 +22,14 @@ CREATE TABLE users (
 
 CREATE TABLE events (
    id INTEGER PRIMARY KEY,
-   time           INT,
-   user_id        INT,
+   time           INT NOT NULL,
+   user_id        INT NOT NULL,
    machine_id     INT,
    deployment_id  INT,
    image_id       INT,
    severity       INT NOT NULL,
    category       VARCHAR (255) NOT NULL,
-   action         VARCHAR (255),
+   action         VARCHAR (255) NOT NULL,
    user_comment   VARCHAR (255)
 );
 
@@ -40,7 +40,7 @@ CREATE TABLE distributions (
    options VARCHAR(255),
    kickstart VARCHAR(255),
    name VARCHAR(255) UNIQUE,
-   architecture INT,
+   architecture INT NOT NULL,
    kernel_options VARCHAR(255),       
    kickstart_metadata VARCHAR(255)   
 );
@@ -62,9 +62,10 @@ CREATE TABLE images (
 
 CREATE TABLE deployments (
    id INTEGER PRIMARY KEY,
-   machine_id INT NOT NULL,
-   image_id   INT NOT NULL,
-   state      INT NOT NULL
+   machine_id    INT NOT NULL,
+   image_id      INT NOT NULL,
+   state         INT NOT NULL
+   display_name VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE machines (
@@ -79,6 +80,6 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address VARCHAR(255) NOT NULL,
    is_container INT NOT NULL,
-   image_id INT
+   image_id INT NOT NULL
 );
 
