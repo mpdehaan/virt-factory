@@ -58,6 +58,7 @@ class DeploymentData(baseobj.BaseObject):
         self.machine_id    = self.load(deployment_dep_args,"machine_id")
         self.image_id      = self.load(deployment_dep_args,"image_id")
         self.state         = self.load(deployment_dep_args,"state")
+        self.display_name  = None  # will fill in with query results.
 
     def to_datastruct_internal(self):
         """
@@ -65,10 +66,11 @@ class DeploymentData(baseobj.BaseObject):
         """
 
         return {
-            "id"           : self.id,
-            "machine_id"   : self.machine_id,
-            "image_id"     : self.image_id,
-            "state"        : self.state,
+            "id"            : self.id,
+            "machine_id"    : self.machine_id,
+            "image_id"      : self.image_id,
+            "state"         : self.state,
+            "display_name"  : self.display_name
         }
 
     def validate(self,operation):
@@ -114,29 +116,37 @@ class Deployment(web_svc.AuthWebSvc):
          Create a deployment.  deployment_dep_args should contain all fields except ID.
          """
 
-         u = DeploymentData.produce(deployment_dep_args,OP_ADD)
 
          st = """
-         INSERT INTO deployments (machine_id,image_id,state)
-         VALUES (:machine_id,:image_id,:state)
+         INSERT INTO deployments (machine_id,image_id,state,display_name)
+         VALUES (:machine_id,:image_id,:state,:display_name)
          """
 
          fields = {}
+         mac = None
+         imagename = None
 
          try:
              machine_obj = machine.Machine()
-             machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
+             result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
+             mac = result.data["mac_address"]
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
          try:
              image_obj = image.Image()
-             image_obj.get(token, { "id" : deployment_dep_args["image_id"]})
+             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"]})
+             imagename = result.data["name"]
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'image_id':REASON_ID})
 
+         display_name = mac + " / " + image_name
+
          lock = threading.Lock()
          lock.acquire()
+         
+         deployment_dep_args["display_name"] = display_name
+         u = DeploymentData.produce(deployment_dep_args,OP_ADD)
 
          try:
              self.db.cursor.execute(st, u.to_datastruct())
@@ -157,7 +167,6 @@ class Deployment(web_svc.AuthWebSvc):
          be changed.
          """
 
-         u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
 
          st = """
          UPDATE deployments 
@@ -167,16 +176,22 @@ class Deployment(web_svc.AuthWebSvc):
 
          try:
              machine_obj = machine.Machine()
-             machine_obj.get(token, { "id" : u.machine_id })
+             result = machine_obj.get(token, { "id" : u.machine_id })
+             mac = result.data["mac_address"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
              image_obj = image.Image()
-             image_obj.get(token, { "id" : u.image_id })
+             result = image_obj.get(token, { "id" : u.image_id })
+             imagename = result.data["name"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
+         display_name = mac + "/" + imagename
+         deployment_dep_args["display_name"] = display_name
+
+         u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
@@ -225,6 +240,7 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.machine_id,
          deployments.image_id,
          deployments.state,
+         deployments.display_name
          images.id,
          images.name,
          images.version,
@@ -265,33 +281,33 @@ class Deployment(web_svc.AuthWebSvc):
          for x in results:
 
              image_data = image.ImageData.produce({
-                    "id"                 : x[4],
-                    "name"               : x[5],
-                    "version"            : x[6],
-                    "filename"           : x[7],
-                    "specfile"           : x[8],
-                    "distribtuion_id"    : x[9],
-                    "virt_storage_size"  : x[10],
-                    "virt_ram"           : x[11],
-                    "kickstart_metadata" : x[12],
-                    "kernel_options"     : x[13],
-                    "valid_targets"      : x[14],
-                    "is_container"       : x[15]
+                    "id"                 : x[5],
+                    "name"               : x[6],
+                    "version"            : x[7],
+                    "filename"           : x[8],
+                    "specfile"           : x[9],
+                    "distribtuion_id"    : x[10],
+                    "virt_storage_size"  : x[11],
+                    "virt_ram"           : x[12],
+                    "kickstart_metadata" : x[13],
+                    "kernel_options"     : x[14],
+                    "valid_targets"      : x[15],
+                    "is_container"       : x[16]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[16],
-                    "address"            : x[17],
-                    "architecture"       : x[18],
-                    "processor_speed"    : x[19],
-                    "processor_count"    : x[20],
-                    "memory"             : x[21],
-                    "kernel_options"     : x[22],
-                    "kickstart_metadata" : x[23],
-                    "list_group"         : x[24],
-                    "mac_address"        : x[25],
-                    "is_container"       : x[26],
-                    "image_id"           : x[27]
+                    "id"                 : x[17],
+                    "address"            : x[18],
+                    "architecture"       : x[19],
+                    "processor_speed"    : x[20],
+                    "processor_count"    : x[21],
+                    "memory"             : x[22],
+                    "kernel_options"     : x[23],
+                    "kickstart_metadata" : x[24],
+                    "list_group"         : x[25],
+                    "mac_address"        : x[26],
+                    "is_container"       : x[27],
+                    "image_id"           : x[28]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
@@ -299,6 +315,7 @@ class Deployment(web_svc.AuthWebSvc):
                 "machine_id"   : x[1],
                 "image_id"     : x[2],
                 "state"        : x[3],
+                "display_name" : x[4]
              }).to_datastruct(True)
 
              data["image"] = image_data
@@ -317,6 +334,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          st = """
          SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
+         deployments.display_name,
          images.id, machines.id
          FROM deployments,images,machines WHERE deployments.id=:id AND 
          images.id = deployments.image_id AND machines.id = deployments.machine_id
@@ -335,18 +353,17 @@ class Deployment(web_svc.AuthWebSvc):
          image_results   = image_obj.get(token, { "id" : x[2] })
 
          data = DeploymentData.produce({
-                "id"         : x[0],
-                "machine_id" : x[1],
-                "image_id"   : x[2],
-                "state"      : x[3],
+                "id"           : x[0],
+                "machine_id"   : x[1],
+                "image_id"     : x[2],
+                "state"        : x[3],
+                "display_name" : x[4]
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data
          data["image"]   = image_results.data
 
          return success(data)
-
-
 
 
 
