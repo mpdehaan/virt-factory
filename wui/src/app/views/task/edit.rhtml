@@ -24,7 +24,7 @@
             <TD><%= if @operation == "Add"
                         f.select :deployment_id, @deployments
                     else
-                        @item.deployment.name if @item.deployment
+                        @item.deployment.display_name if @item.deployment
                     end
                 %>
             </TD>
@@ -76,3 +76,4 @@
       </div>
 
       <% @callout_1 = @operation + " a task" %>
+

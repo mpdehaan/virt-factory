@@ -30,9 +30,7 @@ class TaskController < AbstractObjectController
        # may be good to have the list though.
        super
        @deployments = ManagedObject.retrieve_all(Deployment, @session).collect do |entry|
-           # FIXME:  this code is uber-slow and will make way too many web service calls.
-           # need to use deployment.display_name and have that come back from the UI.
-           [ entry.get_machine().mac_address + "/" + entry.get_image().name, entry.id ]
+           [ entry.display_name, entry.id ]
        end
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |entry|
            [ entry.mac_address, entry.id ]

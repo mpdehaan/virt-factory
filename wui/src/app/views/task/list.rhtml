@@ -22,9 +22,10 @@
                  most likely, so the first three fields can probably be trimmed out of the list.
 
                  Do not leave the following code in, as it makes something like 6*N web service calls.  Ow!  Can't have that.
+                 (Plan is probably to nest the backend data)
               %>
              <TD> <%= item.get_machine().mac_address %> </TD>
-             <TD> <%= item.get_deployment().get_image().name + "/" + item.get_deployment().get_machine().mac_address %> </TD>
+             <TD> <%= item.get_deployment().display_name %> </TD>
              <TD> <%= item.get_user().username %> </TD>
              <TD> <%= item.operation %> </TD>
              <TD> <%= item.parameters %> </TD>
