@@ -64,7 +64,7 @@ CREATE TABLE deployments (
    id INTEGER PRIMARY KEY,
    machine_id    INT NOT NULL,
    image_id      INT NOT NULL,
-   state         INT NOT NULL
+   state         INT NOT NULL,
    display_name VARCHAR(255) NOT NULL
 );
 
