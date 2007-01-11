@@ -1,3 +1,3 @@
-INSERT INTO users VALUES(200, "admin", "fedora", "?", "?", "?", "?", "?");
+INSERT INTO users VALUES(1, "admin", "fedora", "?", "?", "?", "?", "?");
 
 

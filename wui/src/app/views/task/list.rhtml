@@ -11,14 +11,16 @@
             <TD>Parameters</TD>
             <TD>State</TD>
             <TD>Time</TD>
+            <TD>Edit</TD>
+            <TD>Delete</TD>
          </TR>
       <%# FIXME: sort by state and only show active entries %>
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= item.machine %> </TD>
-             <TD> <%= item.deployment %> </TD>
-             <TD> <%= item.user %> </TD>
+             <TD> <%= item.machine.mac_address %> </TD>
+             <TD> <%= item.deployment.id %> </TD>
+             <TD> <%= item.user.username %> </TD>
              <TD> <%= item.operation %> </TD>
              <TD> <%= item.parameters %> </TD>
              <TD> <%= item.state %> </TD>
