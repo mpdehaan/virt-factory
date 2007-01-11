@@ -17,10 +17,15 @@
       <%# FIXME: sort by state and only show active entries %>
       <% @items.each do |item| %>
          <TR>
-             
-             <TD> <%= item.machine.mac_address %> </TD>
-             <TD> <%= item.deployment.id %> </TD>
-             <TD> <%= item.user.username %> </TD>
+             <%# FIXME: the following code is slower than heck and makes eleventy billion web calls because the backend
+                 does not send nested data over.  In reality, the real UI would not want to display all of this info
+                 most likely, so the first three fields can probably be trimmed out of the list.
+
+                 Do not leave the following code in, as it makes something like 6*N web service calls.  Ow!  Can't have that.
+              %>
+             <TD> <%= item.get_machine().mac_address %> </TD>
+             <TD> <%= item.get_deployment().get_image().name + "/" + item.get_deployment().get_machine().mac_address %> </TD>
+             <TD> <%= item.get_user().username %> </TD>
              <TD> <%= item.operation %> </TD>
              <TD> <%= item.parameters %> </TD>
              <TD> <%= item.state %> </TD>
