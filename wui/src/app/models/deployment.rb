@@ -4,12 +4,15 @@
 class Deployment < ManagedObject
 
     # corresponds to what's in the database schema
-    ATTR_LIST = { :id => {:type => Integer}, 
-                  :machine_id => {:type => Integer}, 
-                  :image_id => {:type => Integer}, 
-                  :state => {:type => String},
-                  :machine => { :type => Machine, :id_attr => :machine_id}, 
-                  :image => { :type => Image, :id_attr => :image_id} }
+    ATTR_LIST = { 
+       :id           => { :type => Integer }, 
+       :machine_id   => { :type => Integer }, 
+       :image_id     => { :type => Integer }, 
+       :state        => { :type => String  },
+       :display_name => { :type => String  },
+       :machine      => { :type => Machine, :id_attr => :machine_id }, 
+       :image        => { :type => Image, :id_attr => :image_id} 
+    }
     self.set_attrs(ATTR_LIST)
      
     # FIXME: state will eventually need to be a drop down or be controlled by a button that causes other actions

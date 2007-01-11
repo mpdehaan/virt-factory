@@ -4,9 +4,9 @@
       <div id="content-main">
       <TABLE class='listing'>
          <TR>
+            <TD>User</TD>
             <TD>Machine</TD>
             <TD>Deployment</TD>
-            <TD>User</TD>
             <TD>Operation</TD>
             <TD>Parameters</TD>
             <TD>State</TD>
@@ -17,16 +17,35 @@
       <%# FIXME: sort by state and only show active entries %>
       <% @items.each do |item| %>
          <TR>
-             <%# FIXME: the following code is slower than heck and makes eleventy billion web calls because the backend
+             <!-- 
+                 FIXME: the following code is slower than heck and makes eleventy billion web calls because the backend
                  does not send nested data over.  In reality, the real UI would not want to display all of this info
                  most likely, so the first three fields can probably be trimmed out of the list.
 
                  Do not leave the following code in, as it makes something like 6*N web service calls.  Ow!  Can't have that.
                  (Plan is probably to nest the backend data)
-              %>
-             <TD> <%= item.get_machine().mac_address %> </TD>
-             <TD> <%= item.get_deployment().display_name %> </TD>
-             <TD> <%= item.get_user().username %> </TD>
+              -->
+             <TD> <%= 
+                      user_obj = item.get_user()
+                      username = user_obj.username 
+                      userid   = user_obj.id
+                      link_to username, :controller => "user", :action => "edit", :id => userid
+                  %> 
+             </TD>
+             <TD> <%= 
+                      machine_obj = item.get_machine()
+                      machineaddr = machine_obj.mac_address
+                      machineid   = machine_obj.id
+                      link_to machineaddr, :controller => "machine", :action => "edit", :id => machineid
+                  %> 
+             </TD>
+             <TD> <%= 
+                      deployment_obj = item.get_deployment()
+                      deploymentname = deployment_obj.display_name
+                      deploymentid   = deployment_obj.id
+                      link_to deploymentname, :controller => "deployment", :action => "edit", :id => deploymentid
+                  %>
+             </TD>
              <TD> <%= item.operation %> </TD>
              <TD> <%= item.parameters %> </TD>
              <TD> <%= item.state %> </TD>

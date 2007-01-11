@@ -7,15 +7,29 @@
 
       <!-- FIXME: all of this display stuff does not generate the right hyperlinks
            right now and many fields are nullable.  Column oriented display here
-           needs to be replaced -->
+           needs to be replaced.  Above all, output shouldn't be making XMLRPC calls
+           requiring join code to be added to the backend.
+       -->
 
       <TABLE BORDER=0>
+         <TR>
+            <TD>User</TD>
+            <TD><%= if @operation == "Add"
+                        # FIXME: in reality, this should be determined by the token
+                        f.select :user_id, @users
+                    else
+                        user = @item.get_user()
+                        user ? user.username : "None"
+                    end %>
+            </TD>
+         </TR>
          <TR>
             <TD>Machine</TD>
             <TD><%= if @operation == "Add"
                         f.select :machine_id, @machines
                     else
-                        @item.machine.name if @item.machine
+                        machine = @item.get_machine()
+                        machine ? machine.name : "None"
                     end %>
             </TD>
          </TR>
@@ -24,7 +38,8 @@
             <TD><%= if @operation == "Add"
                         f.select :deployment_id, @deployments
                     else
-                        @item.deployment.display_name if @item.deployment
+                        deployment = @item.get_deployment()
+                        deployment ? display_name : "None"
                     end
                 %>
             </TD>
@@ -61,7 +76,7 @@
          <TR> 
             <TD>Time</TD>
             <TD><%= if @opeartion == "Add"
-                        "now"
+                        f.text_field :time, "now" # FIXME: display not quite right here?
                     else
                         @item.time
                     end

@@ -58,7 +58,7 @@ class DeploymentData(baseobj.BaseObject):
         self.machine_id    = self.load(deployment_dep_args,"machine_id")
         self.image_id      = self.load(deployment_dep_args,"image_id")
         self.state         = self.load(deployment_dep_args,"state")
-        self.display_name  = None  # will fill in with query results.
+        self.display_name  = self.load(deployment_dep_args,"display_name")
 
     def to_datastruct_internal(self):
         """
@@ -140,7 +140,7 @@ class Deployment(web_svc.AuthWebSvc):
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'image_id':REASON_ID})
 
-         display_name = mac + " / " + image_name
+         display_name = mac + " / " + imagename
 
          lock = threading.Lock()
          lock.acquire()
@@ -240,7 +240,7 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.machine_id,
          deployments.image_id,
          deployments.state,
-         deployments.display_name
+         deployments.display_name,
          images.id,
          images.name,
          images.version,
