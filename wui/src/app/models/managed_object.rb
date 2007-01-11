@@ -58,7 +58,7 @@ class ManagedObject
     # the backend will ignore the ones it doesn't need or can't change.
 
     def save
-        operation = @id.nil? ? "add" : "edit"
+        operation = (@id.nil? ||  @id == 0) ? "add" : "edit"
         ManagedObject.call_server("#{self.class::METHOD_PREFIX}_#{operation}", 
                                        @session, self.to_hash, objname)
     end
@@ -90,35 +90,55 @@ class ManagedObject
         ManagedObject.from_hash(object_class,results, session)
     end
 
-    # this function is here to create a Ruby object out of the data contained in an XMLRPC return.
-    # FIXME: add comments on how this works.
+
+    # from_hash vivifies an object (or an object tree) using it's hash representation, recursively doing the right
+    # thing as neccessary. 
 
     def self.from_hash(object_class, hash, session)
-        obj = object_class.new(session)
-        object_class::ATTR_LIST.each do |attr, metadata| 
-            if (newval = hash[attr.to_s])
-                attr_type = metadata[:type]
-                if (newval.is_a?(Hash) && attr_type.methods.include?("from_hash"))
-                    newval = self.from_hash(attr_type, newval, session)
-                end
-                unless newval.is_a?(attr_type)
-                    if (attr_type == Integer)
-                        if (newval.is_a?(String) && newval.empty?)
-                            newval = nil
-                        else
-                            newval = newval.to_i 
-                        end
-                    elsif (attr_type == Boolean)
-                        newval = [true, "true"].include?(newval) ? true : false
-                    else
-                        newval = attr_type.new(newval)
-                    end
-                end
+
+       # create the instance, we'll fill it's data as we go along
+       object_instance = object_class.new(session)
+
+       # for each variable passed in as input to the function
+       hash.each do |key, value|
+            # we're going to be creating a new object and adding it to this object as a member variable
+            new_item = nil
+ 
+            # determine the names and types of variables the instance should have
+            class_attributes = object_class::ATTR_LIST[key.to_sym]
+            # if we don't understand this particular variable, we have a serious problem
+            raise RuntimeError.new("class attributes are unknown for #{key}") if class_attributes.nil?
+             
+            # how we vivify the object depends on what type it is
+            atype = class_attributes[:type]
+            if atype == Integer and value.is_a?(String)
+                new_item = value.to_i
+            elsif atype == Integer and value.is_a?(Integer)
+                new_item = value
+            elsif atype == Boolean
+                new_item = [true,"true"].include?(value) ? true : false
+            elsif atype == String
+                new_item = value
+            elsif atype.methods.include?("from_hash")
+                # ManagedObjects result in recursive calls...
+                raise RuntimeError.new("No child arguments?") if not value.is_a?(Hash) 
+                new_item = self.from_hash(atype, value, session)
+            else
+                # we have no idea what to do with this...
+                raise RuntimeError.new("Expecting ManagedObject, got #{atype.to_s}")
             end
-            obj.method(attr.to_s+"=").call(newval) if newval
-        end
-        obj
+            # this data element was processed fine, so create the item
+            # this is roughly equivalent to python's setattr
+            object_instance.method(key.to_s+"=").call(new_item)
+            
+       end
+
+       # no execeptions, so it's safe to return the constructed object.
+       return object_instance
+
     end
+
+    
 
     # this function is called when needing to map an object back into something that is usable as XMLRPC
     # arguments, for instance, when editing a form and needing to send down the new values.
