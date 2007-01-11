@@ -21,31 +21,44 @@ class ManagedObject
 
     def self.set_attrs(hash)
 
+        # hash is the parameter passed in by the contructor, it looks like...
+        #     { :field_name => { :type => FooClass }, ... } where FooClass is Integer, String, Boolean, or 
+        #     a subclass of Managed Object.
+  
         hash.each do |attr,metadata| 
 
             attr_accessor attr 
 
-            # an object returned from the backend returns nested data containing the subobjects.  This 
-            # particular code is (and I don't fully understand it -- mdehaan) there to pull in the subobjects
-            # if the backend fails to include them in nested format, basically allowing the object to make 
-            # extra RPC calls to fill in elements at the time they are accessed.  IMHO, it's a failure in the
-            # backend if that info isn't sent over so this isn't really neccessary.  Reflection can probably
-            # be limited.
+            # an object returned from the backend returns nested data containing the subobjects.  This bit of
+            # the function creates a method called get_foo for every foo that is a subobject, that will, if needed,
+            # retrieve it in the event the item wasn't in the XML.
+
+            # in general, this could cause problems if a list call fails to nest information as it would
+            # generate a gazillion XMLRPC calls, causing lots of UI slowdown.  For this reason, avoid calling 
+            # get_foo inside of list controller methods.
 
             if (metadata[:id_attr])
 
-                define_method(("get_"+attr.to_s).to_sym) do
-                    if ((!instance_variable_get("@"+attr.to_s)) &&
-                        (id = instance_variable_get("@"+metadata[:id_attr].to_s)) &&
-                        id > 0)
-                        instance_variable_set("@"+attr.to_s,
-                                              ManagedObject.retrieve(metadata[:type],
-                                                                     self.session,
-                                                                     id))
+                method_symbol = ("get_"+ attr.to_s).to_sym    # name of method to create
+                attr_symbol   = "@"+attr.to_s                 # object attribute
+                id_symbol     = "@"+metadata[:id_attr].to_s   # integer id of object
+
+                define_method(method_symbol) do
+
+                    # if we haven't yet defined the subobject (by pulling it out of the hash)
+                    # get it from the web service, otherwise return it directly
+
+                    if !instance_variable_get(attr_symbol)
+                        id = instance_variable_get(id_symbol) 
+                        if (id > 0)
+                           object = ManagedObject.retrieve(metadata[:type], self.session, id) 
+                           instance_variable_set(attr_symbol, object)
+                        end
                     end
-                    instance_variable_get("@"+attr.to_s)
+                    return instance_variable_get(attr_symbol)
 
                 end # define_method
+
             end # metadata[:id_attr]
 
         end
