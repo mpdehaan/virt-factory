@@ -126,7 +126,7 @@ class AbstractObjectController < ApplicationController
     
     def set_flash_on_exception(ex)
         # populate @flash with a human readable error string suitable by
-        # display in the layout (right column callout #2)
+        # display in the WUI
         @flash[:errmsg] = ex.get_human_readable()
     end
 
