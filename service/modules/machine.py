@@ -263,10 +263,8 @@ class Machine(web_svc.AuthWebSvc):
          AND machines.id=:id
          """
          # check to see that what we are deleting exists
-         # FIXME
-#         rc = get(None,machine_args)
-         if not rc:
-            raise NoSuchObjectException(comment="machine_delete")
+         # this will raise an exception if the machine isn't there. 
+#        self.get(token,machine_args)
 
          self.db.cursor.execute(st2, { "id" : u.id })
          results = self.db.cursor.fetchall()

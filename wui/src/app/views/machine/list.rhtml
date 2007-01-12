@@ -2,6 +2,7 @@
       <%= ApplicationHelper.menubar("machine","list") %>
      
       <div id="content-main">
+      <% if @items.length > 0 %>
       <TABLE class='listing'>
          <TR>
             <TD>Address</TD>
@@ -16,8 +17,10 @@
             <TD>Mac Address</TD>
             <TD>Appliance Container</TD>
          </TR>
-      <%# FIXME: this may be a result of what objects are being sent over from Python. %>
-      <%# FIXME: web svc should return a hash not a list %>
+      <% else %>
+            No machines are in the ShadowManager database.  Use the "Add" link to register some.
+      <% end %>
+      
       <% @items.each do |item| %>
          <TR>
              
@@ -36,6 +39,10 @@
              <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
+
+      <% if @items.length > 0 %>
       </TABLE>
+      <% end %>
+
       </div>
       <% @callout_1 = "This page lists machines that can run appliances." %>
