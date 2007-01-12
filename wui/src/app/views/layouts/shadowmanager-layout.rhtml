@@ -32,6 +32,17 @@
 
       <br/>
     
+      <!-- if any fields are invalid, turn them red -->
+      <!-- fixme: should also mention reasons later -->
+      <% if @flash[:invalid_fields] %>
+         <SCRIPT LANGUAGE="Javascript">
+
+              <% @flash[:invalid_fields].each do |field, reason| %>
+                  document.getElementById("form_<%= field.to_s() %>").style.backgroundColor='red';
+              <% end %>
+         
+         </SCRIPT>
+      <% end %>
 
       <!-- secondary informational section, if applicable -->
       <% if @flash[:notice] or @flash[:errmsg] %>

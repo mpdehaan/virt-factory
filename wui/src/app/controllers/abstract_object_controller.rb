@@ -128,6 +128,8 @@ class AbstractObjectController < ApplicationController
         # populate @flash with a human readable error string suitable by
         # display in the WUI
         @flash[:errmsg] = ex.get_human_readable()
+
+        @flash[:invalid_fields] = ex.invalid_fields
     end
 
 end
