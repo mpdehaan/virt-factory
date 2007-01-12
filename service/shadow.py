@@ -13,6 +13,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+# "across the nodes I see my shadow.py ..."
+
 import SimpleXMLRPCServer
 import os
 import subprocess

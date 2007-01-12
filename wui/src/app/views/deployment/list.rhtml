@@ -2,12 +2,18 @@
       <%= ApplicationHelper.menubar("deployment","list") %>
      
       <div id="content-main">
+      
+      <% if @items.length > 0 %>
       <TABLE class='listing'>
          <TR>
             <TD>Machine</TD>
             <TD>Image</TD>
             <TD>State</TD>
          </TR>
+      <% else %>
+         There are no virtual images created or deployed yet.  Use the "Add" link to create one.
+      <% end %>
+
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
       <% @items.each do |item| %>

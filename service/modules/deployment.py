@@ -212,7 +212,7 @@ class Deployment(web_svc.AuthWebSvc):
          """
 
          # check to see that what we are deleting exists
-         rc = self.get(deployment_dep_args)
+         rc = self.get(token, deployment_dep_args)
          if not rc:
             raise NoSuchObjectException()
 

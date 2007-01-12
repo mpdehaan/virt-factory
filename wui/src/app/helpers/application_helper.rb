@@ -25,10 +25,10 @@ module ApplicationHelper
        "machine"    => "Machines",
        "edit"       => "Add",
        "list"       => "List",
-       "deployment" => "Deployments",
+       "deployment" => "Virtual Image Deployments",
        "user"       => "Users",
        "logout"     => "Logout",
-       "image"      => "Images",
+       "image"      => "Image Profiles",
        "task"       => "Task Queue"
    }
 
