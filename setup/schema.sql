@@ -1,7 +1,5 @@
 CREATE TABLE tasks (
    id INTEGER PRIMARY KEY,
-   machine_id INTEGER,
-   deployment_id INTEGER,
    user_id INTEGER,
    operation INTEGER NOT NULL,
    parameters VARCHAR,
