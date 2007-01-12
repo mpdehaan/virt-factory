@@ -124,9 +124,11 @@ class ManagedObject
              
             # how we vivify the object depends on what type it is
             atype = class_attributes[:type]
-            if atype == Integer and value.is_a?(String)
-                new_item = value.to_i
-            elsif atype == Integer and value.is_a?(Integer)
+            if [ Fixnum, Integer ].include?(atype) and value.kind_of?(String)
+                new_item = value.to_i()
+            elsif [ Float ].include?(atype) and value.kind_of?(String)
+                new_item = value.to_f()
+            elsif [ Fixnum, Integer, Float ].include?(atype) and value.kind_of?(Numeric)
                 new_item = value
             elsif atype == Boolean
                 new_item = [true,"true"].include?(value) ? true : false
@@ -138,7 +140,7 @@ class ManagedObject
                 new_item = self.from_hash(atype, value, session)
             else
                 # we have no idea what to do with this...
-                raise RuntimeError.new("Expecting ManagedObject, got #{atype.to_s}")
+                raise RuntimeError.new("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}")
             end
             # this data element was processed fine, so create the item
             # this is roughly equivalent to python's setattr

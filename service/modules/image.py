@@ -223,7 +223,7 @@ class Image(web_svc.AuthWebSvc):
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
-         self.sync({} )
+         self.sync()
 
          return success(u.to_datastruct(True))
 

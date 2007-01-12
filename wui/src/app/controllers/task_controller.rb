@@ -29,15 +29,6 @@ class TaskController < AbstractObjectController
        # NOTE: this is mainly for development purposes, we probably won't allow this directly once released
        # may be good to have the list though.
        super
-       @deployments = ManagedObject.retrieve_all(Deployment, @session).collect do |entry|
-           [ entry.display_name, entry.id ]
-       end
-       @machines = ManagedObject.retrieve_all(Machine, @session).collect do |entry|
-           [ entry.mac_address, entry.id ]
-       end
-       @images = ManagedObject.retrieve_all(Image, @session).collect do |entry|
-           [ entry.name, entry.id ]
-       end
        @users = ManagedObject.retrieve_all(User, @session).collect do |entry|
            [ entry.username, entry.id ]
        end
@@ -55,9 +46,6 @@ class TaskController < AbstractObjectController
            [ "Install Virtualized System",   ACTION_OPERATION_PROVISIONING_INSTALL_VIRT  ],
            [ "Sync Recipes",                 ACTION_OPERATION_PROVISIONING_PUPPET_SYNC   ]
        ]
-       @deployments.insert(0,EMPTY_ENTRY)
-       @machines.insert(0,EMPTY_ENTRY)
-       @images.insert(0,EMPTY_ENTRY)
        @users.insert(0,EMPTY_ENTRY)
 
        # FIXME: finish

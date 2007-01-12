@@ -5,12 +5,11 @@
       <TABLE class='listing'>
          <TR>
             <TD>User</TD>
-            <TD>Machine</TD>
-            <TD>Deployment</TD>
             <TD>Operation</TD>
             <TD>Parameters</TD>
             <TD>State</TD>
-            <TD>Time</TD>
+            <!-- FIXME: UI should convert to localtime -->
+            <TD>Start Time</TD>
             <TD>Edit</TD>
             <TD>Delete</TD>
          </TR>
@@ -31,20 +30,6 @@
                       userid   = user_obj.id
                       link_to username, :controller => "user", :action => "edit", :id => userid
                   %> 
-             </TD>
-             <TD> <%= 
-                      machine_obj = item.get_machine()
-                      machineaddr = machine_obj.mac_address
-                      machineid   = machine_obj.id
-                      link_to machineaddr, :controller => "machine", :action => "edit", :id => machineid
-                  %> 
-             </TD>
-             <TD> <%= 
-                      deployment_obj = item.get_deployment()
-                      deploymentname = deployment_obj.display_name
-                      deploymentid   = deployment_obj.id
-                      link_to deploymentname, :controller => "deployment", :action => "edit", :id => deploymentid
-                  %>
              </TD>
              <TD> <%= item.operation %> </TD>
              <TD> <%= item.parameters %> </TD>

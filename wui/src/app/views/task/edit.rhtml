@@ -24,27 +24,6 @@
             </TD>
          </TR>
          <TR>
-            <TD>Machine</TD>
-            <TD><%= if @operation == "Add"
-                        f.select :machine_id, @machines
-                    else
-                        machine = @item.get_machine()
-                        machine ? machine.name : "None"
-                    end %>
-            </TD>
-         </TR>
-         <TR> 
-            <TD>Deployment</TD>
-            <TD><%= if @operation == "Add"
-                        f.select :deployment_id, @deployments
-                    else
-                        deployment = @item.get_deployment()
-                        deployment ? display_name : "None"
-                    end
-                %>
-            </TD>
-         </TR>
-         <TR> 
             <TD>State</TD>
             <%# FIXME: different types of valid states depending on add vs. edit %>
             <TD><%= f.select :state, @states %></TD>
@@ -70,12 +49,8 @@
             </TD>
          </TR>
          <TR> 
-            <TD>State</TD>
-            <TD><%= f.select :state, @states %></TD>
-         </TR>
-         <TR> 
             <TD>Time</TD>
-            <TD><%= if @opeartion == "Add"
+            <TD><%= if @operation == "Add"
                         f.text_field :time, "now" # FIXME: display not quite right here?
                     else
                         @item.time

@@ -167,6 +167,7 @@ class Deployment(web_svc.AuthWebSvc):
          be changed.
          """
 
+         u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
 
          st = """
          UPDATE deployments 
@@ -190,8 +191,10 @@ class Deployment(web_svc.AuthWebSvc):
 
          display_name = mac + "/" + imagename
          deployment_dep_args["display_name"] = display_name
-
+         
+         # have to reinsert the display name into the data structure...
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
+
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 

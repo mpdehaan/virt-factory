@@ -26,12 +26,13 @@ import web_svc
 import os
 import threading
 import traceback
+import time
 
 #------------------------------------------------------
 
 class TaskData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "machine_id", "deployment_id", "user_id", "operation", "parameters", "state" ] 
+    FIELDS = [ "id", "user_id", "operation", "parameters", "state", "time" ] 
 
     def _produce(klass, image_args,operation=None):
         """
@@ -72,10 +73,12 @@ class TaskData(baseobj.BaseObject):
             except:
                 invalid_fields["id"] = REASON_FORMAT
  
-        if operation in [OP_ADD, OP_EDIT]:
+        if operation in [OP_ADD]:
 
             if self.operation not in VALID_ACTION_OPERATIONS:
                 invalid_fields["operation"] = REASON_RANGE
+        
+        if operation in [OP_ADD, OP_EDIT]:
 
             if self.state not in VALID_ACTION_STATES:
                 invalid_fields["state"] = REASON_RANGE
@@ -89,7 +92,7 @@ class Task(web_svc.AuthWebSvc):
    DB_SCHEMA = {
        "table" : "tasks",
        "fields" : TaskData.FIELDS,
-       "add"   : [ "machine_id", "deployment_id", "user_id", "operation", "parameters", "state" ],
+       "add"   : [ "user_id", "operation", "parameters", "state", "time" ],
        "edit"  : [ "state" ]
     }
 
@@ -100,6 +103,7 @@ class Task(web_svc.AuthWebSvc):
        
        self.methods = {
            "task_add"    : self.add,
+           "task_edit"   : self.edit,
            "task_list"   : self.list,
            "task_get"    : self.get,
            "task_delete" : self.delete
@@ -114,15 +118,14 @@ class Task(web_svc.AuthWebSvc):
        Create a image.  image_args should contain all fields except ID.
        """
        
-       u = TaskData.produce(args,OP_ADD)
-       
-       # FIXME: note that user_id is currently not supplied by the web form and should be determined
-       # probably by the token.  until then, just use user id 1.
+       u = TaskData.produce(args,OP_ADD) # force validation
 
-       args["user_id"] = 1
+       args["time"] = time.time()
+            
  
-       self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
-       self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
+       # no longer used...
+       # self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
+       # self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
        
        # FIXME: same note as above
        # self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
