@@ -48,16 +48,13 @@
                  %>
             </TD>
          </TR>
+         <% if @operation == "Edit" %>
          <TR> 
             <TD>Time</TD>
-            <TD><%= if @operation == "Add"
-                        f.text_field :time, "now" # FIXME: display not quite right here?
-                    else
-                        @item.time
-                    end
-                 %>
+                 <%= @item.time %>
             </TD>
          </TR>
+         <% end %>
          <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>
          </TR>
