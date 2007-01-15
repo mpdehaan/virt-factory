@@ -75,12 +75,12 @@ class TaskData(baseobj.BaseObject):
  
         if operation in [OP_ADD]:
 
-            if self.operation not in VALID_ACTION_OPERATIONS:
+            if self.operation not in VALID_TASK_OPERATIONS:
                 invalid_fields["operation"] = REASON_RANGE
         
         if operation in [OP_ADD, OP_EDIT]:
 
-            if self.state not in VALID_ACTION_STATES:
+            if self.state not in VALID_TASK_STATES:
                 invalid_fields["state"] = REASON_RANGE
 
         if len(invalid_fields) > 0:
@@ -168,7 +168,37 @@ class Task(web_svc.AuthWebSvc):
        
        u = TaskData.produce(args, OP_GET) # validate
        return self.db.simple_get(args)
-   
+ 
+   def do_background_thread(self, token, args):
+       
+       JUST_STARTED = """
+       task_results = self.list(token, {}) 
+       tasks = task_results.data 
+
+       # not a lot of tasks, no need for db sort...
+       def sorter(a,b):
+           return cmp(a["time"], b["time"])
+ 
+       tasks.sort(sorter,reverse=True)
+       
+       for item in tasks:
+           item = TaskData.produce(item["data"])   
+           op = item.operation
+
+           # FIELDS = [ "id", "user_id", "operation", "parameters", "state", "time" ]
+
+           if op == TASK_OPERATION_COBBLER_SYNC:
+               pass
+           elif op == TASK_OPERATION_INSTALL_METAL:
+               pass
+           elif op == TASK_OPERATION_INSTALL_VIRT:
+               pass
+           elif op == TASK_OPERATION_PUPPET_SYNC:
+               pass
+           raise ShadowManagerException() # FIXME
+       """
+          
+
 
 methods = Task()
 register_rpc = methods.register_rpc

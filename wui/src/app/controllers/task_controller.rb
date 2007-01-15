@@ -34,17 +34,17 @@ class TaskController < AbstractObjectController
        end
        # FIXME: for consistancy this should be in codes-lookup.rb
        @states = [ 
-           [ "Queued",   ACTION_STATE_QUEUED   ],
-           [ "Running",  ACTION_STATE_RUNNING  ],
-           [ "Paused",   ACTION_STATE_PAUSED   ],
-           [ "Failed",   ACTION_STATE_FAILED   ],
-           [ "Finished", ACTION_STATE_FINISHED ]
+           [ "Queued",   TASK_STATE_QUEUED   ],
+           [ "Running",  TASK_STATE_RUNNING  ],
+           [ "Paused",   TASK_STATE_PAUSED   ],
+           [ "Failed",   TASK_STATE_FAILED   ],
+           [ "Finished", TASK_STATE_FINISHED ]
        ]
        @operations = [ 
-           [ "Sync Provisioning",            ACTION_OPERATION_PROVISIONING_COBBLER_SYNC  ],
-           [ "Install Baremetal System",     ACTION_OPERATION_PROVISIONING_INSTALL_METAL ],
-           [ "Install Virtualized System",   ACTION_OPERATION_PROVISIONING_INSTALL_VIRT  ],
-           [ "Sync Recipes",                 ACTION_OPERATION_PROVISIONING_PUPPET_SYNC   ]
+           [ "Sync Provisioning",            TASK_OPERATION_COBBLER_SYNC  ],
+           [ "Install Baremetal System",     TASK_OPERATION_INSTALL_METAL ],
+           [ "Install Virtualized System",   TASK_OPERATION_INSTALL_VIRT  ],
+           [ "Sync Recipes",                 TASK_OPERATION_PUPPET_SYNC   ]
        ]
        @users.insert(0,EMPTY_ENTRY)
 

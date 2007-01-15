@@ -40,6 +40,7 @@ ERR_SQL               = 9
 ERR_MISCONFIGURED     = 10
 ERR_UNCAUGHT          = 11 
 ERR_INVALID_METHOD    = 12
+ERR_TASK              = 13
 
 # architecture field for machines and images
 ARCH_X86 = "x86"
@@ -76,29 +77,29 @@ REASON_FORMAT = "format"
 REASON_NOFILE = "no_file"
 
 # operations types for queued actions
-ACTION_OPERATION_PROVISIONING_COBBLER_SYNC = "cobbler_sync"
-ACTION_OPERATION_PROVISIONING_INSTALL_METAL = "install_metal"
-ACTION_OPERATION_PROVISIONING_INSTALL_VIRT = "install_virt"
-ACTION_OPERATION_PROVISIONING_PUPPET_SYNC = "puppet_sync"
-VALID_ACTION_OPERATIONS = [
-   ACTION_OPERATION_PROVISIONING_COBBLER_SYNC,
-   ACTION_OPERATION_PROVISIONING_INSTALL_METAL,
-   ACTION_OPERATION_PROVISIONING_INSTALL_VIRT,
-   ACTION_OPERATION_PROVISIONING_PUPPET_SYNC
+TASK_OPERATION_COBBLER_SYNC = "cobbler_sync"
+TASK_OPERATION_INSTALL_METAL = "install_metal"
+TASK_OPERATION_INSTALL_VIRT = "install_virt"
+TASK_OPERATION_PUPPET_SYNC = "puppet_sync"
+VALID_TASK_OPERATIONS = [
+   TASK_OPERATION_COBBLER_SYNC,
+   TASK_OPERATION_INSTALL_METAL,
+   TASK_OPERATION_INSTALL_VIRT,
+   TASK_OPERATION_PUPPET_SYNC
 ]
 
 # states for queued actions
-ACTION_STATE_QUEUED = "queued"
-ACTION_STATE_RUNNING = "running"
-ACTION_STATE_PAUSED = "paused"
-ACTION_STATE_FAILED = "failed"
-ACTION_STATE_FINISHED = "finished"
-VALID_ACTION_STATES = [
-   ACTION_STATE_QUEUED,
-   ACTION_STATE_RUNNING,
-   ACTION_STATE_PAUSED,
-   ACTION_STATE_FAILED,
-   ACTION_STATE_FINISHED
+TASK_STATE_QUEUED = "queued"
+TASK_STATE_RUNNING = "running"
+TASK_STATE_PAUSED = "paused"
+TASK_STATE_FAILED = "failed"
+TASK_STATE_FINISHED = "finished"
+VALID_TASK_STATES = [
+   TASK_STATE_QUEUED,
+   TASK_STATE_RUNNING,
+   TASK_STATE_PAUSED,
+   TASK_STATE_FAILED,
+   TASK_STATE_FINISHED
 ]
 
 
@@ -239,6 +240,12 @@ class SQLException(ShadowManagerException):
    """
    error_code = ERR_SQL
 
+class TaskException(ShadowManagerException):
+   """
+   Something went wrong with the background task engine
+   """
+   error_code = ERR_TASK
+
 class MisconfiguredException(ShadowManagerException):
    """
    The shadowmanager service isn't properly configured and 
@@ -249,6 +256,7 @@ class MisconfiguredException(ShadowManagerException):
    /var/lib/shadowmanager/settings, and then run "shadow import".
    """
    error_code = ERR_MISCONFIGURED
+
 
 def success(data=None,job_id=None):
    """
