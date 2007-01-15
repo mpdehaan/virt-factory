@@ -60,7 +60,7 @@ class DbUtil(object):
         Particularly useful in sqlite, where there are no foreign keys.
         """
         # FIXME: log instead of print
-        print "validating foreign key %s of %s" % (field_name, field_value)
+        # print "validating foreign key %s of %s" % (field_name, field_value)
         if field_value is None and null_field_ok:
             return
         try:
@@ -100,7 +100,7 @@ class DbUtil(object):
             data_hash = dict(zip(self.db_schema["fields"], x))
             data_list.append(data_hash)
 
-        print "SUCCESS, list=%s" % data_list
+        # print "SUCCESS, list=%s" % data_list
 
         base_obj = baseobj.BaseObject()
         return success(base_obj.remove_nulls(data_list))

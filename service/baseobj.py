@@ -53,9 +53,6 @@ class BaseObject(object):
       raise exceptions.NotImplementedError
 
    def deserialize(self, args):
-      print "deserializing ..."
-      print args
-      print "---"
       for x in self.FIELDS:
           if args.has_key(x):
               setattr(self, x, args[x])
