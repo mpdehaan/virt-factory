@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """
 ShadowManager backend code.
 
