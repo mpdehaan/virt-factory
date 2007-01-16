@@ -117,7 +117,7 @@ class ShadowManagerException(exceptions.Exception):
 
 
    def format(self):
-      str = """
+      msg = """
 Exception Name: %s
 Exception Comment: %s
 Exception Data: %s
@@ -125,9 +125,7 @@ Stack Trace:
 %s""" % (self.__class__, self.comment, self.data,
          string.join(traceback.format_list(self.tb_data)))
 
-      return str
-      #"
-   
+      return msg
 
    def ok(self):
        return self.error_code == 0

@@ -20,7 +20,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import SimpleXMLRPCServer
 import os
 import subprocess
-import time
 
 from pysqlite2 import dbapi2 as sqlite
 
@@ -176,10 +175,7 @@ def main(argv):
     websvc = XmlRpcInterface()
      
     if len(argv) > 1:
-        if argv[1].lower() == "init":
-            config_obj = config_data.Config()
-            config_obj.reset()
-        elif argv[1].lower() == "import":
+        if argv[1].lower() == "import":
             prov_obj = provisioning.Provisioning()
             prov_obj.init(None, {})
         else:
