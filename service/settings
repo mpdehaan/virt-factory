@@ -1,0 +1,9 @@
+---
+databases:
+    primary: /var/lib/shadowmanager/primary_db
+logs:
+    service: /var/lib/shadowmanager/svclog
+mirrors:
+    FC-6: 'rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD'
+this_server:
+    address: '127.0.0.1'

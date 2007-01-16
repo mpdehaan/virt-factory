@@ -44,14 +44,8 @@ class Authentication(web_svc.WebSvc):
          SELECT id, password FROM users WHERE username=:username
          """
 
-         if not os.path.exists("/var/lib/shadowmanager/settings"):
-             # the app isn't configured.  What this means is that there are (at minimum) no
-             # distributions configured and it's basically unusuable.  The WUI here should
-             # show a simple splash screen saying the service isn't configured and that the
-             # user needs to run two steps on the server.  "shadow init" to create the
-             # default config and "shadow import" to import distributions.  Once this is done
-             # they will be able to reload and use the WUI,
-             raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
+         if not os.path.exists("/var/lib/shadowmanager/primary_db"):
+             raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
 
          self.db.cursor.execute(st, { "username" : username })
          results = self.db.cursor.fetchone()
@@ -85,8 +79,8 @@ class Authentication(web_svc.WebSvc):
         if token is None:
             return SuccessException()
         
-        if not os.path.exists("/var/lib/shadowmanager/settings"):
-            raise MisconfiguredException(comment="/var/lib/shadowmanager/settings doesn't exist")
+        if not os.path.exists("/var/lib/shadowmanager/primary_db"):
+            raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
 
         self.logger.debug("self.tokens: %s" % self.tokens)
         self.logger.debug("token: %s" % type(token))
