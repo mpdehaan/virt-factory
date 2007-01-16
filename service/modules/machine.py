@@ -97,30 +97,30 @@ class MachineData(baseobj.BaseObject):
         if operation in [OP_ADD, OP_EDIT]:
 
            # address is valid (need an RFC compliant module to do this right)
-           if not self.is_printable(self.address):
+           if self.address and not self.is_printable(self.address):
                invalid_args["address"] = REASON_FORMAT
 
            # architecture is one of the listed arches
-           if not self.architecture in VALID_ARCHS:
+           if self.architecture and not self.architecture in VALID_ARCHS:
                invalid_args["architecture"] = REASON_RANGE
 
            # processor speed is a positive int
-           if not type(self.processor_speed) == int and self.processor_speed > 0:
+           if self.processor_speed and not type(self.processor_speed) == int and self.processor_speed > 0:
                invalid_args["processor_speed"] = REASON_FORMAT
 
            # processor count is a positive int
-           if not type(self.processor_count) == int and self.processor_count > 0:
+           if self.processor_count and not type(self.processor_count) == int and self.processor_count > 0:
                invalid_args["processor_count"] = REASON_FORMAT
 
            # memory is a positive int
-           if not type(self.memory) == int and self.memory > 0:
+           if self.memory and not type(self.memory) == int and self.memory > 0:
                invalid_args["memory"] = REASON_FORMAT
 
            # kernel_options is printable or None
-           if self.kernel_options is None and not self.is_printable(self.kernel_options):
+           if self.kernel_options and not self.is_printable(self.kernel_options):
                invalid_args["kernel_options"] = REASON_FORMAT
            # kickstart metadata is printable or None
-           if self.kickstart_metadata is None and not self.is_printable(self.kickstart_metadata):
+           if self.kickstart_metadata and not self.is_printable(self.kickstart_metadata):
                invalid_args["kickstart_metadata"] = REASON_FORMAT
            # list group is printable or None
            if self.list_group is not None and not self.is_printable(self.list_group):
@@ -135,6 +135,8 @@ class MachineData(baseobj.BaseObject):
 class Machine(web_svc.AuthWebSvc):
     def __init__(self):
         self.methods = {"machine_add": self.add,
+                        "machine_new": self.new,
+                        "machine_associate": self.associate,
                         "machine_delete": self.delete,
                         "machine_edit": self.edit,
                         "machine_list": self.list,
@@ -148,8 +150,6 @@ class Machine(web_svc.AuthWebSvc):
         Create a machine.  machine_args should contain all fields except ID.
         """
 
-        u = MachineData.produce(args,OP_ADD)
-       
         st = """
         INSERT INTO machines (
         address,
@@ -178,7 +178,9 @@ class Machine(web_svc.AuthWebSvc):
         """
 
         u = MachineData.produce(args,OP_ADD)
+        print "u.image_id", u.image_id
         if u.image_id is not None:
+            print "creating an image.Image()" 
             try:
                 self.image = image.Image()
                 self.image.get( token, { "id" : u.image_id } )
@@ -200,9 +202,33 @@ class Machine(web_svc.AuthWebSvc):
         rowid = self.db.cursor.lastrowid
         lock.release() 
 
-        self.sync()
+        # for a "empty" machie add, we don't need to sync
+        if u.image_id:
+            self.sync()
 
         return success(rowid)
+
+    def new(self, token):
+        """
+        Allocate a new machine record to be fill in later. Return a machine_id
+        """
+
+        args = {}
+        print "machine_new"
+        return self.add(token, args)
+
+
+    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None):
+        """
+        Associate a machine with an ip/host/mac address
+        """
+        args = {'id': machine_id,
+                'address': ip_addr,
+                'mac_address': mac_addr,
+                'image_id': image_id}
+        print args
+        return self.edit(token, args)
+        
 
     def sync(self):
         self.provisioning = provisioning.Provisioning()
@@ -241,7 +267,8 @@ class Machine(web_svc.AuthWebSvc):
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
-         self.sync()
+         if u.image_id:
+             self.sync()
 
          return success(u.to_datastruct(True))
 

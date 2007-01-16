@@ -16,7 +16,9 @@ from codes import *
 import baseobj
 
 import config
+import machine
 import web_svc
+
 
 import logging
 import os
@@ -28,9 +30,17 @@ import traceback
 
 class Registration(web_svc.AuthWebSvc):
     def __init__(self):
-        self.methods = {"register_add": self.add,
-                        "register_test": self.test}
+        self.methods = {"register_new_machine": self.new_machine,
+                        "register_associate": self.associate}
         web_svc.AuthWebSvc.__init__(self)
+
+    def new_machine(self, token):
+        machine_obj = machine.Machine()
+        return machine_obj.new(token)
+
+    def associate(self, token, machine_id, hostname, ip_addr):
+        machine_obj = machine.Machine()
+        
 
 
     def add(self, token, args):

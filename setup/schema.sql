@@ -68,16 +68,16 @@ CREATE TABLE deployments (
 
 CREATE TABLE machines (
    id INTEGER PRIMARY KEY,
-   address VARCHAR(255) UNIQUE NOT NULL,
-   architecture INT NOT NULL,
-   processor_speed INT NOT NULL,
-   processor_count INT NOT NULL,
-   memory          INT NOT NULL,
+   address VARCHAR(255) ,
+   architecture INT,
+   processor_speed INT,
+   processor_count INT,
+   memory          INT,
    kernel_options     VARCHAR(255),
    kickstart_metadata VARCHAR(255),
    list_group         VARCHAR(255),
-   mac_address VARCHAR(255) NOT NULL,
-   is_container INT NOT NULL,
-   image_id INT NOT NULL
+   mac_address VARCHAR(255),
+   is_container INT,
+   image_id INT
 );
 
