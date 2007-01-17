@@ -85,7 +85,6 @@ CREATE TABLE registration_tokens (
    id                 INTEGER PRIMARY KEY,
    token              VARCHAR(255),
    image_id           INTEGER, 
-   user_id            INTEGER,
    uses_remaining     INTEGER
 );
 

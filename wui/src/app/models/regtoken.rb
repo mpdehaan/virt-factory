@@ -2,7 +2,7 @@
 # of self adding the machines.  They can have a limited use count or not.  They can be associated with
 # an image or not.  
 
-class RegTokens < ManagedObject
+class RegToken < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { 
@@ -18,7 +18,7 @@ class RegTokens < ManagedObject
     self.set_attrs(ATTR_LIST)
 
     # web service methods start with this
-    METHOD_PREFIX = "regtokens"
+    METHOD_PREFIX = "regtoken"
 
     def objname
         id # correct?

@@ -1,0 +1,2 @@
+class RegtokenController < ApplicationController
+end
