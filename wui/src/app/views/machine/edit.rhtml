@@ -3,53 +3,71 @@
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
-      <%= f.hidden_field :id %>
+      <% if @operation == "edit" %>
+         <%= f.hidden_field :id %>
+      <% end %>
       <TABLE BORDER=0>
-         <TR>
-            <TD>Address</TD>
-            <TD><%= f.text_field :address %></TD>
-         </TR>
-         <TR>
-            <TD>Architecture</TD>
-            <TD><%= f.select :architecture, ARCHITECTURES_SELECT %></TD>
-         </TR>
-         <TR> 
-            <TD>Procesor Speed</TD>
-            <TD><%= f.text_field :processor_speed %></TD>
-         </TR>
-         <TR> 
-            <TD>Procesor Count</TD>
-            <TD><%= f.text_field :processor_count %></TD>
-         </TR>
-         <TR> 
-            <TD>Memory</TD>
-            <TD><%= f.text_field :memory %></TD>
-         </TR>
+         <% if @operation == "edit" and !@item.address.nil? %>
+            <TR>
+                <TD>Address</TD>
+                <TD><%= @item.address %></TD>
+            </TR>
+         <% end %>
          <TR>
             <TD>Image</TD>
-            <TD><%= f.select :image_id, @images %>
-             </TD>
+            <TD><%= f.select :image_id, @images %></TD>
          </TR>
+         <% if !@item.address.nil? and @operation == "edit" %>
+             <TR>
+                 <TD>Architecture</TD>
+                 <TD><%= @item.architecture %></TD>
+             </TR>
+             <TR> 
+                <TD>Procesor Speed</TD>
+                <TD><%= @item.processor_speed %></TD>
+             </TR>
+             <TR> 
+                <TD>Procesor Count</TD>
+                <TD><%= @item.processor_count %></TD>
+             </TR>
+             <TR> 
+                 <TD>Memory</TD>
+                 <TD><%= @item.memory %></TD>
+             </TR>
+             <!-- don't display until needed later
+             <TR>
+                <TD>Kernel Options</TD>
+                <TD><%= @item.kernel_options %></TD>
+             </TR>
+             <TR>
+                <TD>Kickstart Metadata</TD>
+                <TD><%= @item.kickstart_metadata %></TD>
+             </TR>
+             <TR>
+                <TD>List Group</TD>
+                <TD><%= @item.list_group %></TD>
+             </TR>
+             -->
+         <% end %>
+         <% if @operation == "add" or (@operation == "edit" and !@item.address.nil?) %>
+            <TR>
+                <TD>Mac Address</TD>
+                <% if @operation == "add" %>
+                    <TD><%= f.text_field :mac_address %></TD>
+                <% else %>
+                    <TD><%= @item.mac_address %></TD>
+                <% end %>
+            </TR>
+         <% end %>
          <TR>
-            <TD>Kernel Options</TD>
-            <TD><%= f.text_field :kernel_options %></TD>
-         </TR>
-         <TR>
-            <TD>Kickstart Metadata</TD>
-            <TD><%= f.text_field :kickstart_metadata %></TD>
-         </TR>
-         <TR>
-            <TD>List Group</TD>
-            <TD><%= f.text_field :list_group %></TD>
-         </TR>
-         <TR>
-            <TD>Mac Address</TD>
-            <TD><%= f.text_field :mac_address %></TD>
-         </TR>
-         <TR>
-            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+            <% if @operation == "add" %>
+                 <TD COLSPAN="2"><input type="submit" value="Add"></TD>
+            <% else %>
+                 <TD COLSPAN="2"><input type="submit" value="Save"></TD>
+            <% end %>
          </TR>
       </TABLE>
-      <% end %>
+      <% end %> <%# end of form %>
+
       </div>
 

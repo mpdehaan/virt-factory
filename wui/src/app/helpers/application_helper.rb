@@ -15,7 +15,8 @@ module ApplicationHelper
        <li><strong>Machines</strong>
 	   <ul>
 	   <li><A HREF="/machine/list">View Machines</A></li>
-	   <li><A HREF="/machine/edit">Add a Machine</A></li>
+	   <li><A HREF="/machine/edit">Add a Machine via PXE</A></li>
+	   <li><A HREF="/machine/gentokens">Generate Registration Tokens</A></li>
 	   </ul>
        </li>
        <li><strong>Image Profiles</strong>

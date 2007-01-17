@@ -52,13 +52,13 @@ class AbstractObjectController < ApplicationController
     # action.  nothing is actually done here to modify the configuration until edit_submit
 
     def edit
-        # FIXME: error handling on "success"
+
         if @params[:id].nil?
             @item = object_class.new(@session)
-            @operation = "Add"
+            @operation = "add"
         else
             begin
-                @operation = "Edit"
+                @operation = "edit"
                 @item = ManagedObject.retrieve(object_class,@session, @params[:id])
             rescue XMLRPCClientException => ex
                 @item = object_class.new(@session)
@@ -67,13 +67,8 @@ class AbstractObjectController < ApplicationController
         end
     end
 
-    # view action.  What does this do?
-    #---
-    # FIXME: I have my suspicions that this controller method is not actually used, and rather
-    # all links go to edit.  It may be the case that we want to display some things entirely
-    # read only.  This may change later when we start having to worry about guest permissions,
-    # but I think this can be deleted.
-    #+++
+    # view action.  Just shows items without an edit controls.  The individual view pages
+    # should link to the edit controller for each item.
 
     def view
         @item = ManagedObject.retrieve(object_class,session, @params[:id])
@@ -84,10 +79,6 @@ class AbstractObjectController < ApplicationController
     # id in the parameter list.  There is no view associated with edit_submit, it's just
     # an action, hence the redirect to the "list" controller action on success. On failure,
     # it will stay on the same page and show an error.
-    #---
-    # FIXME: it would be nice for fields to not get deleted upon error, so the user
-    # doesn't have to type all of them in again.
-    #+++
 
     def edit_submit
         begin
@@ -101,7 +92,12 @@ class AbstractObjectController < ApplicationController
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
         end
-        redirect_to :action => "edit"
+        # what page we redirect depends on whether this was an add or an edit
+        if operation == "add"
+            redirect_to :action => "edit"
+        else 
+            redirect_to :action => "edit", :id => obj.id
+        end
     end
 
     # deletes an object, redirecting to list on success, otherwise showing an error message.

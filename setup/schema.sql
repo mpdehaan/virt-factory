@@ -67,17 +67,23 @@ CREATE TABLE deployments (
 );
 
 CREATE TABLE machines (
-   id INTEGER PRIMARY KEY,
-   address VARCHAR(255) ,
-   architecture INT,
-   processor_speed INT,
-   processor_count INT,
-   memory          INT,
+   id                 INTEGER PRIMARY KEY,
+   address            VARCHAR(255),
+   architecture       INT,
+   processor_speed    INT,
+   processor_count    INT,
+   memory             INT,
    kernel_options     VARCHAR(255),
    kickstart_metadata VARCHAR(255),
    list_group         VARCHAR(255),
-   mac_address VARCHAR(255),
-   is_container INT,
-   image_id INT
+   mac_address        VARCHAR(255),
+   is_container       INT,
+   image_id           INT
+);
+
+CREATE TABLE registration_tokens (
+   id                 INT PRIMARY KEY,
+   token              VARCHAR(255),
+   image_id           INT 
 );
 

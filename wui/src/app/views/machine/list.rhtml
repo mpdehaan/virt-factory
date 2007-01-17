@@ -11,11 +11,15 @@
             <TD>Processor Count</TD>
             <TD>Memory</TD>
             <TD>Image</TD>
+            <!--
             <TD>Kernel Options</TD>
             <TD>Kickstart Metadata</TD>
             <TD>List Group</TD>
+            -->
             <TD>Mac Address</TD>
+            <!--
             <TD>Appliance Container</TD>
+            -->
          </TR>
       <% else %>
             No machines are in the ShadowManager database.  Use the "Add" link to register some.
@@ -30,11 +34,7 @@
              <TD> <%= item.processor_count %> </TD>
              <TD> <%= item.memory %> </TD>
              <TD> <%= (link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id) if item.image %></TD>
-             <TD> <%= item.kernel_options %> </TD>
-             <TD> <%= item.kickstart_metadata %> </TD>
-             <TD> <%= item.list_group %> </TD>
              <TD> <%= item.mac_address %> </TD>
-             <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %> </TD>
              <TD> <%= link_to "edit", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
          </TR>
