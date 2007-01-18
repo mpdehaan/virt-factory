@@ -34,7 +34,7 @@ class RegTokenData(baseobj.BaseObject):
         operation is creating the image object.
         """
 
-        self = RegToken()
+        self = RegTokenData()
         self.from_datastruct(args)
         self.validate(operation)
         return self
@@ -59,9 +59,9 @@ class RegTokenData(baseobj.BaseObject):
 
         return {
             "id"                 : self.id,
-            "token"              : self.name,
-            "image_id"           : self.version,
-            "uses_remaining"     : self.filename,
+            "token"              : self.token,
+            "image_id"           : self.image_id,
+            "uses_remaining"     : self.uses_remaining,
         }
 
     def validate(self,operation):
@@ -79,8 +79,11 @@ class RegTokenData(baseobj.BaseObject):
  
         if operation in [OP_ADD, OP_EDIT]:
             # uses remaining is None (infinite) or a positive integer
-            if not self.uses_remaining is None or (type(self.uses_remaining) == int and self.uses_remaining > 0):
-                invalid_fields["uses_remaining"] = REASON_FORMAT
+            if not self.uses_remaining is None:
+                if type(self.uses_remaining) != int:
+                    invalid_fields["uses_remaining"] = REASON_FORMAT
+                elif self.uses_remaining <= 0:
+                    invalid_fields["uses_remaining"] = REASON_FORMAT
 
         if len(invalid_fields) > 0:
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
@@ -112,12 +115,14 @@ class RegToken(web_svc.AuthWebSvc):
          data = base64.b64encode(data)
          data = data.replace("=","")
          args["token"] = data.upper() # make it easier to read. 
-
+         print "regtoken = (%s)" % args["token"]
+       
          u = RegTokenData.produce(args,OP_ADD)
+         print u.to_datastruct()
 
          if u.image_id is not None:
              try:
-                 self.image_obj = image_obj.Image()
+                 self.image_obj = image.Image()
                  self.image_obj.get(None, { "id" : u.image_id})
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='image_id',traceback=traceback.format_exc())
