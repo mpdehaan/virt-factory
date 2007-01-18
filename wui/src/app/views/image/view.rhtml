@@ -84,6 +84,14 @@
             <TD>Appliance Container</TD>
             <TD><%= (@item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %></TD>
          </TR>
+         <TR>
+            <TD>Puppet Classes</TD>
+            <TD>
+              <% @item.puppet_classes.each do |puppet_class| %>
+                <%= puppet_class %><br/>
+              <% end %>
+            </TD>
+         </TR>
       </TABLE>
       </div>
 
