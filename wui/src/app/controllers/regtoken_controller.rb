@@ -9,7 +9,12 @@ class RegtokenController < AbstractObjectController
 
    def edit
        super
-       # @images = ...
+
+       @images = []
+       ManagedObject.retrieve_all(Image, @session).each do |image|
+           @images << [image.name, image.id]
+       end
+       @images.insert(0,EMPTY_ENTRY)
    end
 
 end
