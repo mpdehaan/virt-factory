@@ -88,3 +88,8 @@ CREATE TABLE registration_tokens (
    uses_remaining     INTEGER
 );
 
+CREATE TABLE sessions (
+   session_token      VARCHAR(255) UNIQUE NOT NULL,
+   session_timestamp  REAL NOT NULL
+);
+   

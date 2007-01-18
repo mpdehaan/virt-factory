@@ -21,6 +21,7 @@ import web_svc
 
 import base64
 import os
+import threading
 import time
 
 
@@ -53,14 +54,80 @@ class Authentication(web_svc.WebSvc):
              raise UserInvalidException(comment=username)
          elif results[1] != password:
              raise PasswordInvalidException(comment=username)
-         else:
-             urandom = open("/dev/urandom")
-             token = base64.b64encode(urandom.read(100)) 
-             urandom.close()
 
-         print "token: ------------------ %s" % token
-         self.tokens.append([token, time.time()])
+         urandom = open("/dev/urandom")
+         token = base64.b64encode(urandom.read(100)) 
+         urandom.close()
+
+         st = """
+         INSERT INTO sessions (
+                     session_token,
+                     session_timestamp)
+                VALUES (
+                     :session,
+                     :timestamp)
+                     """
+
+         #"
+         lock = threading.Lock()
+         lock.acquire()
+         try:
+             self.db.cursor.execute(st, {"session": token,
+                                         "timestamp": time.time()} )
+             self.db.connection.commit()
+         except:
+             # FIXME: we also need to check just in case we collide on the
+             # session token. Cause you know, the chances of hitting a collision
+             # in a 100 byte random blob is much higher than me screwing up
+             # any other bugs.
+             
+             # FIXME: be more fined grained (IntegrityError only)
+             lock.release()
+             raise SQLException(traceback=traceback.format_exc())
+
+         lock.release()
          return success(data=token)
+
+
+    def __delete_session(self, session_token):
+        """
+        The session has expired, delete it from the db
+        """
+        st = """
+        DELETE FROM sessions
+        WHERE session_token = :session_token
+        """
+
+        lock = threading.Lock()
+        lock.acquire()
+        try:
+             self.db.cursor.execute(st, {"session_token": session_token} )
+             self.db.connection.commit()
+        except:
+             lock.release()
+             raise SQLException(traceback=traceback.format_exc())
+
+
+    def __update_session(self, session_token):
+        """
+        Refresh the session_token in the db on succesful refresh
+        """
+        st = """
+        UPDATE sessions
+        SET session_timestamp=:session_timestamp
+        WHERE session_token=:session_token
+        """
+        #"
+        lock = threading.Lock()
+        lock.acquire()
+        try:
+             self.db.cursor.execute(st, {"session_token": session_token,
+                                         "session_timestamp": time.time()} )
+             self.db.connection.commit()
+        except:
+             lock.release()
+             raise SQLException(traceback=traceback.format_exc())
+
 
     def token_check(self, token):
         """
@@ -85,15 +152,36 @@ class Authentication(web_svc.WebSvc):
         self.logger.debug("self.tokens: %s" % self.tokens)
         self.logger.debug("token: %s" % type(token))
         now = time.time()
-        for t in self.tokens:
-            # remove tokens older than 1/2 hour
-            if (now - t[1]) > 1800:
-                self.tokens.remove(t)
-                raise TokenExpiredException()
-            if t[0] == token:
-                # update the expiration counter
-                t[1] = time.time()
-                return SuccessException()
+
+        st = """
+        SELECT session_token, session_timestamp
+        FROM sessions
+        WHERE session_token = :session_token"""
+
+        lock = threading.Lock()
+        lock.acquire()
+
+        
+        try:
+            results = self.db.cursor.execute(st, {"session_token": token })
+            # no need to fetch all, since session_token is unique
+            results = self.db.cursor.fetchone()
+        except:
+            lock.release()
+            raise
+            raise SQLException(traceback=traceback.format_exc())
+
+        lock.release()
+
+        # remove tokens older than 1/2 hour
+        if (now - results[1]) > 1800:
+            self.__delete_session(results[0])
+            raise TokenExpiredException()
+        if results[0] == token:
+            # update the expiration counter
+            self.__update_session(results[0])
+            return SuccessException()
+            
         raise TokenInvalidException()
    
 
