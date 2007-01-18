@@ -174,7 +174,7 @@ class Distribution(web_svc.AuthWebSvc):
 
          rowid = self.db.cursor.lastrowid
          lock.release()
-         self.sync( {} )
+         self.sync()
 
          return success(rowid)
 
