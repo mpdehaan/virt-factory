@@ -87,8 +87,13 @@ class ImageData(baseobj.BaseObject):
         }
 
     def to_datastruct_db(self):
-        ds = to_datastruct()
-        ds["puppet_classes"] = " ".join(ds["puppet_classes"])
+        ds = self.to_datastruct()
+        classes_list = ds["puppet_classes"]
+        if (classes_list is None):
+            classes_str = None
+        else:
+            classes_str = " ".join(ds["puppet_classes"])
+        ds["puppet_classes"] = classes_str
         return ds
     
     def validate(self,operation):
@@ -181,7 +186,6 @@ class Image(web_svc.AuthWebSvc):
          :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
          :valid_targets,:is_container, :puppet_classes)
          """
-
          u = ImageData.produce(image_args,OP_ADD)
 
          if u.distribution_id is not None:
@@ -337,6 +341,11 @@ class Image(web_svc.AuthWebSvc):
          for x in results:
              # note that the distribution is *not* expanded as it may
              # not be valid in all cases
+             if x[12]is None:
+                 classes = None
+             else:
+                 classes = x[12].split
+                 
              data = ImageData.produce({         
                 "id"        : x[0],
                 "name"      : x[1],
@@ -350,7 +359,7 @@ class Image(web_svc.AuthWebSvc):
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
                 "is_container"       : x[11],
-                "puppet_classes"     : x[12].split
+                "puppet_classes"     : classes
              }).to_datastruct(True)
 
              if x[12] is not None and x[13] != -1:
@@ -391,6 +400,11 @@ class Image(web_svc.AuthWebSvc):
          if x is None:
              raise NoSuchObjectException(comment="image_get")
 
+         if x[12]is None:
+             classes = None
+         else:
+             classes = x[12].split
+             
          data = {
                 "id"                 : x[0],
                 "name"               : x[1],
@@ -404,7 +418,7 @@ class Image(web_svc.AuthWebSvc):
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
                 "is_container"       : x[11],
-                "puppet_classes"     : x[12].split
+                "puppet_classes"     : classes
          }
 
          data = ImageData.produce(data).to_datastruct(True)
