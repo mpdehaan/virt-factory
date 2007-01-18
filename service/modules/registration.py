@@ -31,16 +31,16 @@ import traceback
 class Registration(web_svc.AuthWebSvc):
     def __init__(self):
         self.methods = {"register_new_machine": self.new_machine,
-                        "register_associate": self.associate}
+                        "register_associate_machine": self.associate}
         web_svc.AuthWebSvc.__init__(self)
 
     def new_machine(self, token):
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
-    def associate(self, token, machine_id, hostname, ip_addr):
+    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None):
         machine_obj = machine.Machine()
-        
+        return machine_obj.associate(token, machine_id, ip_addr, mac_addr, image_id)
 
 
     def add(self, token, args):
