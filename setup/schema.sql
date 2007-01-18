@@ -55,7 +55,8 @@ CREATE TABLE images (
    kickstart_metadata VARCHAR(255),
    kernel_options VARCHAR(255),
    valid_targets INT NOT NULL,
-   is_container INT NOT NULL 
+   is_container INT NOT NULL,
+   puppet_classes TEXT
 );
 
 CREATE TABLE deployments (
@@ -63,7 +64,8 @@ CREATE TABLE deployments (
    machine_id    INT NOT NULL,
    image_id      INT NOT NULL,
    state         INT NOT NULL,
-   display_name VARCHAR(255) NOT NULL
+   display_name VARCHAR(255) NOT NULL,
+   puppet_class_overrides TEXT
 );
 
 CREATE TABLE machines (
@@ -78,6 +80,7 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address VARCHAR(255),
    is_container INT,
-   image_id INT
+   image_id INT,
+   puppet_class_overrides TEXT
 );
 

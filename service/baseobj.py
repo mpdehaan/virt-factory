@@ -105,3 +105,15 @@ class BaseObject(object):
                 return False
         return True
 
+   def is_printable_list(self, listy):
+        # FIXME: use regex package
+
+        if listy == None:
+           return False
+        if not isinstance(listy,list):
+           return False
+        for stringy in listy:
+            if not is_printable(stringy):
+                return False
+        return True
+
