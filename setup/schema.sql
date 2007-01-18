@@ -81,7 +81,7 @@ CREATE TABLE machines (
    image_id           INTEGER
 );
 
-CREATE TABLE registration_tokens (
+CREATE TABLE regtokens (
    id                 INTEGER PRIMARY KEY,
    token              VARCHAR(255),
    image_id           INTEGER, 
