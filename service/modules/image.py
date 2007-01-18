@@ -86,16 +86,6 @@ class ImageData(baseobj.BaseObject):
             "puppet_classes"     : self.puppet_classes  
         }
 
-    def to_datastruct_db(self):
-        ds = self.to_datastruct()
-        classes_list = ds["puppet_classes"]
-        if (classes_list is None):
-            classes_str = None
-        else:
-            classes_str = " ".join(ds["puppet_classes"])
-        ds["puppet_classes"] = classes_str
-        return ds
-    
     def validate(self,operation):
         """
         Cast variables appropriately and raise InvalidArgumentException
@@ -156,7 +146,7 @@ class ImageData(baseobj.BaseObject):
                 invalid_fields["is_container"] = REASON_RANGE
 
             # kernel_options allows almost anything
-            if self.puppet_classes is not None and (not isinstance(self.puppet_classes,list) or (len(self.puppet_classes>0) and not self.is_printable_list(self.puppet_classes))):
+            if self.puppet_classes is not None and not self.is_printable(self.puppet_classes):
                 invalid_fields["puppet_classes"] = REASON_FORMAT
 
         if len(invalid_fields) > 0:
@@ -199,7 +189,7 @@ class Image(web_svc.AuthWebSvc):
          lock.acquire()
 
          try:
-             self.db.cursor.execute(st, u.to_datastruct_db())
+             self.db.cursor.execute(st, u.to_datastruct())
              self.db.connection.commit()
          except Exception:
              lock.release()
@@ -236,7 +226,7 @@ class Image(web_svc.AuthWebSvc):
          WHERE id=:id
          """
 
-         self.db.cursor.execute(st, u.to_datastruct_db())
+         self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
          self.sync()
@@ -341,10 +331,6 @@ class Image(web_svc.AuthWebSvc):
          for x in results:
              # note that the distribution is *not* expanded as it may
              # not be valid in all cases
-             if x[12]is None:
-                 classes = None
-             else:
-                 classes = x[12].split
                  
              data = ImageData.produce({         
                 "id"        : x[0],
@@ -359,7 +345,7 @@ class Image(web_svc.AuthWebSvc):
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
                 "is_container"       : x[11],
-                "puppet_classes"     : classes
+                "puppet_classes"     : x[12]
              }).to_datastruct(True)
 
              if x[12] is not None and x[13] != -1:
@@ -400,11 +386,6 @@ class Image(web_svc.AuthWebSvc):
          if x is None:
              raise NoSuchObjectException(comment="image_get")
 
-         if x[12]is None:
-             classes = None
-         else:
-             classes = x[12].split
-             
          data = {
                 "id"                 : x[0],
                 "name"               : x[1],
@@ -418,7 +399,7 @@ class Image(web_svc.AuthWebSvc):
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
                 "is_container"       : x[11],
-                "puppet_classes"     : classes
+                "puppet_classes"     : x[12]
          }
 
          data = ImageData.produce(data).to_datastruct(True)
