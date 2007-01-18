@@ -23,7 +23,13 @@ class LoginController < ApplicationControllerUnlocked
 
       # check on authentication via XMLRPC.  
       # FIXME: this really needs to be https in the future.
-      (rc, results) = @@server.call("user_login",f_username,f_password)
+      begin 
+          (rc, results) = @@server.call("user_login",f_username,f_password)
+      rescue Errno::ECONNREFUSED
+          @flash[:notice] = "Could not connect to ShadowManager server."
+          redirect_to :action => "input"
+          return
+      end
 
       if rc != 0
           # FIXME: look up error codes in string table
