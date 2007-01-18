@@ -56,7 +56,7 @@ CREATE TABLE images (
    kernel_options     VARCHAR(255),
    valid_targets      INTEGER NOT NULL,
    is_container       INTEGER NOT NULL,
-   puppet_classes      TEXT
+   puppet_classes     TEXT
 );
 
 CREATE TABLE deployments (
