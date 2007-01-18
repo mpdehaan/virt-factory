@@ -4,7 +4,7 @@
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
-      <%= f.hidden_field :distribution_id if @operation == "Edit" %>
+      <%= f.hidden_field :distribution_id if @operation == "edit" %>
       <TABLE BORDER=0>
          <TR>
             <TD>Name</TD>
@@ -24,7 +24,7 @@
          </TR>
          <TR>
             <TD>Distribution</TD>
-            <TD><%= if @operation == "Add"
+            <TD><%= if @operation == "add"
 	                f.select :distribution_id, @distributions
 	            else
  	                @item.distribution.name if @item.distribution

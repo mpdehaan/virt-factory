@@ -125,7 +125,7 @@ class ManagedObject
             # how we vivify the object depends on what type it is
             atype = class_attributes[:type]
             if [ Fixnum, Integer ].include?(atype) and value.kind_of?(String)
-                new_item = value.to_i()
+                new_item = value.empty? ? nil : value.to_i()
             elsif [ Float ].include?(atype) and value.kind_of?(String)
                 new_item = value.to_f()
             elsif [ Fixnum, Integer, Float ].include?(atype) and value.kind_of?(Numeric)

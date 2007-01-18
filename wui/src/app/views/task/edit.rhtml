@@ -14,7 +14,7 @@
       <TABLE BORDER=0>
          <TR>
             <TD>User</TD>
-            <TD><%= if @operation == "Add"
+            <TD><%= if @operation == "add"
                         # FIXME: in reality, this should be determined by the token
                         f.select :user_id, @users
                     else
@@ -30,7 +30,7 @@
          </TR>
          <TR> 
             <TD>Operation</TD>
-            <TD><%= if @operation == "Add"
+            <TD><%= if @operation == "add"
                        f.select :operation, @operations
                     else
                        @item.operation
@@ -40,7 +40,7 @@
          </TR>
          <TR> 
             <TD>Parameters</TD>
-            <TD><%= if @operation == "Add"
+            <TD><%= if @operation == "add"
                        f.text_field :parameters 
                     else
                        @item.parameters
@@ -48,7 +48,7 @@
                  %>
             </TD>
          </TR>
-         <% if @operation == "Edit" %>
+         <% if @operation == "edit" %>
          <TR> 
             <TD>Time</TD>
                  <%= @item.time %>
