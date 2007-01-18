@@ -2,7 +2,7 @@
 # of self adding the machines.  They can have a limited use count or not.  They can be associated with
 # an image or not.  
 
-class RegToken < ManagedObject
+class Regtoken < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { 

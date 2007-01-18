@@ -4,7 +4,7 @@
 class RegtokenController < AbstractObjectController
 
    def object_class
-       RegToken
+       Regtoken
    end
 
    def edit
