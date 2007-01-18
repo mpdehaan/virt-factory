@@ -35,22 +35,22 @@ class RegTokenData(baseobj.BaseObject):
         """
 
         self = RegToken()
-        self.from_datastruct(image_args)
+        self.from_datastruct(args)
         self.validate(operation)
         return self
 
     produce = classmethod(_produce)
 
-    def from_datastruct(self,image_args):
+    def from_datastruct(self,args):
         """
         Helper method to fill in the object's internal variables from
         a hash. 
         """
 
-        self.id                 = self.load(image_args,"id")
-        self.token              = self.load(image_args,"token")
-        self.image_id           = self.load(image_args,"image_id")
-        self.uses_remaining     = self.load(image_args,"uses_remaining")
+        self.id                 = self.load(args,"id")
+        self.token              = self.load(args,"token")
+        self.image_id           = self.load(args,"image_id")
+        self.uses_remaining     = self.load(args,"uses_remaining")
 
     def to_datastruct_internal(self):
         """
@@ -158,17 +158,17 @@ class RegToken(web_svc.AuthWebSvc):
 
     def list(self, token, args):
          """
-         Return a list of tokens.  The image_args list is currently *NOT*
+         Return a list of tokens.  The args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
          GUI pagination when we start worrying about hundreds of systems.
          """
 
          offset = 0
          limit  = 100
-         if image_args.has_key("offset"):
-            offset = image_args["offset"]
-         if image_args.has_key("limit"):
-            limit = image_args["limit"]
+         if args.has_key("offset"):
+            offset = args["offset"]
+         if args.has_key("limit"):
+            limit = args["limit"]
 
          st = """
          SELECT 
@@ -235,7 +235,7 @@ class RegToken(web_svc.AuthWebSvc):
          Return a specific record.  Only the "id" is required in args.
          """
 
-         u = RegTokenData.produce(image_args,OP_GET) # force validation
+         u = RegTokenData.produce(args,OP_GET) # force validation
 
          st = """
          SELECT id,token,image_id,uses_remaining

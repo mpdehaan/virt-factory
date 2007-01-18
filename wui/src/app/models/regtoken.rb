@@ -9,10 +9,8 @@ class Regtoken < ManagedObject
         :id             => { :type => Integer }, 
         :token          => { :type => String  }, 
         :image_id       => { :type => Integer },
-        :user_id        => { :type => Integer }, 
         :uses_remaining => { :type => Integer }, 
         :image          => { :type => Image, :id_attr => :image_id } 
-        :user           => { :type => User, :id_attr => :user_id   }
     }
                
     self.set_attrs(ATTR_LIST)
