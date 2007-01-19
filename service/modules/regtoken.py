@@ -123,7 +123,7 @@ class RegToken(web_svc.AuthWebSvc):
          if u.image_id is not None:
              try:
                  self.image_obj = image.Image()
-                 self.image_obj.get(None, { "id" : u.image_id})
+                 self.image_obj.get(token, { "id" : u.image_id})
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='image_id',traceback=traceback.format_exc())
 
@@ -233,6 +233,56 @@ class RegToken(web_svc.AuthWebSvc):
              collection.append(data)
 
          return success(collection)
+
+    def __decrement_uses_remaining(self, id, uses):
+        """
+        Decrement the uses remaining for a registration token.
+        """
+        st = """
+        UPDATE
+              regtokens
+        SET
+              uses_remaining=:uses
+        WHERE
+              id=:id
+         """
+        
+        self.db.cursor.execute(st, {'uses':(uses-1), 'id':id})
+        self.db.connection.commit()
+
+         
+
+    def check(self, regtoken):
+        """
+        Validates a regtoken as being valid. If it fails, raise an
+        approriate exception.
+        """
+
+        st = """
+        SELECT
+              id, uses_remaining
+        FROM
+              regtokens
+        WHERE
+              token=:regtoken
+        """
+
+        self.db.cursor.execute(st, {'regtoken': regtoken})
+        x = self.db.cursor.fetchone()
+
+        if x is None:
+            raise RegTokenInvalidException(comment="regtoken not found in regtoken.check")
+
+        (id, uses) = x
+        if uses == 0:
+            raise RegTokenExhaustedException(comment="regtoken max uses reached")
+
+        if uses is not None:
+            self.__decrement_uses_remaining(id, uses)
+
+        # we don't really need to check this, since failure will raise exceptions
+        return True
+        
 
 
     def get(self, token, args):

@@ -75,7 +75,7 @@ class Authentication(web_svc.WebSvc):
              self.db.cursor.execute(st, {"session": token,
                                          "timestamp": time.time()} )
              self.db.connection.commit()
-         except:
+         except Exception, e:
              # FIXME: we also need to check just in case we collide on the
              # session token. Cause you know, the chances of hitting a collision
              # in a 100 byte random blob is much higher than me screwing up
@@ -106,6 +106,7 @@ class Authentication(web_svc.WebSvc):
         except:
              lock.release()
              raise SQLException(traceback=traceback.format_exc())
+        lock.release()
 
 
     def __update_session(self, session_token):
@@ -120,6 +121,9 @@ class Authentication(web_svc.WebSvc):
         #"
         lock = threading.Lock()
         lock.acquire()
+
+        
+        self.logger.debug("update_session session_token: %s" % session_token)
         try:
              self.db.cursor.execute(st, {"session_token": session_token,
                                          "session_timestamp": time.time()} )
@@ -127,6 +131,7 @@ class Authentication(web_svc.WebSvc):
         except:
              lock.release()
              raise SQLException(traceback=traceback.format_exc())
+        lock.release()
 
 
     def token_check(self, token):
@@ -160,7 +165,6 @@ class Authentication(web_svc.WebSvc):
 
         lock = threading.Lock()
         lock.acquire()
-
         
         try:
             results = self.db.cursor.execute(st, {"session_token": token })
@@ -168,10 +172,12 @@ class Authentication(web_svc.WebSvc):
             results = self.db.cursor.fetchone()
         except:
             lock.release()
-            raise
             raise SQLException(traceback=traceback.format_exc())
 
         lock.release()
+
+        if results == None:
+            raise TokenInvalidException()
 
         # remove tokens older than 1/2 hour
         if (now - results[1]) > 1800:

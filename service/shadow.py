@@ -115,7 +115,16 @@ class XmlRpcInterface:
            self.logger.debug("methods: %s params: %s" % (method, params))
          
            try:
-               if method not in ["user_login", "token_check"]:
+               # why aren't these auth checked? well...
+               # user_login is where you get the
+               #   auth token from in the first places
+               # token_check is what validates the token
+               # register_new_machine and register_associate_machine can
+               #   take authtokens or regtokens, so they do there own
+               # auth check
+               if method not in ["user_login", "token_check",
+                                 "register_new_machine",
+                                 "register_associate_machine"]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
            except ShadowManagerException, e:

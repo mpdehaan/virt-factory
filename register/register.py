@@ -88,7 +88,7 @@ def main(argv):
     
     rc = reg_obj.register()
 
-    if rc[0] != '0':
+    if rc[0] != 0:
         print "There was an error logging in"
         # FIXME: why don't we just return an xmlrpc fault here?
         sys.exit(2)

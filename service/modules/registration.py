@@ -15,8 +15,10 @@
 from codes import *
 import baseobj
 
+import authentication
 import config
 import machine
+import regtoken
 import web_svc
 
 
@@ -33,8 +35,25 @@ class Registration(web_svc.AuthWebSvc):
         self.methods = {"register_new_machine": self.new_machine,
                         "register_associate_machine": self.associate}
         web_svc.AuthWebSvc.__init__(self)
+        self.auth = authentication.Authentication()
 
     def new_machine(self, token):
+        failed_auth = False
+        try:
+            self.auth.token_check(token)
+        except TokenExpiredException:
+            failed_auth = True
+        except TokenInvalidException:
+            failed_auth = True
+
+        # check the regtoken
+        if failed_auth:
+            regtoken_obj = regtoken.RegToken()
+            # this should raise exceptions if anything fails
+            regtoken_obj.check(token)
+
+        # if we get here, we should be authenticated to register
+
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
