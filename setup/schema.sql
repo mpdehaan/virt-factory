@@ -55,7 +55,8 @@ CREATE TABLE images (
    kickstart_metadata VARCHAR(255),
    kernel_options     VARCHAR(255),
    valid_targets      INTEGER NOT NULL,
-   is_container       INTEGER NOT NULL 
+   is_container       INTEGER NOT NULL,
+   puppet_classes     TEXT
 );
 
 CREATE TABLE deployments (
@@ -63,7 +64,8 @@ CREATE TABLE deployments (
    machine_id         INTEGER NOT NULL,
    image_id           INTEGER NOT NULL,
    state              INTEGER NOT NULL,
-   display_name       VARCHAR(255) NOT NULL
+   display_name       VARCHAR(255) NOT NULL,
+   puppet_node_diff   TEXT
 );
 
 CREATE TABLE machines (
@@ -78,7 +80,8 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   image_id           INTEGER
+   image_id           INTEGER,
+   puppet_node_diff   TEXT
 );
 
 CREATE TABLE regtokens (

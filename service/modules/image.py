@@ -63,6 +63,7 @@ class ImageData(baseobj.BaseObject):
         self.kernel_options     = self.load(image_args,"kernel_options")
         self.valid_targets      = self.load(image_args,"valid_targets")
         self.is_container       = self.load(image_args,"is_container")
+        self.puppet_classes     = self.load(image_args,"puppet_classes")
 
     def to_datastruct_internal(self):
         """
@@ -81,7 +82,8 @@ class ImageData(baseobj.BaseObject):
             "kickstart_metadata" : self.kickstart_metadata,
             "kernel_options"     : self.kernel_options,
             "valid_targets"      : self.valid_targets,
-            "is_container"       : self.is_container  
+            "is_container"       : self.is_container,
+            "puppet_classes"     : self.puppet_classes  
         }
 
     def validate(self,operation):
@@ -143,6 +145,10 @@ class ImageData(baseobj.BaseObject):
             if not self.is_container in VALID_CONTAINERS:
                 invalid_fields["is_container"] = REASON_RANGE
 
+            # kernel_options allows almost anything
+            if self.puppet_classes is not None and not self.is_printable(self.puppet_classes):
+                invalid_fields["puppet_classes"] = REASON_FORMAT
+
         if len(invalid_fields) > 0:
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
@@ -165,12 +171,11 @@ class Image(web_svc.AuthWebSvc):
          st = """
          INSERT INTO images (name,version,filename,specfile,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-         valid_targets,is_container)
+         valid_targets,is_container, puppet_classes)
          VALUES (:name,:version,:filename,:specfile,:distribution_id,
          :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
-         :valid_targets,:is_container)
+         :valid_targets,:is_container, :puppet_classes)
          """
-
          u = ImageData.produce(image_args,OP_ADD)
 
          if u.distribution_id is not None:
@@ -216,7 +221,8 @@ class Image(web_svc.AuthWebSvc):
          SET name=:name, version=:version, filename=:filename, specfile=:specfile,
          virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
          kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
-         valid_targets=:valid_targets, is_container=:is_container
+         valid_targets=:valid_targets, is_container=:is_container,
+         puppet_classes=:puppet_classes
          WHERE id=:id
          """
 
@@ -301,6 +307,7 @@ class Image(web_svc.AuthWebSvc):
          images.kernel_options,
          images.valid_targets,
          images.is_container,
+         images.puppet_classes,
          distributions.id,
          distributions.kernel,
          distributions.initrd,
@@ -324,6 +331,7 @@ class Image(web_svc.AuthWebSvc):
          for x in results:
              # note that the distribution is *not* expanded as it may
              # not be valid in all cases
+                 
              data = ImageData.produce({         
                 "id"        : x[0],
                 "name"      : x[1],
@@ -336,20 +344,21 @@ class Image(web_svc.AuthWebSvc):
                 "kickstart_metadata" : x[8],
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
-                "is_container"       : x[11]
+                "is_container"       : x[11],
+                "puppet_classes"     : x[12]
              }).to_datastruct(True)
 
-             if x[12] is not None and x[12] != -1:
+             if x[12] is not None and x[13] != -1:
                  data["distribution"] = distribution.DistributionData.produce({
-                     "id"                 : x[12],
-                     "kernel"             : x[13],
-                     "initrd"             : x[14],
-                     "options"            : x[15],
-                     "kickstart"          : x[16],
-                     "name"               : x[17],
-                     "architecture"       : x[18],
-                     "kernel_options"     : x[19],
-                     "kickstart_metadata" : x[20]
+                     "id"                 : x[13],
+                     "kernel"             : x[14],
+                     "initrd"             : x[15],
+                     "options"            : x[16],
+                     "kickstart"          : x[17],
+                     "name"               : x[18],
+                     "architecture"       : x[19],
+                     "kernel_options"     : x[20],
+                     "kickstart_metadata" : x[21]
                  }).to_datastruct(True)
 
              images.append(data)
@@ -367,7 +376,7 @@ class Image(web_svc.AuthWebSvc):
          st = """
          SELECT id,name,version,filename,specfile,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-         valid_targets,is_container
+         valid_targets,is_container,puppet_classes
          FROM images WHERE id=:id
          """
 
@@ -389,7 +398,8 @@ class Image(web_svc.AuthWebSvc):
                 "kickstart_metadata" : x[8],
                 "kernel_options"     : x[9],
                 "valid_targets"      : x[10],
-                "is_container"       : x[11]
+                "is_container"       : x[11],
+                "puppet_classes"     : x[12]
          }
 
          data = ImageData.produce(data).to_datastruct(True)
