@@ -64,8 +64,12 @@ def showHelp():
 def main(argv):
 
     regtoken = None
+    username = None
+    password = None
+    server_url = "http://127.0.0.1:5150"
     try:
-        opts, args = getopt.getopt(argv[1:], "h", ["help", "regtoken="])
+        opts, args = getopt.getopt(argv[1:], "h", ["help", "regtoken=", "username=",
+                                                   "password=", "serverurl="])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
         showHelp()
@@ -77,13 +81,18 @@ def main(argv):
             sys.exit(1)
         if opt in ["--regtoken"]:
             regtoken = val
+        if opt in ["--username"]:
+            username = val
+        if opt in ["--password"]:
+            password = val
+        if opt in ["--serverurl"]:
+            server_url = val
         
     reg_obj = Register()
-    print "regtoken", regtoken
     if regtoken:
         reg_obj.token = regtoken
     else:
-        reg_obj.login("admin", "fedora")
+        reg_obj.login(username, password)
 
     
     rc = reg_obj.register()
@@ -95,7 +104,6 @@ def main(argv):
         
     machine_id = rc[1]['data']
         
-    server_url = "http://127.0.0.1:5150"
     net_info = machine_info.get_netinfo(server_url)
     print reg_obj.associate(machine_id, "blippy", net_info['ipaddr'], net_info['hwaddr'])
 
