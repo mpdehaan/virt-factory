@@ -37,7 +37,7 @@ class Registration(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
         self.auth = authentication.Authentication()
 
-    def new_machine(self, token):
+    def __check_auth(self, token):
         failed_auth = False
         try:
             self.auth.token_check(token)
@@ -51,13 +51,16 @@ class Registration(web_svc.AuthWebSvc):
             regtoken_obj = regtoken.RegToken()
             # this should raise exceptions if anything fails
             regtoken_obj.check(token)
-
-        # if we get here, we should be authenticated to register
+            
+    def new_machine(self, token):
+        self.__check_auth(token)
 
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
     def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None):
+        self.__check_auth(token)
+        
         machine_obj = machine.Machine()
         return machine_obj.associate(token, machine_id, ip_addr, mac_addr, image_id)
 
