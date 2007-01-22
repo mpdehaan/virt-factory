@@ -47,6 +47,7 @@ from modules import provisioning
 from modules import registration
 from modules import user
 from modules import regtoken
+from modules import puppet
 
 
 # this is kind of handy, so keep it around for now
@@ -87,7 +88,7 @@ class XmlRpcInterface:
                  image, deployment,
                  distribution,config,
                  provisioning, registration,
-                 authentication, task, regtoken]:
+                 authentication, task, regtoken, puppet]:
            x.register_rpc(self.handlers)
            self.logger.debug("adding %s" % x)
 

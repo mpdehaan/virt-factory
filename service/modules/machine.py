@@ -342,7 +342,8 @@ class Machine(web_svc.AuthWebSvc):
          images.kickstart_metadata,
          images.kernel_options,
          images.valid_targets,
-         images.is_container
+         images.is_container,
+         images.puppet_classes
          FROM machines
          LEFT OUTER JOIN images ON machines.image_id = images.id  
          LIMIT ?,?
@@ -385,7 +386,8 @@ class Machine(web_svc.AuthWebSvc):
                       "kickstart_metadata" : x[19],
                       "kernel_options"     : x[20],
                       "valid_targets"      : x[21],
-                      "is_container"       : x[22]
+                      "is_container"       : x[22],
+                      "puppet_classes"     : x[23]
                  }).to_datastruct(True)
 
              machines.append(data)
