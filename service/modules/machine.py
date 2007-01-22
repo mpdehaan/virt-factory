@@ -63,6 +63,7 @@ class MachineData(baseobj.BaseObject):
         self.mac_address        = self.load( machine_args, "mac_address" )
         self.is_container       = self.load( machine_args, "is_container" )
         self.image_id           = self.load( machine_args, "image_id" )
+        self.puppet_node_diff   = self.load( machine_args, "puppet_node_diff" )
 
     def to_datastruct_internal(self):
         """
@@ -81,7 +82,8 @@ class MachineData(baseobj.BaseObject):
             "list_group"         : self.list_group,
             "mac_address"        : self.mac_address,
             "is_container"       : self.is_container,
-            "image_id"           : self.image_id
+            "image_id"           : self.image_id,
+            "puppet_node_diff"   : self.puppet_node_diff  
         }
 
     def validate(self,operation):
@@ -125,6 +127,9 @@ class MachineData(baseobj.BaseObject):
            # list group is printable or None
            if self.list_group is not None and not self.is_printable(self.list_group):
                invalid_args["list_group"] = REASON_FORMAT
+            # puppet_node_diff should probably validate possible puppet classnames
+           if self.puppet_node_diff is not None and not self.is_printable(self.puppet_node_diff):
+               invalid_fields["puppet_node_diff"] = REASON_FORMAT
 
         if len(invalid_args) > 0:
             
@@ -162,7 +167,8 @@ class Machine(web_svc.AuthWebSvc):
         list_group, 
         mac_address, 
         is_container, 
-        image_id) 
+        image_id,
+        puppet_node_diff) 
         VALUES (
         :address,
         :architecture,
@@ -174,7 +180,8 @@ class Machine(web_svc.AuthWebSvc):
         :list_group, 
         :mac_address, 
         :is_container, 
-        :image_id)
+        :image_id,
+        :puppet_node_diff)
         """
 
         u = MachineData.produce(args,OP_ADD)
@@ -253,7 +260,8 @@ class Machine(web_svc.AuthWebSvc):
          list_group=:list_group,
          mac_address=:mac_address,
          is_container=:is_container,
-         image_id=:image_id
+         image_id=:image_id,
+         puppet_node_diff=:puppet_node_diff
          WHERE id=:id
          """
 
@@ -332,6 +340,7 @@ class Machine(web_svc.AuthWebSvc):
          machines.mac_address,
          machines.is_container,
          machines.image_id,
+         machines.puppet_node_diff,
          images.name,
          images.version,
          images.filename,
@@ -370,24 +379,25 @@ class Machine(web_svc.AuthWebSvc):
                  "list_group"         : x[8],
                  "mac_address"        : x[9],
                  "is_container"       : x[10],
-                 "image_id"           : x[11]
+                 "image_id"           : x[11],
+                 "puppet_node_diff"   : x[12]
              }).to_datastruct(True)
 
              if x[6] is not None and x[6] != -1:
                  data["image"] = image.ImageData.produce({
                       "id"                 : x[11],
-                      "name"               : x[12],
-                      "version"            : x[13],
-                      "filename"           : x[14],
-                      "specfile"           : x[15],
-                      "distribution_id"    : x[16],
-                      "virt_storage_size"  : x[17],
-                      "virt_ram"           : x[18],
-                      "kickstart_metadata" : x[19],
-                      "kernel_options"     : x[20],
-                      "valid_targets"      : x[21],
-                      "is_container"       : x[22],
-                      "puppet_classes"     : x[23]
+                      "name"               : x[13],
+                      "version"            : x[14],
+                      "filename"           : x[15],
+                      "specfile"           : x[16],
+                      "distribution_id"    : x[17],
+                      "virt_storage_size"  : x[18],
+                      "virt_ram"           : x[19],
+                      "kickstart_metadata" : x[20],
+                      "kernel_options"     : x[21],
+                      "valid_targets"      : x[22],
+                      "is_container"       : x[23],
+                      "puppet_classes"     : x[24]
                  }).to_datastruct(True)
 
              machines.append(data)
@@ -404,7 +414,8 @@ class Machine(web_svc.AuthWebSvc):
 
          st = """
          SELECT id,address,architecture,processor_speed,processor_count,memory,
-         kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id
+         kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id,
+         puppet_node_diff
          FROM machines WHERE id=:id
          """
          self.db.cursor.execute(st,u.to_datastruct())
@@ -424,7 +435,8 @@ class Machine(web_svc.AuthWebSvc):
                 "list_group"         : x[8],
                 "mac_address"        : x[9],
                 "is_container"       : x[10],
-                "image_id"           : x[11]
+                "image_id"           : x[11],
+                "puppet_node_diff"   : x[12]
          }
 
          filtered = MachineData.produce(data).to_datastruct(True)

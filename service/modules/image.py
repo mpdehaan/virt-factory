@@ -145,7 +145,7 @@ class ImageData(baseobj.BaseObject):
             if not self.is_container in VALID_CONTAINERS:
                 invalid_fields["is_container"] = REASON_RANGE
 
-            # kernel_options allows almost anything
+            # puppet_classes should probably validate possible puppet classnames
             if self.puppet_classes is not None and not self.is_printable(self.puppet_classes):
                 invalid_fields["puppet_classes"] = REASON_FORMAT
 
