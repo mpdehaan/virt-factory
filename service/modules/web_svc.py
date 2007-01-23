@@ -49,15 +49,6 @@ class WebSvc(object):
         for meth in self.methods:
             handlers[meth] = self.methods[meth]
 
-    def sqlite_connect(self):
-      """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
-      
-      current = os.getcwd() 
-      os.chdir(os.path.dirname(self.dbpath))
-      conn = sqlite.connect(os.path.basename(self.dbpath))
-      os.chdir(current)
-      return conn 
-
 
 class AuthWebSvc(WebSvc):
     def __init__(self):
