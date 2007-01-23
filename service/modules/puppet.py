@@ -51,7 +51,18 @@ class Puppet(web_svc.AuthWebSvc):
                      puppet_classes = []
              else:
                  puppet_classes = []
-             # FIXME: add per-node overrides
+             if "puppet_node_diff" in found_node:
+                 override_str = found_node["puppet_node_diff"]
+                 if (override_str is not None):
+                     for override in override_str.split():
+                         if (override[0] == '-'):
+                             override = override[1:]
+                             if override in puppet_classes:
+                                 puppet_classes.remove(override)
+                         else:
+                             if override not in puppet_classes:
+                                 puppet_classes.append(override)
+
          else:
              #FIXME: check distributions here"
              return NoSuchObjectException()
