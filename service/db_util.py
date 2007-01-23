@@ -49,7 +49,7 @@ class DbUtil(object):
         
         current = os.getcwd() 
         os.chdir(os.path.dirname(self.dbpath))
-        conn = sqlite.connect(os.path.basename(self.dbpath))
+        conn = sqlite.connect(os.path.basename(self.dbpath), isolation_level=None)
         os.chdir(current)
         return conn 
 
