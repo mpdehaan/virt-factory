@@ -24,6 +24,7 @@ import os
 import threading
 import time
 
+SESSION_LENGTH=200
 
 class Authentication(web_svc.WebSvc):
     tokens = []
@@ -55,16 +56,23 @@ class Authentication(web_svc.WebSvc):
          elif results[1] != password:
              raise PasswordInvalidException(comment=username)
 
+         user_id = results[0]
          urandom = open("/dev/urandom")
          token = base64.b64encode(urandom.read(100)) 
          urandom.close()
 
+         #cleanup old sessions
+         self.__cleanup_old_sessions_by_userid(user_id)
+         
+
          st = """
          INSERT INTO sessions (
                      session_token,
+                     user_id, 
                      session_timestamp)
                 VALUES (
                      :session,
+                     :user_id,
                      :timestamp)
                      """
 
@@ -73,6 +81,7 @@ class Authentication(web_svc.WebSvc):
          lock.acquire()
          try:
              self.db.cursor.execute(st, {"session": token,
+                                         "user_id": user_id,
                                          "timestamp": time.time()} )
              self.db.connection.commit()
          except Exception, e:
@@ -87,6 +96,57 @@ class Authentication(web_svc.WebSvc):
 
          lock.release()
          return success(data=token)
+
+
+    def _cleanup_old_sessions(self):
+        """
+        Delete any old sessions 
+        """
+        
+        st = """
+        DELETE FROM
+               sessions
+        WHERE
+               session_timestamp < :timestamp
+        """
+
+         
+        lock = threading.Lock()
+        lock.acquire()
+        try:
+            self.db.cursor.execute(st, {"timestamp": (time.time() - SESSION_LENGTH)} )
+            self.db.connection.commit()
+        except:
+            lock.release()
+            raise SQLException(traceback=traceback.format_exc())
+        lock.release()
+
+    def __cleanup_old_sessions_by_userid(self, user_id):
+        """
+        Delete any old sessions owned bt this user
+        """
+        
+        st = """
+        DELETE FROM
+               sessions
+        WHERE
+               user_id=:user_id and
+               session_timestamp < :timestamp
+        """
+
+         
+        lock = threading.Lock()
+        lock.acquire()
+        try:
+            self.db.cursor.execute(st, {"user_id": user_id,
+                                        "timestamp": (time.time() - SESSION_LENGTH)} )
+            self.db.connection.commit()
+        except:
+            lock.release()
+            raise SQLException(traceback=traceback.format_exc())
+        lock.release()
+
+         
 
 
     def __delete_session(self, session_token):
@@ -159,7 +219,7 @@ class Authentication(web_svc.WebSvc):
         now = time.time()
 
         st = """
-        SELECT session_token, session_timestamp
+        SELECT session_token, user_id, session_timestamp
         FROM sessions
         WHERE session_token = :session_token"""
 
@@ -180,7 +240,7 @@ class Authentication(web_svc.WebSvc):
             raise TokenInvalidException()
 
         # remove tokens older than 1/2 hour
-        if (now - results[1]) > 1800:
+        if (now - results[2]) > SESSION_LENGTH:
             self.__delete_session(results[0])
             raise TokenExpiredException()
         if results[0] == token:
@@ -195,5 +255,10 @@ class Authentication(web_svc.WebSvc):
     
     
 methods = Authentication()
+
+# for this module, we want to do some cleaup on
+#startup
+methods._cleanup_old_sessions()
+
 register_rpc = methods.register_rpc
 

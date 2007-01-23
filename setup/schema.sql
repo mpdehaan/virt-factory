@@ -93,6 +93,7 @@ CREATE TABLE regtokens (
 
 CREATE TABLE sessions (
    session_token      VARCHAR(255) UNIQUE NOT NULL,
+   user_id	      INTEGER NOT NULL,
    session_timestamp  REAL NOT NULL
 );
    
