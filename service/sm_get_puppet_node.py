@@ -18,6 +18,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import sys
 import string
 
+import logger
+logger.logfilepath = "/var/log/puppet/shadowmanager.log"
+
 from modules import puppet
 from codes import *
 

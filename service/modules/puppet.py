@@ -64,7 +64,7 @@ class Puppet(web_svc.AuthWebSvc):
                                  puppet_classes.append(override)
 
          else:
-             #FIXME: check distributions here"
+             #FIXME: check deployments here
              return NoSuchObjectException()
          data["puppet_classes"] = puppet_classes
          #data["parent"] = foo
