@@ -35,6 +35,7 @@ from codes import *
 
 import config_data
 import logger
+logger.logfilepath = "/var/lib/shadowmanager/svclog"
 
 from modules import task 
 from modules import authentication

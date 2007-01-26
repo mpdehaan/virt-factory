@@ -23,7 +23,7 @@ class Logger(Singleton):
         self.logger = logging.getLogger("svc")
 
     def __setup_handlers(self):
-        handler = logging.FileHandler("/var/lib/shadowmanager/svclog", "a")
+        handler = logging.FileHandler(logfilepath, "a")
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
