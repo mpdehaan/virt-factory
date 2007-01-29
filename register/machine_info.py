@@ -61,7 +61,7 @@ def get_netinfo(server_url, proxy_url=None):
     ip_addr = machine_data['ipaddr']
     hwaddr = get_hwaddr_for_route(ip_addr, net_interfaces)
 
-    return {'ipaddr': ip_addr, 'hwaddr':hwaddr}
+    return {'ipaddr': ip_addr, 'hwaddr':hwaddr, 'hostname': machine_data['hostname']}
 
 def get_hwaddr_for_route(ip_addr, net_interfaces):
     for intf in net_interfaces.keys():

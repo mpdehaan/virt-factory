@@ -20,7 +20,7 @@ import machine_info
 import getopt
 import sys
 import xmlrpclib
-
+import socket
 
 
 class Server(xmlrpclib.ServerProxy):
@@ -53,13 +53,13 @@ class Register(object):
     # generated kickstart, assosicate it with a hostname and ip_addr so that
     # taskotron can contact its node api
     def associate(self, machine_id, hostname, ip_addr, mac_addr):
+        # FIXME: hostname is not being used.
         rc = self.server.register_associate_machine(self.token, machine_id, ip_addr, mac_addr)
-
         return rc
 
 
 def showHelp():
-    print "register [--help] [--regtoken]"
+    print "register [--help] [--regtoken] [--serverurl=]"
 
 
 def main(argv):
@@ -67,7 +67,7 @@ def main(argv):
     regtoken = None
     username = None
     password = None
-    server_url = "http://127.0.0.1:5150"
+    server_url = None
     try:
         opts, args = getopt.getopt(argv[1:], "h", ["help", "regtoken=", "username=",
                                                    "password=", "serverurl="])
@@ -88,7 +88,19 @@ def main(argv):
             password = val
         if opt in ["--serverurl"]:
             server_url = val
-        
+
+    if server_url is None:
+        print "must specify --serverurl, ex: http://foo.example.com:5150"
+        sys.exit(1)
+    
+    if regtoken is None:
+        if username is None:
+           print "must specify --regtoken or --username and --password"
+           sys.exit(1)
+        elif password is None:
+           print "must specify --password"
+           sys.exit(1)        
+
     reg_obj = Register(server_url)
     if regtoken:
         reg_obj.token = regtoken
@@ -106,10 +118,8 @@ def main(argv):
     machine_id = rc[1]['data']
         
     net_info = machine_info.get_netinfo(server_url)
-    print reg_obj.associate(machine_id, "blippy", net_info['ipaddr'], net_info['hwaddr'])
-
-
-
+    read_net = net_info.read_network(server_url)
+    print reg_obj.associate(machine_id, read_net['hostname'], net_info['ipaddr'], net_info['hwaddr'])
 
 
 
