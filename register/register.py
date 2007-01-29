@@ -5,6 +5,7 @@ ShadowManager client code.
 
 Copyright 2007, Red Hat, Inc
 Adrian Likins <alikins@redhat.com>
+Michael DeHaan <mdehaan@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -29,8 +30,8 @@ class Server(xmlrpclib.ServerProxy):
 
 
 class Register(object):
-    def __init__(self):
-        self.server = Server("http://127.0.0.1:5150")
+    def __init__(self,url):
+        self.server = Server(url)
         self.token = None
 
     # assume username/password exist, so no user creation race conditions to avoid
@@ -88,7 +89,7 @@ def main(argv):
         if opt in ["--serverurl"]:
             server_url = val
         
-    reg_obj = Register()
+    reg_obj = Register(server_url)
     if regtoken:
         reg_obj.token = regtoken
     else:
