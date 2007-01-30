@@ -29,6 +29,10 @@ import traceback
 
 class MachineData(baseobj.BaseObject):
 
+    FIELDS = [ "id", "address", "architecture", "processor_speed", "processor_count", "memory",
+               "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
+               "image_id", "puppet_node_diff" ]
+
     def _produce(klass, machine_args,operation=None):
         """
         Factory method.  Create a machine object from input data, optionally
@@ -134,11 +138,26 @@ class MachineData(baseobj.BaseObject):
 
         if len(invalid_args) > 0:
             
+            print "invalid args"
+            print invalid_args
             raise InvalidArgumentsException(invalid_fields=invalid_args)
  
 #------------------------------------------------------
 
 class Machine(web_svc.AuthWebSvc):
+
+    add_fields = [ x for x in MachineData.FIELDS ]
+    add_fields.remove("id")
+    edit_fields = [ x for x in MachineData.FIELDS ]
+    edit_fields.remove("id")
+
+    DB_SCHEMA = {
+        "table"  : "machines",
+        "fields" : MachineData.FIELDS,
+        "add"    : add_fields,
+        "edit"   : edit_fields 
+    } 
+
     def __init__(self):
         self.methods = {"machine_add": self.add,
                         "machine_new": self.new,
@@ -148,7 +167,7 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_list": self.list,
                         "machine_get": self.get}
         web_svc.AuthWebSvc.__init__(self)
-
+        self.db.db_schema = self.DB_SCHEMA
 
 
     def add(self, token, args):
@@ -226,7 +245,7 @@ class Machine(web_svc.AuthWebSvc):
         return self.add(token, args)
 
 
-    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None,
+    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, image_id=None,
                   architecture=None, processor_speed=None, processor_count=None,
                   memory=None):
         """
@@ -236,6 +255,8 @@ class Machine(web_svc.AuthWebSvc):
         # determine the image from the token. 
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
         regtoken_obj = regtoken.RegToken()
+        if token is None:
+            print "token is None???"
         results = regtoken_obj.get_by_token(None, { "token" : token })
         print "get_by_token"
         print "results: %s" % results
@@ -249,7 +270,7 @@ class Machine(web_svc.AuthWebSvc):
 
         args = {
             'id': machine_id,
-            'address': ip_addr,
+            'address': hostname,
             'mac_address': mac_addr,
             'image_id': image_id,
             'architecture' : architecture,

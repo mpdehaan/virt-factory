@@ -121,12 +121,10 @@ class XmlRpcInterface:
                # user_login is where you get the
                #   auth token from in the first places
                # token_check is what validates the token
-               # register_new_machine and register_associate_machine can
+               # register can
                #   take authtokens or regtokens, so they do there own
                # auth check
-               if method not in ["user_login", "token_check",
-                                 "register_new_machine",
-                                 "register_associate_machine"]:
+               if method not in ["user_login", "token_check", "register" ]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
            except ShadowManagerException, e:
