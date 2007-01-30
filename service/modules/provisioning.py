@@ -193,7 +193,12 @@ class CobblerTranslatedSystem:
        #        image_id = d["image_id"]
        #        break               
 
-       # FIXME: this is giving a key error: why?  need to fix.
+       if not from_db.has_key("image_id"):
+           # what happened here is that the machine was registered but no image is 
+           # assigned by the user in GUI land, so until that happens it can't be 
+           # provisioned.  This is /NOT/ neccessarily an error condition.
+           return
+
        image_id = from_db["image_id"]
 
        print "this machine has image_id = %s" % image_id
@@ -214,9 +219,25 @@ class CobblerTranslatedSystem:
        print "image name is %s" % image_name
        new_item.set_profile(image_name)
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
-       new_item.set_kernel_options(from_db["kernel_options"])
-       new_item.set_ksmeta(from_db["kickstart_metadata"])
-       new_item.set_pxe_address(from_db["address"])
+       
+       kernel_options = ""
+       kickstart_metadata = ""
+       pxe_address = ""
+
+       if from_db.has_key("kernel_options"):
+           kernel_options = from_db["kernel_options"]
+       if from_db.has_key("kickstart_metadata"):
+           kickstart_metadata = from_db["kickstart_metadata"]
+
+       # FIXME: be sure this field name corresponds with the new machine/deployment field
+       # once it is added.
+       if from_db.has_key("ip_address"):
+           pxe_address = from_db["ip_address"]
+
+       new_item.set_kernel_options(kernel_options)
+       new_item.set_ksmeta(kickstart_metadata)
+       new_item.set_pxe_address(pxe_address)
+       
        cobbler_api.systems().add(new_item)
 
 #--------------------------------------------------------------------

@@ -22,6 +22,7 @@ import sys
 import xmlrpclib
 import socket
 
+ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 
 class Server(xmlrpclib.ServerProxy):
     def __init__(self, url=None):
@@ -40,21 +41,11 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self):
+    def register(self, hostname, ip, mac):
         # should return a machine_id, maybe more
         print "self.token", self.token
-        rc = self.server.register_new_machine(self.token)
-
+        rc = self.server.register(self.token, hostname, ip, mac)  # image_id = None?
         print rc
-
-        return rc
-
-    # for a machine that has an id (either from the wui, or as part of the
-    # generated kickstart, assosicate it with a hostname and ip_addr so that
-    # taskotron can contact its node api
-    def associate(self, machine_id, hostname, ip_addr, mac_addr):
-        # FIXME: hostname is not being used.
-        rc = self.server.register_associate_machine(self.token, machine_id, ip_addr, mac_addr)
         return rc
 
 
@@ -119,31 +110,48 @@ def main(argv):
         reg_obj.login(username, password)
 
     
-    rc = reg_obj.register()
-
-    if rc[0] != 0:
-        print "There was an error logging in"
-        # FIXME: why don't we just return an xmlrpc fault here?
-        sys.exit(2)
-        
-    machine_id = rc[1]['data']
-        
+    #rc = reg_obj.register()
+    #
+    #if rc[0] != 0:
+    #    print "There was an error logging in"
+    #    # FIXME: why don't we just return an xmlrpc fault here?
+    #    sys.exit(2)
+    #    
+    #machine_id = rc[1]['data']
+    # 
+   
     net_info = machine_info.get_netinfo(server_url)
+    
     # FIXME: error checking on this value...
     # FIXME: fill in hardware info.
-    print reg_obj.associate(machine_id, net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'])
+    
+    # FIXME: require --image=name if the token doesn't have it associated.
+    print net_info
+
+    try:
+        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'])
+    except socket.error:
+        print "Could not connect to server."
+        sys.exit(1)
+    print "rc = ", rc
+    if rc[0] == ERR_TOKEN_INVALID:
+        print "Bad token!  No registration for you!"
+        sys.exit(2)
+    if rc[0] != 0:
+        print "There was an error.  Check the server side logs."
+        sys.exit(3)
 
     if provision:
         # now invoke koan pointed at the server.
         if not os.path.exists("/usr/bin/koan"):
             print "Cannot provision.  Missing /usr/bin/koan"
-            sys.exit(1)
+            sys.exit(4)
         else:
             # FIXME: fill in with magic from the database.
             rc = subprocess.call["/usr/bin/koan","--replace-self", "--profile=FIXME" % profile,"--server=FIXME" % server]
             if rc != 0:
                 print "provisioning failed."
-                sys.exit(1)
+                sys.exit(5)
             else:
                 print "provisioning succeeded.  Reboot?"
     else:
