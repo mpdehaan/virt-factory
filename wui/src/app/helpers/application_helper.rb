@@ -23,13 +23,13 @@ module ApplicationHelper
        <li><strong>Image Profiles</strong>
 	   <ul>
 	   <li><A HREF="/image/list">View Image Profiles</A></li>
-	   <li><A HREF="/image/edit">(Developers) Add an Image</A></li>
+	   <li><A HREF="/image/edit">(Developers) Add an Image Profile</A></li>
 	   </ul>
        </li>
        <li><strong>Virtual Deployments</strong>
            <ul>
            <li><A HREF="/deployment/list">View Virtual Deployments</A></li>
-           <li><A HREF="/deployment/edit">Add an Image Profile</A></li>
+           <li><A HREF="/deployment/edit">Add a Virtual Deployment</A></li>
            </ul>
        </li>
        <li><strong>Task Queue</strong>

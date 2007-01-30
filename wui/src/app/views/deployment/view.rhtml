@@ -55,6 +55,10 @@
                             <TD>Specfile</TD>
                             <TD><%= @item.image.specfile %></TD>
                         </TR>
+                        <TR>
+			    <TD>Puppet Classes</TD>
+			    <TD><%= @item.image.puppet_classes %></TD>
+			</TR>
                     </TABLE>
                 <% end %>
             </TD>
@@ -62,6 +66,10 @@
          <TR> 
             <TD>State</TD>
             <TD><%= @item.state %></TD>
+         </TR>
+         <TR>
+            <TD>Puppet Class Node Overrides</TD>
+            <TD><%= @item.puppet_node_diff %></TD>
          </TR>
       </TABLE>
       </div>
