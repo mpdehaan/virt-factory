@@ -41,10 +41,10 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self, hostname, ip, mac):
+    def register(self, hostname, ip, mac, image_name=""):
         # should return a machine_id, maybe more
         print "self.token", self.token
-        rc = self.server.register(self.token, hostname, ip, mac)  # image_id = None?
+        rc = self.server.register(self.token, hostname, ip, mac, image_name)
         print rc
         return rc
 
@@ -59,16 +59,16 @@ def main(argv):
     username   = None
     password   = None
     server_url = None
-    provision  = False
+    image_name = ""
 
     try:
-        opts, args = getopt.getopt(argv[1:], "hPt:u:p:s:", [
+        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:i:", [
             "help", 
-            "provision"
             "token=", 
             "username=",
             "password=", 
-            "serverurl="
+            "serverurl=",
+            "imagename="
         ])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
@@ -80,8 +80,6 @@ def main(argv):
         if opt in ["-h", "--help"]:
             showHelp()
             sys.exit(1)
-        if opt in ["-P", "--provision"]:
-            provision = True
         if opt in ["-t", "--token"]:
             regtoken = val
         if opt in ["-u", "--username"]:
@@ -90,6 +88,8 @@ def main(argv):
             password = val
         if opt in ["-s", "--serverurl"]:
             server_url = val
+        if opt in ["-i", "--imagename"]:
+            image_name = val
 
     if server_url is None:
         print "must specify --serverurl, ex: http://foo.example.com:5150"
@@ -129,7 +129,7 @@ def main(argv):
     print net_info
 
     try:
-        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'])
+        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], image_name)
     except socket.error:
         print "Could not connect to server."
         sys.exit(1)
@@ -140,22 +140,6 @@ def main(argv):
     if rc[0] != 0:
         print "There was an error.  Check the server side logs."
         sys.exit(3)
-
-    if provision:
-        # now invoke koan pointed at the server.
-        if not os.path.exists("/usr/bin/koan"):
-            print "Cannot provision.  Missing /usr/bin/koan"
-            sys.exit(4)
-        else:
-            # FIXME: fill in with magic from the database.
-            rc = subprocess.call["/usr/bin/koan","--replace-self", "--profile=FIXME" % profile,"--server=FIXME" % server]
-            if rc != 0:
-                print "provisioning failed."
-                sys.exit(5)
-            else:
-                print "provisioning succeeded.  Reboot?"
-    else:
-        print "done."
 
 if __name__ == "__main__":
     main(sys.argv)
