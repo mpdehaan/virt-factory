@@ -1,0 +1,4 @@
+---
+logs:
+    service: /var/log/shadowclient/log
+

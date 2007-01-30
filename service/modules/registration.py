@@ -32,12 +32,12 @@ import traceback
 
 class Registration(web_svc.AuthWebSvc):
     def __init__(self):
-        self.methods = {"register": self.register, }
+        self.methods = {"register_new_machine": self.new_machine,
+                        "register_associate_machine": self.associate}
         web_svc.AuthWebSvc.__init__(self)
         self.auth = authentication.Authentication()
 
     def __check_auth(self, token):
-        print "__check_auth"
         failed_auth = False
         try:
             self.auth.token_check(token)
@@ -48,10 +48,8 @@ class Registration(web_svc.AuthWebSvc):
 
         # check the regtoken
         if failed_auth:
-            print "making the regtoken..."
             regtoken_obj = regtoken.RegToken()
             # this should raise exceptions if anything fails
-            print "debug: checking regtoken..."
             regtoken_obj.check(token)
             
     def new_machine(self, token):
@@ -60,31 +58,22 @@ class Registration(web_svc.AuthWebSvc):
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
-    def register(self, token, hostname, ip_addr, mac_addr, image_id=None):
+    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None):
         self.__check_auth(token)
         
         machine_obj = machine.Machine()
-        results = machine_obj.db.simple_list({}, { "mac_address" : mac_addr })
-        if results.error_code != 0:
-            return results
-        if len(results.data) != 0:
-            print "simple machine query"
-            machine_id =  results.data[0]["id"]
-            print "existing machine id = %s" % machine_id
-        else:
-            results = machine_obj.new(token)
-            machine_id = results.data 
-            print "new machine id = %s" % machine_id
+        return machine_obj.associate(token, machine_id, ip_addr, mac_addr, image_id)
 
-        # see if there is an image id for the token.  this does not work
-        # for usernames and passwords.
-        regtoken_obj = regtoken.RegToken()
-        regtoken_obj.db.simple_list({}, { "token" : token })
-        if results.error_code != 0 and len(results.data) != 0:
-            image_id = results.data[0]["image_id"]
-        
-        print "calling associate with machine_id: ", machine_id
-        return machine_obj.associate(token, machine_id, hostname, ip_addr, mac_addr, image_id)
+
+    def add(self, token, args):
+        """
+        register a system. Connects an instances with a hostname and mac address
+        """
+        return 1
+
+    def test(self, token, args):
+        print self.token_check(token)
+        return 1
 
 
 methods = Registration()

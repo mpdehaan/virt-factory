@@ -95,7 +95,6 @@ class DbUtil(object):
                y = where_args[x]
                if type(y) == str:
                    y = "'%s'" % y
-               print x,y
                where_parts.append(x + " = " + y)
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:

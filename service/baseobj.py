@@ -100,13 +100,8 @@ class BaseObject(object):
 
         if stringy == None:
            return False
-        if type(stringy) != str:
-           stringy = "%s" % stringy
-        try:
-            for letter in stringy:
-                if letter not in string.printable:
-                    return False
-            return True
-        except:
-            return False
+        for letter in stringy:
+            if letter not in string.printable:
+                return False
+        return True
 

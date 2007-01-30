@@ -35,22 +35,12 @@ from codes import *
 
 import config_data
 import logger
-logger.logfilepath = "/var/lib/shadowmanager/svclog"
+import module_loader
 
-from modules import task 
-from modules import authentication
-from modules import config
-from modules import deployment
-from modules import distribution
-from modules import image
-from modules import machine
-from modules import provisioning
-from modules import registration
-from modules import user
-from modules import regtoken
-from modules import puppet
+MODULE_PATH="modules/"
+modules = module_loader.load_modules(MODULE_PATH)
 
-
+print modules
 # this is kind of handy, so keep it around for now
 # but we really need to fix out server side logging and error
 # reporting so we don't need it
@@ -71,13 +61,9 @@ class XmlRpcInterface:
         config_obj = config_data.Config()
         self.config = config_obj.get()
        
-        self.tables = {}
-        self.tokens = []
-
         self.logger = logger.Logger().logger
 
         self.__setup_handlers()
-        self.auth = authentication.Authentication()
        
     def __setup_handlers(self):
         """
@@ -85,13 +71,13 @@ class XmlRpcInterface:
         FIXME: eventually calling most functions should go from here through getattr.
         """
         self.handlers = {}
-        for x in [user, machine,
-                 image, deployment,
-                 distribution,config,
-                 provisioning, registration,
-                 authentication, task, regtoken, puppet]:
-           x.register_rpc(self.handlers)
-           self.logger.debug("adding %s" % x)
+        for x in modules.keys():
+           try:
+              modules[x].register_rpc(self.handlers)
+              self.logger.debug("adding %s" % modules[x])
+           except AttributeError, e:
+              self.logger.warning("module %s could not be loaded, it did not have a register_rpc method" % modules[x])
+              
 
            # FIXME: find some more elegant way to surface the handlers?
            # FIXME: aforementioned login/session token requirement
@@ -117,17 +103,6 @@ class XmlRpcInterface:
            self.logger.debug("methods: %s params: %s" % (method, params))
          
            try:
-               # why aren't these auth checked? well...
-               # user_login is where you get the
-               #   auth token from in the first places
-               # token_check is what validates the token
-               # register_new_machine and register_associate_machine can
-               #   take authtokens or regtokens, so they do there own
-               # auth check
-               if method not in ["user_login", "token_check",
-                                 "register_new_machine",
-                                 "register_associate_machine"]:
-                   self.auth.token_check(params[0])
                rc = mh(*params)
            except ShadowManagerException, e:
                self.__log_exc()
@@ -168,7 +143,7 @@ def serve(websvc):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     server = ShadowXMLRPCServer(("127.0.0.1", 5150))
+     server = ShadowXMLRPCServer(("127.0.0.1", 2112))
      server.register_instance(websvc)
      server.serve_forever()
 
@@ -186,18 +161,14 @@ def main(argv):
     websvc = XmlRpcInterface()
      
     if len(argv) > 1:
-        if argv[1].lower() == "import":
-            prov_obj = provisioning.Provisioning()
-            prov_obj.init(None, {})
-        else:
-            print """
-
-            I'm sorry, I can't do that, Dave.
-
-            Usage: shadow [import]
-
-            """
-            sys.exit(1)
+       print """
+       
+       I'm sorry, I can't do that, Dave.
+       
+       Usage: shadow [import]
+       
+       """
+       sys.exit(1)
     else:
         print "serving...\n"
         serve(websvc)
