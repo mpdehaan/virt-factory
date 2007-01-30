@@ -84,7 +84,7 @@ class MachineData(baseobj.BaseObject):
             "mac_address"        : self.mac_address,
             "is_container"       : self.is_container,
             "image_id"           : self.image_id,
-            "puppet_node_diff"   : self.puppet_node_diff  
+            "puppet_node_diff"   : self.puppet_node_diff
         }
 
     def validate(self,operation):
@@ -128,9 +128,9 @@ class MachineData(baseobj.BaseObject):
            # list group is printable or None
            if self.list_group is not None and not self.is_printable(self.list_group):
                invalid_args["list_group"] = REASON_FORMAT
-            # puppet_node_diff should probably validate possible puppet classnames
+           # puppet_node_diff should probably validate possible puppet classnames
            if self.puppet_node_diff is not None and not self.is_printable(self.puppet_node_diff):
-               invalid_fields["puppet_node_diff"] = REASON_FORMAT
+               invalid_args["puppet_node_diff"] = REASON_FORMAT
 
         if len(invalid_args) > 0:
             

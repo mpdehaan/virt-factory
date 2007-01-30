@@ -54,11 +54,12 @@ class DeploymentData(baseobj.BaseObject):
         deployment object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id            = self.load(deployment_dep_args,"id")
-        self.machine_id    = self.load(deployment_dep_args,"machine_id")
-        self.image_id      = self.load(deployment_dep_args,"image_id")
-        self.state         = self.load(deployment_dep_args,"state")
-        self.display_name  = self.load(deployment_dep_args,"display_name")
+        self.id               = self.load(deployment_dep_args,"id")
+        self.machine_id       = self.load(deployment_dep_args,"machine_id")
+        self.image_id         = self.load(deployment_dep_args,"image_id")
+        self.state            = self.load(deployment_dep_args,"state")
+        self.display_name     = self.load(deployment_dep_args,"display_name")
+        self.puppet_node_diff = self.load(deployment_dep_args,"puppet_node_diff")
 
     def to_datastruct_internal(self):
         """
@@ -66,11 +67,12 @@ class DeploymentData(baseobj.BaseObject):
         """
 
         return {
-            "id"            : self.id,
-            "machine_id"    : self.machine_id,
-            "image_id"      : self.image_id,
-            "state"         : self.state,
-            "display_name"  : self.display_name
+            "id"               : self.id,
+            "machine_id"       : self.machine_id,
+            "image_id"         : self.image_id,
+            "state"            : self.state,
+            "display_name"     : self.display_name,
+            "puppet_node_diff" : self.puppet_node_diff
         }
 
     def validate(self,operation):
@@ -95,6 +97,10 @@ class DeploymentData(baseobj.BaseObject):
                 invalid["id"] = REASON_TYPE
         
         # TODO: state is in one of the valid states
+        if operation in [OP_ADD, OP_EDIT]:
+           # puppet_node_diff should probably validate possible puppet classnames
+           if self.puppet_node_diff is not None and not self.is_printable(self.puppet_node_diff):
+               invalid["puppet_node_diff"] = REASON_FORMAT
 
         if not passed:
             raise InvalidArgumentsException(invalid_fields=invalid)
@@ -118,8 +124,8 @@ class Deployment(web_svc.AuthWebSvc):
 
 
          st = """
-         INSERT INTO deployments (machine_id,image_id,state,display_name)
-         VALUES (:machine_id,:image_id,:state,:display_name)
+         INSERT INTO deployments (machine_id,image_id,state,display_name,puppet_node_diff)
+         VALUES (:machine_id,:image_id,:state,:display_name,:puppet_node_diff)
          """
 
          fields = {}
@@ -171,7 +177,8 @@ class Deployment(web_svc.AuthWebSvc):
 
          st = """
          UPDATE deployments 
-         SET machine_id=:machine_id, state=:state
+         SET machine_id=:machine_id, state=:state,
+         puppet_node_diff=:puppet_node_diff
          WHERE id=:id
          """
 
@@ -244,6 +251,7 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.image_id,
          deployments.state,
          deployments.display_name,
+         deployments.puppet_node_diff,
          images.id,
          images.name,
          images.version,
@@ -256,6 +264,7 @@ class Deployment(web_svc.AuthWebSvc):
          images.kernel_options,
          images.valid_targets,
          images.is_container,
+         images.puppet_classes,
          machines.id,
          machines.address, 
          machines.architecture,
@@ -284,41 +293,43 @@ class Deployment(web_svc.AuthWebSvc):
          for x in results:
 
              image_data = image.ImageData.produce({
-                    "id"                 : x[5],
-                    "name"               : x[6],
-                    "version"            : x[7],
-                    "filename"           : x[8],
-                    "specfile"           : x[9],
-                    "distribtuion_id"    : x[10],
-                    "virt_storage_size"  : x[11],
-                    "virt_ram"           : x[12],
-                    "kickstart_metadata" : x[13],
-                    "kernel_options"     : x[14],
-                    "valid_targets"      : x[15],
-                    "is_container"       : x[16]
+                    "id"                 : x[6],
+                    "name"               : x[7],
+                    "version"            : x[8],
+                    "filename"           : x[9],
+                    "specfile"           : x[10],
+                    "distribtuion_id"    : x[11],
+                    "virt_storage_size"  : x[12],
+                    "virt_ram"           : x[13],
+                    "kickstart_metadata" : x[14],
+                    "kernel_options"     : x[15],
+                    "valid_targets"      : x[16],
+                    "is_container"       : x[17],
+                    "puppet_classes"     : x[18]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[17],
-                    "address"            : x[18],
-                    "architecture"       : x[19],
-                    "processor_speed"    : x[20],
-                    "processor_count"    : x[21],
-                    "memory"             : x[22],
-                    "kernel_options"     : x[23],
-                    "kickstart_metadata" : x[24],
-                    "list_group"         : x[25],
-                    "mac_address"        : x[26],
-                    "is_container"       : x[27],
-                    "image_id"           : x[28]
+                    "id"                 : x[19],
+                    "address"            : x[20],
+                    "architecture"       : x[21],
+                    "processor_speed"    : x[22],
+                    "processor_count"    : x[23],
+                    "memory"             : x[24],
+                    "kernel_options"     : x[25],
+                    "kickstart_metadata" : x[26],
+                    "list_group"         : x[27],
+                    "mac_address"        : x[28],
+                    "is_container"       : x[29],
+                    "image_id"           : x[30]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
-                "id"           : x[0],
-                "machine_id"   : x[1],
-                "image_id"     : x[2],
-                "state"        : x[3],
-                "display_name" : x[4]
+                "id"               : x[0],
+                "machine_id"       : x[1],
+                "image_id"         : x[2],
+                "state"            : x[3],
+                "display_name"     : x[4],
+                "puppet_node_diff" : x[5]
              }).to_datastruct(True)
 
              data["image"] = image_data
@@ -338,6 +349,7 @@ class Deployment(web_svc.AuthWebSvc):
          st = """
          SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
          deployments.display_name,
+         deployments.puppet_node_diff,
          images.id, machines.id
          FROM deployments,images,machines WHERE deployments.id=:id AND 
          images.id = deployments.image_id AND machines.id = deployments.machine_id
@@ -356,11 +368,12 @@ class Deployment(web_svc.AuthWebSvc):
          image_results   = image_obj.get(token, { "id" : x[2] })
 
          data = DeploymentData.produce({
-                "id"           : x[0],
-                "machine_id"   : x[1],
-                "image_id"     : x[2],
-                "state"        : x[3],
-                "display_name" : x[4]
+                "id"               : x[0],
+                "machine_id"       : x[1],
+                "image_id"         : x[2],
+                "state"            : x[3],
+                "display_name"     : x[4],
+                "puppet_node_diff" : x[5]
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data

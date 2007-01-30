@@ -19,6 +19,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import SimpleXMLRPCServer
 import os
+import subprocess
+
+from pysqlite2 import dbapi2 as sqlite
 
 SERVE_ON = (None,None)
 
@@ -117,6 +120,24 @@ class XmlRpcInterface:
            raise InvalidMethodException
 
 
+def database_reset():
+     """
+     Used for testing.  Not callable from the web service.
+     """
+     DATABASE_PATH = "/var/lib/shadowmanager/primary_db"
+     try:
+         os.remove(DATABASE_PATH)
+     except:
+         pass
+    
+     p = DATABASE_PATH
+     p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
+     p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
+     p2.communicate()
+     p3 = subprocess.Popen(["cat","../setup/populate.sql"], stdout=subprocess.PIPE)
+     p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
+     p4.communicate()
+
 def serve(websvc):
      """
      Code for starting the XMLRPC service. 
@@ -143,8 +164,10 @@ def main(argv):
        print """
        
        I'm sorry, I can't do that, Dave.
+       
+       Usage: shadow [import]
+       
        """
-
        sys.exit(1)
     else:
         print "serving...\n"

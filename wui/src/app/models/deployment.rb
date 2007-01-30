@@ -5,13 +5,14 @@ class Deployment < ManagedObject
 
     # corresponds to what's in the database schema
     ATTR_LIST = { 
-       :id           => { :type => Integer }, 
-       :machine_id   => { :type => Integer }, 
-       :image_id     => { :type => Integer }, 
-       :state        => { :type => String  },
-       :display_name => { :type => String  },
-       :machine      => { :type => Machine, :id_attr => :machine_id }, 
-       :image        => { :type => Image, :id_attr => :image_id} 
+       :id               => { :type => Integer }, 
+       :machine_id       => { :type => Integer }, 
+       :image_id         => { :type => Integer }, 
+       :state            => { :type => String  },
+       :display_name     => { :type => String  }, 
+       :puppet_node_diff => { :type => String  },
+       :machine          => { :type => Machine, :id_attr => :machine_id }, 
+       :image            => { :type => Image, :id_attr => :image_id} 
     }
     self.set_attrs(ATTR_LIST)
      
