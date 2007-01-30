@@ -193,6 +193,7 @@ class CobblerTranslatedSystem:
        #        image_id = d["image_id"]
        #        break               
 
+       # FIXME: this is giving a key error: why?  need to fix.
        image_id = from_db["image_id"]
 
        print "this machine has image_id = %s" % image_id
@@ -279,7 +280,7 @@ class Provisioning(web_svc.AuthWebSvc):
          cobbler_api.serialize()
          cobbler_api.sync(dryrun=False)
       except:
-         traceback.print_exc()
+         traceback.print_exc() # FIXME: really we want to log this
          lock.release()
          raise UncaughtException(traceback=traceback.format_exc())
 

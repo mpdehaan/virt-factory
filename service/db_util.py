@@ -90,14 +90,22 @@ class DbUtil(object):
         (offset, limit) = self.get_limit_parms(args)
 
         if len(where_args) > 0:
-           where_parts = ["%s = %s" % where_args.itervalues()]
+           where_parts = []
+           for x in where_args:
+               y = where_args[x]
+               if type(y) == str:
+                   y = "'%s'" % y
+               where_parts.append(x + " = " + y)
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:
            where_clause = ""         
 
         buf = "SELECT " + string.join(self.db_schema["fields"], ",") +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
-        results = self.cursor.execute(buf, (offset,limit))
+        print "QUERY: %s" % buf
+        print "OFFSET, LIMIT: %s, %s" % (offset,limit)
+        self.cursor.execute(buf, (offset,limit))
         results = self.cursor.fetchall()
+        print "RESULTS OF QUERY: %s" % results
  
         if results is None:
              return success([])

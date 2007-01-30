@@ -20,6 +20,7 @@ from codes import *
 import image
 import provisioning
 import web_svc
+import regtoken
 
 import threading
 import traceback
@@ -235,15 +236,15 @@ class Machine(web_svc.AuthWebSvc):
         # determine the image from the token. 
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
         regtoken_obj = regtoken.RegToken()
-        (rc, value) = regtoken.get_by_token(None, { "token" : token })
+        results = regtoken_obj.get_by_token(None, { "token" : token })
         print "get_by_token"
-        print "rc: %s" % rc
-        print "value: %s" % value
-        if not rc:
+        print "results: %s" % results
+        if results.error_code != 0:
             raise codes.InvalidArgumentsException("bad token")
+        # FIXME: check that at least some results are returned.
 
-        if value.data[1].has_key("image_id"):
-            image_id = value.data[1]["image_id"]
+        if results.data[0].has_key("image_id"):
+            image_id = results.data[0]["image_id"]
 
 
         args = {

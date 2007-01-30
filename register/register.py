@@ -129,10 +129,9 @@ def main(argv):
     machine_id = rc[1]['data']
         
     net_info = machine_info.get_netinfo(server_url)
-    read_net = net_info.read_network(server_url)
     # FIXME: error checking on this value...
     # FIXME: fill in hardware info.
-    print reg_obj.associate(machine_id, read_net['hostname'], net_info['ipaddr'], net_info['hwaddr'])
+    print reg_obj.associate(machine_id, net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'])
 
     if provision:
         # now invoke koan pointed at the server.

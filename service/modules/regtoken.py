@@ -165,11 +165,10 @@ class RegToken(web_svc.AuthWebSvc):
          u = RegTokenData.produce(args,OP_DELETE) # force validation
          return self.db.simple_delete(args)
 
-    def get_by_token(self, args):
-         results = self.db.simple_list(self, {}, { "token" : args["token"]})
-         if not results[0] or (len(results[1]) < 1):
-            return results
-         return success(results[1].data[1])
+    def get_by_token(self, token, args):
+         results = self.db.simple_list({}, { "token" : args["token"]})
+         print "get_by_token", results
+         return results
 
     def list(self, token, args):
          """
