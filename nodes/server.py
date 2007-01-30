@@ -19,9 +19,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import SimpleXMLRPCServer
 import os
-import subprocess
-
-from pysqlite2 import dbapi2 as sqlite
 
 SERVE_ON = (None,None)
 
