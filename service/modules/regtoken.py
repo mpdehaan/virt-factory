@@ -27,6 +27,8 @@ import base64
 
 class RegTokenData(baseobj.BaseObject):
 
+    FIELDS = [ "id", "token", "image_id", "uses_remaining"] 
+
     def _produce(klass, args,operation=None):
         """
         Factory method.  Create a image object from input, optionally
@@ -90,13 +92,24 @@ class RegTokenData(baseobj.BaseObject):
 
 
 class RegToken(web_svc.AuthWebSvc):
-    def __init__(self):
-        self.methods = {"regtoken_add": self.add,
-                        "regtoken_delete": self.delete,
-                        "regtoken_get": self.get,
-                        "regtoken_list": self.list}
-        web_svc.AuthWebSvc.__init__(self)
 
+    DB_SCHEMA = {
+        "table" : "regtokens",
+        "fields" : RegTokenData.FIELDS,
+        "add"   : [ "id", "token", "image_id", "uses_remaining" ],
+        "edit"  : [ "image_id", "uses_remaining" ]
+    }
+
+    def __init__(self):
+        self.methods = {
+             "regtoken_add": self.add,
+             "regtoken_delete": self.delete,
+             "regtoken_get": self.get,
+             "regtoken_get_by_token": self.get_by_token,
+             "regtoken_list": self.list
+        }
+        web_svc.AuthWebSvc.__init__(self)
+        self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, args):
          """
@@ -150,16 +163,13 @@ class RegToken(web_svc.AuthWebSvc):
          """
 
          u = RegTokenData.produce(args,OP_DELETE) # force validation
+         return self.db.simple_delete(args)
 
-         st = """
-         DELETE FROM regtokens WHERE regtokens.id=:id
-         """
-
-         self.db.cursor.execute(st, { "id" : u.id })
-         self.db.connection.commit()
-
-         return success()
-
+    def get_by_token(self, args):
+         results = self.db.simple_list(self, {}, { "token" : args["token"]})
+         if not results[0] or (len(results[1]) < 1):
+            return results
+         return success(results[1].data[1])
 
     def list(self, token, args):
          """

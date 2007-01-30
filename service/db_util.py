@@ -83,12 +83,19 @@ class DbUtil(object):
          return (offset, limit) 
 
     # FIXME: is this right? -akl
-    def simple_list(self, args):
+    def simple_list(self, args, where_args={}):
         """
         Shorthand for writing a select * from foo
         """
         (offset, limit) = self.get_limit_parms(args)
-        buf = "SELECT " + string.join(self.db_schema["fields"], ",") +  " FROM " + self.db_schema["table"]  + " LIMIT ?,?"
+
+        if len(where_args) > 0:
+           where_parts = ["%s = %s" % where_args.itervalues()]
+           where_clause = " WHERE " + string.join(where_parts, " AND ")
+        else:
+           where_clause = ""         
+
+        buf = "SELECT " + string.join(self.db_schema["fields"], ",") +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
         results = self.cursor.execute(buf, (offset,limit))
         results = self.cursor.fetchall()
  
@@ -120,6 +127,11 @@ class DbUtil(object):
         
         base_obj = baseobj.BaseObject()
         return success(base_obj.remove_nulls(data_hash))
+
+    def simple_list_by(self, fieldname, fieldvalue):
+        """
+        Shorthand for writing a list statement with a WHERE clause.
+        """
 
     def simple_edit(self, args):
         """

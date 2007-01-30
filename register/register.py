@@ -59,34 +59,45 @@ class Register(object):
 
 
 def showHelp():
-    print "register [--help] [--regtoken] [--serverurl=]"
+    print "register [--help] [--token] [--serverurl=]"
 
 
 def main(argv):
 
-    regtoken = None
-    username = None
-    password = None
+    regtoken   = None
+    username   = None
+    password   = None
     server_url = None
+    provision  = False
+
     try:
-        opts, args = getopt.getopt(argv[1:], "h", ["help", "regtoken=", "username=",
-                                                   "password=", "serverurl="])
+        opts, args = getopt.getopt(argv[1:], "hPt:u:p:s:", [
+            "help", 
+            "provision"
+            "token=", 
+            "username=",
+            "password=", 
+            "serverurl="
+        ])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
         showHelp()
         sys.exit(1)
 
     for (opt, val) in opts:
+        print "DEBUG: this (%s,%s)" % (opt,val)
         if opt in ["-h", "--help"]:
             showHelp()
             sys.exit(1)
-        if opt in ["--regtoken"]:
+        if opt in ["-P", "--provision"]:
+            provision = True
+        if opt in ["-t", "--token"]:
             regtoken = val
-        if opt in ["--username"]:
+        if opt in ["-u", "--username"]:
             username = val
-        if opt in ["--password"]:
+        if opt in ["-p", "--password"]:
             password = val
-        if opt in ["--serverurl"]:
+        if opt in ["-s", "--serverurl"]:
             server_url = val
 
     if server_url is None:
@@ -95,7 +106,7 @@ def main(argv):
     
     if regtoken is None:
         if username is None:
-           print "must specify --regtoken or --username and --password"
+           print "must specify --token or --username and --password"
            sys.exit(1)
         elif password is None:
            print "must specify --password"
@@ -119,9 +130,25 @@ def main(argv):
         
     net_info = machine_info.get_netinfo(server_url)
     read_net = net_info.read_network(server_url)
+    # FIXME: error checking on this value...
+    # FIXME: fill in hardware info.
     print reg_obj.associate(machine_id, read_net['hostname'], net_info['ipaddr'], net_info['hwaddr'])
 
-
+    if provision:
+        # now invoke koan pointed at the server.
+        if not os.path.exists("/usr/bin/koan"):
+            print "Cannot provision.  Missing /usr/bin/koan"
+            sys.exit(1)
+        else:
+            # FIXME: fill in with magic from the database.
+            rc = subprocess.call["/usr/bin/koan","--replace-self", "--profile=FIXME" % profile,"--server=FIXME" % server]
+            if rc != 0:
+                print "provisioning failed."
+                sys.exit(1)
+            else:
+                print "provisioning succeeded.  Reboot?"
+    else:
+        print "done."
 
 if __name__ == "__main__":
     main(sys.argv)

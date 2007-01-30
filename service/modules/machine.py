@@ -225,18 +225,40 @@ class Machine(web_svc.AuthWebSvc):
         return self.add(token, args)
 
 
-    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None):
+    def associate(self, token, machine_id, ip_addr, mac_addr, image_id=None,
+                  architecture=None, processor_speed=None, processor_count=None,
+                  memory=None):
         """
         Associate a machine with an ip/host/mac address
         """
-        args = {'id': machine_id,
-                'address': ip_addr,
-                'mac_address': mac_addr,
-                'image_id': image_id}
+        print "associating..."
+        # determine the image from the token. 
+        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
+        regtoken_obj = regtoken.RegToken()
+        (rc, value) = regtoken.get_by_token(None, { "token" : token })
+        print "get_by_token"
+        print "rc: %s" % rc
+        print "value: %s" % value
+        if not rc:
+            raise codes.InvalidArgumentsException("bad token")
+
+        if value.data[1].has_key("image_id"):
+            image_id = value.data[1]["image_id"]
+
+
+        args = {
+            'id': machine_id,
+            'address': ip_addr,
+            'mac_address': mac_addr,
+            'image_id': image_id,
+            'architecture' : architecture,
+            'processor_speed' : processor_speed,
+            'processor_count' : processor_count,
+            'memory' : memory
+        }
         print args
         return self.edit(token, args)
         
-
     def sync(self):
         self.provisioning = provisioning.Provisioning()
         self.provisioning.sync(None, {} )
