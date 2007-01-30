@@ -28,6 +28,11 @@ import traceback
 
 class ImageData(baseobj.BaseObject):
 
+    FIELDS = [ "id", "name", "version", "filename", "specfile",
+               "distribution_id", "virt_storage_size", "virt_ram",
+               "kickstart_metadata", "kernel_options", "valid_targets",
+               "is_container", "puppet_classes" ]
+
     def _produce(klass, image_args,operation=None):
         """
         Factory method.  Create a image object from input data, optionally
@@ -154,6 +159,17 @@ class ImageData(baseobj.BaseObject):
 
 
 class Image(web_svc.AuthWebSvc):
+
+    add_edit = [ x for x in ImageData.FIELDS]
+    add_edit.remove("id") # probably need to tailor this further, but just using list fns for now
+
+    DB_SCHEMA = {
+        "table"  : "images",
+        "fields" : ImageData.FIELDS,
+        "add"    : add_edit,
+        "edit"   : add_edit
+    }
+
     def __init__(self):
         self.methods = {"image_add": self.add,
                         "image_edit": self.edit,
@@ -161,7 +177,7 @@ class Image(web_svc.AuthWebSvc):
                         "image_get": self.get,
                         "image_list": self.list}
         web_svc.AuthWebSvc.__init__(self)
-
+        self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, image_args):
          """

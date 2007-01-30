@@ -23,6 +23,7 @@ import xmlrpclib
 import socket
 
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
+ERR_ARGUMENTS_INVALID = 8 # ...
 
 class Server(xmlrpclib.ServerProxy):
     def __init__(self, url=None):
@@ -41,7 +42,7 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self, hostname, ip, mac, image_name=""):
+    def register(self, hostname, ip, mac, image_name):
         # should return a machine_id, maybe more
         print "self.token", self.token
         rc = self.server.register(self.token, hostname, ip, mac, image_name)
@@ -89,6 +90,7 @@ def main(argv):
         if opt in ["-s", "--serverurl"]:
             server_url = val
         if opt in ["-i", "--imagename"]:
+            print "read the image name"
             image_name = val
 
     if server_url is None:
@@ -136,10 +138,13 @@ def main(argv):
     print "rc = ", rc
     if rc[0] == ERR_TOKEN_INVALID:
         print "Bad token!  No registration for you!"
-        sys.exit(2)
-    if rc[0] != 0:
+        sys.exit(rc[0])
+    elif rc[0] == ERR_ARGUMENTS_INVALID:
+        print "Invalid arguments.  Possibly missing --imagename ?"
+        sys.exit(rc[0])
+    elif rc[0] != 0:
         print "There was an error.  Check the server side logs."
-        sys.exit(3)
+        sys.exit(rc[0])
 
 if __name__ == "__main__":
     main(sys.argv)
