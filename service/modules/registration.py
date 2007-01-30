@@ -76,7 +76,7 @@ class Registration(web_svc.AuthWebSvc):
             machine_id = results.data 
             print "new machine id = %s" % machine_id
 
-        image_id = 0
+        image_id = None
 
         # see if there is an image id for the token.  this does not work
         # for usernames and passwords.
@@ -85,7 +85,9 @@ class Registration(web_svc.AuthWebSvc):
         if results.error_code != 0 and len(results.data) != 0:
             image_id = results.data[0]["image_id"]
 
-        if image_id == 0 and image_name != "":
+        print "passed in image name is (%s)" % image_name
+
+        if image_id != None and image_name != "":
             # no image ID found for token, try a name lookup
             image_obj = image.Image()
             images = image_obj.db.simple_list({}, { "name" : image_name })
