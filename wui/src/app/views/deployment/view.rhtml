@@ -18,13 +18,14 @@
             <TD><%= @item.mac_address %></TD>
          </TR>
          <TR>
+            <!-- FIXME: is this level of display nesting needed? -->
             <TD>Host Machine</TD>
             <TD>
                 <% if @item.machine %>
                     <TABLE BORDER=0>
                        <TR>
-                          <TD>Address</TD>
-                          <TD><%= @item.machine.address %></TD>
+                          <TD>Hostname</TD>
+                          <TD><%= @item.machine.hostname %></TD>
                        </TR>
                        <TR>
                           <TD>Architecture</TD>

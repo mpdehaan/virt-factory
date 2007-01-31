@@ -22,7 +22,7 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.machine.address, :controller => "machine", :action=> "view", :id=> item.machine.id %></TD>
+             <TD> <%= link_to item.machine.hostname, :controller => "machine", :action=> "view", :id=> item.machine.id %></TD>
              <TD> <%= item.hostname ? item.hostname : "?" %> </TD>
              <TD> <%= item.ip_address ? item.ip_address : "?" %> </TD>
              <TD> <%= item.mac_address ? item.mac_address : "?" %> </TD>

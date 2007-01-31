@@ -27,7 +27,7 @@ class Deployment < ManagedObject
     # FIXME: is this the name used for display purposes in the GUI?
     
     def objname()
-        self.get_machine().address + ": " + self.get_image().name
+        self.get_machine().hostname + ": " + self.get_image().name
     end
 
 end

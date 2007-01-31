@@ -3,7 +3,7 @@
 
       <div id="content-main">
       <TABLE BORDER=0>
-            <% if @item.address %>
+            <% if @item.ip_address %>
                <TR> 
                    <TD>Recorded Hostname</TD>
                    <TD><%= @item.hostname %></TD>
@@ -29,7 +29,7 @@
                 </TD>
              </TR>
          <% end %>
-         <% if @item.address %>
+         <% if @item.ip_address %>
              <TR><TD>Architecture</TD><TD><%= @item.architecture %></TD></TR>
              <TR><TD>Procesor Speed</TD><TD><%= @item.processor_speed %></TD></TR> 
              <TR><TD>Procesor Count</TD><TD><%= @item.processor_count %></TD></TR>
