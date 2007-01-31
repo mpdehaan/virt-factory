@@ -264,7 +264,8 @@ class Deployment(web_svc.AuthWebSvc):
          images.is_container,
          images.puppet_classes,
          machines.id,
-         machines.address, 
+         machines.hostname,
+         machines.ip_address, 
          machines.architecture,
          machines.processor_speed,
          machines.processor_count,
@@ -306,17 +307,18 @@ class Deployment(web_svc.AuthWebSvc):
 
              machine_data = machine.MachineData.produce({
                     "id"                 : x[17],
-                    "address"            : x[18],
-                    "architecture"       : x[19],
-                    "processor_speed"    : x[20],
-                    "processor_count"    : x[21],
-                    "memory"             : x[22],
-                    "kernel_options"     : x[23],
-                    "kickstart_metadata" : x[24],
-                    "list_group"         : x[25],
-                    "mac_address"        : x[26],
-                    "is_container"       : x[27],
-                    "image_id"           : x[28]
+                    "hostname"           : x[19],
+                    "ip_address"         : x[20],
+                    "architecture"       : x[21],
+                    "processor_speed"    : x[22],
+                    "processor_count"    : x[23],
+                    "memory"             : x[24],
+                    "kernel_options"     : x[25],
+                    "kickstart_metadata" : x[26],
+                    "list_group"         : x[27],
+                    "mac_address"        : x[28],
+                    "is_container"       : x[29],
+                    "image_id"           : x[30]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
