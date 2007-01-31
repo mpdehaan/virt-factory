@@ -6,7 +6,19 @@
       <div id="content-main">
       <TABLE BORDER=0>
          <TR>
-            <TD>Machine</TD>
+            <TD>Virtual Hostname</TD>
+            <TD><%= @item.hostname %></TD>
+         </TR>
+         <TR> 
+            <TD>Virtual IP Address</TD>
+            <TD><%= @item.ip_address %></TD>
+         </TR>
+         <TR>
+            <TD>Virtual MAC Address</TD>
+            <TD><%= @item.mac_address %></TD>
+         </TR>
+         <TR>
+            <TD>Host Machine</TD>
             <TD>
                 <% if @item.machine %>
                     <TABLE BORDER=0>
