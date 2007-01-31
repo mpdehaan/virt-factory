@@ -6,6 +6,9 @@ class Deployment < ManagedObject
     # corresponds to what's in the database schema
     ATTR_LIST = { 
        :id               => { :type => Integer }, 
+       :hostname         => { :type => String  },
+       :ip_address       => { :type => String  },
+       :mac_address      => { :type => String  },
        :machine_id       => { :type => Integer }, 
        :image_id         => { :type => Integer }, 
        :state            => { :type => String  },
@@ -24,7 +27,7 @@ class Deployment < ManagedObject
     # FIXME: is this the name used for display purposes in the GUI?
     
     def objname()
-        self.get_machine.address + ": " + self.get_image.name
+        self.get_machine().address + ": " + self.get_image().name
     end
 
 end
