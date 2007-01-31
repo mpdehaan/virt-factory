@@ -3,10 +3,20 @@
 
       <div id="content-main">
       <TABLE BORDER=0>
-         <TR>
-            <TD>Last IP Address</TD>
-            <TD><%= @item.address ? @item.address : "Has not checked in yet" %></TD>
-         </TR>
+            <% if @item.address %>
+               <TR> 
+                   <TD>Recorded Hostname</TD>
+                   <TD><%= @item.hostname %></TD>
+               </TR>
+               <TR>
+                   <TD>Recorded IP</TD>
+                   <TD><%= @item.ip_address %></TD>
+               </TR>
+               <TR>
+                   <TD>Recorded MAC</TD>
+                   <TD><%= @item.mac_address %></TD>
+               <TR>
+            <% end %>
          <% if @item.image %>
              <TR>
                  <TD>Image</TD>
@@ -14,9 +24,6 @@
                          <TABLE BORDER=0>
                              <TR><TD>Name</TD><TD><%= @item.image.name %></TD></TR>
                              <TR><TD>Version</TD><TD><%= @item.image.version %></TD></TR>
-                             <TR><TD>Filename</TD><TD><%= @item.image.filename %></TD></TR>
-                             <TR><TD>Specfile</TD><TD><%= @item.image.specfile %></TD></TR>
-		             <TR><TD>Puppet Classes</TD><TD><%= @item.image.puppet_classes %></TD></TR>
                          </TABLE>
                      </TD>
                 </TD>
