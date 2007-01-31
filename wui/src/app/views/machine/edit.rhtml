@@ -7,11 +7,18 @@
          <%= f.hidden_field :id %>
       <% end %>
       <TABLE BORDER=0>
-         <% if @operation == "edit" and !@item.address.nil? %>
+         <% if @operation == "edit" and !@item.hostname.nil? %>
             <TR>
-                <TD>Address</TD>
-                <TD><%= @item.address %></TD>
+                <TD>Recorded Hostname</TD>
+                <TD><%= @item.hostname %></TD>
             </TR>
+                <TD>Recorded IP</TD>
+                <TD><%= @item.ip_address %></TD>
+            </TR>
+            <TR>
+                <TD>Recorded MAC</TD>
+                <TD><%= @item.mac_address %></TD>
+            </TR> 
          <% end %>
          <TR>
             <TD>Image</TD>
