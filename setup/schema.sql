@@ -47,8 +47,6 @@ CREATE TABLE images (
    id INTEGER PRIMARY KEY,
    name               VARCHAR (255) UNIQUE,
    version            VARCHAR (255) NOT NULL,
-   filename           VARCHAR (255),
-   specfile           VARCHAR (255),
    distribution_id    INTEGER NOT NULL,
    virt_storage_size  INTEGER,
    virt_ram           INTEGER,

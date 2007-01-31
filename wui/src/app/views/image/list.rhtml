@@ -8,8 +8,6 @@
          <TR>
             <TD>Name</TD>
             <TD>Version</TD>
-            <TD>Filename</TD>
-            <TD>Specfile</TD>
             <TD>Distribution</TD>
             <TD>Virtual Storage Size</TD>
             <TD>Virtual RAM</TD>
@@ -29,8 +27,6 @@
              
              <TD> <%= link_to item.name, :controller => "image", :action=> "view", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
-             <TD> <%= item.filename %> </TD>
-             <TD> <%= item.specfile %> </TD>
              <TD> <%= item.distribution.name if item.distribution %> </TD>
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>

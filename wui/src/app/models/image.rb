@@ -7,8 +7,6 @@ class Image < ManagedObject
     ATTR_LIST = { :id => {:type => Integer}, 
                   :name => {:type => String}, 
                   :version => {:type => String}, 
-                  :filename => {:type => String}, 
-                  :specfile => {:type => String}, 
                   :distribution_id => {:type => Integer}, 
                   :distribution => { :type => Distribution, :id_attr => :distribution_id}, 
                   :virt_storage_size => {:type => Integer}, 

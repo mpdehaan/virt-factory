@@ -193,8 +193,6 @@ class RegToken(web_svc.AuthWebSvc):
          images.id,
          images.name,
          images.version,
-         images.filename,
-         images.specfile,
          images.distribution_id, 
          images.virt_storage_size,
          images.virt_ram,
@@ -228,15 +226,13 @@ class RegToken(web_svc.AuthWebSvc):
                      "id"                 : x[4],
                      "name"               : x[5],
                      "version"            : x[6],
-                     "filename"           : x[7],
-                     "specfile"           : x[8],
-                     "distribution_id"    : x[9],
-                     "virt_storage_size"  : x[10],
-                     "virt_ram"           : x[11],
-                     "kickstart_metadata" : x[12],
-                     "kernel_options"     : x[13],
-                     "valid_targets"      : x[14],
-                     "is_container"       : x[15]
+                     "distribution_id"    : x[7],
+                     "virt_storage_size"  : x[8],
+                     "virt_ram"           : x[9],
+                     "kickstart_metadata" : x[10],
+                     "kernel_options"     : x[11],
+                     "valid_targets"      : x[12],
+                     "is_container"       : x[13]
                  }).to_datastruct(True)
 
              collection.append(data)

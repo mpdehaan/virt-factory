@@ -387,8 +387,6 @@ class Machine(web_svc.AuthWebSvc):
          machines.puppet_node_diff,
          images.name,
          images.version,
-         images.filename,
-         images.specfile,
          images.distribution_id,
          images.virt_storage_size,
          images.virt_ram,
@@ -432,16 +430,14 @@ class Machine(web_svc.AuthWebSvc):
                       "id"                 : x[11],
                       "name"               : x[13],
                       "version"            : x[14],
-                      "filename"           : x[15],
-                      "specfile"           : x[16],
-                      "distribution_id"    : x[17],
-                      "virt_storage_size"  : x[18],
-                      "virt_ram"           : x[19],
-                      "kickstart_metadata" : x[20],
-                      "kernel_options"     : x[21],
-                      "valid_targets"      : x[22],
-                      "is_container"       : x[23],
-                      "puppet_classes"     : x[24]
+                      "distribution_id"    : x[15],
+                      "virt_storage_size"  : x[16],
+                      "virt_ram"           : x[17],
+                      "kickstart_metadata" : x[18],
+                      "kernel_options"     : x[19],
+                      "valid_targets"      : x[20],
+                      "is_container"       : x[21],
+                      "puppet_classes"     : x[22]
                  }).to_datastruct(True)
 
              machines.append(data)

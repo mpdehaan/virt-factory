@@ -28,7 +28,7 @@ import traceback
 
 class ImageData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "name", "version", "filename", "specfile",
+    FIELDS = [ "id", "name", "version", 
                "distribution_id", "virt_storage_size", "virt_ram",
                "kickstart_metadata", "kernel_options", "valid_targets",
                "is_container", "puppet_classes" ]
@@ -59,8 +59,6 @@ class ImageData(baseobj.BaseObject):
         self.id                 = self.load(image_args,"id")
         self.name               = self.load(image_args,"name")
         self.version            = self.load(image_args,"version")
-        self.filename           = self.load(image_args,"filename")
-        self.specfile           = self.load(image_args,"specfile")
         self.distribution_id    = self.load(image_args,"distribution_id")
         self.virt_storage_size  = self.load(image_args,"virt_storage_size")
         self.virt_ram           = self.load(image_args,"virt_ram")
@@ -79,8 +77,6 @@ class ImageData(baseobj.BaseObject):
             "id"                 : self.id,
             "name"               : self.name,
             "version"            : self.version,
-            "filename"           : self.filename,
-            "specfile"           : self.specfile,
             "distribution_id"    : self.distribution_id,
             "virt_storage_size"  : self.virt_storage_size,
             "virt_ram"           : self.virt_ram,
@@ -112,19 +108,6 @@ class ImageData(baseobj.BaseObject):
             # no restrictions on version other than printable?
             if not self.is_printable(self.version):
                 invalid_fields["version"] = REASON_FORMAT
-
-            # filename references a file on the filesystem that is readable, or is None
-            if not self.filename is None and not os.path.isfile(self.filename):
-                invalid_fields["filename"] = REASON_NOFILE
-            
-            # specfile references a file on the filesystem that is readable, or is None
-            if not self.specfile is None and not os.path.isfile(self.specfile):
-                invalid_fields["specfile"] = REASON_NOFILE
-
-            # either filename or specfile is not None
-            if self.specfile is None and self.filename is None:
-                invalid_fields["specfile"] = REASON_REQUIRED
-                invalid_fields["filename"] = REASON_REQUIRED
 
             # distribution_id references an existing distribution
             # this is actually done by the add and need not be done here
@@ -185,7 +168,7 @@ class Image(web_svc.AuthWebSvc):
          """
 
          st = """
-         INSERT INTO images (name,version,filename,specfile,
+         INSERT INTO images (name,version,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
          valid_targets,is_container, puppet_classes)
          VALUES (:name,:version,:filename,:specfile,:distribution_id,
@@ -234,7 +217,7 @@ class Image(web_svc.AuthWebSvc):
 
          st = """
          UPDATE images 
-         SET name=:name, version=:version, filename=:filename, specfile=:specfile,
+         SET name=:name, version=:version, 
          virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
          kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
          valid_targets=:valid_targets, is_container=:is_container,
@@ -314,8 +297,6 @@ class Image(web_svc.AuthWebSvc):
          images.id,
          images.name,
          images.version,
-         images.filename,
-         images.specfile,
          images.distribution_id, 
          images.virt_storage_size,
          images.virt_ram,
@@ -352,29 +333,27 @@ class Image(web_svc.AuthWebSvc):
                 "id"        : x[0],
                 "name"      : x[1],
                 "version"   : x[2],
-                "filename"  : x[3],
-                "specfile"  : x[4],
-                "distribution_id"    : x[5],
-                "virt_storage_size"  : x[6],
-                "virt_ram"           : x[7],
-                "kickstart_metadata" : x[8],
-                "kernel_options"     : x[9],
-                "valid_targets"      : x[10],
-                "is_container"       : x[11],
-                "puppet_classes"     : x[12]
+                "distribution_id"    : x[3],
+                "virt_storage_size"  : x[4],
+                "virt_ram"           : x[5],
+                "kickstart_metadata" : x[6],
+                "kernel_options"     : x[7],
+                "valid_targets"      : x[8],
+                "is_container"       : x[9],
+                "puppet_classes"     : x[10]
              }).to_datastruct(True)
 
-             if x[12] is not None and x[13] != -1:
+             if x[11] is not None and x[11] != -1:
                  data["distribution"] = distribution.DistributionData.produce({
-                     "id"                 : x[13],
-                     "kernel"             : x[14],
-                     "initrd"             : x[15],
-                     "options"            : x[16],
-                     "kickstart"          : x[17],
-                     "name"               : x[18],
-                     "architecture"       : x[19],
-                     "kernel_options"     : x[20],
-                     "kickstart_metadata" : x[21]
+                     "id"                 : x[11],
+                     "kernel"             : x[12],
+                     "initrd"             : x[13],
+                     "options"            : x[14],
+                     "kickstart"          : x[15],
+                     "name"               : x[16],
+                     "architecture"       : x[17],
+                     "kernel_options"     : x[18],
+                     "kickstart_metadata" : x[19]
                  }).to_datastruct(True)
 
              images.append(data)
@@ -390,7 +369,7 @@ class Image(web_svc.AuthWebSvc):
          u = ImageData.produce(image_args,OP_GET) # force validation
 
          st = """
-         SELECT id,name,version,filename,specfile,
+         SELECT id,name,version,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
          valid_targets,is_container,puppet_classes
          FROM images WHERE id=:id
@@ -406,23 +385,21 @@ class Image(web_svc.AuthWebSvc):
                 "id"                 : x[0],
                 "name"               : x[1],
                 "version"            : x[2],
-                "filename"           : x[3],
-                "specfile"           : x[4],
-                "distribution_id"    : x[5],
-                "virt_storage_size"  : x[6],
-                "virt_ram"           : x[7],
-                "kickstart_metadata" : x[8],
-                "kernel_options"     : x[9],
-                "valid_targets"      : x[10],
-                "is_container"       : x[11],
-                "puppet_classes"     : x[12]
+                "distribution_id"    : x[3],
+                "virt_storage_size"  : x[4],
+                "virt_ram"           : x[5],
+                "kickstart_metadata" : x[6],
+                "kernel_options"     : x[7],
+                "valid_targets"      : x[8],
+                "is_container"       : x[9],
+                "puppet_classes"     : x[10]
          }
 
          data = ImageData.produce(data).to_datastruct(True)
 
-         if x[5] is not None:
+         if x[3] is not None:
              distribution_obj = distribution.Distribution()
-             distribution_results = distribution_obj.get(None, { "id" : x[5] })
+             distribution_results = distribution_obj.get(None, { "id" : x[3] })
              if not distribution_results.ok():
                  raise OrphanedObjectException(comment="distribution_id")
              data["distribution"] = distribution_results.data

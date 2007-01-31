@@ -255,8 +255,6 @@ class Deployment(web_svc.AuthWebSvc):
          images.id,
          images.name,
          images.version,
-         images.filename,
-         images.specfile,
          images.distribution_id,
          images.virt_storage_size,
          images.virt_ram,
@@ -296,31 +294,29 @@ class Deployment(web_svc.AuthWebSvc):
                     "id"                 : x[6],
                     "name"               : x[7],
                     "version"            : x[8],
-                    "filename"           : x[9],
-                    "specfile"           : x[10],
-                    "distribtuion_id"    : x[11],
-                    "virt_storage_size"  : x[12],
-                    "virt_ram"           : x[13],
-                    "kickstart_metadata" : x[14],
-                    "kernel_options"     : x[15],
-                    "valid_targets"      : x[16],
-                    "is_container"       : x[17],
-                    "puppet_classes"     : x[18]
+                    "distribtuion_id"    : x[9],
+                    "virt_storage_size"  : x[10],
+                    "virt_ram"           : x[11],
+                    "kickstart_metadata" : x[12],
+                    "kernel_options"     : x[13],
+                    "valid_targets"      : x[14],
+                    "is_container"       : x[15],
+                    "puppet_classes"     : x[16]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[19],
-                    "address"            : x[20],
-                    "architecture"       : x[21],
-                    "processor_speed"    : x[22],
-                    "processor_count"    : x[23],
-                    "memory"             : x[24],
-                    "kernel_options"     : x[25],
-                    "kickstart_metadata" : x[26],
-                    "list_group"         : x[27],
-                    "mac_address"        : x[28],
-                    "is_container"       : x[29],
-                    "image_id"           : x[30]
+                    "id"                 : x[17],
+                    "address"            : x[18],
+                    "architecture"       : x[19],
+                    "processor_speed"    : x[20],
+                    "processor_count"    : x[21],
+                    "memory"             : x[22],
+                    "kernel_options"     : x[23],
+                    "kickstart_metadata" : x[24],
+                    "list_group"         : x[25],
+                    "mac_address"        : x[26],
+                    "is_container"       : x[27],
+                    "image_id"           : x[28]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
