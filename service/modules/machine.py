@@ -79,7 +79,7 @@ class MachineData(baseobj.BaseObject):
         return {
             "id"                 : self.id,
             "hostname"           : self.hostname,
-            "ip_address"         : self.ip_address
+            "ip_address"         : self.ip_address,
             "architecture"       : self.architecture,
             "processor_speed"    : self.processor_speed,
             "processor_count"    : self.processor_count,
@@ -431,17 +431,17 @@ class Machine(web_svc.AuthWebSvc):
 
              if x[12] is not None and x[12] != -1:
                  data["image"] = image.ImageData.produce({
-                      "id"                 : x[14],
-                      "name"               : x[15],
-                      "version"            : x[16],
-                      "distribution_id"    : x[17],
-                      "virt_storage_size"  : x[18],
-                      "virt_ram"           : x[19],
-                      "kickstart_metadata" : x[20],
-                      "kernel_options"     : x[21],
-                      "valid_targets"      : x[22],
-                      "is_container"       : x[23],
-                      "puppet_classes"     : x[24]
+                      "id"                 : x[12],
+                      "name"               : x[14],
+                      "version"            : x[15],
+                      "distribution_id"    : x[16],
+                      "virt_storage_size"  : x[17],
+                      "virt_ram"           : x[18],
+                      "kickstart_metadata" : x[19],
+                      "kernel_options"     : x[20],
+                      "valid_targets"      : x[21],
+                      "is_container"       : x[22],
+                      "puppet_classes"     : x[23]
                  }).to_datastruct(True)
 
              machines.append(data)
