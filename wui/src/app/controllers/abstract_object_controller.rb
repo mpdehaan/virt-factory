@@ -65,6 +65,9 @@ class AbstractObjectController < ApplicationController
                 set_flash_on_exception(ex)
             end
         end
+        if @params[:item_from_flash] == "1"
+           @item.update_from_hash(@flash[:err_item_hash], @session)
+        end
     end
 
     # view action.  Just shows items without an edit controls.  The individual view pages
@@ -91,12 +94,13 @@ class AbstractObjectController < ApplicationController
             return
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
+            @flash[:err_item_hash] = @params["form"]
         end
         # what page we redirect depends on whether this was an add or an edit
         if operation == "add"
-            redirect_to :action => "edit"
+            redirect_to :action => "edit", :item_from_flash => 1
         else 
-            redirect_to :action => "edit", :id => obj.id
+            redirect_to :action => "edit", :item_from_flash => 1, :id => obj.id
         end
     end
 

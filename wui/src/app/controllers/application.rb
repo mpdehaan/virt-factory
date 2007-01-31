@@ -54,7 +54,7 @@ class XMLRPCClientException < Exception
     attr_reader :data
     attr_reader :comment
 
-    def initialize(return_code, raw_data)
+    def initialize(return_code, raw_data, attempted_obj = nil)
 
         # direct return values from service
         @return_code = return_code
