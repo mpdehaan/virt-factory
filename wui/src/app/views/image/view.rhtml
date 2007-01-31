@@ -13,44 +13,7 @@
          </TR>
          <TR>
             <TD>Distribution</TD>
-            <TD>
-                <% if @item.distribution %>
-                    <TABLE BORDER=0>
-                       <TR>
-                          <TD>Name</TD>
-                          <TD><%= @item.distribution.name %></TD>
-                       </TR>
-                       <TR>
-                          <TD>Kernel</TD>
-                          <TD><%= @item.distribution.kernel %></TD>
-                       </TR>
-                       <TR>
-                          <TD>Initrd</TD>
-                          <TD><%= @item.distribution.initrd %></TD>
-                       </TR>
-                       <TR>
-                          <TD>Options</TD>
-                          <TD><%= @item.distribution.options %></TD>
-                       </TR>
-                       <TR>
-                          <TD>Kickstart</TD>
-                          <TD><%= @item.distribution.kickstart %></TD>
-                       </TR>
-                       <TR>
-                         <TD>Architecture</TD>
-                         <TD><%= ARCHITECTURES[@item.distribution.architecture] %></TD>
-                       </TR>
-                       <TR>
-                         <TD>Kernel Options</TD>
-                         <TD><%= @item.distribution.kernel_options %></TD>
-                       </TR>
-                       <TR>
-                         <TD>Kickstart Metadata</TD>
-                         <TD><%= @item.distribution.kickstart_metadata %></TD>
-                       </TR>
-                    </TABLE>
-                <% end %>
-            </TD>
+            <TD><%= @item.distribution.name %></TD>
          </TR>
          <TR>
             <TD>Virtual Storage Size (GB)</TD>
