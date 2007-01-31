@@ -84,7 +84,10 @@ class XMLRPCClientException < Exception
         if @invalid_fields then
            basics = basics + "<br/>"
            # FIXME: TODO: also show reasons
-           basics = "The following fields were invalid: #{@invalid_fields.keys()}"
+           basics = "The following fields were invalid:"
+           @invalid_fields.each do |key, reason|  
+              basics = basics + "<br/>" + key + ": " + reason
+           end
         end
 
         if @stacktrace then
