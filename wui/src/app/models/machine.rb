@@ -8,8 +8,7 @@ class Machine < ManagedObject
 
     # corresponds with db schema
     ATTR_LIST = { :id => {:type => Integer}, 
-                  :hostname => {:type => String}, 
-                  :ip_address => {:type => String},
+                  :address => {:type => String}, 
                   :architecture => {:type => String}, 
                   :processor_speed => {:type => Integer}, 
                   :processor_count => {:type => Integer}, 

@@ -6,10 +6,7 @@
       <% if @items.length > 0 %>
       <TABLE class='listing'>
          <TR>
-            <TD>Host Machine</TD>
-            <TD>Virtual Hostname</TD>
-            <TD>IP</TD>
-            <TD>Mac Address</TD>
+            <TD>Machine</TD>
             <TD>Image</TD>
             <TD>State</TD>
          </TR>
@@ -22,12 +19,9 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.machine.hostname, :controller => "machine", :action=> "edit", :id=> item.machine.id %></TD>
-             <TD> <%= item.hostname ? item.hostname : "?" %> </TD>
-             <TD> <%= item.ip_address ? item.ip_address : "?" %> </TD>
-             <TD> <%= item.mac_address ? item.mac_address : "?" %> </TD>
+             <TD> <%= link_to item.machine.address, :controller => "machine", :action=> "view", :id=> item.machine.id %></TD>
              <TD> <%= link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id %></TD>
-             <TD> <%= item.state %> </TD>
+             <TD> <%= link_to item.state, :controller => "deployment", :action=> "view", :id=> item.id %></TD>
              <TD> <%= link_to "edit", :controller => "deployment", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= link_to "X", :controller => "deployment", :action=> "delete", :id=> item.id %></TD>
          </TR>

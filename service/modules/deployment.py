@@ -55,9 +55,6 @@ class DeploymentData(baseobj.BaseObject):
         """
 
         self.id               = self.load(deployment_dep_args,"id")
-        self.hostname         = self.load(deployment_dep_args,"hostname")
-        self.ip_address       = self.load(deployment_dep_args,"ip_address")
-        self.mac_address      = self.load(deployment_dep_args,"mac_address")
         self.machine_id       = self.load(deployment_dep_args,"machine_id")
         self.image_id         = self.load(deployment_dep_args,"image_id")
         self.state            = self.load(deployment_dep_args,"state")
@@ -71,9 +68,6 @@ class DeploymentData(baseobj.BaseObject):
 
         return {
             "id"               : self.id,
-            "hostname"         : self.hostname,
-            "ip_address"       : self.ip_address,
-            "mac_address"      : self.mac_address,
             "machine_id"       : self.machine_id,
             "image_id"         : self.image_id,
             "state"            : self.state,
@@ -130,8 +124,8 @@ class Deployment(web_svc.AuthWebSvc):
 
 
          st = """
-         INSERT INTO deployments (hostname,ip_address,mac_address,machine_id,image_id,state,display_name,puppet_node_diff)
-         VALUES (:hostname,:ip_address,:mac_address,:machine_id,:image_id,:state,:display_name,:puppet_node_diff)
+         INSERT INTO deployments (machine_id,image_id,state,display_name,puppet_node_diff)
+         VALUES (:machine_id,:image_id,:state,:display_name,:puppet_node_diff)
          """
 
          fields = {}
@@ -183,7 +177,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          st = """
          UPDATE deployments 
-         SET machine_id=:hostname,:ip_address,:mac_address,:machine_id, state=:state,
+         SET machine_id=:machine_id, state=:state,
          puppet_node_diff=:puppet_node_diff
          WHERE id=:id
          """
@@ -253,9 +247,6 @@ class Deployment(web_svc.AuthWebSvc):
          st = """
          SELECT 
          deployments.id,
-         deployments.hostname,
-         deployments.ip_address,
-         deployments.mac_address,
          deployments.machine_id,
          deployments.image_id,
          deployments.state,
@@ -273,8 +264,7 @@ class Deployment(web_svc.AuthWebSvc):
          images.is_container,
          images.puppet_classes,
          machines.id,
-         machines.hostname,
-         machines.ip_address, 
+         machines.address, 
          machines.architecture,
          machines.processor_speed,
          machines.processor_count,
@@ -301,45 +291,41 @@ class Deployment(web_svc.AuthWebSvc):
          for x in results:
 
              image_data = image.ImageData.produce({
-                    "id"                 : x[9],
-                    "name"               : x[10],
-                    "version"            : x[11],
-                    "distribtuion_id"    : x[12],
-                    "virt_storage_size"  : x[13],
-                    "virt_ram"           : x[14],
-                    "kickstart_metadata" : x[15],
-                    "kernel_options"     : x[16],
-                    "valid_targets"      : x[17],
-                    "is_container"       : x[18],
-                    "puppet_classes"     : x[19]
+                    "id"                 : x[6],
+                    "name"               : x[7],
+                    "version"            : x[8],
+                    "distribtuion_id"    : x[9],
+                    "virt_storage_size"  : x[10],
+                    "virt_ram"           : x[11],
+                    "kickstart_metadata" : x[12],
+                    "kernel_options"     : x[13],
+                    "valid_targets"      : x[14],
+                    "is_container"       : x[15],
+                    "puppet_classes"     : x[16]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[20],
-                    "hostname"           : x[21],
-                    "ip_address"         : x[22],
-                    "architecture"       : x[23],
-                    "processor_speed"    : x[24],
-                    "processor_count"    : x[25],
-                    "memory"             : x[26],
-                    "kernel_options"     : x[27],
-                    "kickstart_metadata" : x[28],
-                    "list_group"         : x[29],
-                    "mac_address"        : x[30],
-                    "is_container"       : x[31],
-                    "image_id"           : x[32]
+                    "id"                 : x[17],
+                    "address"            : x[18],
+                    "architecture"       : x[19],
+                    "processor_speed"    : x[20],
+                    "processor_count"    : x[21],
+                    "memory"             : x[22],
+                    "kernel_options"     : x[23],
+                    "kickstart_metadata" : x[24],
+                    "list_group"         : x[25],
+                    "mac_address"        : x[26],
+                    "is_container"       : x[27],
+                    "image_id"           : x[28]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
                 "id"               : x[0],
-                "hostname"         : x[1],
-                "ip_address"       : x[2],
-                "mac_address"      : x[3],
-                "machine_id"       : x[4],
-                "image_id"         : x[5],
-                "state"            : x[6],
-                "display_name"     : x[7],
-                "puppet_node_diff" : x[8]
+                "machine_id"       : x[1],
+                "image_id"         : x[2],
+                "state"            : x[3],
+                "display_name"     : x[4],
+                "puppet_node_diff" : x[5]
              }).to_datastruct(True)
 
              data["image"] = image_data
@@ -357,9 +343,7 @@ class Deployment(web_svc.AuthWebSvc):
          u = DeploymentData.produce(deployment_dep_args,OP_GET) # force validation
 
          st = """
-         SELECT deployments.id,
-         deployments.hostname, deployments.ip_address, deployments.mac_address,
-         deployments.machine_id,deployments.image_id,deployments.state,
+         SELECT deployments.id,deployments.machine_id,deployments.image_id,deployments.state,
          deployments.display_name,
          deployments.puppet_node_diff,
          images.id, machines.id
@@ -376,19 +360,16 @@ class Deployment(web_svc.AuthWebSvc):
          # checking is required
          machine_obj = machine.Machine()
          image_obj = image.Image()
-         machine_results = machine_obj.get(token, { "id" : x[4] })
-         image_results   = image_obj.get(token, { "id" : x[5] })
+         machine_results = machine_obj.get(token, { "id" : x[1] })
+         image_results   = image_obj.get(token, { "id" : x[2] })
 
          data = DeploymentData.produce({
                 "id"               : x[0],
-                "hostname"         : x[1],
-                "ip_address"       : x[2],
-                "mac_address"      : x[3],
-                "machine_id"       : x[4],
-                "image_id"         : x[5],
-                "state"            : x[6],
-                "display_name"     : x[7],
-                "puppet_node_diff" : x[8]
+                "machine_id"       : x[1],
+                "image_id"         : x[2],
+                "state"            : x[3],
+                "display_name"     : x[4],
+                "puppet_node_diff" : x[5]
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data

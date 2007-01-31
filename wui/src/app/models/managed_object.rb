@@ -103,14 +103,19 @@ class ManagedObject
         ManagedObject.from_hash(object_class,results, session)
     end
 
+    #updates an existing instance with attributes form a passed-in hash
+
+    def update_from_hash(hash, session)
+        ManagedObject.from_hash(self.class, hash, session, self)
+    end
 
     # from_hash vivifies an object (or an object tree) using it's hash representation, recursively doing the right
     # thing as neccessary. 
 
-    def self.from_hash(object_class, hash, session)
+    def self.from_hash(object_class, hash, session, object_instance = nil)
 
        # create the instance, we'll fill it's data as we go along
-       object_instance = object_class.new(session)
+       object_instance = object_class.new(session) if object_instance.nil?
 
        # for each variable passed in as input to the function
        hash.each do |key, value|

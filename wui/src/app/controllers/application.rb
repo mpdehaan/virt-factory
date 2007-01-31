@@ -54,7 +54,7 @@ class XMLRPCClientException < Exception
     attr_reader :data
     attr_reader :comment
 
-    def initialize(return_code, raw_data)
+    def initialize(return_code, raw_data, attempted_obj = nil)
 
         # direct return values from service
         @return_code = return_code
@@ -84,7 +84,10 @@ class XMLRPCClientException < Exception
         if @invalid_fields then
            basics = basics + "<br/>"
            # FIXME: TODO: also show reasons
-           basics = "The following fields were invalid: #{@invalid_fields.keys()}"
+           basics = "The following fields were invalid:"
+           @invalid_fields.each do |key, reason|  
+              basics = basics + "<br/>" + key + ": " + reason
+           end
         end
 
         if @stacktrace then

@@ -7,11 +7,11 @@
       <%= f.hidden_field :distribution_id if @operation == "edit" %>
       <TABLE BORDER=0>
          <TR>
-            <TD>Name (string)</TD>
+            <TD>Name</TD>
             <TD><%= f.text_field :name %></TD>
          </TR>
          <TR> 
-            <TD>Version (string)</TD>
+            <TD>Version</TD>
             <TD><%= f.text_field :version %></TD>
          </TR>
          <TR>
@@ -24,19 +24,19 @@
              </TD>
          </TR>
          <TR>
-            <TD>Virtual Storage Size (GB)</TD>
+            <TD>Virtual Storage Size</TD>
             <TD><%= f.text_field :virt_storage_size %></TD>
          </TR>
          <TR>
-            <TD>Virtual RAM (MB)</TD>
+            <TD>Virtual RAM</TD>
             <TD><%= f.text_field :virt_ram %></TD>
          </TR>
          <TR>
-            <TD>Kickstart Metadata (key=value key=value)</TD>
+            <TD>Kickstart Metadata</TD>
             <TD><%= f.text_field :kickstart_metadata %></TD>
          </TR>
          <TR>
-            <TD>Kernel Options (key=value word)</TD>
+            <TD>Kernel Options</TD>
             <TD><%= f.text_field :kernel_options %></TD>
          </TR>
          <TR>
@@ -48,7 +48,7 @@
             <TD><%= f.select :is_container, BOOLEAN_INT_SELECT %></TD>
          </TR>
          <TR>
-            <TD>Puppet Classes (space delimited)</TD>
+            <TD>Puppet Classes</TD>
             <TD><%= f.text_field :puppet_classes %></TD>
          </TR>
          <TR>

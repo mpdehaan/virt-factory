@@ -29,7 +29,7 @@ import traceback
 
 class MachineData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "architecture", "processor_speed", "processor_count", "memory",
+    FIELDS = [ "id", "address", "architecture", "processor_speed", "processor_count", "memory",
                "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
                "image_id", "puppet_node_diff" ]
 
@@ -57,8 +57,7 @@ class MachineData(baseobj.BaseObject):
         """
 
         self.id                 = self.load( machine_args, "id" )
-        self.hostname           = self.load( machine_args, "hostname" )
-        self.ip_address         = self.load( machine_args, "ip_address" )
+        self.address            = self.load( machine_args, "address" )
         self.architecture       = self.load( machine_args, "architecture" )
         self.processor_speed    = self.load( machine_args, "processor_speed" )
         self.processor_count    = self.load( machine_args, "processor_count" )
@@ -78,8 +77,7 @@ class MachineData(baseobj.BaseObject):
 
         return {
             "id"                 : self.id,
-            "hostname"           : self.hostname,
-            "ip_address"         : self.ip_address,
+            "address"            : self.address,
             "architecture"       : self.architecture,
             "processor_speed"    : self.processor_speed,
             "processor_count"    : self.processor_count,
@@ -104,6 +102,10 @@ class MachineData(baseobj.BaseObject):
                 invalid_args["id"] = REASON_FORMAT
 
         if operation in [OP_ADD, OP_EDIT]:
+
+           # address is valid (need an RFC compliant module to do this right)
+           if self.address and not self.is_printable(self.address):
+               invalid_args["address"] = REASON_FORMAT
 
            # architecture is one of the listed arches
            if self.architecture and not self.architecture in VALID_ARCHS:
@@ -175,8 +177,7 @@ class Machine(web_svc.AuthWebSvc):
 
         st = """
         INSERT INTO machines (
-        hostname,
-        ip_address,
+        address,
         architecture,
         processor_speed,
         processor_count,
@@ -189,8 +190,7 @@ class Machine(web_svc.AuthWebSvc):
         image_id,
         puppet_node_diff) 
         VALUES (
-        :hostname,
-        :ip_address,
+        :address,
         :architecture,
         :processor_speed,
         :processor_count,
@@ -270,8 +270,7 @@ class Machine(web_svc.AuthWebSvc):
 
         args = {
             'id': machine_id,
-            'hostname': hostname,
-            'ip_address': ip_addr,
+            'address': hostname,
             'mac_address': mac_addr,
             'image_id': image_id,
             'architecture' : architecture,
@@ -295,8 +294,7 @@ class Machine(web_svc.AuthWebSvc):
 
          st = """
          UPDATE machines 
-         SET hostname=:hostname,
-         ip_address=:ip_address,
+         SET address=:address,
          architecture=:architecture,
          processor_speed=:processor_speed,
          processor_count=:processor_count,
@@ -375,8 +373,7 @@ class Machine(web_svc.AuthWebSvc):
 
          st = """
          SELECT machines.id AS mid, 
-         machines.hostname,
-         machines.ip_address,
+         machines.address,
          machines.architecture,
          machines.processor_speed,
          machines.processor_count,
@@ -414,34 +411,33 @@ class Machine(web_svc.AuthWebSvc):
 
              data = MachineData.produce({         
                  "id"                 : x[0],
-                 "hostname"           : x[1],
-                 "ip_address"         : x[2],
-                 "architecture"       : x[3],
-                 "processor_speed"    : x[4],
-                 "processor_count"    : x[5],
-                 "memory"             : x[6],
-                 "kernel_options"     : x[7],
-                 "kickstart_metadata" : x[8],
-                 "list_group"         : x[9],
-                 "mac_address"        : x[10],
-                 "is_container"       : x[11],
-                 "image_id"           : x[12],
-                 "puppet_node_diff"   : x[13]
+                 "address"            : x[1],
+                 "architecture"       : x[2],
+                 "processor_speed"    : x[3],
+                 "processor_count"    : x[4],
+                 "memory"             : x[5],
+                 "kernel_options"     : x[6],
+                 "kickstart_metadata" : x[7],
+                 "list_group"         : x[8],
+                 "mac_address"        : x[9],
+                 "is_container"       : x[10],
+                 "image_id"           : x[11],
+                 "puppet_node_diff"   : x[12]
              }).to_datastruct(True)
 
-             if x[12] is not None and x[12] != -1:
+             if x[6] is not None and x[6] != -1:
                  data["image"] = image.ImageData.produce({
-                      "id"                 : x[12],
-                      "name"               : x[14],
-                      "version"            : x[15],
-                      "distribution_id"    : x[16],
-                      "virt_storage_size"  : x[17],
-                      "virt_ram"           : x[18],
-                      "kickstart_metadata" : x[19],
-                      "kernel_options"     : x[20],
-                      "valid_targets"      : x[21],
-                      "is_container"       : x[22],
-                      "puppet_classes"     : x[23]
+                      "id"                 : x[11],
+                      "name"               : x[13],
+                      "version"            : x[14],
+                      "distribution_id"    : x[15],
+                      "virt_storage_size"  : x[16],
+                      "virt_ram"           : x[17],
+                      "kickstart_metadata" : x[18],
+                      "kernel_options"     : x[19],
+                      "valid_targets"      : x[20],
+                      "is_container"       : x[21],
+                      "puppet_classes"     : x[22]
                  }).to_datastruct(True)
 
              machines.append(data)
@@ -457,7 +453,7 @@ class Machine(web_svc.AuthWebSvc):
          u = MachineData.produce(machine_args,OP_GET) # force validation
 
          st = """
-         SELECT id,hostname,ip_address,architecture,processor_speed,processor_count,memory,
+         SELECT id,address,architecture,processor_speed,processor_count,memory,
          kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id,
          puppet_node_diff
          FROM machines WHERE id=:id
@@ -469,28 +465,27 @@ class Machine(web_svc.AuthWebSvc):
 
          data = {
                 "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "architecture"       : x[3],
-                "processor_speed"    : x[4],
-                "processor_count"    : x[5],
-                "memory"             : x[6],
-                "kernel_options"     : x[7],
-                "kickstart_metadata" : x[8],
-                "list_group"         : x[9],
-                "mac_address"        : x[10],
-                "is_container"       : x[11],
-                "image_id"           : x[12],
-                "puppet_node_diff"   : x[13]
+                "address"            : x[1],
+                "architecture"       : x[2],
+                "processor_speed"    : x[3],
+                "processor_count"    : x[4],
+                "memory"             : x[5],
+                "kernel_options"     : x[6],
+                "kickstart_metadata" : x[7],
+                "list_group"         : x[8],
+                "mac_address"        : x[9],
+                "is_container"       : x[10],
+                "image_id"           : x[11],
+                "puppet_node_diff"   : x[12]
          }
 
          filtered = MachineData.produce(data).to_datastruct(True)
 
          # FIXME: redo this with image id
 
-         if x[12] is not None and x[12] != -1:
+         if x[11] is not None and x[11] != -1:
              image_obj = image.Image()
-             image_results = image_obj.get(token, {"id":x[12]})
+             image_results = image_obj.get(token, {"id":x[11]})
              if not image_results.ok():
                  raise OrphanedObjectException(comment="image_id")
              filtered["image"] = image_results.data
