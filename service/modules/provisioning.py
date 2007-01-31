@@ -236,7 +236,9 @@ class CobblerTranslatedSystem:
 
        new_item.set_kernel_options(kernel_options)
        new_item.set_ksmeta(kickstart_metadata)
-       new_item.set_pxe_address(pxe_address)
+
+       if pxe_address != "":
+           new_item.set_pxe_address(pxe_address)
        
        cobbler_api.systems().add(new_item)
 
