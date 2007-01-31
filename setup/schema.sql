@@ -59,6 +59,9 @@ CREATE TABLE images (
 
 CREATE TABLE deployments (
    id                 INTEGER PRIMARY KEY,
+   hostname           VARCHAR(255),
+   ip_address         VARCHAR(255),
+   mac_address        VARCHAR(255)
    machine_id         INTEGER NOT NULL,
    image_id           INTEGER NOT NULL,
    state              INTEGER NOT NULL,
