@@ -171,7 +171,7 @@ class Image(web_svc.AuthWebSvc):
          INSERT INTO images (name,version,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
          valid_targets,is_container, puppet_classes)
-         VALUES (:name,:version,:filename,:specfile,:distribution_id,
+         VALUES (:name,:version,:distribution_id,
          :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
          :valid_targets,:is_container, :puppet_classes)
          """
