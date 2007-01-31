@@ -7,17 +7,24 @@
          <%= f.hidden_field :id %>
       <% end %>
       <TABLE BORDER=0>
-         <% if @operation == "edit" and !@item.address.nil? %>
+         <% if @operation == "edit" and !@item.hostname.nil? %>
             <TR>
-                <TD>Address</TD>
-                <TD><%= @item.address %></TD>
+                <TD>Recorded Hostname</TD>
+                <TD><%= @item.hostname %></TD>
             </TR>
+                <TD>Recorded IP</TD>
+                <TD><%= @item.ip_address %></TD>
+            </TR>
+            <TR>
+                <TD>Recorded MAC</TD>
+                <TD><%= @item.mac_address %></TD>
+            </TR> 
          <% end %>
          <TR>
             <TD>Image</TD>
             <TD><%= f.select :image_id, @images %></TD>
          </TR>
-         <% if !@item.address.nil? and @operation == "edit" %>
+         <% if !@item.hostname.nil? and @operation == "edit" %>
              <TR>
                  <TD>Architecture</TD>
                  <TD><%= @item.architecture %></TD>
@@ -49,7 +56,7 @@
              </TR>
              -->
          <% end %>
-         <% if @operation == "add" or (@operation == "edit" and !@item.address.nil?) %>
+         <% if @operation == "add" or (@operation == "edit" and !@item.ip_address.nil?) %>
             <TR>
                 <TD>Mac Address</TD>
                 <% if @operation == "add" %>

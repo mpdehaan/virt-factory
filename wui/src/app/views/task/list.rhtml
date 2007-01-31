@@ -40,8 +40,9 @@
              <TD> <%= item.parameters %> </TD>
              <TD> <%= item.state %> </TD>
              <TD> <%= item.time %> </TD>
+             <!-- FIXME: do we allow editable tasks in release? -->
              <TD> <%= link_to "edit", :controller => "task", :action=> "edit", :id=> item.id %></TD>
-             <TD> <%= link_to "X", :controller => "task", :action=> "delete", :id=> item.id %></TD>
+             <TD> <%= link_to "[X]", :controller => "task", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
 
