@@ -5,7 +5,7 @@
       <% if @items.length > 0 %>
       <TABLE class='listing'>
          <TR>
-            <TD>Address</TD>
+            <TD>Hostname</TD>
             <TD>Architecture</TD>
             <TD>Processor Speed</TD>
             <TD>Processor Count</TD>
@@ -28,7 +28,7 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.address, :controller => "machine", :action=> "view", :id=> item.id %></TD>
+             <TD> <%= link_to item.hostname, :controller => "machine", :action=> "view", :id=> item.id %></TD>
              <TD> <%= ARCHITECTURES[item.architecture] %> </TD>
              <TD> <%= item.processor_speed %> </TD>
              <TD> <%= item.processor_count %> </TD>
