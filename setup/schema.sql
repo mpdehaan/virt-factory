@@ -68,7 +68,8 @@ CREATE TABLE deployments (
 
 CREATE TABLE machines (
    id                 INTEGER PRIMARY KEY,
-   address            VARCHAR(255),
+   hostname           VARCHAR(255),
+   ip_address         VARCHAR(255),
    architecture       INTEGER,
    processor_speed    INTEGER,
    processor_count    INTEGER,
