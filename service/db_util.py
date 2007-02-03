@@ -152,7 +152,7 @@ class DbUtil(object):
         buf = buf + " WHERE id=:id"
         self.cursor.execute(buf, args)
         self.connection.commit()
-        return success()  # FIXME: is this what edit should return?
+        return success(args)  # FIXME: is this what edit should return?
 
     def simple_add(self, args):
         """
