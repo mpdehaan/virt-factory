@@ -152,7 +152,7 @@ class Distribution(web_svc.AuthWebSvc):
 
         u = DistributionData.produce(dist_args,OP_EDIT)
         result = self.db.simple_edit(u.to_datastruct())
-        self.sync( {} )
+        self.sync()
         return result
 
     def delete(self, token, dist_args):

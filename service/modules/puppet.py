@@ -31,14 +31,13 @@ class Puppet(web_svc.AuthWebSvc):
          nodename = puppet_args["nodename"]
          found_node = None
          machine_obj = machine.Machine()
-         machine_list_return = machine_obj.list(None, {})
+         machine_list_return = machine_obj.get_by_hostname(None, {"hostname": nodename})
          if (machine_list_return.error_code != ERR_SUCCESS):
              return machine_list_return
 
-         for this_machine in machine_list_return.data:
-             if this_machine["hostname"] == nodename:
-                 found_node = this_machine
-                 break
+         # TODO: should we complain if more than 1 machines are returned?
+         if (len(machine_list_return.data) > 0):
+             found_node = machine_list_return.data[0]
 
          data = {}
          if found_node is not None:
