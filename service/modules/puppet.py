@@ -36,7 +36,7 @@ class Puppet(web_svc.AuthWebSvc):
              return machine_list_return
 
          for this_machine in machine_list_return.data:
-             if this_machine["address"] == nodename:
+             if this_machine["hostname"] == nodename:
                  found_node = this_machine
                  break
 
