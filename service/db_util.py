@@ -22,6 +22,7 @@ import config_data
 import threading
 from pysqlite2 import dbapi2 as sqlite
 
+import logger
 import os
 import string
 import baseobj
@@ -29,6 +30,7 @@ import baseobj
 class DbUtil(object):
     def __init__(self):
         self.__setup_config()
+        self.__init_log()
         self.__setup_db()
 
         self.db_schema = None
@@ -43,6 +45,10 @@ class DbUtil(object):
         self.connection = self.sqlite_connect()
         self.cursor = self.connection.cursor()
 
+    def __init_log(self):
+        # lets see what happens when we c&p the stuff from shadow.py 
+        log = logger.Logger()
+        self.logger = log.logger
 
     def sqlite_connect(self):
         """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
@@ -95,18 +101,18 @@ class DbUtil(object):
                y = where_args[x]
                if type(y) == str:
                    y = "'%s'" % y
-               print x,y
+               self.logger.info( x+y)
                where_parts.append(x + " = " + y)
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:
            where_clause = ""         
 
         buf = "SELECT " + string.join(self.db_schema["fields"], ",") +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
-        print "QUERY: %s" % buf
-        print "OFFSET, LIMIT: %s, %s" % (offset,limit)
+        self.logger.info( "QUERY: %s" % buf)
+        self.logger.info( "OFFSET, LIMIT: %s, %s" % (offset,limit))
         self.cursor.execute(buf, (offset,limit))
         results = self.cursor.fetchall()
-        print "RESULTS OF QUERY: %s" % results
+        self.logger.info("RESULTS OF QUERY: %s" % results)
  
         if results is None:
              return success([])
@@ -116,7 +122,7 @@ class DbUtil(object):
             data_hash = dict(zip(self.db_schema["fields"], x))
             data_list.append(data_hash)
 
-        # print "SUCCESS, list=%s" % data_list
+        self.logger.info("SUCCESS, list=%s" % data_list)
 
         base_obj = baseobj.BaseObject()
         return success(base_obj.remove_nulls(data_list))
@@ -169,20 +175,20 @@ class DbUtil(object):
         lock.acquire() 
 
         try:
-            print "SQL = %s" % buf
-            print "ARGS = %s" % args
+            self.logger.info("SQL = %s" % buf)
+            self.logger.info("ARGS = %s" % args)
             self.cursor.execute(buf, args)
             self.connection.commit()
         except Exception:
             lock.release()
             # temporary...
-            traceback.print_exc()
+            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             raise SQLException(traceback=traceback.format_exc())
          
         rowid = self.cursor.lastrowid
         lock.release()
     
-        print "SUCCESS, rowid= %s" % rowid
+        self.logger.info("SUCCESS, rowid= %s" % rowid)
         return success(rowid)
 
     def simple_delete(self,args):
