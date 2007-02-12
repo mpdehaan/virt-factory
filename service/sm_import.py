@@ -115,7 +115,14 @@ class ShadowImporter:
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
        image_obj = image.Image()
        try:
-           result = image_obj.add(None, profile_dict)
+           existing_image = image_obj.get_by_name(None, profile_dict)
+           if existing_image.data:
+               print "modifying existing profile ", profile_dict["name"]
+               profile_dict["id"] = existing_image.data["id"]
+               result = image_obj.edit(None, profile_dict)
+           else:
+               print "creating new profile ", profile_dict["name"]
+               result = image_obj.add(None, profile_dict)
        except Exception, e:
            print "error adding image: "
            (t, v, tb) = sys.exc_info()
@@ -140,7 +147,7 @@ class ShadowImporter:
 
 #--------------------------------------------------------------------------
       
-def main(argv):
+def main():
     """
     Start things up.
     """
@@ -160,7 +167,7 @@ def main(argv):
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error("incorrect number of arguments")    
-    importer = ShadowImporter(args[1])
+    importer = ShadowImporter(args[0])
     print "extracting..."
     importer.extract()
     print "populating..."
@@ -168,6 +175,6 @@ def main(argv):
     # TODO: modify puppet site.pp and/or file manager config
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
 
 

@@ -363,50 +363,47 @@ class Image(web_svc.AuthWebSvc):
 
 
     def get(self, token, image_args):
-         """
-         Return a specific image record.  Only the "id" is required in image_args.
-         """
+        """
+        Return a specific image record.  Only the "id" is required in image_args.
+        """
 
-         u = ImageData.produce(image_args,OP_GET) # force validation
+        u = ImageData.produce(image_args,OP_GET) # force validation
+        result = self.db.simple_get(u.to_datastruct())
+        
+        if (result.error_code != ERR_SUCCESS):
+            return result
+        self.insert_distribution(token, [result.data])
+        return success(result.data)
 
-         st = """
-         SELECT id,name,version,
-         distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-         valid_targets,is_container,puppet_classes
-         FROM images WHERE id=:id
-         """
+    def insert_distribution(self, token, images):
+        for image in images:
+            if image["distribution_id"] is not None and image["distribution_id"] != -1:
+                distribution_obj = distribution.Distribution()
+                distribution_results = distribution_obj.get(token, {"id":image["distribution_id"]})
+                if not distribution_results.ok():
+                    raise OrphanedObjectException(comment="distribution_id")
+                image["distribution"] = distribution_results.data
+                
+    def get_by_name(self, token, image_args):
+        """
+        Return a specific image profile record by name. Only the "name" is required
+        in image_args.
+        """
 
-         self.db.cursor.execute(st,{ "id" : u.id })
-         x = self.db.cursor.fetchone()
+        if image_args.has_key("name"):
+            name = image_args["name"]
+        else:
+            raise ValueError("name is required")
 
-         if x is None:
-             raise NoSuchObjectException(comment="image_get")
+        result = self.db.simple_list({}, {"name": name})
+        if (result.error_code != ERR_SUCCESS):
+            return result
+        self.insert_distribution(token, result.data)
 
-         data = {
-                "id"                 : x[0],
-                "name"               : x[1],
-                "version"            : x[2],
-                "distribution_id"    : x[3],
-                "virt_storage_size"  : x[4],
-                "virt_ram"           : x[5],
-                "kickstart_metadata" : x[6],
-                "kernel_options"     : x[7],
-                "valid_targets"      : x[8],
-                "is_container"       : x[9],
-                "puppet_classes"     : x[10]
-         }
-
-         data = ImageData.produce(data).to_datastruct(True)
-
-         if x[3] is not None:
-             distribution_obj = distribution.Distribution()
-             distribution_results = distribution_obj.get(None, { "id" : x[3] })
-             if not distribution_results.ok():
-                 raise OrphanedObjectException(comment="distribution_id")
-             data["distribution"] = distribution_results.data
-
-         return success(data)
-
+        if (len(result.data) == 1):
+            return success(result.data[0])
+        else:
+            return NoSuchObjectException(comment="get_by_name")
 
 
 methods = Image()
