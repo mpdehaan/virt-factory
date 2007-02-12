@@ -107,7 +107,7 @@ class DbUtil(object):
            where_parts = []
            for x in where_args:
                y = where_args[x]
-               if type(y) == str:
+               if type(y) == str or type(y) == unicode:
                    y = "'%s'" % y
                self.logger.info( x+y)
                where_parts.append(x + " = " + y)
