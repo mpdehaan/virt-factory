@@ -153,7 +153,8 @@ class Machine(web_svc.AuthWebSvc):
             except ShadowManagerException:
                 raise OrphanedObjectException(comment="image_id")
 
-        result = self.db.simple_add(u.to_datastruct())
+        # TODO: make this work w/ u.to_datastruct() 
+        result = self.db.simple_add(args)
         if u.image_id:
             self.sync()
         return result
@@ -222,7 +223,8 @@ class Machine(web_svc.AuthWebSvc):
             except ShadowManagerException:
                 raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
-        result = self.db.simple_edit(u.to_datastruct())
+        # TODO: make this work w/ u.to_datastruct() 
+        result = self.db.simple_edit(machine_args)
         if u.image_id:
             self.sync()
         return result

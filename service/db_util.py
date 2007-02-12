@@ -77,16 +77,24 @@ class DbUtil(object):
 
 
     def get_limit_parms(self, args):
-         """
-         Extract limit query information from XMLRPC arguments.
-         """
-         offset = 0
-         limit  = 100
-         if args.has_key("offset"):
+        """
+        Extract limit query information from XMLRPC arguments.
+        """
+        offset = 0
+        limit  = 100
+        if args.has_key("offset"):
             offset = image_args["offset"]
-         if args.has_key("limit"):
+        if args.has_key("limit"):
             limit = image_args["limit"]
-         return (offset, limit) 
+        return (offset, limit) 
+
+    def filter_param_list(self, full_list, provided_params):
+        return_list = []
+        provided_keys = provided_params.keys()
+        for param in full_list:
+            if param in provided_keys:
+                return_list.append(param)
+        return return_list
 
     # FIXME: is this right? -akl
     def simple_list(self, args, where_args={}):
@@ -152,23 +160,26 @@ class DbUtil(object):
         """
         Shorthand for writing an edit statement.
         """
+        edit_keys = self.filter_param_list(self.db_schema["edit"],args)
         buf = "UPDATE " + self.db_schema["table"] + " SET "
-        for x in self.db_schema["edit"]:
-            buf = buf + x + "=:" + x
+        buf = buf + ", ".join([x + "=:" + x for x in edit_keys])
         buf = buf + " WHERE id=:id"
+        self.logger.info("SQL = %s" % buf)
+        self.logger.info("ARGS = %s" % args)
         self.cursor.execute(buf, args)
         self.connection.commit()
-        return success(args)  # FIXME: is this what edit should return?
+        return success()  # FIXME: is this what edit should return?
 
     def simple_add(self, args):
         """
         Shorthand for simple insert.
         """
 
-        buf = "INSERT INTO " + self.db_schema["table"] + " (" + string.join(self.db_schema["add"], ',')  + ") "
+        add_keys = self.filter_param_list(self.db_schema["add"],args)
+        buf = "INSERT INTO " + self.db_schema["table"] + " (" + string.join(add_keys, ',')  + ") "
 
         # icky...
-        labels = [":%s" % entry for entry in self.db_schema["add"]]
+        labels = [":%s" % entry for entry in add_keys]
         buf = buf + "VALUES (" + string.join(labels, ",") + ")"
 
         lock = threading.Lock()
@@ -182,6 +193,9 @@ class DbUtil(object):
         except Exception:
             lock.release()
             # temporary...
+            (t, v, tb) = sys.exc_info()
+            self.logger.debug("Exception occured: %s" % t )
+            self.logger.debug("Exception value: %s" % v)
             self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             raise SQLException(traceback=traceback.format_exc())
          

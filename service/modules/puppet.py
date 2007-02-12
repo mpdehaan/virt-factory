@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import string
 import machine
+import deployment
 
 from codes import *
 import web_svc
@@ -30,14 +31,26 @@ class Puppet(web_svc.AuthWebSvc):
          """
          nodename = puppet_args["nodename"]
          found_node = None
-         machine_obj = machine.Machine()
-         machine_list_return = machine_obj.get_by_hostname(None, {"hostname": nodename})
-         if (machine_list_return.error_code != ERR_SUCCESS):
-             return machine_list_return
+         deployment_obj = deployment.Deployment()
+         deployment_list_return = deployment_obj.get_by_hostname(None, {"hostname": nodename})
+         if (deployment_list_return.error_code != ERR_SUCCESS):
+             return deployment_list_return
 
-         # TODO: should we complain if more than 1 machines are returned?
-         if (len(machine_list_return.data) > 0):
-             found_node = machine_list_return.data[0]
+         # TODO: should we complain if more than 1 deployments are returned?
+         if (len(deployment_list_return.data) > 0):
+             found_node = deployment_list_return.data[0]
+
+         # if no deployment found, search for machine
+         if (found_node is None):
+             machine_obj = machine.Machine()
+             machine_list_return = machine_obj.get_by_hostname(None, {"hostname": nodename})
+             if (machine_list_return.error_code != ERR_SUCCESS):
+                 return machine_list_return
+
+             # TODO: should we complain if more than 1 machines are returned?
+             if (len(machine_list_return.data) > 0):
+                 found_node = machine_list_return.data[0]
+
 
          data = {}
          if found_node is not None:

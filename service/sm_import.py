@@ -34,8 +34,10 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import re
+import string
 import sys
 import tarfile
+import traceback
 import types
 from xml.dom.minidom import parse, parseString
 
@@ -74,6 +76,8 @@ class ShadowImporter:
        if (not tarfile.is_tarfile(tarball)):
            raise ValueError(tarball + " is not a tarfile")
        self.tarball_path = tarball
+       log = logger.Logger()
+       self.logger = log.logger
 
    def extract(self):
         self.tarball = tarfile.open(self.tarball_path)
@@ -107,8 +111,15 @@ class ShadowImporter:
                raise codes.InvalidArgumentsException(comment="bad distribution name")
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
        image_obj = image.Image()
-       image_obj.add(None, profile_dict)
-       
+       try:
+           result = image_obj.add(None, profile_dict)
+       except Exception, e:
+           print "error adding image: "
+           (t, v, tb) = sys.exc_info()
+           self.logger.debug("Exception occured: %s" % t )
+           self.logger.debug("Exception value: %s" % v)
+           self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+
        
    def get_node_text(self, profiledoc, name):
        children = profiledoc.getElementsByTagName(name)[0].childNodes

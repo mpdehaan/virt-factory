@@ -151,7 +151,8 @@ class Distribution(web_svc.AuthWebSvc):
     def edit(self, token, dist_args): 
 
         u = DistributionData.produce(dist_args,OP_EDIT)
-        result = self.db.simple_edit(u.to_datastruct())
+        # TODO: make this work w/ u.to_datastruct() 
+        result = self.db.simple_edit(dist_args)
         self.sync()
         return result
 
