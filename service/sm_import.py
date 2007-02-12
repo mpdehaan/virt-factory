@@ -33,6 +33,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+from optparse import OptionParser
 import re
 import string
 import sys
@@ -48,7 +49,9 @@ from modules import distribution
 from modules import image
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
-PUPPET_FILE_DIR="/tmp"
+PUPPET_FILE_DIR="/var/lib/shadowmanager/profiles"
+PUPPET_SITE_MANIFEST="/etc/puppet/manifests/site.pp"
+PUPPET_FILESERVER_CONF="/etc/puppet/fileserver.conf"
 
 PROFILE_REGEXP = "profile\.xml$"
 NAME_TAG = "name"
@@ -142,17 +145,27 @@ def main(argv):
     Start things up.
     """
     
-    if len(argv) == 2:
-        importer = ShadowImporter(argv[1])
-        print "extracting..."
-        importer.extract()
-        print "populating..."
-        importer.populate_sm_profile()
-        # TODO: modify puppet site.pp and/or file manager config
-    else:
-        print "Usage:" 
-        print "sm_import.py appliance-spec.tar.gz"
-        sys.exit(1)
+    usage = "usage: %prog [options] appliance-spec-file"
+    parser = OptionParser(usage=usage)
+    parser.add_option("-d", "--module-dir", dest="module",
+                      help="top-level puppet module directory",
+                      default=PUPPET_FILE_DIR)
+    parser.add_option("-m", "--site-wide-manifest", dest="manifest",
+                      help="puppet site-wide manifest",
+                      default=PUPPET_SITE_MANIFEST)
+    parser.add_option("-f", "--fileserver-conf", dest="fileserver_conf",
+                      help="puppet fileserver configuration file",
+                      default=PUPPET_FILESERVER_CONF)
+    
+    (options, args) = parser.parse_args()
+    if len(args) != 1:
+        parser.error("incorrect number of arguments")    
+    importer = ShadowImporter(args[1])
+    print "extracting..."
+    importer.extract()
+    print "populating..."
+    importer.populate_sm_profile()
+    # TODO: modify puppet site.pp and/or file manager config
 
 if __name__ == "__main__":
     main(sys.argv)
