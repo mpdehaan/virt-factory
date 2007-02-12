@@ -24,7 +24,7 @@ import os
 import threading
 import time
 
-SESSION_LENGTH=200
+SESSION_LENGTH=30*60
 
 class Authentication(web_svc.WebSvc):
     tokens = []
