@@ -54,7 +54,7 @@ class Register(object):
         if image_name is None:
             image_name = ""
         if mac is None:
-            mac = "00:00:00:00:00"
+            mac = "00:00:00:00:00:00"
         try:
             rc = self.server.register(self.token, hostname, ip, mac, image_name)
         except TypeError:
