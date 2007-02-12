@@ -17,6 +17,7 @@ import baseobj
 from codes import *
 
 import distribution
+import cobbler
 import provisioning
 import web_svc
 
@@ -198,14 +199,16 @@ class Image(web_svc.AuthWebSvc):
          rowid = self.db.cursor.lastrowid
          lock.release()
 
-         self.sync()
-         
+         self.cobbler_sync(u.to_datastruct()) 
+     
          return success(rowid)
+         
+    def cobbler_sync(self, data):
 
-    def sync(self):
-        self.provisioning = provisioning.Provisioning()
-        self.provisioning.sync(None, {} )
-
+         # make the corresponding cobbler calls.
+         cobbler_api = cobbler.api.BootAPI()
+         distributions = distribution.Distribution().list(None, {}).data
+         provisioning.CobblerTranslatedProfile(cobbler_api ,distributions, data)
 
     def edit(self, token, image_args):
          """
@@ -228,7 +231,7 @@ class Image(web_svc.AuthWebSvc):
          self.db.cursor.execute(st, u.to_datastruct())
          self.db.connection.commit()
 
-         self.sync()
+         self.cobbler_sync(u.to_datastruct())
 
          return success(u.to_datastruct(True))
 
@@ -274,7 +277,6 @@ class Image(web_svc.AuthWebSvc):
          self.db.cursor.execute(st, { "id" : u.id })
          self.db.connection.commit()
 
-         # no need to sync provisioning as the image isn't hurting anything
          return success()
 
 

@@ -18,6 +18,7 @@ import baseobj
 from codes import *
 
 import image
+import cobbler
 import provisioning
 import web_svc
 import regtoken
@@ -229,11 +230,16 @@ class Machine(web_svc.AuthWebSvc):
         rowid = self.db.cursor.lastrowid
         lock.release() 
 
-        # for a "empty" machie add, we don't need to sync
+        # for a "empty" machie add, we don't need to call cobbler
         if u.image_id:
-            self.sync()
-
+            self.cobbler_sync(u.to_datastruct())
         return success(rowid)
+
+    def cobbler_sync(self, data):
+        cobbler_api = cobbler.api.BootAPI()
+        images = image.Image().list(None, {}).data
+        provisioning.CobblerTranslatedSystem(cobbler_api, images, data)
+ 
 
     def new(self, token):
         """
@@ -282,10 +288,6 @@ class Machine(web_svc.AuthWebSvc):
         print args
         return self.edit(token, args)
         
-    def sync(self):
-        self.provisioning = provisioning.Provisioning()
-        self.provisioning.sync(None, {} )
-           
     def edit(self, token, machine_args):
          """
          Edit a machine.
@@ -322,7 +324,7 @@ class Machine(web_svc.AuthWebSvc):
          self.db.connection.commit()
 
          if u.image_id:
-             self.sync()
+             self.cobbler_sync(u.to_datastruct())
 
          return success(u.to_datastruct(True))
 

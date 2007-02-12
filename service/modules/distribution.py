@@ -18,6 +18,7 @@ from codes import *
 
 import baseobj
 import provisioning
+import cobbler
 import web_svc
 
 import os
@@ -174,14 +175,15 @@ class Distribution(web_svc.AuthWebSvc):
 
          rowid = self.db.cursor.lastrowid
          lock.release()
-         self.sync()
+        
+         self.cobbler_sync(u.to_datastruct())
 
          return success(rowid)
 
-    def sync(self):
-        self.provisioning = provisioning.Provisioning()
-        self.provisioning.sync(None, {} )
-        
+    def cobbler_sync(self, data):
+         cobbler_api = cobbler.api.BootAPI()
+         provisioning.CobblerTranslatedDistribution(cobbler_api, data)       
+ 
     def edit(self, token, dist_args): 
 
          u = DistributionData.produce(dist_args,OP_EDIT)
@@ -201,7 +203,7 @@ class Distribution(web_svc.AuthWebSvc):
          ds = u.to_datastruct()
          self.db.cursor.execute(st, ds)
          self.db.connection.commit()
-         self.sync( {} )
+         self.cobbler_sync(ds)
 
          return success(ds)
 

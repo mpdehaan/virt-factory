@@ -44,8 +44,22 @@ class Register(object):
     
     def register(self, hostname, ip, mac, image_name):
         # should return a machine_id, maybe more
-        print "self.token", self.token
-        rc = self.server.register(self.token, hostname, ip, mac, image_name)
+        print "--------------------"
+        print "Registering..."
+        print "  token=", self.token
+        print "  hostname=", hostname,
+        print "  ip=", ip
+        print "  mac=", mac
+        print "  image_name=", image_name
+        if image_name is None:
+            image_name = ""
+        if mac is None:
+            mac = "00:00:00:00:00"
+        try:
+            rc = self.server.register(self.token, hostname, ip, mac, image_name)
+        except TypeError:
+            print "must specify --imagename"
+            sys.exit(1)
         print rc
         return rc
 

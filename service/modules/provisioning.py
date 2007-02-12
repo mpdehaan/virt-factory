@@ -108,7 +108,7 @@ class CobblerTranslatedDistribution:
        new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
-       cobbler_api.distros().add(new_item)
+       cobbler_api.distros().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
 
@@ -148,7 +148,7 @@ class CobblerTranslatedProfile:
 
        if from_db.has_key("kickstart_metadata"):
            new_item.set_ksmeta(from_db["kickstart_metadata"])
-       cobbler_api.profiles().add(new_item)
+       cobbler_api.profiles().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
 
@@ -158,7 +158,7 @@ class CobblerTranslatedProfile:
 # to be fixed.
 
 class CobblerTranslatedSystem:
-   def __init__(self,cobbler_api,deployments,images,from_db):
+   def __init__(self,cobbler_api,images,from_db):
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
@@ -166,32 +166,6 @@ class CobblerTranslatedSystem:
        machine_id = from_db["id"]
 
        
-       # FIXME: custom query code is needed in places like this,
-       # processing flat lists won't scale well for really large
-       # deployments
-
-       # to find out the cobbler profile name
-       #    if this is virtual:
-       #       look through deployments and find one that has a machine_id
-       #       of the given machine.
-       #    if this is bare metal:
-       #        just get the image_id 
-       #  NOTE that the way this is invoked, this works bare metal only,
-       #  so we use method two.
-
-       #  I **think** it should be sufficient to not keep cobbler system
-       #  definitions for virtual systems, that is, unless we get into networking
-       #  issues later and require that we set their MAC addresses (which probably
-       #  isn't needed)?  The question comes down to whether we really need to
-       #  use cobbler's manage_dhcp bits or not, and the answer is probably no.
-       #  that is, we can provision bare metal and use the registration process
-       #  to learn the IP info, thus we don't need to deal with DHCP reservations.
-
-       #image_id = -1
-       #for d in deployments:
-       #    if d["machine_id"] == machine_id:
-       #        image_id = d["image_id"]
-       #        break               
 
        if not from_db.has_key("image_id"):
            # what happened here is that the machine was registered but no image is 
@@ -240,7 +214,7 @@ class CobblerTranslatedSystem:
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
        
-       cobbler_api.systems().add(new_item)
+       cobbler_api.systems().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
 
@@ -265,8 +239,7 @@ class Provisioning(web_svc.AuthWebSvc):
       self.machine = machine.Machine() 
       machines  = self.machine.list(token, {})
 
-      self.deployment = deployment.Deployment()
-      deployments = self.deployment.list(token, {})
+      #self.deployment = deployment.Deployment()
       
       # cobbler can't be run multiple times at once...
       lock = threading.Lock()
@@ -275,7 +248,6 @@ class Provisioning(web_svc.AuthWebSvc):
       distributions = distributions.data
       images = images.data
       machines = machines.data
-      deployments = deployments.data
       
       # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
       # the server field might have changed.
@@ -299,7 +271,7 @@ class Provisioning(web_svc.AuthWebSvc):
             CobblerTranslatedProfile(cobbler_api,distributions,i)
          for p in machines:
             print "- machine: %s" % p
-            CobblerTranslatedSystem(cobbler_api,deployments,images,p)
+            CobblerTranslatedSystem(cobbler_api,images,p)
          cobbler_api.serialize()
          cobbler_api.sync(dryrun=False)
       except:
