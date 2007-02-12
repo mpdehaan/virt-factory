@@ -139,6 +139,7 @@ class ImageData(baseobj.BaseObject):
                 invalid_fields["puppet_classes"] = REASON_FORMAT
 
         if len(invalid_fields) > 0:
+            print "invalid: ", invalid_fields
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 

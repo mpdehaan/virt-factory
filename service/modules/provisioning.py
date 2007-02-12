@@ -273,7 +273,7 @@ class Provisioning(web_svc.AuthWebSvc):
             print "- machine: %s" % p
             CobblerTranslatedSystem(cobbler_api,images,p)
          cobbler_api.serialize()
-         cobbler_api.sync(dryrun=False)
+         cobbler_api.sync()
       except:
          traceback.print_exc() # FIXME: really we want to log this
          lock.release()

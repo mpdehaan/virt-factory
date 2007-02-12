@@ -116,7 +116,7 @@ class ShadowManagerException(exceptions.Exception):
        self.comment        = self.load(kwargs,"comment")
        self.tb_data = traceback.extract_stack()
        exceptions.Exception.__init__(self)
-
+       
 
    def format(self):
       msg = """

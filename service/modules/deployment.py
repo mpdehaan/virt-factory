@@ -31,6 +31,9 @@ import threading
 
 class DeploymentData(baseobj.BaseObject):
 
+    FIELDS = [ "id", "hostname", "ip_address", "mac_address", "machine_id", "image_id",
+               "state", "display_name", "puppet_node_diff" ]
+
     def _produce(klass, deployment_dep_args,operation=None):
         """
         Factory method.  Create a deployment object from input data, optionally
@@ -54,32 +57,14 @@ class DeploymentData(baseobj.BaseObject):
         deployment object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id               = self.load(deployment_dep_args,"id")
-        self.hostname         = self.load(deployment_dep_args,"hostname")
-        self.ip_address       = self.load(deployment_dep_args,"ip_address")
-        self.mac_address      = self.load(deployment_dep_args,"mac_address")
-        self.machine_id       = self.load(deployment_dep_args,"machine_id")
-        self.image_id         = self.load(deployment_dep_args,"image_id")
-        self.state            = self.load(deployment_dep_args,"state")
-        self.display_name     = self.load(deployment_dep_args,"display_name")
-        self.puppet_node_diff = self.load(deployment_dep_args,"puppet_node_diff")
+        return self.deserialize(deployment_dep_args)
 
     def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
 
-        return {
-            "id"               : self.id,
-            "hostname"         : self.hostname,
-            "ip_address"       : self.ip_address,
-            "mac_address"      : self.mac_address,
-            "machine_id"       : self.machine_id,
-            "image_id"         : self.image_id,
-            "state"            : self.state,
-            "display_name"     : self.display_name,
-            "puppet_node_diff" : self.puppet_node_diff
-        }
+        return self.serialize()
 
     def validate(self,operation):
  
@@ -113,6 +98,20 @@ class DeploymentData(baseobj.BaseObject):
 
 
 class Deployment(web_svc.AuthWebSvc):
+
+    add_fields = [ x for x in DeploymentData.FIELDS ]
+    add_fields.remove("id")
+    edit_fields = [ x for x in DeploymentData.FIELDS ]
+    edit_fields.remove("id")
+    edit_fields.remove("image_id")
+
+    DB_SCHEMA = {
+        "table"  : "deployments",
+        "fields" : DeploymentData.FIELDS,
+        "add"    : add_fields,
+        "edit"   : edit_fields 
+    } 
+
     def __init__(self):
         self.methods = {"deployment_add": self.add,
                         "deployment_edit": self.edit,
@@ -121,6 +120,7 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_get": self.get}
 
         web_svc.AuthWebSvc.__init__(self)
+        self.db.db_schema = self.DB_SCHEMA
                         
 
     def add(self, token, deployment_dep_args):
@@ -128,13 +128,6 @@ class Deployment(web_svc.AuthWebSvc):
          Create a deployment.  deployment_dep_args should contain all fields except ID.
          """
 
-
-         st = """
-         INSERT INTO deployments (hostname,ip_address,mac_address,machine_id,image_id,state,display_name,puppet_node_diff)
-         VALUES (:hostname,:ip_address,:mac_address,:machine_id,:image_id,:state,:display_name,:puppet_node_diff)
-         """
-
-         fields = {}
          mac = None
          imagename = None
 
@@ -154,24 +147,9 @@ class Deployment(web_svc.AuthWebSvc):
 
          display_name = mac + " / " + imagename
 
-         lock = threading.Lock()
-         lock.acquire()
-         
          deployment_dep_args["display_name"] = display_name
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
-
-         try:
-             self.db.cursor.execute(st, u.to_datastruct())
-             self.db.connection.commit()
-         except Exception:
-             lock.release()
-             # FIXME: be more fined grained (find where IntegrityError is defined)
-             raise SQLException(traceback=traceback.format_exc())
-
-         rowid = self.db.cursor.lastrowid
-         lock.release()
-
-         return success(rowid)
+         return self.db.simple_add(u.to_datastruct())
 
     def edit(self, token, deployment_dep_args):
          """
@@ -179,61 +157,39 @@ class Deployment(web_svc.AuthWebSvc):
          be changed.
          """
 
-         u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
-
-         st = """
-         UPDATE deployments 
-         SET machine_id=:hostname,:ip_address,:mac_address,:machine_id, state=:state,
-         puppet_node_diff=:puppet_node_diff
-         WHERE id=:id
-         """
-
          try:
              machine_obj = machine.Machine()
-             result = machine_obj.get(token, { "id" : u.machine_id })
+             result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
              mac = result.data["mac_address"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
              image_obj = image.Image()
-             result = image_obj.get(token, { "id" : u.image_id })
+             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"] })
              imagename = result.data["name"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          display_name = mac + "/" + imagename
          deployment_dep_args["display_name"] = display_name
-         
-         # have to reinsert the display name into the data structure...
+
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
-
-         self.db.cursor.execute(st, u.to_datastruct())
-         self.db.connection.commit()
-
-         return success(u.to_datastruct(True))
-
+         # TODO: make this work w/ u.to_datastruct() 
+         return self.db.simple_edit(deployment_dep_args)
 
     def delete(self, token, deployment_dep_args):
-         """
-         Deletes a deployment.  The deployment_dep_args must only contain the id field.
-         """
-         u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
-
-         st = """
-         DELETE FROM deployments WHERE deployments.id=:id
-         """
-
-         # check to see that what we are deleting exists
-         rc = self.get(token, deployment_dep_args)
-         if not rc:
+        """
+        Deletes a deployment.  The deployment_dep_args must only contain the id field.
+        """
+        u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
+        
+        # check to see that what we are deleting exists
+        rc = self.get(token, deployment_dep_args)
+        if not rc:
             raise NoSuchObjectException()
-
-         self.db.cursor.execute(st, u.to_datastruct())
-         self.db.connection.commit()
-
-         # FIXME: failure based on existance
-         return success()
+        
+        return self.db.simple_delete({ "id" : u.id })
 
 
     def list(self, token, deployment_dep_args):
@@ -349,6 +305,24 @@ class Deployment(web_svc.AuthWebSvc):
          return success(deployments)
 
 
+    def get_by_hostname(self, token, deployment_args):
+        """
+        Return a list of deployments for a given hostname. It is
+        possible that there will be more than one result (since the
+        hostname column is not unique).
+        """
+
+        if deployment_args.has_key("hostname"):
+            hostname = deployment_args["hostname"]
+        else:
+            raise ValueError("hostname is required")
+
+        result = self.db.simple_list({}, {"hostname": hostname})
+        if (result.error_code != ERR_SUCCESS):
+            return result
+        self.insert_components(token, result.data)
+        return success(result.data)
+        
     def get(self, token, deployment_dep_args):
          """
          Return a specific deployment record.  Only the "id" is required in deployment_dep_args.
@@ -396,6 +370,20 @@ class Deployment(web_svc.AuthWebSvc):
 
          return success(data)
 
+    def insert_components(self, token, deployments):
+        for deployment in deployments:
+            if deployment["image_id"] is not None and deployment["image_id"] != -1:
+                image_obj = image.Image()
+                image_results = image_obj.get(token, {"id":deployment["image_id"]})
+                if not image_results.ok():
+                    raise OrphanedObjectException(comment="image_id")
+                deployment["image"] = image_results.data
+            if deployment["machine_id"] is not None and deployment["machine_id"] != -1:
+                machine_obj = machine.Machine()
+                machine_results = machine_obj.get(token, {"id":deployment["machine_id"]})
+                if not machine_results.ok():
+                    raise OrphanedObjectException(comment="machine_id")
+                deployment["machine"] = machine_results.data
 
 
 methods = Deployment()

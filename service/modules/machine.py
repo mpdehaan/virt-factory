@@ -57,42 +57,14 @@ class MachineData(baseobj.BaseObject):
         machine object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id                 = self.load( machine_args, "id" )
-        self.hostname           = self.load( machine_args, "hostname" )
-        self.ip_address         = self.load( machine_args, "ip_address" )
-        self.architecture       = self.load( machine_args, "architecture" )
-        self.processor_speed    = self.load( machine_args, "processor_speed" )
-        self.processor_count    = self.load( machine_args, "processor_count" )
-        self.memory             = self.load( machine_args, "memory" )
-        self.kernel_options     = self.load( machine_args, "kernel_options" )
-        self.kickstart_metadata = self.load( machine_args, "kickstart_metadata" )
-        self.list_group         = self.load( machine_args, "list_group" )
-        self.mac_address        = self.load( machine_args, "mac_address" )
-        self.is_container       = self.load( machine_args, "is_container" )
-        self.image_id           = self.load( machine_args, "image_id" )
-        self.puppet_node_diff   = self.load( machine_args, "puppet_node_diff" )
+        return self.deserialize(machine_args)
 
     def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
 
-        return {
-            "id"                 : self.id,
-            "hostname"           : self.hostname,
-            "ip_address"         : self.ip_address,
-            "architecture"       : self.architecture,
-            "processor_speed"    : self.processor_speed,
-            "processor_count"    : self.processor_count,
-            "memory"             : self.memory,
-            "kernel_options"     : self.kernel_options,
-            "kickstart_metadata" : self.kickstart_metadata,
-            "list_group"         : self.list_group,
-            "mac_address"        : self.mac_address,
-            "is_container"       : self.is_container,
-            "image_id"           : self.image_id,
-            "puppet_node_diff"   : self.puppet_node_diff
-        }
+        return self.serialize()
 
     def validate(self,operation):
 
@@ -173,40 +145,7 @@ class Machine(web_svc.AuthWebSvc):
         """
         Create a machine.  machine_args should contain all fields except ID.
         """
-
-        st = """
-        INSERT INTO machines (
-        hostname,
-        ip_address,
-        architecture,
-        processor_speed,
-        processor_count,
-        memory,
-        kernel_options,
-        kickstart_metadata,
-        list_group, 
-        mac_address, 
-        is_container, 
-        image_id,
-        puppet_node_diff) 
-        VALUES (
-        :hostname,
-        :ip_address,
-        :architecture,
-        :processor_speed,
-        :processor_count,
-        :memory,
-        :kernel_options, 
-        :kickstart_metadata, 
-        :list_group, 
-        :mac_address, 
-        :is_container, 
-        :image_id,
-        :puppet_node_diff)
-        """
-
         u = MachineData.produce(args,OP_ADD)
-        print "u.image_id", u.image_id
         if u.image_id is not None:
             print "creating an image.Image()" 
             try:
@@ -215,32 +154,17 @@ class Machine(web_svc.AuthWebSvc):
             except ShadowManagerException:
                 raise OrphanedObjectException(comment="image_id")
 
-        lock = threading.Lock()
-        lock.acquire()
-
-
-        try:
-            self.db.cursor.execute(st, u.to_datastruct())
-            self.db.connection.commit()
-        except Exception:
-            # FIXME: be more fined grained (IntegrityError only)
-            lock.release()
-            raise SQLException(traceback=traceback.format_exc())
-
-        rowid = self.db.cursor.lastrowid
-        lock.release() 
-
-        # for a "empty" machie add, we don't need to call cobbler
+        # TODO: make this work w/ u.to_datastruct() 
+        result = self.db.simple_add(args)
         if u.image_id:
             self.cobbler_sync(u.to_datastruct())
-        return success(rowid)
+        return result
 
     def cobbler_sync(self, data):
         cobbler_api = cobbler.api.BootAPI()
         images = image.Image().list(None, {}).data
         provisioning.CobblerTranslatedSystem(cobbler_api, images, data)
  
-
     def new(self, token):
         """
         Allocate a new machine record to be fill in later. Return a machine_id
@@ -289,77 +213,45 @@ class Machine(web_svc.AuthWebSvc):
         return self.edit(token, args)
         
     def edit(self, token, machine_args):
-         """
-         Edit a machine.
-         """
-
-         u = MachineData.produce(machine_args,OP_EDIT) # force validation
-
-         st = """
-         UPDATE machines 
-         SET hostname=:hostname,
-         ip_address=:ip_address,
-         architecture=:architecture,
-         processor_speed=:processor_speed,
-         processor_count=:processor_count,
-         memory=:memory,
-         kernel_options=:kernel_options,
-         kickstart_metadata=:kickstart_metadata,
-         list_group=:list_group,
-         mac_address=:mac_address,
-         is_container=:is_container,
-         image_id=:image_id,
-         puppet_node_diff=:puppet_node_diff
-         WHERE id=:id
-         """
-
-         if u.image_id is not None:
+        """
+        Edit a machine.
+        """
+        
+        u = MachineData.produce(machine_args,OP_EDIT) # force validation
+        if u.image_id is not None:
             try:
                 image_obj = image.Image()
                 image_obj.get(token, { "id" : u.image_id })
             except ShadowManagerException:
                 raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
-         self.db.cursor.execute(st, u.to_datastruct())
-         self.db.connection.commit()
-
-         if u.image_id:
-             self.cobbler_sync(u.to_datastruct())
-
-         return success(u.to_datastruct(True))
-
+        # TODO: make this work w/ u.to_datastruct() 
+        result = self.db.simple_edit(machine_args)
+        if u.image_id:
+            self.cobbler_sync(u.to_datastruct())
 
     def delete(self, token, machine_args):
-         """
-         Deletes a machine.  The machine_args must only contain the id field.
-         """
+        """
+        Deletes a machine.  The machine_args must only contain the id field.
+        """
+        
+        u = MachineData.produce(machine_args,OP_DELETE) # force validation
+        
+        # deployment orphan prevention
+        st2 = """
+        SELECT machines.id FROM deployments,machines where machines.id = deployments.image_id
+        AND machines.id=:id
+        """
+        # check to see that what we are deleting exists
+        # this will raise an exception if the machine isn't there. 
+        # self.get(token,machine_args)
 
-         u = MachineData.produce(machine_args,OP_DELETE) # force validation
-
-         st = """
-         DELETE FROM machines WHERE machines.id=:id
-         """
-
-         # deployment orphan prevention
-         st2 = """
-         SELECT machines.id FROM deployments,machines where machines.id = deployments.image_id
-         AND machines.id=:id
-         """
-         # check to see that what we are deleting exists
-         # this will raise an exception if the machine isn't there. 
-#        self.get(token,machine_args)
-
-         self.db.cursor.execute(st2, { "id" : u.id })
-         results = self.db.cursor.fetchall()
-         if results is not None and len(results) != 0:
+        self.db.cursor.execute(st2, { "id" : u.id })
+        results = self.db.cursor.fetchall()
+        if results is not None and len(results) != 0:
             raise OrphanedObjectException(comment="image")
 
-         self.db.cursor.execute(st, { "id" : u.id })
-         self.db.connection.commit()
-
-         # FIXME: failure based on existance
-         return success()
-
+        return self.db.simple_delete({ "id" : u.id })
 
     def list(self, token, machine_args):
          """
@@ -451,55 +343,48 @@ class Machine(web_svc.AuthWebSvc):
          return success(machines)
 
 
+    def get_by_hostname(self, token, machine_args):
+        """
+        Return a list of machines for a given hostname. It is
+        possible that there will be more than one result (since the
+        hostname column is not unique).
+        """
+
+        if machine_args.has_key("hostname"):
+            hostname = machine_args["hostname"]
+        else:
+            raise ValueError("hostname is required")
+
+        result = self.db.simple_list({}, {"hostname": hostname})
+        if (result.error_code != ERR_SUCCESS):
+            return result
+        self.insert_images(token, result.data)
+        return success(result.data)
+        
+
     def get(self, token, machine_args):
-         """
-         Return a specific machine record.  Only the "id" is required in machine_args.
-         """
+        """
+        Return a specific machine record.  Only the "id" is required in machine_args.
+        """
+        
+        u = MachineData.produce(machine_args,OP_GET) # force validation
+        result = self.db.simple_get(u.to_datastruct())
+        if (result.error_code != ERR_SUCCESS):
+            return result
+        
+        # FIXME: redo this with image id
+        self.insert_images(token, [result.data])
+        return success(result.data)
 
-         u = MachineData.produce(machine_args,OP_GET) # force validation
-
-         st = """
-         SELECT id,hostname,ip_address,architecture,processor_speed,processor_count,memory,
-         kernel_options, kickstart_metadata, list_group, mac_address, is_container, image_id,
-         puppet_node_diff
-         FROM machines WHERE id=:id
-         """
-         self.db.cursor.execute(st,u.to_datastruct())
-         x = self.db.cursor.fetchone()
-         if x is None:
-             raise NoSuchObjectException(comment="machine_get")
-
-         data = {
-                "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "architecture"       : x[3],
-                "processor_speed"    : x[4],
-                "processor_count"    : x[5],
-                "memory"             : x[6],
-                "kernel_options"     : x[7],
-                "kickstart_metadata" : x[8],
-                "list_group"         : x[9],
-                "mac_address"        : x[10],
-                "is_container"       : x[11],
-                "image_id"           : x[12],
-                "puppet_node_diff"   : x[13]
-         }
-
-         filtered = MachineData.produce(data).to_datastruct(True)
-
-         # FIXME: redo this with image id
-
-         if x[12] is not None and x[12] != -1:
-             image_obj = image.Image()
-             image_results = image_obj.get(token, {"id":x[12]})
-             if not image_results.ok():
-                 raise OrphanedObjectException(comment="image_id")
-             filtered["image"] = image_results.data
-
-         return success(filtered)
-
-
+    def insert_images(self, token, machines):
+        for machine in machines:
+            if machine["image_id"] is not None and machine["image_id"] != -1:
+                image_obj = image.Image()
+                image_results = image_obj.get(token, {"id":machine["image_id"]})
+                if not image_results.ok():
+                    raise OrphanedObjectException(comment="image_id")
+                machine["image"] = image_results.data
+     
 methods = Machine()
 register_rpc = methods.register_rpc
 

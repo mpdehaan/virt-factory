@@ -119,8 +119,8 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args,OP_ADD) # force validation
-
-       args["time"] = time.time()
+       data = u.to_datastruct()
+       data["time"] = time.time()
             
  
        # no longer used...
@@ -130,7 +130,7 @@ class Task(web_svc.AuthWebSvc):
        # FIXME: same note as above
        # self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
 
-       return self.db.simple_add(args)
+       return self.db.simple_add(data)
 
 
    def edit(self, token, args):
@@ -139,7 +139,7 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args,OP_EDIT) # force validation
-       return self.db.simple_edit(args)
+       return self.db.simple_edit(u.to_datastruct())
 
 
    def delete(self, token, args):
@@ -148,7 +148,7 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args,OP_DELETE) # force validation
-       return self.db.simple_delete(args)
+       return self.db.simple_delete(u.to_datastruct())
    
 
    def list(self, token, args):
@@ -167,7 +167,7 @@ class Task(web_svc.AuthWebSvc):
        """
        
        u = TaskData.produce(args, OP_GET) # validate
-       return self.db.simple_get(args)
+       return self.db.simple_get(u.to_datastruct())
  
 methods = Task()
 register_rpc = methods.register_rpc
