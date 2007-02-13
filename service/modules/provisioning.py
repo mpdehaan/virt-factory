@@ -290,6 +290,11 @@ class Provisioning(web_svc.AuthWebSvc):
         Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
         """
 
+        # since cobbler is running in syncless mode, make sure sync
+        # has been run at least once with an empty config to create
+        # directories
+        self.sync(token, {})
+
         ARCH_CONVERT = {
            "x86"    : ARCH_X86,
            "x86_64" : ARCH_X86_64,
