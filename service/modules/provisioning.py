@@ -229,6 +229,8 @@ class Provisioning(web_svc.AuthWebSvc):
       
 
    def sync(self, token, prov_args):
+         
+      cobbler_api.sync()
 
       self.distribution = distribution.Distribution()
       distributions = self.distribution.list(token, {})
@@ -293,7 +295,7 @@ class Provisioning(web_svc.AuthWebSvc):
         # since cobbler is running in syncless mode, make sure sync
         # has been run at least once with an empty config to create
         # directories
-        self.sync(token, {})
+        cobbler_api.sync()
 
         ARCH_CONVERT = {
            "x86"    : ARCH_X86,
