@@ -4,10 +4,12 @@ sm_import is a utility script which imports an image profile from an
 appliance definition file.
 
 Image profiles should be a self-contained tarball with the following directory structure:
-	profilename/profile.xml  -- includes metadata needed for adding to SM database.
-	profilename/manifests/*.pp  -- includes puppet manifests, can be named anything
-	profilename/files/* -- includes data files referenced by manifests
- 	profilename/templates/* -- includes templates referenced by manifests
+	profile.xml  -- includes metadata needed for adding to SM database.
+	manifests/profilename.pp  -- main puppet manifest for the
+  	                             profile (should include the others)
+	manifests/*.pp  -- other puppet manifests, can be named anything
+	files/* -- includes data files referenced by manifests
+ 	templates/* -- includes templates referenced by manifests
 
 Each execution of the sm_import tool will do the following:
 
@@ -52,6 +54,7 @@ from modules import image
 PUPPET_FILE_DIR="/var/lib/shadowmanager/profiles"
 PUPPET_SITE_MANIFEST="/etc/puppet/manifests/site.pp"
 PUPPET_FILESERVER_CONF="/etc/puppet/fileserver.conf"
+PUPPET_FILESERVER_ALLOW="*"
 
 PROFILE_REGEXP = "profile\.xml$"
 NAME_TAG = "name"
@@ -72,7 +75,7 @@ class ShadowImporter:
    Main class for sm_import tool
    """
 
-   def __init__(self, tarball, module_dir, manifest, fileserver_conf):
+   def __init__(self, tarball, module_dir, manifest, fileserver_conf, fileserver_allow):
        """
        create importer object -- source tarball is passed in
        """
@@ -82,6 +85,7 @@ class ShadowImporter:
        self.module_dir = module_dir
        self.manifest = manifest
        self.fileserver_conf = fileserver_conf
+       self.fileserver_allow = fileserver_allow
        log = logger.Logger()
        self.logger = log.logger
 
@@ -91,25 +95,60 @@ class ShadowImporter:
         for member in self.tarball.getmembers():
             if (re.search(PROFILE_REGEXP, member.name)):
                 print "excluding ", member.name
-                self.profile = self.tarball.extractfile(member)
+                profile_xml = self.tarball.extractfile(member)
+                self.profile = parse(profile_xml)
+                self.module_name = self.get_node_text(NAME_TAG)
             else:
                 print "extracting ", member.name
-                self.tarball.extract(member, PUPPET_FILE_DIR)
+                self.tarball.extract(member, self.module_extraction_dir())
 
+   def module_extraction_dir(self):
+       return self.module_dir + '/' + self.module_name
+   
+   def update_puppet_manifest(self):
+       # import_str should be simply "import profile_name" once
+       # puppet module support is in place
+       import_str = 'import "' + self.module_extraction_dir() + '/manifests/' + self.module_name + '.pp"'
+       
+       if not self.search_for_in_file(self.manifest, import_str):
+           print "appending ", import_str
+           manifest_file = open(self.manifest, 'a')
+           manifest_file.write('\n' + import_str + '\n')
+           manifest_file.close();
+
+       fileserver_str = '\[' + self.module_name + '\]'
+       if not self.search_for_in_file(self.fileserver_conf, fileserver_str):
+           #fileserver_conf_file = open(self.fileserver_conf)
+           print "creating new fileserver conf entry"
+           fileserver_conf_file = open(self.fileserver_conf, 'a')
+           fileserver_conf_file.write('\n [' + self.module_name + ']\n')
+           fileserver_conf_file.write('  path ' + self.module_extraction_dir() + '/files\n')
+           fileserver_conf_file.write('  allow '+ self.fileserver_allow + '\n')
+           fileserver_conf_file.close();
+
+   def search_for_in_file(self, filename, search_str):
+       file = open(filename)
+       found = 0
+       for line in file:
+           if re.search(search_str, line):
+               found = 1
+               break
+       file.close()
+       return found
+       
    def populate_sm_profile(self):
-       profiledoc = parse(self.profile)
        profile_dict = {}
        
-       self.set_node_text(profiledoc, profile_dict, NAME_TAG)
-       self.set_node_text(profiledoc, profile_dict, VERSION_TAG)
-       self.set_node_text(profiledoc, profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
-       self.set_node_text(profiledoc, profile_dict, VIRT_RAM_TAG, "int")
-       self.set_node_text(profiledoc, profile_dict, KICKSTART_METADATA_TAG)
-       self.set_node_text(profiledoc, profile_dict, KERNEL_OPTIONS_TAG)
-       self.set_node_text(profiledoc, profile_dict, VALID_TARGETS_TAG)
-       self.set_node_text(profiledoc, profile_dict, IS_CONTAINER_TAG, "int")
-       self.set_node_text(profiledoc, profile_dict, PUPPET_CLASSES_TAG)
-       distribution_name = self.get_node_text(profiledoc, DISTRIBUTION_TAG)
+       self.set_node_text(profile_dict, NAME_TAG)
+       self.set_node_text(profile_dict, VERSION_TAG)
+       self.set_node_text(profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
+       self.set_node_text(profile_dict, VIRT_RAM_TAG, "int")
+       self.set_node_text(profile_dict, KICKSTART_METADATA_TAG)
+       self.set_node_text(profile_dict, KERNEL_OPTIONS_TAG)
+       self.set_node_text(profile_dict, VALID_TARGETS_TAG)
+       self.set_node_text(profile_dict, IS_CONTAINER_TAG, "int")
+       self.set_node_text(profile_dict, PUPPET_CLASSES_TAG)
+       distribution_name = self.get_node_text(DISTRIBUTION_TAG)
        if (distribution_name is not None):
            distribution_obj = distribution.Distribution()
            distribution_result = distribution_obj.get_by_name(None, {"name": "var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot"})
@@ -134,15 +173,15 @@ class ShadowImporter:
            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
 
        
-   def get_node_text(self, profiledoc, name):
-       children = profiledoc.getElementsByTagName(name)[0].childNodes
+   def get_node_text(self, name):
+       children = self.profile.getElementsByTagName(name)[0].childNodes
        if (len(children)>0):
            return children[0].data
        else:
            return None
        
-   def set_node_text(self, profiledoc, profile_dict, name, convert=None):
-       value = self.get_node_text(profiledoc, name)
+   def set_node_text(self, profile_dict, name, convert=None):
+       value = self.get_node_text(name)
        if (value is not None):
            if (convert=="int"):
                value = int(value)
@@ -166,17 +205,20 @@ def main():
     parser.add_option("-f", "--fileserver-conf", dest="fileserver_conf",
                       help="puppet fileserver configuration file",
                       default=PUPPET_FILESERVER_CONF)
+    parser.add_option("-a", "--fileserver-allow", dest="fileserver_allow",
+                      help="Allowed hosts for puppet fileserver config (default *)",
+                      default=PUPPET_FILESERVER_ALLOW)
     
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error("incorrect number of arguments")    
     importer = ShadowImporter(args[0], options.module, options.manifest,
-                              options.fileserver_conf)
+                              options.fileserver_conf, options.fileserver_allow)
     print "extracting..."
     importer.extract()
+    importer.update_puppet_manifest()
     print "populating..."
     importer.populate_sm_profile()
-    # TODO: modify puppet site.pp and/or file manager config
 
 if __name__ == "__main__":
     main()
