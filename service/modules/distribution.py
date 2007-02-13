@@ -140,7 +140,6 @@ class Distribution(web_svc.AuthWebSvc):
         u = DistributionData.produce(dist_args,OP_ADD)
         result = self.db.simple_add(u.to_datastruct())
         self.cobbler_sync(u.to_datastruct())
-        self.sync()
         return result
 
     def cobbler_sync(self, data):

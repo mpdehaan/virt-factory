@@ -230,7 +230,6 @@ class Provisioning(web_svc.AuthWebSvc):
 
    def sync(self, token, prov_args):
          
-      cobbler_api.sync()
 
       self.distribution = distribution.Distribution()
       distributions = self.distribution.list(token, {})
@@ -256,6 +255,7 @@ class Provisioning(web_svc.AuthWebSvc):
       
       try:
          cobbler_api = cobbler.api.BootAPI()
+         cobbler_api.sync()
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
          cobbler_systems  = cobbler_api.systems()
@@ -292,10 +292,6 @@ class Provisioning(web_svc.AuthWebSvc):
         Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
         """
 
-        # since cobbler is running in syncless mode, make sure sync
-        # has been run at least once with an empty config to create
-        # directories
-        cobbler_api.sync()
 
         ARCH_CONVERT = {
            "x86"    : ARCH_X86,
@@ -313,8 +309,13 @@ class Provisioning(web_svc.AuthWebSvc):
 
         # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
         cobbler_api = cobbler.api.BootAPI()
+        # since cobbler is running in syncless mode, make sure sync
+        # has been run at least once with an empty config to create
+        # directories
+        cobbler_api.sync()
         settings = cobbler_api.settings().to_datastruct()
         shadow_config = self.config
+
 
         # FIXME: probably should just except on config read failures
 #        if not config_results.ok():
