@@ -30,7 +30,6 @@
 
 
 import cobbler.api
-import cobbler.util
 
 from codes import *
 import config_data
@@ -96,6 +95,30 @@ run "shadow import" at a later date with additional rsync mirrors.
 Now log in through the Web UI...  You're good to go.\n
 """
 
+# borrowed from cobbler, but not using the fn from there as we might want to tweak this later.
+def input_string_or_hash(options,delim):
+    """
+    Accept a hash of pairs or a string (key=value key key key=value, with space or comma delimiters) and return a hash
+    """
+    if options is None:
+        return (True, {})
+    elif type(options) != dict:
+        new_dict = {}
+        tokens = options.split(delim)
+        for t in tokens:
+            tokens2 = t.split("=")
+            if len(tokens2) == 1 and tokens2[0] != '':
+                new_dict[tokens2[0]] = None
+            elif len(tokens2) == 2 and tokens2[0] != '':
+                new_dict[tokens2[0]] = tokens2[1]
+            else:
+                return (False, {})
+        new_dict.pop('', None)
+        return (True, new_dict)
+    else:
+        options.pop('',None)
+        return (True, options)
+
 
 
 #--------------------------------------------------------------------
@@ -112,7 +135,7 @@ class CobblerTranslatedDistribution:
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
            # load initial kickstart metadata (which is a string) and get back a hash
-           (success, ks_meta) = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"]," ")
+           (success, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"]," ")
        ks_meta["sm_repo_url"] = "FIXME"         
        ks_meta["tree"]        = "FIXME"
        new_item.set_ksmeta(ks_meta)
@@ -149,8 +172,8 @@ class CobblerTranslatedProfile:
 
        new_item.set_distro(distribution_name)
 
-       if from_db.has_key("kickstart"):
-           new_item.set_kickstart(from_db["kickstart"])
+       new_item.set_kickstart(d["kickstart"])
+       
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        
@@ -168,7 +191,7 @@ class CobblerTranslatedProfile:
 
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           ks_meta = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"], "")
+           (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["node_common_packages"] = "sm-node-daemon koan"
        ks_meta["node_virt_packages"]   = ""
@@ -239,7 +262,7 @@ class CobblerTranslatedSystem:
            kernel_options = from_db["kernel_options"]
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           ks_meta = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"], "")
+           (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["token_param"]          = "get_this_from_the_database" # FIXME
         
 
@@ -430,7 +453,7 @@ class Provisioning(web_svc.AuthWebSvc):
               # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
               # directory structure.  See cobbler's action_import.py for that.
 
-              "kickstart" : "/etc/shadowmanager/default.ks",
+              "kickstart"          : "/var/lib/shadowmanager/kickstart-fc6.ks",
               "kickstart_metadata" : ""
            }
            print "cobbler distro add: %s" % add_data
