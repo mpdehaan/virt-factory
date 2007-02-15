@@ -30,6 +30,7 @@
 
 
 import cobbler.api
+import cobbler.util
 
 from codes import *
 import config_data
@@ -95,6 +96,8 @@ run "shadow import" at a later date with additional rsync mirrors.
 Now log in through the Web UI...  You're good to go.\n
 """
 
+
+
 #--------------------------------------------------------------------
 
 class CobblerTranslatedDistribution:
@@ -106,11 +109,29 @@ class CobblerTranslatedDistribution:
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           new_item.set_ksmeta(from_db["kickstart_metadata"])
+           # load initial kickstart metadata (which is a string) and get back a hash
+           (success, ks_meta) = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"]," ")
+       ks_meta["sm_repo_url"] = "FIXME"         
+       ks_meta["tree"]        = "FIXME"
+       new_item.set_ksmeta(ks_meta)
        cobbler_api.distros().add(new_item, with_copy=True)
 
+
+
 #--------------------------------------------------------------------
+
+# the following template vars must be filled in
+# sm_repo_url           (server settings)
+# tree                  (distro)
+# cryptpw               (profile or server -- for now, fixed, so FIXME later)
+# node_common_packages  (fixed)
+# node_virt_packages    (profile, or blank)
+# node_bare_packages    (profile, or blank)
+# puppet_packages       (fixed)
+# extra_post_magic      (blank, for now)
+# kickstart_done        (fixed, cobbler fills this in, not SM)
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
@@ -145,9 +166,21 @@ class CobblerTranslatedProfile:
        new_item.set_virt_file_size(virt_size)
        new_item.set_virt_ram(virt_ram)
 
-
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           new_item.set_ksmeta(from_db["kickstart_metadata"])
+           ks_meta = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"], "")
+       ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
+       ks_meta["node_common_packages"] = "sm-node-daemon koan"
+       ks_meta["node_virt_packages"]   = ""
+       ks_meta["node_bare_packages"]   = "xen libvirt libvirt-python"  # FIXME: depends on whether it's a dom0 or not
+       ks_meta["puppet_packages"]      = "puppet"
+       ks_meta["extra_post_magic"]     = ""
+       # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
+       # registered (and thus doesn't have a token).
+       ks_meta["token_param"]          = "UNSET" # intentional, FIXME: make the registration tool and backend understand this
+       ks_meta["image_param"]          = from_db["name"]
+       new_item.set_ksmeta(ks_meta)
+
        cobbler_api.profiles().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
@@ -162,6 +195,10 @@ class CobblerTranslatedSystem:
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
+
+       # FIXME: this is to be called for BOTH deployments and machines
+       # and all fields here should be common.   This should be called during
+       # add commands as well as any global sort of sync commands.
  
        machine_id = from_db["id"]
 
@@ -200,8 +237,11 @@ class CobblerTranslatedSystem:
 
        if from_db.has_key("kernel_options"):
            kernel_options = from_db["kernel_options"]
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           kickstart_metadata = from_db["kickstart_metadata"]
+           ks_meta = cobbler.util.input_string_or_hash(from_db["kickstart_metadata"], "")
+       ks_meta["token_param"]          = "get_this_from_the_database" # FIXME
+        
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
@@ -209,7 +249,7 @@ class CobblerTranslatedSystem:
            pxe_address = from_db["ip_address"]
 
        new_item.set_kernel_options(kernel_options)
-       new_item.set_ksmeta(kickstart_metadata)
+       new_item.set_ksmeta(ks_meta)
 
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
@@ -217,9 +257,6 @@ class CobblerTranslatedSystem:
        cobbler_api.systems().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
-
-# FIXME: need another ShadowManager backend object that will need to sync with
-# /var/lib/cobbler/settings
 
 class Provisioning(web_svc.AuthWebSvc):
    def __init__(self):
@@ -240,9 +277,8 @@ class Provisioning(web_svc.AuthWebSvc):
       self.machine = machine.Machine() 
       machines  = self.machine.list(token, {})
 
-      #self.deployment = deployment.Deployment()
-      
       # cobbler can't be run multiple times at once...
+      # cobbler does do it's own locking from the CLI, but the API, no, not from there...
       lock = threading.Lock()
       lock.acquire()
       
@@ -274,6 +310,12 @@ class Provisioning(web_svc.AuthWebSvc):
          for p in machines:
             print "- machine: %s" % p
             CobblerTranslatedSystem(cobbler_api,images,p)
+         # NOTE:  this should be ok, but needs testing to ensure deployments and machines are similar enough.
+         # namely we need to add deployments through cobbler such that registration for virt systems can work
+         # better than just giving profiles to the provisioning code.
+         for dp in deployments:
+            print "- deployment: %s" % dp
+            CobblerTranslatedSystem(cobbler_api,deployments,dp)
          cobbler_api.serialize()
          cobbler_api.sync()
       except:
