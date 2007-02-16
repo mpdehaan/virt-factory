@@ -16,7 +16,7 @@
 
 # note:  this contains helper code for working with cobbler.  methods here
 # should not be surfaced in the external API, but should be methods on 
-# things like image and deployments, etc.
+# things like profile and deployments, etc.
 
 # further note:  this class assumes validation has _already_ been
 # done by various layers in the DB.  It will map DB constants
@@ -38,7 +38,7 @@ import baseobj
 import config
 import deployment
 import distribution
-import image
+import profile
 import machine
 import web_svc
 
@@ -205,7 +205,7 @@ class CobblerTranslatedProfile:
        # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
        # registered (and thus doesn't have a token).
        ks_meta["token_param"]          = "UNSET" # intentional, FIXME: make the registration tool and backend understand this
-       ks_meta["image_param"]          = from_db["name"]
+       ks_meta["profile_param"]          = from_db["name"]
        new_item.set_ksmeta(ks_meta)
 
        cobbler_api.profiles().add(new_item, with_copy=True)
@@ -214,11 +214,11 @@ class CobblerTranslatedProfile:
 
 # FIXME: note that asserts don't work in XMLRPCServer
 # and need to replace with exceptions.  Also for some
-# reason image_name is ending up as None, and this needs
+# reason profile_name is ending up as None, and this needs
 # to be fixed.
 
 class CobblerTranslatedSystem:
-   def __init__(self,cobbler_api,images,from_db):
+   def __init__(self,cobbler_api,profiles,from_db):
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
@@ -231,31 +231,31 @@ class CobblerTranslatedSystem:
 
        
 
-       if not from_db.has_key("image_id"):
-           # what happened here is that the machine was registered but no image is 
+       if not from_db.has_key("profile_id"):
+           # what happened here is that the machine was registered but no profile is 
            # assigned by the user in GUI land, so until that happens it can't be 
            # provisioned.  This is /NOT/ neccessarily an error condition.
            return
 
-       image_id = from_db["image_id"]
+       profile_id = from_db["profile_id"]
 
-       print "this machine has image_id = %s" % image_id
+       print "this machine has profile_id = %s" % profile_id
 
        # FIXME: inefficient, again, write some query stuff here.
-       # cobbler is going to need the name of the image.
-       image_name = None
-       for i in images:
-           if i["id"] == image_id:
-               image_name = i["name"] 
+       # cobbler is going to need the name of the profile.
+       profile_name = None
+       for i in profiles:
+           if i["id"] == profile_id:
+               profile_name = i["name"] 
                break
 
-       if image_name == None:
-           assert "no image name found"
+       if profile_name == None:
+           assert "no profile name found"
 
        new_item = cobbler_api.new_system()
        new_item.set_name(from_db["mac_address"])
-       print "image name is %s" % image_name
-       new_item.set_profile(image_name)
+       print "profile name is %s" % profile_name
+       new_item.set_profile(profile_name)
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
        
        kernel_options = ""
@@ -298,8 +298,8 @@ class Provisioning(web_svc.AuthWebSvc):
       self.distribution = distribution.Distribution()
       distributions = self.distribution.list(token, {})
 
-      self.image = image.Image()
-      images = self.image.list(token, {})
+      self.profile = profile.Profile()
+      profiles = self.profile.list(token, {})
 
       self.machine = machine.Machine() 
       machines  = self.machine.list(token, {})
@@ -310,7 +310,7 @@ class Provisioning(web_svc.AuthWebSvc):
       lock.acquire()
       
       distributions = distributions.data
-      images = images.data
+      profiles = profiles.data
       machines = machines.data
       
       # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
@@ -331,12 +331,12 @@ class Provisioning(web_svc.AuthWebSvc):
          for d in distributions:
             print "- distribution: %s" % d
             CobblerTranslatedDistribution(cobbler_api,d)
-         for i in images:
-            print "- image: %s" % i
+         for i in profiles:
+            print "- profile: %s" % i
             CobblerTranslatedProfile(cobbler_api,distributions,i)
          for p in machines:
             print "- machine: %s" % p
-            CobblerTranslatedSystem(cobbler_api,images,p)
+            CobblerTranslatedSystem(cobbler_api,profiles,p)
          # NOTE:  this should be ok, but needs testing to ensure deployments and machines are similar enough.
          # namely we need to add deployments through cobbler such that registration for virt systems can work
          # better than just giving profiles to the provisioning code.
@@ -489,4 +489,5 @@ class Provisioning(web_svc.AuthWebSvc):
 
 methods = Provisioning()
 register_rpc = methods.register_rpc
+
 

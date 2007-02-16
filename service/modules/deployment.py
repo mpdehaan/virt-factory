@@ -18,7 +18,7 @@
 from codes import *
 import baseobj
 
-import image
+import profile
 import machine
 import web_svc
 
@@ -31,7 +31,7 @@ import threading
 
 class DeploymentData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "mac_address", "machine_id", "image_id",
+    FIELDS = [ "id", "hostname", "ip_address", "mac_address", "machine_id", "profile_id",
                "state", "display_name", "puppet_node_diff" ]
 
     def _produce(klass, deployment_dep_args,operation=None):
@@ -75,9 +75,9 @@ class DeploymentData(baseobj.BaseObject):
             if self.machine_id is None:
                 passed = False
                 invalid["machine_id"] = REASON_REQUIRED
-            if self.image_id is None:
+            if self.profile_id is None:
                 passed = False
-                invalid["image_id"] = REASON_REQUIRED
+                invalid["profile_id"] = REASON_REQUIRED
 
         # FIXME: reduce boilerplate in doing things like this...
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
@@ -103,7 +103,7 @@ class Deployment(web_svc.AuthWebSvc):
     add_fields.remove("id")
     edit_fields = [ x for x in DeploymentData.FIELDS ]
     edit_fields.remove("id")
-    edit_fields.remove("image_id")
+    edit_fields.remove("profile_id")
 
     DB_SCHEMA = {
         "table"  : "deployments",
@@ -129,7 +129,7 @@ class Deployment(web_svc.AuthWebSvc):
          """
 
          mac = None
-         imagename = None
+         profilename = None
 
          try:
              machine_obj = machine.Machine()
@@ -139,13 +139,13 @@ class Deployment(web_svc.AuthWebSvc):
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
          try:
-             image_obj = image.Image()
-             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"]})
-             imagename = result.data["name"]
+             profile_obj = profile.Profile()
+             result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"]})
+             profilename = result.data["name"]
          except ShadowManagerException:
-             raise OrphanedObjectException(invalid_fields={'image_id':REASON_ID})
+             raise OrphanedObjectException(invalid_fields={'profile_id':REASON_ID})
 
-         display_name = mac + " / " + imagename
+         display_name = mac + " / " + profilename
 
          deployment_dep_args["display_name"] = display_name
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
@@ -165,13 +165,13 @@ class Deployment(web_svc.AuthWebSvc):
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
-             image_obj = image.Image()
-             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"] })
-             imagename = result.data["name"]
+             profile_obj = profile.Profile()
+             result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"] })
+             profilename = result.data["name"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-         display_name = mac + "/" + imagename
+         display_name = mac + "/" + profilename
          deployment_dep_args["display_name"] = display_name
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
@@ -213,21 +213,21 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.ip_address,
          deployments.mac_address,
          deployments.machine_id,
-         deployments.image_id,
+         deployments.profile_id,
          deployments.state,
          deployments.display_name,
          deployments.puppet_node_diff,
-         images.id,
-         images.name,
-         images.version,
-         images.distribution_id,
-         images.virt_storage_size,
-         images.virt_ram,
-         images.kickstart_metadata,
-         images.kernel_options,
-         images.valid_targets,
-         images.is_container,
-         images.puppet_classes,
+         profiles.id,
+         profiles.name,
+         profiles.version,
+         profiles.distribution_id,
+         profiles.virt_storage_size,
+         profiles.virt_ram,
+         profiles.kickstart_metadata,
+         profiles.kernel_options,
+         profiles.valid_targets,
+         profiles.is_container,
+         profiles.puppet_classes,
          machines.id,
          machines.hostname,
          machines.ip_address, 
@@ -240,9 +240,9 @@ class Deployment(web_svc.AuthWebSvc):
          machines.list_group,
          machines.mac_address,
          machines.is_container,
-         machines.image_id
-         FROM deployments,images,machines 
-         WHERE images.id = deployments.image_id AND
+         machines.profile_id
+         FROM deployments,profiles,machines 
+         WHERE profiles.id = deployments.profile_id AND
          machines.id = deployments.machine_id
          LIMIT ?,?
          """ 
@@ -256,7 +256,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          for x in results:
 
-             image_data = image.ImageData.produce({
+             profile_data = profile.ProfileData.produce({
                     "id"                 : x[9],
                     "name"               : x[10],
                     "version"            : x[11],
@@ -283,7 +283,7 @@ class Deployment(web_svc.AuthWebSvc):
                     "list_group"         : x[29],
                     "mac_address"        : x[30],
                     "is_container"       : x[31],
-                    "image_id"           : x[32]
+                    "profile_id"           : x[32]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
@@ -292,13 +292,13 @@ class Deployment(web_svc.AuthWebSvc):
                 "ip_address"       : x[2],
                 "mac_address"      : x[3],
                 "machine_id"       : x[4],
-                "image_id"         : x[5],
+                "profile_id"         : x[5],
                 "state"            : x[6],
                 "display_name"     : x[7],
                 "puppet_node_diff" : x[8]
              }).to_datastruct(True)
 
-             data["image"] = image_data
+             data["profile"] = profile_data
              data["machine"] = machine_data
              deployments.append(data)
 
@@ -333,12 +333,12 @@ class Deployment(web_svc.AuthWebSvc):
          st = """
          SELECT deployments.id,
          deployments.hostname, deployments.ip_address, deployments.mac_address,
-         deployments.machine_id,deployments.image_id,deployments.state,
+         deployments.machine_id,deployments.profile_id,deployments.state,
          deployments.display_name,
          deployments.puppet_node_diff,
-         images.id, machines.id
-         FROM deployments,images,machines WHERE deployments.id=:id AND 
-         images.id = deployments.image_id AND machines.id = deployments.machine_id
+         profiles.id, machines.id
+         FROM deployments,profiles,machines WHERE deployments.id=:id AND 
+         profiles.id = deployments.profile_id AND machines.id = deployments.machine_id
          """
 
          self.db.cursor.execute(st,{ "id" : u.id })
@@ -349,9 +349,9 @@ class Deployment(web_svc.AuthWebSvc):
          # exceptions will be raised by these next two calls, so no RC
          # checking is required
          machine_obj = machine.Machine()
-         image_obj = image.Image()
+         profile_obj = profile.Profile()
          machine_results = machine_obj.get(token, { "id" : x[4] })
-         image_results   = image_obj.get(token, { "id" : x[5] })
+         profile_results   = profile_obj.get(token, { "id" : x[5] })
 
          data = DeploymentData.produce({
                 "id"               : x[0],
@@ -359,25 +359,25 @@ class Deployment(web_svc.AuthWebSvc):
                 "ip_address"       : x[2],
                 "mac_address"      : x[3],
                 "machine_id"       : x[4],
-                "image_id"         : x[5],
+                "profile_id"         : x[5],
                 "state"            : x[6],
                 "display_name"     : x[7],
                 "puppet_node_diff" : x[8]
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data
-         data["image"]   = image_results.data
+         data["profile"]   = profile_results.data
 
          return success(data)
 
     def insert_components(self, token, deployments):
         for deployment in deployments:
-            if deployment["image_id"] is not None and deployment["image_id"] != -1:
-                image_obj = image.Image()
-                image_results = image_obj.get(token, {"id":deployment["image_id"]})
-                if not image_results.ok():
-                    raise OrphanedObjectException(comment="image_id")
-                deployment["image"] = image_results.data
+            if deployment["profile_id"] is not None and deployment["profile_id"] != -1:
+                profile_obj = profile.Profile()
+                profile_results = profile_obj.get(token, {"id":deployment["profile_id"]})
+                if not profile_results.ok():
+                    raise OrphanedObjectException(comment="profile_id")
+                deployment["profile"] = profile_results.data
             if deployment["machine_id"] is not None and deployment["machine_id"] != -1:
                 machine_obj = machine.Machine()
                 machine_results = machine_obj.get(token, {"id":deployment["machine_id"]})
@@ -388,3 +388,4 @@ class Deployment(web_svc.AuthWebSvc):
 
 methods = Deployment()
 register_rpc = methods.register_rpc
+

@@ -27,47 +27,47 @@ import traceback
 
 #------------------------------------------------------
 
-class ImageData(baseobj.BaseObject):
+class ProfileData(baseobj.BaseObject):
 
     FIELDS = [ "id", "name", "version", 
                "distribution_id", "virt_storage_size", "virt_ram",
                "kickstart_metadata", "kernel_options", "valid_targets",
                "is_container", "puppet_classes" ]
 
-    def _produce(klass, image_args,operation=None):
+    def _produce(klass, profile_args,operation=None):
         """
-        Factory method.  Create a image object from input data, optionally
+        Factory method.  Create a profile object from input data, optionally
         running it through validation, which will vary depending on what
-        operation is creating the image object.
+        operation is creating the profile object.
         """
 
-        self = ImageData()
-        self.from_datastruct(image_args)
+        self = ProfileData()
+        self.from_datastruct(profile_args)
         self.validate(operation)
         return self
 
     produce = classmethod(_produce)
 
-    def from_datastruct(self,image_args):
+    def from_datastruct(self,profile_args):
         """
         Helper method to fill in the object's internal variables from
         a hash.  Note that we *don't* want to do this and then call
-        session.save on the image as the junk fields like the "-1" would be 
+        session.save on the profile as the junk fields like the "-1" would be 
         propogated.  It's best to use this for validation and build a *second*
-        image object for interaction with the ORM.  See methods below for examples.
+        profile object for interaction with the ORM.  See methods below for examples.
         """
 
-        self.id                 = self.load(image_args,"id")
-        self.name               = self.load(image_args,"name")
-        self.version            = self.load(image_args,"version")
-        self.distribution_id    = self.load(image_args,"distribution_id")
-        self.virt_storage_size  = self.load(image_args,"virt_storage_size")
-        self.virt_ram           = self.load(image_args,"virt_ram")
-        self.kickstart_metadata = self.load(image_args,"kickstart_metadata")
-        self.kernel_options     = self.load(image_args,"kernel_options")
-        self.valid_targets      = self.load(image_args,"valid_targets")
-        self.is_container       = self.load(image_args,"is_container")
-        self.puppet_classes     = self.load(image_args,"puppet_classes")
+        self.id                 = self.load(profile_args,"id")
+        self.name               = self.load(profile_args,"name")
+        self.version            = self.load(profile_args,"version")
+        self.distribution_id    = self.load(profile_args,"distribution_id")
+        self.virt_storage_size  = self.load(profile_args,"virt_storage_size")
+        self.virt_ram           = self.load(profile_args,"virt_ram")
+        self.kickstart_metadata = self.load(profile_args,"kickstart_metadata")
+        self.kernel_options     = self.load(profile_args,"kernel_options")
+        self.valid_targets      = self.load(profile_args,"valid_targets")
+        self.is_container       = self.load(profile_args,"is_container")
+        self.puppet_classes     = self.load(profile_args,"puppet_classes")
 
     def to_datastruct_internal(self):
         """
@@ -143,41 +143,41 @@ class ImageData(baseobj.BaseObject):
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 
-class Image(web_svc.AuthWebSvc):
+class Profile(web_svc.AuthWebSvc):
 
-    add_edit = [ x for x in ImageData.FIELDS]
+    add_edit = [ x for x in ProfileData.FIELDS]
     add_edit.remove("id") # probably need to tailor this further, but just using list fns for now
 
     DB_SCHEMA = {
-        "table"  : "images",
-        "fields" : ImageData.FIELDS,
+        "table"  : "profiles",
+        "fields" : ProfileData.FIELDS,
         "add"    : add_edit,
         "edit"   : add_edit
     }
 
     def __init__(self):
-        self.methods = {"image_add": self.add,
-                        "image_edit": self.edit,
-                        "image_delete": self.delete,
-                        "image_get": self.get,
-                        "image_list": self.list}
+        self.methods = {"profile_add": self.add,
+                        "profile_edit": self.edit,
+                        "profile_delete": self.delete,
+                        "profile_get": self.get,
+                        "profile_list": self.list}
         web_svc.AuthWebSvc.__init__(self)
         self.db.db_schema = self.DB_SCHEMA
 
-    def add(self, token, image_args):
+    def add(self, token, profile_args):
          """
-         Create a image.  image_args should contain all fields except ID.
+         Create a profile.  profile_args should contain all fields except ID.
          """
 
          st = """
-         INSERT INTO images (name,version,
+         INSERT INTO profiles (name,version,
          distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
          valid_targets,is_container, puppet_classes)
          VALUES (:name,:version,:distribution_id,
          :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
          :valid_targets,:is_container, :puppet_classes)
          """
-         u = ImageData.produce(image_args,OP_ADD)
+         u = ProfileData.produce(profile_args,OP_ADD)
 
          if u.distribution_id is not None:
              try:
@@ -211,16 +211,16 @@ class Image(web_svc.AuthWebSvc):
          distributions = distribution.Distribution().list(None, {}).data
          provisioning.CobblerTranslatedProfile(cobbler_api ,distributions, data)
 
-    def edit(self, token, image_args):
+    def edit(self, token, profile_args):
          """
-         Edit a image.  image_args should contain all fields that need to
+         Edit a profile.  profile_args should contain all fields that need to
          be changed.
          """
 
-         u = ImageData.produce(image_args,OP_EDIT) # force validation
+         u = ProfileData.produce(profile_args,OP_EDIT) # force validation
 
          st = """
-         UPDATE images 
+         UPDATE profiles 
          SET name=:name, version=:version, 
          virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
          kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
@@ -237,33 +237,33 @@ class Image(web_svc.AuthWebSvc):
          return success(u.to_datastruct(True))
 
 
-    def delete(self, token, image_args):
+    def delete(self, token, profile_args):
          """
-         Deletes a image.  The image_args must only contain the id field.
+         Deletes a profile.  The profile_args must only contain the id field.
          """
 
-         u = ImageData.produce(image_args,OP_DELETE) # force validation
+         u = ProfileData.produce(profile_args,OP_DELETE) # force validation
 
          st = """
-         DELETE FROM images WHERE images.id=:id
+         DELETE FROM profiles WHERE profiles.id=:id
          """
 
          st2 = """
-         SELECT images.id FROM deployments,images 
-         WHERE deployments.image_id = images.id
-         AND images.id=:id
+         SELECT profiles.id FROM deployments,profiles 
+         WHERE deployments.profile_id = profiles.id
+         AND profiles.id=:id
          """
 
          st3 = """
-         SELECT images.id FROM machines,images 
-         WHERE machines.image_id = images.id
-         AND images.id=:id
+         SELECT profiles.id FROM machines,profiles 
+         WHERE machines.profile_id = profiles.id
+         AND profiles.id=:id
          """
 
          # check to see that what we are deleting exists
-         image_result = self.get(None,u.to_datastruct())
-         if not image_result.error_code == 0:
-            raise NoSuchObjectException(comment="image_delete")
+         profile_result = self.get(None,u.to_datastruct())
+         if not profile_result.error_code == 0:
+            raise NoSuchObjectException(comment="profile_delete")
 
          # check to see that deletion won't orphan a deployment or machine
          self.db.cursor.execute(st2, { "id" : u.id })
@@ -281,33 +281,33 @@ class Image(web_svc.AuthWebSvc):
          return success()
 
 
-    def list(self, token, image_args):
+    def list(self, token, profile_args):
          """
-         Return a list of images.  The image_args list is currently *NOT*
+         Return a list of profiles.  The profile_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
          GUI pagination when we start worrying about hundreds of systems.
          """
 
          offset = 0
          limit  = 100
-         if image_args.has_key("offset"):
-            offset = image_args["offset"]
-         if image_args.has_key("limit"):
-            limit = image_args["limit"]
+         if profile_args.has_key("offset"):
+            offset = profile_args["offset"]
+         if profile_args.has_key("limit"):
+            limit = profile_args["limit"]
 
          st = """
          SELECT 
-         images.id,
-         images.name,
-         images.version,
-         images.distribution_id, 
-         images.virt_storage_size,
-         images.virt_ram,
-         images.kickstart_metadata,
-         images.kernel_options,
-         images.valid_targets,
-         images.is_container,
-         images.puppet_classes,
+         profiles.id,
+         profiles.name,
+         profiles.version,
+         profiles.distribution_id, 
+         profiles.virt_storage_size,
+         profiles.virt_ram,
+         profiles.kickstart_metadata,
+         profiles.kernel_options,
+         profiles.valid_targets,
+         profiles.is_container,
+         profiles.puppet_classes,
          distributions.id,
          distributions.kernel,
          distributions.initrd,
@@ -317,8 +317,8 @@ class Image(web_svc.AuthWebSvc):
          distributions.architecture,
          distributions.kernel_options,
          distributions.kickstart_metadata
-         FROM images 
-         LEFT OUTER JOIN distributions ON images.distribution_id = distributions.id 
+         FROM profiles 
+         LEFT OUTER JOIN distributions ON profiles.distribution_id = distributions.id 
          LIMIT ?,?
          """ 
 
@@ -327,12 +327,12 @@ class Image(web_svc.AuthWebSvc):
          if results is None:
              return success([])
 
-         images = []
+         profiles = []
          for x in results:
              # note that the distribution is *not* expanded as it may
              # not be valid in all cases
                  
-             data = ImageData.produce({         
+             data = ProfileData.produce({         
                 "id"        : x[0],
                 "name"      : x[1],
                 "version"   : x[2],
@@ -359,17 +359,17 @@ class Image(web_svc.AuthWebSvc):
                      "kickstart_metadata" : x[19]
                  }).to_datastruct(True)
 
-             images.append(data)
+             profiles.append(data)
 
-         return success(images)
+         return success(profiles)
 
 
-    def get(self, token, image_args):
+    def get(self, token, profile_args):
         """
-        Return a specific image record.  Only the "id" is required in image_args.
+        Return a specific profile record.  Only the "id" is required in profile_args.
         """
 
-        u = ImageData.produce(image_args,OP_GET) # force validation
+        u = ProfileData.produce(profile_args,OP_GET) # force validation
         result = self.db.simple_get(u.to_datastruct())
         
         if (result.error_code != ERR_SUCCESS):
@@ -377,23 +377,23 @@ class Image(web_svc.AuthWebSvc):
         self.insert_distribution(token, [result.data])
         return success(result.data)
 
-    def insert_distribution(self, token, images):
-        for image in images:
-            if image["distribution_id"] is not None and image["distribution_id"] != -1:
+    def insert_distribution(self, token, profiles):
+        for profile in profiles:
+            if profile["distribution_id"] is not None and profile["distribution_id"] != -1:
                 distribution_obj = distribution.Distribution()
-                distribution_results = distribution_obj.get(token, {"id":image["distribution_id"]})
+                distribution_results = distribution_obj.get(token, {"id":profile["distribution_id"]})
                 if not distribution_results.ok():
                     raise OrphanedObjectException(comment="distribution_id")
-                image["distribution"] = distribution_results.data
+                profile["distribution"] = distribution_results.data
                 
-    def get_by_name(self, token, image_args):
+    def get_by_name(self, token, profile_args):
         """
-        Return a specific image profile record by name. Only the "name" is required
-        in image_args.
+        Return a specific profile profile record by name. Only the "name" is required
+        in profile_args.
         """
 
-        if image_args.has_key("name"):
-            name = image_args["name"]
+        if profile_args.has_key("name"):
+            name = profile_args["name"]
         else:
             raise ValueError("name is required")
 
@@ -408,6 +408,7 @@ class Image(web_svc.AuthWebSvc):
             return NoSuchObjectException(comment="get_by_name")
 
 
-methods = Image()
+methods = Profile()
 register_rpc = methods.register_rpc
+
 

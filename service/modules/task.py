@@ -34,15 +34,15 @@ class TaskData(baseobj.BaseObject):
 
     FIELDS = [ "id", "user_id", "operation", "parameters", "state", "time" ] 
 
-    def _produce(klass, image_args,operation=None):
+    def _produce(klass, profile_args,operation=None):
         """
         Factory method.  Create an object from input data, optionally
         running it through validation, which will vary depending on what
-        operation is creating the image object.
+        operation is creating the profile object.
         """
 
         self = TaskData()
-        self.from_datastruct(image_args)
+        self.from_datastruct(profile_args)
         self.validate(operation)
         return self
 
@@ -115,7 +115,7 @@ class Task(web_svc.AuthWebSvc):
 
    def add(self, token, args):
        """
-       Create a image.  image_args should contain all fields except ID.
+       Create a profile.  profile_args should contain all fields except ID.
        """
        
        u = TaskData.produce(args,OP_ADD) # force validation
@@ -171,3 +171,4 @@ class Task(web_svc.AuthWebSvc):
  
 methods = Task()
 register_rpc = methods.register_rpc
+
