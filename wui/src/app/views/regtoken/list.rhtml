@@ -6,7 +6,7 @@
       <TABLE class='listing'>
          <TR>
             <TD>Token</TD>
-            <TD>Image</TD>
+            <TD>Profile</TD>
             <TD>Uses Remaining</TD>
             <TD>Delete</TD>
          </TR>
@@ -17,8 +17,8 @@
       <% @items.each do |item| %>
          <TR>
              <TD> <%= item.token %>
-             <TD> <% if item.image_id %>
-                      <%= link_to item.get_image().name, :controller => "image", :action=> "view", :id=> item.image_id %>
+             <TD> <% if item.profile_id %>
+                      <%= link_to item.get_profile().name, :controller => "profile", :action=> "view", :id=> item.profile_id %>
                   <% else %>
                       Any
                   <% end %> 

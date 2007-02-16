@@ -7,7 +7,7 @@
          <TR>
             <TD>Hostname</TD>
             <TD>Architecture</TD>
-            <TD>Image</TD>
+            <TD>Profile</TD>
             <TD>Mac Address</TD>
             <TD></TD>
          </TR>
@@ -20,7 +20,7 @@
              
              <TD> <%= link_to item.hostname, :controller => "machine", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= ARCHITECTURES[item.architecture] %> </TD>
-             <TD> <%= (link_to item.image.name, :controller => "image", :action=> "view", :id=> item.image.id) if item.image %></TD>
+             <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
              <TD> <%= item.mac_address %> </TD>
              <TD> <%= link_to "[X]", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
          </TR>
