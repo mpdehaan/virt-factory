@@ -194,8 +194,12 @@ class CobblerTranslatedProfile:
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["node_common_packages"] = "sm-node-daemon koan"
-       ks_meta["node_virt_packages"]   = ""
-       ks_meta["node_bare_packages"]   = "xen libvirt libvirt-python"  # FIXME: depends on whether it's a dom0 or not
+       if from_db.has_key("is_container") and from_db["is_container"] != 0:
+           ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virstinst"  # FIXME: is this package list right?
+           ks_meta["node_bare_packages"]   = ""
+       else:
+           ks_meta["node_virt_packages"]   = ""
+           ks_meta["node_bare_packages"]   = ""
        ks_meta["puppet_packages"]      = "puppet"
        ks_meta["extra_post_magic"]     = ""
        # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
