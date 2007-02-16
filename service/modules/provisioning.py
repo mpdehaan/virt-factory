@@ -140,7 +140,7 @@ class CobblerTranslatedDistribution:
        ks_meta["tree"]        = "FIXME"
        new_item.set_ksmeta(ks_meta)
        cobbler_api.distros().add(new_item, with_copy=True)
-
+       cobbler_api.serialize()
 
 
 #--------------------------------------------------------------------
@@ -169,6 +169,7 @@ class CobblerTranslatedProfile:
                break    
 
        assert distribution_name is not None, "has distribution name"
+       print "distro name is %s" % distribution_name
 
        new_item.set_distro(distribution_name)
 
@@ -208,7 +209,10 @@ class CobblerTranslatedProfile:
        ks_meta["profile_param"]          = from_db["name"]
        new_item.set_ksmeta(ks_meta)
 
+       print new_item
+       print new_item.printable()
        cobbler_api.profiles().add(new_item, with_copy=True)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -282,6 +286,7 @@ class CobblerTranslatedSystem:
            new_item.set_pxe_address(pxe_address)
        
        cobbler_api.systems().add(new_item, with_copy=True)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
