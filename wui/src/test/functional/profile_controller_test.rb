@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/../test_helper'
 require 'image_controller'
 
 # Re-raise errors caught by the controller.
-class ImageController; def rescue_action(e) raise e end; end
+class ProfileController; def rescue_action(e) raise e end; end
 
-class ImageControllerTest < Test::Unit::TestCase
+class ProfileControllerTest < Test::Unit::TestCase
   def setup
-    @controller = ImageController.new
+    @controller = ProfileController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
   end

@@ -20,10 +20,10 @@ module ApplicationHelper
 	   <li><A HREF="/regtoken/list">View Registration Tokens</A></li>
 	   </ul>
        </li>
-       <li><strong>Image Profiles</strong>
+       <li><strong>Profiles</strong>
 	   <ul>
-	   <li><A HREF="/image/list">View Image Profiles</A></li>
-	   <li><A HREF="/image/edit">(Developers) Add an Image Profile</A></li>
+	   <li><A HREF="/image/list">View Profiles</A></li>
+	   <li><A HREF="/image/edit">(Developers) Add a Profile</A></li>
 	   </ul>
        </li>
        <li><strong>Virtual Deployments</strong>
