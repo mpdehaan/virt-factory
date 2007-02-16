@@ -46,7 +46,7 @@ zerombr
 
 %pre
 # Determine how many drives we have
-set $(list-harddrives)
+set \$(list-harddrives)
 let numd=$#/2
 d1=$1
 d2=$3
