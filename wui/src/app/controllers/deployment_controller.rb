@@ -13,7 +13,7 @@ class DeploymentController < AbstractObjectController
 
        # get a list of address to ip mappings
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |machine|
-           [machine.hostname, machine.id]
+           [machine.hostname, machine.id] unless (machine.hostname.nil? or machine.hostname == "")
        end
 
        # start all dropdowns with a blank entry when the user first comes to them
