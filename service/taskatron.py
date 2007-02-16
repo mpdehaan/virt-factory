@@ -30,7 +30,7 @@ from modules import authentication
 from modules import config
 from modules import deployment
 from modules import distribution
-from modules import image
+from modules import profile
 from modules import machine
 from modules import provisioning
 from modules import registration
@@ -253,7 +253,7 @@ class CobblerInstallVirtThread(ShadowWorkerThread):
     """
 
     def run(self):
-        # FIXME: make call to node to install virt image
+        # FIXME: make call to node to install virt profile
         # this does NOT need the lock.
         #self.tasklock.acquire()
         try:
