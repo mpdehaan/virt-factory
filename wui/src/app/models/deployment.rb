@@ -1,4 +1,4 @@
-# the deployment is the mapping between an image definition (image) and a machine that can run virtual images.
+# the deployment is the mapping between a profile definition and a machine that can run virtualness.
 # deployments are only used for virtual installs (i.e. DomU's).  
 
 class Deployment < ManagedObject
@@ -10,12 +10,12 @@ class Deployment < ManagedObject
        :ip_address       => { :type => String  },
        :mac_address      => { :type => String  },
        :machine_id       => { :type => Integer }, 
-       :image_id         => { :type => Integer }, 
+       :profile_id       => { :type => Integer }, 
        :state            => { :type => String  },
        :display_name     => { :type => String  }, 
        :puppet_node_diff => { :type => String  },
        :machine          => { :type => Machine, :id_attr => :machine_id }, 
-       :image            => { :type => Image, :id_attr => :image_id} 
+       :profile          => { :type => Profile, :id_attr => :profile_id} 
     }
     self.set_attrs(ATTR_LIST)
      
@@ -27,7 +27,7 @@ class Deployment < ManagedObject
     # FIXME: is this the name used for display purposes in the GUI?
     
     def objname()
-        self.get_machine().hostname + ": " + self.get_image().name
+        self.get_machine().hostname + ": " + self.get_profile().name
     end
 
 end

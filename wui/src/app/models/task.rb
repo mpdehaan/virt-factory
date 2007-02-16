@@ -19,7 +19,7 @@ class Task < ManagedObject
     # web service methods start with this
     METHOD_PREFIX = "task"
 
-    # when showing an image onscreen, just use the name field in the database
+    # when showing a profile onscreen, just use the name field in the database
     def objname
         id
     end

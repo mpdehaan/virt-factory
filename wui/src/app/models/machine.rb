@@ -1,8 +1,8 @@
-# a machine is a piece of hardware, it won't be virtual.  It runs exactly one image, which may either be a baremetal appliance
-# or an appliance container (in which case, the image represents a dom0 + special sauce).  
+# a machine is a piece of hardware, it won't be virtual.  It runs exactly one profile, which may either be a baremetal appliance
+# or an appliance container (in which case, the profile represents a dom0 + special sauce).  
 
 # deployments, another model object, are the association between machines (but only machines that are appliance containers and
-# not pure appliances) and the images that run on them.
+# not pure appliances) and the profile that run on them.
 
 class Machine < ManagedObject
 
@@ -14,8 +14,8 @@ class Machine < ManagedObject
                   :processor_speed => {:type => Integer}, 
                   :processor_count => {:type => Integer}, 
                   :memory => {:type => Integer},
-                  :image_id => {:type => Integer}, 
-                  :image => { :type => Image, :id_attr => :image_id},
+                  :profile_id => {:type => Integer}, 
+                  :profile => { :type => Profile, :id_attr => :profile_id},
                   :kernel_options => {:type => String}, 
                   :kickstart_metadata => {:type => String}, 
                   :list_group => {:type => String}, 
@@ -29,12 +29,14 @@ class Machine < ManagedObject
     METHOD_PREFIX = "machine"
 
     # I think this means that the GUI objects using this class won't set the is_container field, and we set
-    # that field based on whether or not the image field was null or not.  Though since I think the get_image
+    # that field based on whether or not the profile field was null or not.  Though since I think the get_profile
     # methods are based on the reflectiony stuff, this may cause an RPC call.  Is that needed?  Anyhow, 
     # fill in explanation here.
 
     def save
-        self.is_container = self.image.is_container if self.get_image
+        self.is_container = self.profile.is_container if self.get_profile()
         super
     end
+
 end
+
