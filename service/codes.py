@@ -62,7 +62,7 @@ COBBLER_ARCH_MAPPING = {
 PROFILE_IS_VIRT = "is_virt"
 PROFILE_IS_BAREMETAL = "is_baremetal"
 PROFILE_IS_EITHER = "is_either"
-VALID_TARGETS = [ PROFILE_IS_VIRT, IMAGE_IS_BAREMETAL, IMAGE_IS_EITHER ]
+VALID_TARGETS = [ PROFILE_IS_VIRT, PROFILE_IS_BAREMETAL, PROFILE_IS_EITHER ]
 
 # machine is_container values
 MACHINE_IS_CONTAINER = 1
@@ -292,4 +292,5 @@ if __name__ == "__main__":
                print "%s = %s" % (x, obj)
            else:
                print "%s = \"%s\"" % (x, obj)
+
 
