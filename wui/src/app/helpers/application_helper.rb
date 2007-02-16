@@ -22,8 +22,8 @@ module ApplicationHelper
        </li>
        <li><strong>Profiles</strong>
 	   <ul>
-	   <li><A HREF="/image/list">View Profiles</A></li>
-	   <li><A HREF="/image/edit">(Developers) Add a Profile</A></li>
+	   <li><A HREF="/profile/list">View Profiles</A></li>
+	   <li><A HREF="/profile/edit">(Developers) Add a Profile</A></li>
 	   </ul>
        </li>
        <li><strong>Virtual Deployments</strong>
