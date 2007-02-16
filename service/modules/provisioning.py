@@ -457,7 +457,7 @@ class Provisioning(web_svc.AuthWebSvc):
               # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
               # directory structure.  See cobbler's action_import.py for that.
 
-              "kickstart"          : "/var/lib/shadowmanager/kickstart-fc6.ks",
+              "kickstart"          : "/var/lib/shadowmanager/kick-fc6.ks",
               "kickstart_metadata" : ""
            }
            print "cobbler distro add: %s" % add_data
