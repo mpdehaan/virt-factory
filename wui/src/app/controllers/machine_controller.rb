@@ -5,18 +5,18 @@ class MachineController < AbstractObjectController
 
    def edit
        super
-       @images = []
+       @profiles = []
 
-       # when adding a new machine, the user must pick which image to use to provision that machine.
-       # an image contains information about the distro + kickstart data + recipe, etc.  For bare metal,
-       # we exclude appliance images that are marked as only working for virtualization. 
-       # TODO:  ideally, out of the box, we'd ship and install an image that would be suitable for a stock
+       # when adding a new machine, the user must pick which profile to use to provision that machine.
+       # an profile contains information about the distro + kickstart data + recipe, etc.  For bare metal,
+       # we exclude appliance profiles that are marked as only working for virtualization. 
+       # TODO:  ideally, out of the box, we'd ship and install an profile that would be suitable for a stock
        # container.
 
-       ManagedObject.retrieve_all(Image, @session).each do |image|
-           @images << [image.name, image.id] unless image.valid_targets == IMAGE_IS_VIRT
+       ManagedObject.retrieve_all(Profile, @session).each do |profile|
+           @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_VIRT
        end
-       @images.insert(0,EMPTY_ENTRY)
+       @profiles.insert(0,EMPTY_ENTRY)
    end
 
    def object_class
