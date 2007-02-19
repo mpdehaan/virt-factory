@@ -27,22 +27,23 @@ OP_METHOD = "method"
 OP_GET = "get"
 
 # error codes for the web service.
-SUCCESS = ERR_SUCCESS   = 0
-ERR_TOKEN_EXPIRED       = 1
-ERR_TOKEN_INVALID       = 2
-ERR_USER_INVALID        = 3
-ERR_PASSWORD_INVALID    = 4
-ERR_INTERNAL_ERROR      = 5
-ERR_INVALID_ARGUMENTS   = 6
-ERR_NO_SUCH_OBJECT      = 7
-ERR_ORPHANED_OBJECT     = 8
-ERR_SQL                 = 9
-ERR_MISCONFIGURED       = 10
-ERR_UNCAUGHT            = 11 
-ERR_INVALID_METHOD      = 12
-ERR_TASK                = 13
-ERR_REG_TOKEN_INVALID   = 14
-ERR_REG_TOKEN_EXHAUSTED = 15
+SUCCESS = ERR_SUCCESS      = 0
+ERR_TOKEN_EXPIRED          = 1
+ERR_TOKEN_INVALID          = 2
+ERR_USER_INVALID           = 3
+ERR_PASSWORD_INVALID       = 4
+ERR_INTERNAL_ERROR         = 5
+ERR_INVALID_ARGUMENTS      = 6
+ERR_NO_SUCH_OBJECT         = 7
+ERR_ORPHANED_OBJECT        = 8
+ERR_SQL                    = 9
+ERR_MISCONFIGURED          = 10
+ERR_UNCAUGHT               = 11 
+ERR_INVALID_METHOD         = 12
+ERR_TASK                   = 13
+ERR_REG_TOKEN_INVALID      = 14
+ERR_REG_TOKEN_EXHAUSTED    = 15
+ERR_PUPPET_NODE_NOT_SIGNED = 16
 
 # architecture field for machines and images
 ARCH_X86 = "x86"
@@ -271,6 +272,14 @@ class MisconfiguredException(ShadowManagerException):
    """
    error_code = ERR_MISCONFIGURED
 
+
+class PuppetNodeNotSignedException(ShadowManagerException):
+   """
+   The puppet node certificate could not be signed, either
+   because there was no matching certificate requrest or
+   due to another puppetca error.
+   """
+   error_code = ERR_PUPPET_NODE_NOT_SIGNED
 
 def success(data=None,job_id=None):
    """
