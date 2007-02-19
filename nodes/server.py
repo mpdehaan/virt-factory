@@ -19,6 +19,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import SimpleXMLRPCServer
 import os
+import socket
+
+#socket.setdefaulttimeout(0)
+
+from M2Crypto import SSL
+from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 
 SERVE_ON = (None,None)
 
@@ -117,27 +123,82 @@ class XmlRpcInterface:
            raise InvalidMethodException
 
 
-def serve(websvc):
+def serve(websvc, pemfile, host):
      """
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     server = ShadowXMLRPCServer(("127.0.0.1", 2112))
+
+     ctx = initContext(pemfile)
+     server = ShadowSSLXMLRPCServer(ctx, (host, 2112))
      server.register_instance(websvc)
      server.serve_forever()
 
+def sslCallback(*args):
+   print args
 
-class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
-    def __init__(self, args):
+def initContext(pemfile):
+   """
+   Helper method for m2crypto's SSL libraries.
+   """
+   protocol = "sslv23"
+   verify =  SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
+   verify_depth = 10
+   ctx = SSL.Context(protocol)
+   ctx.load_cert(pemfile)
+   ctx.load_client_ca(pemfile)
+   ctx.load_verify_info(pemfile)
+   ctx.set_verify(verify, verify_depth)
+   ctx.set_session_id_ctx('xmlrpcssl')
+   ctx.set_info_callback(sslCallback)
+   return ctx
+
+
+class SSLXMLRPCHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
+   def finish(self):
+      self.request.set_shutdown(SSL.SSL_RECEIVED_SHUTDOWN | SSL.SSL_SENT_SHUTDOWN)
+      self.request.close()
+
+
+class ShadowSSLXMLRPCServer(SSL.SSLServer, SimpleXMLRPCServer.SimpleXMLRPCServer):
+    def __init__(self, ssl_context, address, handler=None, handle_error=None):
        self.allow_reuse_address = True
-       SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
-      
+       
+       if handler is None: 
+#          handler = SimpleXMLRPCServer.SimpleXMLRPCRequestHandler
+           handler = SSLXMLRPCHandler
+            
+      # self.handle_error = self.errorHandler
+
+       SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, address, handler)
+       SSL.SSLServer.__init__(self, address, handler, ssl_context)
+#       SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, address)
+       self.instance = None
+       self.logRequest = 5
+       
+       
+
+    def errorHandler(self, *args):
+       print args
+
+    def initContext(self, pemfile):
+       ctx = SSL.Context(self.protocol)
+       ctx.load_cert(pemfile)
+       ctx.load_client_ca(pemfile)
+       ctx.load_verify_info(pemfile)
+       ctx.set_verify(self.verify, self.verify_depth)
+       ctx.set_session_id_ctx('xmlrpcssl')
+       ctx.set_info_callback(self.callback)
+       return ctx
+       
 def main(argv):
     """
     Start things up.
     """
     
     websvc = XmlRpcInterface()
+    pemfile = "server.pem"
+    host = "grimlock.devel.redhat.com"
      
     if len(argv) > 1:
        print """
@@ -148,7 +209,7 @@ def main(argv):
        sys.exit(1)
     else:
         print "serving...\n"
-        serve(websvc)
+        serve(websvc, pemfile, host)
 
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
