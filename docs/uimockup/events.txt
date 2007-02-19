@@ -1,0 +1,37 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| Events    (Machines)    (Instances)    (Images)    (Accounts)   (Setup) |
+|
+|   Show Severity:  {All }                  User:   {All }
+|   Time Frame:     {Last 7 Days }          
+|   -----------------------------------------------------------------
+|   <Date>         <Machine>        <Image>               <Severity>
+|   -----------------------------------------------------------------
+|   10/25/06       (acmelabs5)      (virtual-foosball)    (critical)
+| 
+|   Image (virtualfoosball) on (acmelabs5) has crashed.  Attempt (restart)
+|   or (migrate)?
+|
+|   10/24/06       (acmelabs12)     (virtual-airhockey)   (informational)
+|
+|   User (mdehaan) has migrated image (virtual-airhockey) on (acmelabs12)
+|   to (west-coast-data5).  Reason:  "moving servers around".
+|
+|   ...                                                          
+|
++--------------------------------------------------------------------------+
+
+The Events Page
+
+This page lists events by Date, Machine, Image, and Severity.  Each
+colum in sortable.
+
+The cool feature here is that each event is explained in plain text and
+has actions to fix the problem (if needed) for non-informational events.
+So if a server has crashed, the user can see what to do with it, without
+having to go prowl around another screen.
+
+By keeping this the default login page, the user can see what's happened
+on their network when they login and can take immediate action.  We want
+to enable email notifications and the like too.

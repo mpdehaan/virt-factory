@@ -1,7 +1,66 @@
       <% @page_title = @operation.capitalize() + " A Task" %>
       <%= ApplicationHelper.menubar("task","edit") %>
 
-      I'm afraid you can't do that, Dave.
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+
+      <!-- FIXME: all of this display stuff does not generate the right hyperlinks
+           right now and many fields are nullable.  Column oriented display here
+           needs to be replaced.  Above all, output shouldn't be making XMLRPC calls
+           requiring join code to be added to the backend.
+       -->
+
+      <TABLE BORDER=0>
+         <TR>
+            <TD>User</TD>
+            <TD><%= if @operation == "add"
+                        # FIXME: in reality, this should be determined by the token
+                        f.select :user_id, @users
+                    else
+                        user = @item.get_user()
+                        user ? user.username : "None"
+                    end %>
+            </TD>
+         </TR>
+         <TR>
+            <TD>State</TD>
+            <%# FIXME: different types of valid states depending on add vs. edit %>
+            <TD><%= f.select :state, @states %></TD>
+         </TR>
+         <TR> 
+            <TD>Operation</TD>
+            <TD><%= if @operation == "add"
+                       f.select :operation, @operations
+                    else
+                       @item.operation
+                    end
+                %>
+            </TD>
+         </TR>
+         <TR> 
+            <TD>Parameters</TD>
+            <TD><%= if @operation == "add"
+                       f.text_field :parameters 
+                    else
+                       @item.parameters
+                    end    
+                 %>
+            </TD>
+         </TR>
+         <% if @operation == "edit" %>
+         <TR> 
+            <TD>Time</TD>
+                 <%= @item.time %>
+            </TD>
+         </TR>
+         <% end %>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
 
       <% @callout_1 = @operation + " a task" %>
 

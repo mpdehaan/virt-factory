@@ -54,4 +54,3 @@ class AuthWebSvc(WebSvc):
     def __init__(self):
         WebSvc.__init__(self)
 
-

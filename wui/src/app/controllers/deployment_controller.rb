@@ -1,6 +1,6 @@
 
 # the deployment controller controls the users view and manipulation of the deployment objects.
-# deployments are associations between machines and the profiles that are installed on them.
+# deployments are associations between machines and the images that are installed on them.
 
 class DeploymentController < AbstractObjectController
 
@@ -13,19 +13,19 @@ class DeploymentController < AbstractObjectController
 
        # get a list of address to ip mappings
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |machine|
-           [machine.hostname, machine.id] unless (machine.hostname.nil? or machine.hostname == "")
+           [machine.hostname, machine.id]
        end
 
        # start all dropdowns with a blank entry when the user first comes to them
        @machines.insert(0,EMPTY_ENTRY)
 
-       # get a list of all profiles that are deployable.  Deployments are not used to represent
-       # the mapping of the profile that is installed on a baremetal machine (the domu), deployments
+       # get a list of all images that are deployable.  Deployments are not used to represent
+       # the mapping of the image that is installed on a baremetal machine (the domu), deployments
        # are virtual only.
 
-       @profiles = []
-       ManagedObject.retrieve_all(Profile, @session).each do |profile|
-           @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_BAREMETAL
+       @images = []
+       ManagedObject.retrieve_all(Image, @session).each do |image|
+           @images << [image.name, image.id] unless image.valid_targets == IMAGE_IS_BAREMETAL
        end
    end
 end

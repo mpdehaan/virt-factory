@@ -42,7 +42,7 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self, hostname, ip, mac, profile_name, virtyness):
+    def register(self, hostname, ip, mac, image_name):
         # should return a machine_id, maybe more
         print "--------------------"
         print "Registering..."
@@ -50,16 +50,15 @@ class Register(object):
         print "  hostname=", hostname,
         print "  ip=", ip
         print "  mac=", mac
-        print "  profile_name=", profile_name
-        print "  virtyness=", virtyness
-        if profile_name is None:
-            profile_name = ""
+        print "  image_name=", image_name
+        if image_name is None:
+            image_name = ""
         if mac is None:
             mac = "00:00:00:00:00:00"
         try:
-            rc = self.server.register(self.token, hostname, ip, mac, profile_name,virtyness)
+            rc = self.server.register(self.token, hostname, ip, mac, image_name)
         except TypeError:
-            print "must specify --profilename"
+            print "must specify --imagename"
             sys.exit(1)
         print rc
         return rc
@@ -75,18 +74,16 @@ def main(argv):
     username   = None
     password   = None
     server_url = None
-    profile_name = ""
-    virtual    = False
+    image_name = ""
 
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:v:", [
+        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:i:", [
             "help", 
             "token=", 
             "username=",
             "password=", 
             "serverurl=",
-            "profilename=",
-            "virtual"
+            "imagename="
         ])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
@@ -106,10 +103,9 @@ def main(argv):
             password = val
         if opt in ["-s", "--serverurl"]:
             server_url = val
-        if opt in ["-v", "--virtual"]:
-            virtual = True
-        if opt in ["-P", "--profile"]:
-            profile_name = val
+        if opt in ["-i", "--imagename"]:
+            print "read the image name"
+            image_name = val
 
     if server_url is None:
         print "must specify --serverurl, ex: http://foo.example.com:5150"
@@ -145,11 +141,11 @@ def main(argv):
     # FIXME: error checking on this value...
     # FIXME: fill in hardware info.
     
-    # FIXME: require --profile=name if the token doesn't have it associated.
+    # FIXME: require --image=name if the token doesn't have it associated.
     print net_info
 
     try:
-        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
+        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], image_name)
     except socket.error:
         print "Could not connect to server."
         sys.exit(1)
@@ -158,7 +154,7 @@ def main(argv):
         print "Bad token!  No registration for you!"
         sys.exit(rc[0])
     elif rc[0] == ERR_ARGUMENTS_INVALID:
-        print "Invalid arguments.  Possibly missing --profile ?"
+        print "Invalid arguments.  Possibly missing --imagename ?"
         sys.exit(rc[0])
     elif rc[0] != 0:
         print "There was an error.  Check the server side logs."

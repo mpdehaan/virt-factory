@@ -17,7 +17,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import baseobj
 from codes import *
 
-import profile
+import image
 import cobbler
 import provisioning
 import web_svc
@@ -30,9 +30,9 @@ import traceback
 
 class MachineData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "registration_token", "architecture", "processor_speed", "processor_count", "memory",
+    FIELDS = [ "id", "hostname", "ip_address", "architecture", "processor_speed", "processor_count", "memory",
                "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
-               "profile_id", "puppet_node_diff", "netboot_enabled" ]
+               "image_id", "puppet_node_diff" ]
 
     def _produce(klass, machine_args,operation=None):
         """
@@ -146,28 +146,24 @@ class Machine(web_svc.AuthWebSvc):
         Create a machine.  machine_args should contain all fields except ID.
         """
         u = MachineData.produce(args,OP_ADD)
-        if u.profile_id is not None:
-            print "creating an profile.Profile()" 
+        if u.image_id is not None:
+            print "creating an image.Image()" 
             try:
-                self.profile = profile.Profile()
-                self.profile.get( token, { "id" : u.profile_id } )
+                self.image = image.Image()
+                self.image.get( token, { "id" : u.image_id } )
             except ShadowManagerException:
-                raise OrphanedObjectException(comment="profile_id")
-
-        # all systems are created with netboot originally enabled, and
-        # then once they check in, we turn it back off.
-        args["netboot_enabled"] = 1
+                raise OrphanedObjectException(comment="image_id")
 
         # TODO: make this work w/ u.to_datastruct() 
         result = self.db.simple_add(args)
-        if u.profile_id:
+        if u.image_id:
             self.cobbler_sync(u.to_datastruct())
         return result
 
     def cobbler_sync(self, data):
         cobbler_api = cobbler.api.BootAPI()
-        profiles = profile.Profile().list(None, {}).data
-        provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data)
+        images = image.Image().list(None, {}).data
+        provisioning.CobblerTranslatedSystem(cobbler_api, images, data)
  
     def new(self, token):
         """
@@ -179,14 +175,14 @@ class Machine(web_svc.AuthWebSvc):
         return self.add(token, args)
 
 
-    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
+    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, image_id=None,
                   architecture=None, processor_speed=None, processor_count=None,
                   memory=None):
         """
         Associate a machine with an ip/host/mac address
         """
         print "associating..."
-        # determine the profile from the token. 
+        # determine the image from the token. 
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
         regtoken_obj = regtoken.RegToken()
         if token is None:
@@ -198,10 +194,8 @@ class Machine(web_svc.AuthWebSvc):
             raise codes.InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
 
-        if len(results.data) > 0:
-            print results.data
-            if results.data[0].has_key("profile_id"):
-                profile_id = results.data[0]["profile_id"]
+        if results.data[0].has_key("image_id"):
+            image_id = results.data[0]["image_id"]
 
 
         args = {
@@ -209,15 +203,13 @@ class Machine(web_svc.AuthWebSvc):
             'hostname': hostname,
             'ip_address': ip_addr,
             'mac_address': mac_addr,
-            'profile_id': profile_id,
+            'image_id': image_id,
             'architecture' : architecture,
             'processor_speed' : processor_speed,
             'processor_count' : processor_count,
-            'memory' : memory,
-            'netboot_enabled' : 0
+            'memory' : memory
         }
         print args
-
         return self.edit(token, args)
         
     def edit(self, token, machine_args):
@@ -226,18 +218,17 @@ class Machine(web_svc.AuthWebSvc):
         """
         
         u = MachineData.produce(machine_args,OP_EDIT) # force validation
-        if u.profile_id is not None:
+        if u.image_id is not None:
             try:
-                profile_obj = profile.Profile()
-                profile_obj.get(token, { "id" : u.profile_id })
+                image_obj = image.Image()
+                image_obj.get(token, { "id" : u.image_id })
             except ShadowManagerException:
-                raise OrphanedObjectException(comments="no profile found",invalid_fields={"profile_id":REASON_ID})
+                raise OrphanedObjectException(comments="no image found",invalid_fields={"image_id":REASON_ID})
 
         # TODO: make this work w/ u.to_datastruct() 
         result = self.db.simple_edit(machine_args)
-        if u.profile_id:
+        if u.image_id:
             self.cobbler_sync(u.to_datastruct())
-        return success()
 
     def delete(self, token, machine_args):
         """
@@ -248,7 +239,7 @@ class Machine(web_svc.AuthWebSvc):
         
         # deployment orphan prevention
         st2 = """
-        SELECT machines.id FROM deployments,machines where machines.id = deployments.profile_id
+        SELECT machines.id FROM deployments,machines where machines.id = deployments.image_id
         AND machines.id=:id
         """
         # check to see that what we are deleting exists
@@ -258,7 +249,7 @@ class Machine(web_svc.AuthWebSvc):
         self.db.cursor.execute(st2, { "id" : u.id })
         results = self.db.cursor.fetchall()
         if results is not None and len(results) != 0:
-            raise OrphanedObjectException(comment="profile")
+            raise OrphanedObjectException(comment="image")
 
         return self.db.simple_delete({ "id" : u.id })
 
@@ -280,7 +271,6 @@ class Machine(web_svc.AuthWebSvc):
          SELECT machines.id AS mid, 
          machines.hostname,
          machines.ip_address,
-         machines.registration_token,
          machines.architecture,
          machines.processor_speed,
          machines.processor_count,
@@ -290,21 +280,20 @@ class Machine(web_svc.AuthWebSvc):
          machines.list_group,
          machines.mac_address,
          machines.is_container,
-         machines.profile_id,
+         machines.image_id,
          machines.puppet_node_diff,
-         machines.netboot_enabled,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id,
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container,
-         profiles.puppet_classes
+         images.name,
+         images.version,
+         images.distribution_id,
+         images.virt_storage_size,
+         images.virt_ram,
+         images.kickstart_metadata,
+         images.kernel_options,
+         images.valid_targets,
+         images.is_container,
+         images.puppet_classes
          FROM machines
-         LEFT OUTER JOIN profiles ON machines.profile_id = profiles.id  
+         LEFT OUTER JOIN images ON machines.image_id = images.id  
          LIMIT ?,?
          """ 
 
@@ -321,34 +310,32 @@ class Machine(web_svc.AuthWebSvc):
                  "id"                 : x[0],
                  "hostname"           : x[1],
                  "ip_address"         : x[2],
-                 "registration_token" : x[3],
-                 "architecture"       : x[4],
-                 "processor_speed"    : x[5],
-                 "processor_count"    : x[6],
-                 "memory"             : x[7],
-                 "kernel_options"     : x[8],
-                 "kickstart_metadata" : x[9],
-                 "list_group"         : x[10],
-                 "mac_address"        : x[11],
-                 "is_container"       : x[12],
-                 "profile_id"         : x[13],
-                 "puppet_node_diff"   : x[14],
-                 "netboot_enabled"    : x[15]
+                 "architecture"       : x[3],
+                 "processor_speed"    : x[4],
+                 "processor_count"    : x[5],
+                 "memory"             : x[6],
+                 "kernel_options"     : x[7],
+                 "kickstart_metadata" : x[8],
+                 "list_group"         : x[9],
+                 "mac_address"        : x[10],
+                 "is_container"       : x[11],
+                 "image_id"           : x[12],
+                 "puppet_node_diff"   : x[13]
              }).to_datastruct(True)
 
              if x[12] is not None and x[12] != -1:
-                 data["profile"] = profile.ProfileData.produce({
-                      "id"                 : x[13],
-                      "name"               : x[16],
-                      "version"            : x[17],
-                      "distribution_id"    : x[18],
-                      "virt_storage_size"  : x[19],
-                      "virt_ram"           : x[20],
-                      "kickstart_metadata" : x[21],
-                      "kernel_options"     : x[22],
-                      "valid_targets"      : x[23],
-                      "is_container"       : x[24],
-                      "puppet_classes"     : x[25]
+                 data["image"] = image.ImageData.produce({
+                      "id"                 : x[12],
+                      "name"               : x[14],
+                      "version"            : x[15],
+                      "distribution_id"    : x[16],
+                      "virt_storage_size"  : x[17],
+                      "virt_ram"           : x[18],
+                      "kickstart_metadata" : x[19],
+                      "kernel_options"     : x[20],
+                      "valid_targets"      : x[21],
+                      "is_container"       : x[22],
+                      "puppet_classes"     : x[23]
                  }).to_datastruct(True)
 
              machines.append(data)
@@ -371,7 +358,7 @@ class Machine(web_svc.AuthWebSvc):
         result = self.db.simple_list({}, {"hostname": hostname})
         if (result.error_code != ERR_SUCCESS):
             return result
-        self.insert_profiles(token, result.data)
+        self.insert_images(token, result.data)
         return success(result.data)
         
 
@@ -385,20 +372,19 @@ class Machine(web_svc.AuthWebSvc):
         if (result.error_code != ERR_SUCCESS):
             return result
         
-        # FIXME: redo this with profile id
-        self.insert_profiles(token, [result.data])
+        # FIXME: redo this with image id
+        self.insert_images(token, [result.data])
         return success(result.data)
 
-    def insert_profiles(self, token, machines):
+    def insert_images(self, token, machines):
         for machine in machines:
-            if machine.has_key("profile_id") and machine["profile_id"] is not None and machine["profile_id"] != -1:
-                profile_obj = profile.Profile()
-                profile_results = profile_obj.get(token, {"id":machine["profile_id"]})
-                if not profile_results.ok():
-                    raise OrphanedObjectException(comment="profile_id")
-                machine["profile"] = profile_results.data
+            if machine["image_id"] is not None and machine["image_id"] != -1:
+                image_obj = image.Image()
+                image_results = image_obj.get(token, {"id":machine["image_id"]})
+                if not image_results.ok():
+                    raise OrphanedObjectException(comment="image_id")
+                machine["image"] = image_results.data
      
 methods = Machine()
 register_rpc = methods.register_rpc
-
 

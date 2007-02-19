@@ -54,9 +54,9 @@ class Puppet(web_svc.AuthWebSvc):
 
          data = {}
          if found_node is not None:
-             profile = found_node["profile"]
-             if profile is not None:
-                 puppet_str = profile["puppet_classes"]
+             image = found_node["image"]
+             if image is not None:
+                 puppet_str = image["puppet_classes"]
                  if puppet_str is not None:
                      puppet_classes = puppet_str.split()
                  else:
@@ -85,8 +85,6 @@ class Puppet(web_svc.AuthWebSvc):
 
 methods = Puppet()
 register_rpc = methods.register_rpc
-
-
 
 
 

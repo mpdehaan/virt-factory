@@ -20,16 +20,22 @@ module ApplicationHelper
 	   <li><A HREF="/regtoken/list">View Registration Tokens</A></li>
 	   </ul>
        </li>
-       <li><strong>Profiles</strong>
+       <li><strong>Image Profiles</strong>
 	   <ul>
-	   <li><A HREF="/profile/list">View Profiles</A></li>
-	   <li><A HREF="/profile/edit">(Developers) Add a Profile</A></li>
+	   <li><A HREF="/image/list">View Image Profiles</A></li>
+	   <li><A HREF="/image/edit">(Developers) Add an Image Profile</A></li>
 	   </ul>
        </li>
        <li><strong>Virtual Deployments</strong>
            <ul>
            <li><A HREF="/deployment/list">View Virtual Deployments</A></li>
            <li><A HREF="/deployment/edit">Add a Virtual Deployment</A></li>
+           </ul>
+       </li>
+       <li><strong>Task Queue</strong>
+           <ul>
+           <li><A HREF="/task/list">View Task Queue</A></li>
+           <li><A HREF="/task/edit">Add a Task</A></A>
            </ul>
        </li>
        <li><strong>Users</strong>

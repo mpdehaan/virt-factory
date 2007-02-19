@@ -1,7 +1,7 @@
-# profiles are cobbler profiles + distribution information + system recipe stuff, both virtual and not.  Some are appliances, others are specifications
+# images are system profiles + distribution information, both virtual and not.  Some are appliances, others are specifications
 # for machines that will contain one or more appliances
 
-class Profile < ManagedObject
+class Image < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { :id => {:type => Integer}, 
@@ -20,9 +20,9 @@ class Profile < ManagedObject
     self.set_attrs(ATTR_LIST)
 
     # web service methods start with this
-    METHOD_PREFIX = "profile"
+    METHOD_PREFIX = "image"
 
-    # when showing a profile onscreen, just use the name field in the database
+    # when showing an image onscreen, just use the name field in the database
     def objname
         name
     end

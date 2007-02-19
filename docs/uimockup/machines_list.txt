@@ -1,0 +1,33 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    Machines    (Instances)    (Images)    (Accounts)   (Setup) |
+| List        (Add)        
+|
+| Filter:   [State: All]
+| Filter:   [Architecture:  x86]
+| Filter:   [VMs:  In Use]
+|
+| <Name>      <Architecture>     <CPUs>     <State>    <Running VMs>
+| (asdf)      x86                1Gx1       Running    (foo1)
+| (jkl)       x86_64             2.4Gx2     Running    (bar1)
+| (mnopq)     ia64               2Gx8       Running    (baz1) (glurp3)
+| (rstuv)     x86                3Gx1       Running    (glurp2)
+|
+|
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+The Machines List Page
+
+The admin can use this page to see all the machines added to the network.
+If this page gets really large it probably needs to be paginated, but this
+is also what the filters are for.  Clicking on something like <State> would
+sort the list.
+
+Clicking on the name of a machine goes to the page described in
+"machines_edit_machine".   Clicking on a VM name goes to the page to configure
+that particular instance of the vm, "images_edit_image".

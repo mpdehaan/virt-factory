@@ -20,7 +20,7 @@ import config
 import machine
 import regtoken
 import web_svc
-import profile
+import image
 
 import logging
 import os
@@ -54,50 +54,49 @@ class Registration(web_svc.AuthWebSvc):
             print "debug: checking regtoken..."
             regtoken_obj.check(token)
             
-    def register(self, token, hostname, ip_addr, mac_addr, profile_name, virtyness):
+    def new_machine(self, token):
         self.__check_auth(token)
 
-        # currently kind of duct_typed, module object must support new() and associate()
-        if virtyness:
-            abstract_obj = deployment.Deployment()
-        else:
-            abstract_obj = machine.Machine()
+        machine_obj = machine.Machine()
+        return machine_obj.new(token)
 
-
-        results = abstract_obj.db.simple_list({}, { "mac_address" : mac_addr })
+    def register(self, token, hostname, ip_addr, mac_addr, image_name):
+        self.__check_auth(token)
+        
+        machine_obj = machine.Machine()
+        results = machine_obj.db.simple_list({}, { "mac_address" : mac_addr })
         if results.error_code != 0:
             return results
         if len(results.data) != 0:
             print "simple machine query"
-            abstract_id =  results.data[0]["id"]
-            print "existing machine id = %s" % abstract_id
+            machine_id =  results.data[0]["id"]
+            print "existing machine id = %s" % machine_id
         else:
-            results = abstract_obj.new(token)
-            abstract_id = results.data 
-            print "new abstract id = %s" % abstract_id
+            results = machine_obj.new(token)
+            machine_id = results.data 
+            print "new machine id = %s" % machine_id
 
-        profile_id = None
+        image_id = None
 
-        # see if there is an profile id for the token.  this does not work
+        # see if there is an image id for the token.  this does not work
         # for usernames and passwords.
         regtoken_obj = regtoken.RegToken()
         regtoken_obj.db.simple_list({}, { "token" : token })
         if results.error_code != 0 and len(results.data) != 0:
-            profile_id = results.data[0]["profile_id"]
+            image_id = results.data[0]["image_id"]
 
-        print "passed in profile name is (%s)" % profile_name
+        print "passed in image name is (%s)" % image_name
 
-        if profile_id != None and profile_name != "":
-            # no profile ID found for token, try a name lookup
-            profile_obj = profile.Profile()
-            profiles = profile_obj.db.simple_list({}, { "name" : profile_name })
-            if profiles.error_code != 0 and len(profiles.data) != 0:
-                profile_id = results.data[0]["id"]
+        if image_id != None and image_name != "":
+            # no image ID found for token, try a name lookup
+            image_obj = image.Image()
+            images = image_obj.db.simple_list({}, { "name" : image_name })
+            if images.error_code != 0 and len(images.data) != 0:
+                image_id = results.data[0]["id"]
 
-        print "calling associate with abstract_id: ", abstract_id
-        return abstract_obj.associate(token, abstract_id, hostname, ip_addr, mac_addr, profile_id)
+        print "calling associate with machine_id: ", machine_id
+        return machine_obj.associate(token, machine_id, hostname, ip_addr, mac_addr, image_id)
 
 
 methods = Registration()
 register_rpc = methods.register_rpc
-

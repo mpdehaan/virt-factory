@@ -48,29 +48,29 @@
             </TD>
          </TR>
          <TR>
-            <TD>Profile</TD>
+            <TD>Image</TD>
             <TD>
-                <% if @item.profile %>
+                <% if @item.image %>
                     <TABLE BORDER=0>
                         <TR>
                             <TD>Name</TD>
-                            <TD><%= @item.profile.name %></TD>
+                            <TD><%= @item.image.name %></TD>
                         </TR>
                         <TR> 
                             <TD>Version</TD>
-                            <TD><%= @item.profile.version %></TD>
+                            <TD><%= @item.image.version %></TD>
                         </TR>
                         <TR> 
                             <TD>Filename</TD>
-                            <TD><%= @item.profile.filename %></TD>
+                            <TD><%= @item.image.filename %></TD>
                         </TR>
                         <TR>
                             <TD>Specfile</TD>
-                            <TD><%= @item.profile.specfile %></TD>
+                            <TD><%= @item.image.specfile %></TD>
                         </TR>
                         <TR>
 			    <TD>Puppet Classes</TD>
-			    <TD><%= @item.profile.puppet_classes %></TD>
+			    <TD><%= @item.image.puppet_classes %></TD>
 			</TR>
                     </TABLE>
                 <% end %>

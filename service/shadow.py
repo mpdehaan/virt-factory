@@ -42,7 +42,7 @@ from modules import authentication
 from modules import config
 from modules import deployment
 from modules import distribution
-from modules import profile
+from modules import image
 from modules import machine
 from modules import provisioning
 from modules import registration
@@ -86,7 +86,7 @@ class XmlRpcInterface:
         """
         self.handlers = {}
         for x in [user, machine,
-                 profile, deployment,
+                 image, deployment,
                  distribution,config,
                  provisioning, registration,
                  authentication, task, regtoken, puppet]:
@@ -187,9 +187,6 @@ def main(argv):
         if argv[1].lower() == "import":
             prov_obj = provisioning.Provisioning()
             prov_obj.init(None, {})
-        elif argv[1].lower() == "sync":
-            prov_obj = provisioning.Provisioning()
-            prov_obj.sync(None, {}) # just for testing
         else:
             print """
 

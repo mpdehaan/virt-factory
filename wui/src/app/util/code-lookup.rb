@@ -11,9 +11,9 @@ ARCHITECTURES = {
 }
 
 VALID_TARGETS = { 
-    PROFILE_IS_BAREMETAL => "Bare Metal",
-    PROFILE_IS_VIRT      => "Virtual",
-    PROFILE_IS_EITHER    => "Either"
+    IMAGE_IS_BAREMETAL => "Bare Metal",
+    IMAGE_IS_VIRT      => "Virtual",
+    IMAGE_IS_EITHER    => "Either"
 }
 
 #================================================

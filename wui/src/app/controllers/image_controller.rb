@@ -1,11 +1,11 @@
 
-# Profiles  are either virtual or bare metal appliance profiles that can be provisioned to machines (dom0 containers and 
+# Images are either virtual or bare metal appliance profiles that can be provisioned to machines (dom0 containers and 
 # bare metal appliances) or deployed with a Deployment entry (domU's).
  
-class ProfileController < AbstractObjectController
+class ImageController < AbstractObjectController
 
    def edit
-       # the profile edit box needs to allow picking, via drop down, all of the values for possible distributions.
+       # the image edit box needs to allow picking, via drop down, all of the values for possible distributions.
        #---
        # NOTE: in the future, it may be that certain profiles are incompatible with certain distributions, but let's
        # fight that when we come to it.
@@ -19,7 +19,7 @@ class ProfileController < AbstractObjectController
    end
 
    def object_class
-       Profile
+       Image
    end
 
 end

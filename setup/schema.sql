@@ -1,17 +1,10 @@
-CREATE TABLE generic (
-   id              INTEGER PRIMARY KEY,
-   key             VARCHAR(255) UNIQUE NOT NULL,
-   value           VARCHAR(255)
-);
-
 CREATE TABLE tasks (
    id              INTEGER PRIMARY KEY,
    user_id         INTEGER,
-   machine_id      INTEGER,
-   deployment_id   INTEGER,
-   action_type     VARCHAR(255) NOT NULL,
-   time            INTEGER,
-   state           VARCHAR(255)
+   operation       INTEGER NOT NULL,
+   parameters      VARCHAR,
+   state           INTEGER NOT NULL,
+   time            REAL NOT NULL
 );
 
 CREATE TABLE users (
@@ -31,7 +24,7 @@ CREATE TABLE events (
    user_id         INTEGER NOT NULL,
    machine_id      INTEGER,
    deployment_id   INTEGER,
-   profile_id      INTEGER,
+   image_id        INTEGER,
    severity        INTEGER NOT NULL,
    category        VARCHAR (255) NOT NULL,
    action          VARCHAR (255) NOT NULL,
@@ -50,7 +43,7 @@ CREATE TABLE distributions (
    kickstart_metadata  VARCHAR(255)   
 );
 
-CREATE TABLE profiles (
+CREATE TABLE images (
    id INTEGER PRIMARY KEY,
    name               VARCHAR (255) UNIQUE,
    version            VARCHAR (255) NOT NULL,
@@ -68,21 +61,18 @@ CREATE TABLE deployments (
    id                 INTEGER PRIMARY KEY,
    hostname           VARCHAR(255),
    ip_address         VARCHAR(255),
-   registration_token VARCHAR(255),
    mac_address        VARCHAR(255),
    machine_id         INTEGER NOT NULL,
-   profile_id           INTEGER NOT NULL,
+   image_id           INTEGER NOT NULL,
    state              INTEGER NOT NULL,
    display_name       VARCHAR(255) NOT NULL,
-   puppet_node_diff   TEXT,
-   netboot_enabled    INTEGER
+   puppet_node_diff   TEXT
 );
 
 CREATE TABLE machines (
    id                 INTEGER PRIMARY KEY,
    hostname           VARCHAR(255),
    ip_address         VARCHAR(255),
-   registration_token VARCHAR(255),
    architecture       INTEGER,
    processor_speed    INTEGER,
    processor_count    INTEGER,
@@ -92,15 +82,14 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   profile_id         INTEGER,
-   puppet_node_diff   TEXT,
-   netboot_enabled    INTEGER
+   image_id           INTEGER,
+   puppet_node_diff   TEXT
 );
 
 CREATE TABLE regtokens (
    id                 INTEGER PRIMARY KEY,
    token              VARCHAR(255),
-   profile_id           INTEGER, 
+   image_id           INTEGER, 
    uses_remaining     INTEGER
 );
 

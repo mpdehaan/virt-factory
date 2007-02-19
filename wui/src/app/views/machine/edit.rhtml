@@ -21,8 +21,8 @@
             </TR> 
          <% end %>
          <TR>
-            <TD>Profile</TD>
-            <TD><%= f.select :profile_id, @profiles %></TD>
+            <TD>Image</TD>
+            <TD><%= f.select :image_id, @images %></TD>
          </TR>
          <% if !@item.hostname.nil? and @operation == "edit" %>
              <TR>

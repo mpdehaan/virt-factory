@@ -1,6 +1,55 @@
       <% @page_title = "View Task Queue" %>
       <%= ApplicationHelper.menubar("task","list") %>
      
-      I'm afraid you can't do that, Dave.
+      <div id="content-main">
+      <% if @items.length > 0 %>
+      <TABLE class='listing'>
+         <TR>
+            <TD>User</TD>
+            <TD>Operation</TD>
+            <TD>Parameters</TD>
+            <TD>State</TD>
+            <!-- FIXME: UI should convert to localtime -->
+            <TD>Start Time</TD>
+            <TD>Edit</TD>
+            <TD>Delete</TD>
+         </TR>
+      <% else %>
+         There are no scheduled tasks at this time.
+      <% end %>
+
+      <%# FIXME: sort by state and only show active entries %>
+      <% @items.each do |item| %>
+         <TR>
+             <!-- 
+                 FIXME: the following code is slower than heck and makes eleventy billion web calls because the backend
+                 does not send nested data over.  In reality, the real UI would not want to display all of this info
+                 most likely, so the first three fields can probably be trimmed out of the list.
+
+                 Do not leave the following code in, as it makes something like 6*N web service calls.  Ow!  Can't have that.
+                 (Plan is probably to nest the backend data)
+              -->
+             <TD> <%= 
+                      user_obj = item.get_user()
+                      username = user_obj.username 
+                      userid   = user_obj.id
+                      link_to username, :controller => "user", :action => "edit", :id => userid
+                  %> 
+             </TD>
+             <TD> <%= item.operation %> </TD>
+             <TD> <%= item.parameters %> </TD>
+             <TD> <%= item.state %> </TD>
+             <TD> <%= item.time %> </TD>
+             <!-- FIXME: do we allow editable tasks in release? -->
+             <TD> <%= link_to "edit", :controller => "task", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "[X]", :controller => "task", :action=> "delete", :id=> item.id %></TD>
+         </TR>
+      <% end %>
+
+      <% if @items.length > 0 %>
+      </TABLE>
+      <% end %>
+
+      </div>
 
       <% @callout_1 = "This is a list of background tasks." %>

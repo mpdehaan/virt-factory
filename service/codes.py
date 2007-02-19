@@ -44,7 +44,7 @@ ERR_TASK                = 13
 ERR_REG_TOKEN_INVALID   = 14
 ERR_REG_TOKEN_EXHAUSTED = 15
 
-# architecture field for machines and profiles
+# architecture field for machines and images
 ARCH_X86 = "x86"
 ARCH_X86_64 = "x86_64"
 ARCH_IA64 = "ia64"
@@ -58,11 +58,11 @@ COBBLER_ARCH_MAPPING = {
    ARCH_IA64   : "ia64"
 }
 
-# profile valid_targets field 
-PROFILE_IS_VIRT = "is_virt"
-PROFILE_IS_BAREMETAL = "is_baremetal"
-PROFILE_IS_EITHER = "is_either"
-VALID_TARGETS = [ PROFILE_IS_VIRT, PROFILE_IS_BAREMETAL, PROFILE_IS_EITHER ]
+# image valid_targets field 
+IMAGE_IS_VIRT = "is_virt"
+IMAGE_IS_BAREMETAL = "is_baremetal"
+IMAGE_IS_EITHER = "is_either"
+VALID_TARGETS = [ IMAGE_IS_VIRT, IMAGE_IS_BAREMETAL, IMAGE_IS_EITHER ]
 
 # machine is_container values
 MACHINE_IS_CONTAINER = 1
@@ -292,5 +292,4 @@ if __name__ == "__main__":
                print "%s = %s" % (x, obj)
            else:
                print "%s = \"%s\"" % (x, obj)
-
 

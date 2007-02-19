@@ -1,0 +1,31 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    Machines    Instances    (Images)    (Accounts)   (Setup) |
+| (List)     (Add)        
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+The Machines Page
+
+This is a category containing subpages.  The machines page is where you
+provision machines or "enslave" existing machines to put them on your
+virtual farm.
+
+By default it comes up to the GUI in "machine_list.txt"

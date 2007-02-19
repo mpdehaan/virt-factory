@@ -83,9 +83,9 @@ class DbUtil(object):
         offset = 0
         limit  = 100
         if args.has_key("offset"):
-            offset = profile_args["offset"]
+            offset = image_args["offset"]
         if args.has_key("limit"):
-            limit = profile_args["limit"]
+            limit = image_args["limit"]
         return (offset, limit) 
 
     def filter_param_list(self, full_list, provided_params):
@@ -213,5 +213,4 @@ class DbUtil(object):
         self.cursor.execute(buf, args)
         self.connection.commit()
         return success()
-
 

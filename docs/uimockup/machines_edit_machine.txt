@@ -1,0 +1,42 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    (Machines)  (Instances)    (Images)    (Accounts)   (Setup) |
+| Viewing/Editing:   acmelabs5   
+|
+| Inventory Record:
+|
+| Name          [acmelabs5-----------------------------------------]
+| Description   [a grey box with a shiny decal on the front--------]
+| Architecture  {x86------}   CPUs  [2---]   Speed [2.4------]
+| Lorem         [if there were other--]
+| Ipsum         [parameters they might]
+| IP Address    [go here -------------]
+| MAC Address   [---------------------]
+|                                             <Save Changes>
+| Actions:
+|     <Deregister this machine>
+|
+| Status:
+|    Insert monitoring charts and graphs and/or numbers related to
+|    general machine health here.   Not application specific stuff
+|    just the machine
+|
+| Virtual Images Assigned:
+|     (image5)                 RUNNING
+|     (virtual-puttputt)       CRASHED
+|
++--------------------------------------------------------------------------+
+
+The Machine View/Edit Page
+
+Clicking on a machine name anywhere in the GUI brings the user to this
+page where changes to the invetory record can be found.  On the machine
+page are also the metrics for the machine, as well as links to the VM
+instances running on it.   By keeping everything on the machine page
+we keep the users from having to go to seperate pages for monitoring,
+status, and making changes, which is a general systems management
+mistake.  This does mean certain data must be presentable in more than
+one location and in multiple ways -- but this enhances ease of use and
+is what databases are for :)
+

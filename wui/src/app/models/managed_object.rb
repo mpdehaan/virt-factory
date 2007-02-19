@@ -178,7 +178,7 @@ class ManagedObject
 
     # FIXME: what is id in this case?  is it a global?  a string?  it seems like this should return a string.
     # Anyhow, this is the base class, and in other classes we see this being the name of the managed object as
-    # it would be used in constructing method names, such as "profile", for "profile_add".
+    # it would be used in constructing method names, such as "image", for "image_add".
 
     def objname
         id

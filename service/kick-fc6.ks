@@ -1,7 +1,3 @@
-# ShadowManager kickstart file for FC6+ distros
-# intended to reside in /var/lib/shadowmananger/kick-fc6.ks
-# and be templated by SM/Cobbler.
-
 #platform=x86, AMD64, or Intel EM64T
 # System authorization information
 auth  --useshadow  --enablemd5
@@ -20,17 +16,16 @@ keyboard us
 # System language
 lang en_US
 # Use network installation
-url --url=$tree
+url --url=TEMPLATE::tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
-$repo_line
+TEMPLATE::yum_repo_stanza
 # Network information
 network --bootproto=dhcp --device=eth0 --onboot=on
 # Reboot after installation
 reboot
 
-
 #Root password
-rootpw --iscrypted $cryptpw
+rootpw --iscrypted $1$mF86/UHC$WvcIcX2t6crBz2onWxyac.
 # SELinux configuration
 selinux --disabled
 # Do not configure the X Window System
@@ -46,7 +41,7 @@ zerombr
 
 %pre
 # Determine how many drives we have
-set \$(list-harddrives)
+set $(list-harddrives)
 let numd=$#/2
 d1=$1
 d2=$3
@@ -56,17 +51,15 @@ part / --fstype ext3 --size=1024 --grow --ondisk=$d1 --asprimary
 part swap --size=1024 --ondisk=$d1 --asprimary
 #EOF
 
-%packages
-$node_common_packages
-$node_virt_packages
-$node_bare_packages
-$puppet_packages
+TEMPLATE::package_stanza_start
+TEMPLATE::virt_packages
+TEMPLATE::node_packages
 
 %post
-/usr/bin/sm_register $server_param $token_param $profile_param $registration_virt_toggle
-$extra_post_magic
-$kickstart_done
-
+TEMPLATE::yum_config_stanza
+/usr/bin/sm_register $TEMPLATE::server_param $TEMPLATE::token_param $TEMPLATE::image_param
+TEMPLATE::puppet_setup
+TEMPLATE::kickstart_done
 
 
 

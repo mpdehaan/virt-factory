@@ -32,17 +32,17 @@ import time
 
 class TaskData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "user_id", "machine_id", "deployment_id", "action_type", "time", "state" ] 
+    FIELDS = [ "id", "user_id", "operation", "parameters", "state", "time" ] 
 
-    def _produce(klass, profile_args,operation=None):
+    def _produce(klass, image_args,operation=None):
         """
         Factory method.  Create an object from input data, optionally
         running it through validation, which will vary depending on what
-        operation is creating the profile object.
+        operation is creating the image object.
         """
 
         self = TaskData()
-        self.from_datastruct(profile_args)
+        self.from_datastruct(image_args)
         self.validate(operation)
         return self
 
@@ -52,7 +52,7 @@ class TaskData(baseobj.BaseObject):
         """
         Deserialize the object from input
         """
-        return self.deserialize(args) 
+        return self.deserialize(args) # ,self.FIELDS)
 
     def to_datastruct_internal(self):
         """
@@ -92,9 +92,9 @@ class Task(web_svc.AuthWebSvc):
    DB_SCHEMA = {
        "table" : "tasks",
        "fields" : TaskData.FIELDS,
-       "add"   : [ "user_id", "machine_id", "deployment_id", "action_type", "time" ],
-       "edit"  : []  # nothing?  hmm?  is that how I want to leave this? 
-   }
+       "add"   : [ "user_id", "operation", "parameters", "state", "time" ],
+       "edit"  : [ "state" ]
+    }
 
    def __init__(self):
        """
@@ -115,22 +115,31 @@ class Task(web_svc.AuthWebSvc):
 
    def add(self, token, args):
        """
-       Create a task
+       Create a image.  image_args should contain all fields except ID.
        """
        
        u = TaskData.produce(args,OP_ADD) # force validation
        data = u.to_datastruct()
        data["time"] = time.time()
-       data["state"] = codes.TASK_STATE_QUEUED
-       # FIXME: enforce integrity of ID's (or just wait for Postgresql)     
+            
+ 
+       # no longer used...
+       # self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
+       # self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
+       
+       # FIXME: same note as above
+       # self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
+
        return self.db.simple_add(data)
 
 
    def edit(self, token, args):
        """
-       Tasks can only be added or deleted.  For now.
+       Edit object.  Args should contain all fields that need to be changed.
        """
-       return False
+       
+       u = TaskData.produce(args,OP_EDIT) # force validation
+       return self.db.simple_edit(u.to_datastruct())
 
 
    def delete(self, token, args):
@@ -156,13 +165,9 @@ class Task(web_svc.AuthWebSvc):
        """
        Return a specific record.  Only the "id" is required in args.
        """
-       # NOTE: the various id objects as nested for the WUI are NOT
-       # currently filled in here, since we don't have a working WUI
-       # task list.  This would want to be re-added eventually, if
-       # we wanted to display that.       
+       
        u = TaskData.produce(args, OP_GET) # validate
        return self.db.simple_get(u.to_datastruct())
  
 methods = Task()
 register_rpc = methods.register_rpc
-

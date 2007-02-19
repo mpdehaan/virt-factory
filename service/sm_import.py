@@ -1,9 +1,9 @@
 #!/usr/bin/python
 """
-sm_import is a utility script which imports an profile profile from an
+sm_import is a utility script which imports an image profile from an
 appliance definition file.
 
-Profile profiles should be a self-contained tarball with the following directory structure:
+Image profiles should be a self-contained tarball with the following directory structure:
 	profile.xml  -- includes metadata needed for adding to SM database.
 	manifests/profilename.pp  -- main puppet manifest for the
   	                             profile (should include the others)
@@ -13,14 +13,14 @@ Profile profiles should be a self-contained tarball with the following directory
 
 Each execution of the sm_import tool will do the following:
 
-	Use the XML data to insert a row into the profiles database IF it's not already imported
-	Import the manifests to /var/lib/shadowmanager/profiles/$profile-name/manifests/*
-	Import the data files to /var/lib/shadowmanager/profiles/$profile-name/files/*
-	Import the templates files to /var/lib/shadowmanager/profiles/$profile-name/templates/*
+	Use the XML data to insert a row into the images database IF it's not already imported
+	Import the manifests to /var/lib/shadowmanager/profiles/$image-name/manifests/*
+	Import the data files to /var/lib/shadowmanager/profiles/$image-name/files/*
+	Import the templates files to /var/lib/shadowmanager/profiles/$image-name/templates/*
 	Update the site-wide puppet manifest as necessary
 
 NOTE: this can only be run after the initial "shadow import", because
-      distributions are needed in order to import profile profiles. 
+      distributions are needed in order to import image profiles. 
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -48,7 +48,7 @@ import codes
 import logger
 logger.logfilepath = "/var/lib/shadowmanager/sm_import.log"
 from modules import distribution
-from modules import profile
+from modules import image
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
 PUPPET_FILE_DIR="/var/lib/shadowmanager/profiles"
@@ -151,24 +151,22 @@ class ShadowImporter:
        distribution_name = self.get_node_text(DISTRIBUTION_TAG)
        if (distribution_name is not None):
            distribution_obj = distribution.Distribution()
-           # FIXME: this doesn't allow setting the distro in the profile.xml?
            distribution_result = distribution_obj.get_by_name(None, {"name": "var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot"})
-           print "DEBUG:",distribution_result
            if (distribution_result.error_code != 0):
                raise codes.InvalidArgumentsException(comment="bad distribution name")
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
-       profile_obj = profile.Profile()
+       image_obj = image.Image()
        try:
-           existing_profile = profile_obj.get_by_name(None, profile_dict)
-           if existing_profile.data:
+           existing_image = image_obj.get_by_name(None, profile_dict)
+           if existing_image.data:
                print "modifying existing profile ", profile_dict["name"]
-               profile_dict["id"] = existing_profile.data["id"]
-               result = profile_obj.edit(None, profile_dict)
+               profile_dict["id"] = existing_image.data["id"]
+               result = image_obj.edit(None, profile_dict)
            else:
                print "creating new profile ", profile_dict["name"]
-               result = profile_obj.add(None, profile_dict)
+               result = image_obj.add(None, profile_dict)
        except Exception, e:
-           print "error adding profile: "
+           print "error adding image: "
            (t, v, tb) = sys.exc_info()
            self.logger.debug("Exception occured: %s" % t )
            self.logger.debug("Exception value: %s" % v)
@@ -224,6 +222,5 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 

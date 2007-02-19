@@ -1,0 +1,54 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    (Machines)    (Instances)    (Images)    Accounts   (Setup) |
+| Editing JoeUser
+|
+| 
+|  First [---------------]  Middle [---------------]  Last [-------------]
+|  Description [------------------------]
+|  Role [----------------------------]
+|  Email [---------------------------]
+|  Username [--------------------------]
+| 
+|  !Save Changes!
+|
+|  Recent Event Log Entries Mentioning This User
+|
+|  Date       Machine        Image       Status
+|  12/24/06   acmelabs5      virt-foo    INFORMATIONAL
+|  JoeUser changed image state to DISABLED
+|  ...
+|
+|  Authentication Options
+|
+|  [X]   Authenticate against this machine
+|        Password;  [---------------]
+|        Confirm:   [---------------]
+|
+|  [ ]   Authenticate against kerberos
+|        [OPTIONS GO HERE]
+|
+|
+|  
+|
+|
++--------------------------------------------------------------------------+
+
+Account management.
+
+Viewing and editing a specific user.  Here basic fields (but not the
+username) can be changed.   It almost seems like seeing the event
+log for the user and the details/settings are so different, they should
+be seperate pages.
+
+Though the general idea is that all actions are logged and when you click
+on a user name, you get taken to the user record with contact info and a
+history of what they've changed.  This is rather easy to do as I've done
+it before on some other projects.  It makes it easier to differentiate
+system and user initiated events in the event log.
+
+Again, we really might not do MUCH with accounts, but it would be nice
+to have our own account system to make things "drop-in" able versus
+requiring some other resource to log in against.
+

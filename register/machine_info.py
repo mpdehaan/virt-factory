@@ -146,4 +146,3 @@ def read_network_interfaces():
                               'module': module}
 
     return intDict
-

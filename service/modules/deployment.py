@@ -18,21 +18,21 @@
 from codes import *
 import baseobj
 
-import profile
+import image
 import machine
 import web_svc
 
 import traceback
 import threading
 
-import task
+
 
 #---------------------------------------------------------
 
 class DeploymentData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "registration_token", "mac_address", "machine_id", "profile_id",
-               "state", "display_name", "puppet_node_diff", "netboot_enabled" ]
+    FIELDS = [ "id", "hostname", "ip_address", "mac_address", "machine_id", "image_id",
+               "state", "display_name", "puppet_node_diff" ]
 
     def _produce(klass, deployment_dep_args,operation=None):
         """
@@ -75,9 +75,9 @@ class DeploymentData(baseobj.BaseObject):
             if self.machine_id is None:
                 passed = False
                 invalid["machine_id"] = REASON_REQUIRED
-            if self.profile_id is None:
+            if self.image_id is None:
                 passed = False
-                invalid["profile_id"] = REASON_REQUIRED
+                invalid["image_id"] = REASON_REQUIRED
 
         # FIXME: reduce boilerplate in doing things like this...
         if operation in [OP_EDIT,OP_DELETE,OP_GET]:
@@ -103,7 +103,7 @@ class Deployment(web_svc.AuthWebSvc):
     add_fields.remove("id")
     edit_fields = [ x for x in DeploymentData.FIELDS ]
     edit_fields.remove("id")
-    edit_fields.remove("profile_id")
+    edit_fields.remove("image_id")
 
     DB_SCHEMA = {
         "table"  : "deployments",
@@ -129,7 +129,7 @@ class Deployment(web_svc.AuthWebSvc):
          """
 
          mac = None
-         profilename = None
+         imagename = None
 
          try:
              machine_obj = machine.Machine()
@@ -139,64 +139,23 @@ class Deployment(web_svc.AuthWebSvc):
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
          try:
-             profile_obj = profile.Profile()
-             result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"]})
-             profilename = result.data["name"]
+             image_obj = image.Image()
+             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"]})
+             imagename = result.data["name"]
          except ShadowManagerException:
-             raise OrphanedObjectException(invalid_fields={'profile_id':REASON_ID})
+             raise OrphanedObjectException(invalid_fields={'image_id':REASON_ID})
 
-         display_name = mac + " / " + profilename
+         display_name = mac + " / " + imagename
 
          deployment_dep_args["display_name"] = display_name
-         deployment_dep_args["netboot_enabled"] = 0  # no PXE for virt yet, FIXME: add when supported by us.
-         # NOTE: when adding PXE for virt, registration must disable it, to prevent reboot loop.
-         # and we'll need some sort of virt/PXE WUI config monster :)
-
-         deployment_dep_args["mac_address"] = self.generate_mac()        
-         deployment_dep_args["state"] = "defined" # FIXME: make this a real constant (w/ a better value)
-
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
-         self.cobbler_sync(u.to_datastruct())
-         results = self.db.simple_add(u.to_datastruct())
-
-         # schedule the task to make this really happen.
-         task_obj = task.Task()
-         task_obj.add(token, {
-             "user_id"       : None,                                   # FIXME, get user from token record
-             "machine_id"    : deployment_dep_args["machine_id"],
-             "deployment_id" : results.data["id"],
-             "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT,
-         })
-
-         return results
-
-    def generate_mac(self):
-         """
-         Compilicated.  New deployments need to get a MAC address that we specify, because we need
-         a MAC address to generate a cobbler system PRIOR to issuing the koan install commands
-         using that specific system as a parameter to --system (in koan).
-         """
-         # this is only here for short term testing and needs to be fixxored ASAP.
-         # use the XenSource MAC range (for now) and offset based on database id (highest used)
-         return "DD:EE:AA:DD:BB:FF" # FIXME: total hack, until I get the mac address generator written
-         
-    def cobbler_sync(self, data):
-         cobbler_api = cobbler.api.BootAPI()
-         profiles = profile.Profile().list(None, {}).data
-         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virt=True)
+         return self.db.simple_add(u.to_datastruct())
 
     def edit(self, token, deployment_dep_args):
          """
          Edit a deployment.  deployment_dep_args should contain all fields that need to
          be changed.
          """
-
-         deployment_obj = deployment.Deployment()
-         old_record = deployment_obj.get(token, { "id" : deployment_dep_args["id"]})
-         old_id = old_record.data["id"]
-
-         # FIXME: huge unsupported deal here.  We don't currently do migrations, and this
-         # pretty much requires one.  WUI shouldn't have any editable fields for this YET.
 
          try:
              machine_obj = machine.Machine()
@@ -206,121 +165,32 @@ class Deployment(web_svc.AuthWebSvc):
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
-             profile_obj = profile.Profile()
-             result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"] })
-             profilename = result.data["name"]
+             image_obj = image.Image()
+             result = image_obj.get(token, { "id" : deployment_dep_args["image_id"] })
+             imagename = result.data["name"]
          except ShadowManagerException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-         display_name = mac + "/" + profilename
+         display_name = mac + "/" + imagename
          deployment_dep_args["display_name"] = display_name
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          # TODO: make this work w/ u.to_datastruct() 
-         self.cobbler_sync(u.to_datastruct())
-
-
-         results = self.db.simple_edit(deployment_dep_args)
- 
-         # do not schedule a migration unless the new machine_id is different from the old machine_id
-         # also note that the migration isn't currently supported anway :)
-         if deployment_dep_args.has_key("machine_id") and deployment_dep_args["machine_id"] != old_id:
-             task_obj = task.Task()
-             task_obj.add(token, {
-                 "user_id"       : None,
-                 "machine_id"    : deployment_dep_args["machine_id"],
-                 "deployment_id" : deployment_dep_args["id"],
-                 "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT,
-             })
-
-         return results
+         return self.db.simple_edit(deployment_dep_args)
 
     def delete(self, token, deployment_dep_args):
         """
-        This just schedules a task for taskatron to perform the deletion.
-        This is because actual deletion (in the middle of the taskatron call)
-        some libvirt ops must be performed.   
-
-        FIXME: this seems to imply having a "locked" flag on most objects both
-        for WUI display and knowing that WUI can't muck with them at this point.
-        """
-        
-        task_obj = task.Task()
-        task_obj.add(token, {
-            "user_id"       : None,
-            "machine_id"    : rc.data["machine_id"],
-            "deployment_id" : rc.data["id"],
-            "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
-        })
-        
-
-
-    def database_delete(self, token, deployment_dep_args):
-        """
         Deletes a deployment.  The deployment_dep_args must only contain the id field.
-        This will be called by taskatron.
         """
         u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
         
-
         # check to see that what we are deleting exists
         rc = self.get(token, deployment_dep_args)
         if not rc:
             raise NoSuchObjectException()
-
+        
         return self.db.simple_delete({ "id" : u.id })
 
-
-    # required for compatibility with machine table for registration.
-    def new(self, token):
-        return self.add(token, {})
-
-
-    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
-                  architecture=None, processor_speed=None, processor_count=None,
-                  memory=None):
-        """
-        Associate a machine with an ip/host/mac address
-        """
-        print "associating..."
-        # determine the profile from the token. 
-        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
-        regtoken_obj = regtoken.RegToken()
-        if token is None:
-            print "token is None???"
-        results = regtoken_obj.get_by_token(None, { "token" : token })
-        print "get_by_token"
-        print "results: %s" % results
-        if results.error_code != 0:
-            raise codes.InvalidArgumentsException("bad token")
-        # FIXME: check that at least some results are returned.
-
-        if results.data[0].has_key("profile_id"):
-            profile_id = results.data[0]["profile_id"]
-
-        # NOTE: it looks like the deployments table has no way to specify
-        # the number of virtual CPU's requested.  This is true.  It comes
-        # from the profile.  There is nothing to be gained from what
-        # registration would tell us because we set it originally, thus
-        # we already know.  Someone /could/ have tweaked it on the guest,
-        # but it doesn't really affect how we manage it.
-        args = {
-            'id': machine_id,
-            'hostname': hostname,
-            'ip_address': ip_addr,
-            'mac_address': mac_addr,
-            'profile_id': profile_id,
-            'state' : 'registered',
-            'netboot_enabled' : 0    # important, prevent possible PXE install loop.
-        }
-        print args
-
-        return self.edit(token, args)
-
-    
-
-    ## BIG FIXME:  NEEDS AN ASSOCIATE METHOD, JUST LIKE MACHINE, FOR VIRTY REGISTRATION
-    ## (that, and virty registration needs to indicate virtness so the right method is called!)
 
     def list(self, token, deployment_dep_args):
          """
@@ -341,25 +211,23 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.id,
          deployments.hostname,
          deployments.ip_address,
-         deployments.registration_token,
          deployments.mac_address,
          deployments.machine_id,
-         deployments.profile_id,
+         deployments.image_id,
          deployments.state,
          deployments.display_name,
          deployments.puppet_node_diff,
-         deployments.netboot_enabled,
-         profiles.id,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id,
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container,
-         profiles.puppet_classes,
+         images.id,
+         images.name,
+         images.version,
+         images.distribution_id,
+         images.virt_storage_size,
+         images.virt_ram,
+         images.kickstart_metadata,
+         images.kernel_options,
+         images.valid_targets,
+         images.is_container,
+         images.puppet_classes,
          machines.id,
          machines.hostname,
          machines.ip_address, 
@@ -372,9 +240,9 @@ class Deployment(web_svc.AuthWebSvc):
          machines.list_group,
          machines.mac_address,
          machines.is_container,
-         machines.profile_id
-         FROM deployments,profiles,machines 
-         WHERE profiles.id = deployments.profile_id AND
+         machines.image_id
+         FROM deployments,images,machines 
+         WHERE images.id = deployments.image_id AND
          machines.id = deployments.machine_id
          LIMIT ?,?
          """ 
@@ -388,51 +256,49 @@ class Deployment(web_svc.AuthWebSvc):
 
          for x in results:
 
-             profile_data = profile.ProfileData.produce({
-                    "id"                 : x[10],
-                    "name"               : x[11],
-                    "version"            : x[12],
-                    "distribtuion_id"    : x[13],
-                    "virt_storage_size"  : x[14],
-                    "virt_ram"           : x[15],
-                    "kickstart_metadata" : x[16],
-                    "kernel_options"     : x[17],
-                    "valid_targets"      : x[18],
-                    "is_container"       : x[19],
-                    "puppet_classes"     : x[20]
+             image_data = image.ImageData.produce({
+                    "id"                 : x[9],
+                    "name"               : x[10],
+                    "version"            : x[11],
+                    "distribtuion_id"    : x[12],
+                    "virt_storage_size"  : x[13],
+                    "virt_ram"           : x[14],
+                    "kickstart_metadata" : x[15],
+                    "kernel_options"     : x[16],
+                    "valid_targets"      : x[17],
+                    "is_container"       : x[18],
+                    "puppet_classes"     : x[19]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[21],
-                    "hostname"           : x[22],
-                    "ip_address"         : x[23],
-                    "architecture"       : x[24],
-                    "processor_speed"    : x[25],
-                    "processor_count"    : x[26],
-                    "memory"             : x[27],
-                    "kernel_options"     : x[28],
-                    "kickstart_metadata" : x[29],
-                    "list_group"         : x[30],
-                    "mac_address"        : x[31],
-                    "is_container"       : x[32],
-                    "profile_id"         : x[33]
+                    "id"                 : x[20],
+                    "hostname"           : x[21],
+                    "ip_address"         : x[22],
+                    "architecture"       : x[23],
+                    "processor_speed"    : x[24],
+                    "processor_count"    : x[25],
+                    "memory"             : x[26],
+                    "kernel_options"     : x[27],
+                    "kickstart_metadata" : x[28],
+                    "list_group"         : x[29],
+                    "mac_address"        : x[30],
+                    "is_container"       : x[31],
+                    "image_id"           : x[32]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
-                "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "registration_token" : x[3],
-                "mac_address"        : x[4],
-                "machine_id"         : x[5],
-                "profile_id"         : x[6],
-                "state"              : x[7],
-                "display_name"       : x[8],
-                "puppet_node_diff"   : x[9],
-                "netboot_enabled"    : x[10]
+                "id"               : x[0],
+                "hostname"         : x[1],
+                "ip_address"       : x[2],
+                "mac_address"      : x[3],
+                "machine_id"       : x[4],
+                "image_id"         : x[5],
+                "state"            : x[6],
+                "display_name"     : x[7],
+                "puppet_node_diff" : x[8]
              }).to_datastruct(True)
 
-             data["profile"] = profile_data
+             data["image"] = image_data
              data["machine"] = machine_data
              deployments.append(data)
 
@@ -466,13 +332,13 @@ class Deployment(web_svc.AuthWebSvc):
 
          st = """
          SELECT deployments.id,
-         deployments.hostname, deployments.ip_address, deployments.registration_token, deployments.mac_address,
-         deployments.machine_id, deployments.profile_id, deployments.state,
+         deployments.hostname, deployments.ip_address, deployments.mac_address,
+         deployments.machine_id,deployments.image_id,deployments.state,
          deployments.display_name,
-         deployments.puppet_node_diff, deployments.netboot_enabled,
-         profiles.id, machines.id
-         FROM deployments,profiles,machines WHERE deployments.id=:id AND 
-         profiles.id = deployments.profile_id AND machines.id = deployments.machine_id
+         deployments.puppet_node_diff,
+         images.id, machines.id
+         FROM deployments,images,machines WHERE deployments.id=:id AND 
+         images.id = deployments.image_id AND machines.id = deployments.machine_id
          """
 
          self.db.cursor.execute(st,{ "id" : u.id })
@@ -483,36 +349,35 @@ class Deployment(web_svc.AuthWebSvc):
          # exceptions will be raised by these next two calls, so no RC
          # checking is required
          machine_obj = machine.Machine()
-         profile_obj = profile.Profile()
-         machine_results = machine_obj.get(token, { "id" : x[5] })
-         profile_results   = profile_obj.get(token, { "id" : x[6] })
+         image_obj = image.Image()
+         machine_results = machine_obj.get(token, { "id" : x[4] })
+         image_results   = image_obj.get(token, { "id" : x[5] })
 
          data = DeploymentData.produce({
-                "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "registration_token" : x[3],
-                "mac_address"        : x[4],
-                "machine_id"         : x[5],
-                "profile_id"         : x[6],
-                "state"              : x[7],
-                "display_name"       : x[8],
-                "puppet_node_diff"   : x[9],
+                "id"               : x[0],
+                "hostname"         : x[1],
+                "ip_address"       : x[2],
+                "mac_address"      : x[3],
+                "machine_id"       : x[4],
+                "image_id"         : x[5],
+                "state"            : x[6],
+                "display_name"     : x[7],
+                "puppet_node_diff" : x[8]
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data
-         data["profile"]   = profile_results.data
+         data["image"]   = image_results.data
 
          return success(data)
 
     def insert_components(self, token, deployments):
         for deployment in deployments:
-            if deployment["profile_id"] is not None and deployment["profile_id"] != -1:
-                profile_obj = profile.Profile()
-                profile_results = profile_obj.get(token, {"id":deployment["profile_id"]})
-                if not profile_results.ok():
-                    raise OrphanedObjectException(comment="profile_id")
-                deployment["profile"] = profile_results.data
+            if deployment["image_id"] is not None and deployment["image_id"] != -1:
+                image_obj = image.Image()
+                image_results = image_obj.get(token, {"id":deployment["image_id"]})
+                if not image_results.ok():
+                    raise OrphanedObjectException(comment="image_id")
+                deployment["image"] = image_results.data
             if deployment["machine_id"] is not None and deployment["machine_id"] != -1:
                 machine_obj = machine.Machine()
                 machine_results = machine_obj.get(token, {"id":deployment["machine_id"]})
@@ -523,4 +388,3 @@ class Deployment(web_svc.AuthWebSvc):
 
 methods = Deployment()
 register_rpc = methods.register_rpc
-

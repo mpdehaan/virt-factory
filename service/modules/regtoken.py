@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import baseobj
 from codes import *
 
-import profile
+import image
 import web_svc
 
 import os
@@ -27,13 +27,13 @@ import base64
 
 class RegTokenData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "token", "profile_id", "uses_remaining"] 
+    FIELDS = [ "id", "token", "image_id", "uses_remaining"] 
 
     def _produce(klass, args,operation=None):
         """
-        Factory method.  Create a profile object from input, optionally
+        Factory method.  Create a image object from input, optionally
         running it through validation, which will vary depending on what
-        operation is creating the profile object.
+        operation is creating the image object.
         """
 
         self = RegTokenData()
@@ -51,7 +51,7 @@ class RegTokenData(baseobj.BaseObject):
 
         self.id                 = self.load(args,"id")
         self.token              = self.load(args,"token")
-        self.profile_id           = self.load(args,"profile_id")
+        self.image_id           = self.load(args,"image_id")
         self.uses_remaining     = self.load(args,"uses_remaining")
 
     def to_datastruct_internal(self):
@@ -62,7 +62,7 @@ class RegTokenData(baseobj.BaseObject):
         return {
             "id"                 : self.id,
             "token"              : self.token,
-            "profile_id"           : self.profile_id,
+            "image_id"           : self.image_id,
             "uses_remaining"     : self.uses_remaining,
         }
 
@@ -96,8 +96,8 @@ class RegToken(web_svc.AuthWebSvc):
     DB_SCHEMA = {
         "table" : "regtokens",
         "fields" : RegTokenData.FIELDS,
-        "add"   : [ "id", "token", "profile_id", "uses_remaining" ],
-        "edit"  : [ "profile_id", "uses_remaining" ]
+        "add"   : [ "id", "token", "image_id", "uses_remaining" ],
+        "edit"  : [ "image_id", "uses_remaining" ]
     }
 
     def __init__(self):
@@ -113,12 +113,12 @@ class RegToken(web_svc.AuthWebSvc):
 
     def add(self, token, args):
          """
-         Create a registration token.   Only profile_id and uses_remaining are used as input.
+         Create a registration token.   Only image_id and uses_remaining are used as input.
          """
 
          st = """
-         INSERT INTO regtokens (token, profile_id, uses_remaining)
-         VALUES (:token, :profile_id, :uses_remaining)
+         INSERT INTO regtokens (token, image_id, uses_remaining)
+         VALUES (:token, :image_id, :uses_remaining)
          """
 
          # token is base64 encoded short string from /dev/urandom
@@ -133,12 +133,12 @@ class RegToken(web_svc.AuthWebSvc):
          u = RegTokenData.produce(args,OP_ADD)
          print u.to_datastruct()
 
-         if u.profile_id is not None:
+         if u.image_id is not None:
              try:
-                 self.profile_obj = profile.Profile()
-                 self.profile_obj.get(token, { "id" : u.profile_id})
+                 self.image_obj = image.Image()
+                 self.image_obj.get(token, { "id" : u.image_id})
              except ShadowManagerException:
-                 raise OrphanedObjectException(comment='profile_id',traceback=traceback.format_exc())
+                 raise OrphanedObjectException(comment='image_id',traceback=traceback.format_exc())
 
          lock = threading.Lock()
          lock.acquire()
@@ -188,20 +188,20 @@ class RegToken(web_svc.AuthWebSvc):
          SELECT 
          regtokens.id,
          regtokens.token,
-         regtokens.profile_id,
+         regtokens.image_id,
          regtokens.uses_remaining,
-         profiles.id,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id, 
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container
+         images.id,
+         images.name,
+         images.version,
+         images.distribution_id, 
+         images.virt_storage_size,
+         images.virt_ram,
+         images.kickstart_metadata,
+         images.kernel_options,
+         images.valid_targets,
+         images.is_container
          FROM regtokens
-         LEFT OUTER JOIN profiles ON regtokens.profile_id = profiles.id 
+         LEFT OUTER JOIN images ON regtokens.image_id = images.id 
          LIMIT ?,?
          """ 
 
@@ -217,12 +217,12 @@ class RegToken(web_svc.AuthWebSvc):
              data = RegTokenData.produce({         
                 "id"             : x[0],
                 "token"          : x[1],
-                "profile_id"       : x[2],
+                "image_id"       : x[2],
                 "uses_remaining" : x[3]
              }).to_datastruct(True)
 
              if x[2] is not None and x[2] != -1:
-                 data["profile"] = profile.ProfileData.produce({
+                 data["image"] = image.ImageData.produce({
                      "id"                 : x[4],
                      "name"               : x[5],
                      "version"            : x[6],
@@ -298,7 +298,7 @@ class RegToken(web_svc.AuthWebSvc):
          u = RegTokenData.produce(args,OP_GET) # force validation
 
          st = """
-         SELECT id,token,profile_id,uses_remaining
+         SELECT id,token,image_id,uses_remaining
          FROM regtokens WHERE id=:id
          """
 
@@ -311,18 +311,18 @@ class RegToken(web_svc.AuthWebSvc):
          data = {
                 "id"                 : x[0],
                 "token"              : x[1],
-                "profile_id"           : x[2],
+                "image_id"           : x[2],
                 "uses_remaining"     : x[3]
          }
 
-         data = ProfileData.produce(data).to_datastruct(True)
+         data = ImageData.produce(data).to_datastruct(True)
 
          if x[2] is not None:
-             profile_obj = profile.Profile()
-             profile_results = profile_obj.get(None, { "id" : x[2] })
-             if not profile_results.ok():
-                 raise OrphanedObjectException(comment="profile_id")
-             data["profile"] = profile_results.data
+             image_obj = image.Image()
+             image_results = image_obj.get(None, { "id" : x[2] })
+             if not image_results.ok():
+                 raise OrphanedObjectException(comment="image_id")
+             data["image"] = image_results.data
 
          return success(data)
 
@@ -330,5 +330,4 @@ class RegToken(web_svc.AuthWebSvc):
 
 methods = RegToken()
 register_rpc = methods.register_rpc
-
 

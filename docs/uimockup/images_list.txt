@@ -1,0 +1,25 @@
++---------------------------------------------------------------------------+
+| RedHat Shadow Manager                                                     |
++---------------------------------------------------------------------------+
+| (Events)    (Machines)    (Instances)    Images    (Accounts)   (Setup) |
+| (List)      (Add)       
+|
+| Images in the system (see "Instances" for deployment info)
+|
+| <Name>             <Version>         <Vendor>      <Description>
+| (virtual-foo)      1.25              AcmeCorp      Veeblefritzer
+| (virtual-bar)      8.675309          AcmeCorp      Overglorified Demux
+| (something)        2.71828           BarCorp       Transmogrifier              
+|
+|
+|
+|
+|
+|
+|
+|
+|
++--------------------------------------------------------------------------+
+
+This is a simple list of all the images that can be deployed.  Clicking
+on an image name goes to the edit page for that image definition.

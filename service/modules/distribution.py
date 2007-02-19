@@ -157,15 +157,15 @@ class Distribution(web_svc.AuthWebSvc):
     def delete(self, token, dist_args):
 
         st = """
-        SELECT profiles.id FROM profiles, distributions WHERE
-        profiles.distribution_id = :id
+        SELECT images.id FROM images, distributions WHERE
+        images.distribution_id = :id
         """
 
         u = DistributionData.produce(dist_args, OP_DELETE)
         self.db.cursor.execute(st, u.to_datastruct())
         x = self.db.cursor.fetchone()
         if x is not None:
-            raise OrphanedObjectException(comment="profiles.distribution_id")
+            raise OrphanedObjectException(comment="images.distribution_id")
         u = DistributionData.produce(dist_args,OP_DELETE) # force validation
         
         return self.db.simple_delete(u.to_datastruct())
@@ -209,4 +209,3 @@ class Distribution(web_svc.AuthWebSvc):
 
 methods = Distribution()
 register_rpc = methods.register_rpc
-

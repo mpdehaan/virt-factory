@@ -17,13 +17,13 @@
                    <TD><%= @item.mac_address %></TD>
                <TR>
             <% end %>
-         <% if @item.profile %>
+         <% if @item.image %>
              <TR>
-                 <TD>Profile</TD>
+                 <TD>Image</TD>
                      <TD>
                          <TABLE BORDER=0>
-                             <TR><TD>Name</TD><TD><%= @item.profile.name %></TD></TR>
-                             <TR><TD>Version</TD><TD><%= @item.profile.version %></TD></TR>
+                             <TR><TD>Name</TD><TD><%= @item.image.name %></TD></TR>
+                             <TR><TD>Version</TD><TD><%= @item.image.version %></TD></TR>
                          </TABLE>
                      </TD>
                 </TD>
