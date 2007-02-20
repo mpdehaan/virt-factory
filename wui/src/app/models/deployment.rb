@@ -16,6 +16,7 @@ class Deployment < ManagedObject
        :display_name       => { :type => String  }, 
        :puppet_node_diff   => { :type => String  },
        :machine            => { :type => Machine, :id_attr => :machine_id }, 
+       :netboot_enabled    => { :type => Integer },
        :profile            => { :type => Profile, :id_attr => :profile_id } 
     }
     self.set_attrs(ATTR_LIST)
