@@ -5,17 +5,18 @@ class Deployment < ManagedObject
 
     # corresponds to what's in the database schema
     ATTR_LIST = { 
-       :id               => { :type => Integer }, 
-       :hostname         => { :type => String  },
-       :ip_address       => { :type => String  },
-       :mac_address      => { :type => String  },
-       :machine_id       => { :type => Integer }, 
-       :profile_id       => { :type => Integer }, 
-       :state            => { :type => String  },
-       :display_name     => { :type => String  }, 
-       :puppet_node_diff => { :type => String  },
-       :machine          => { :type => Machine, :id_attr => :machine_id }, 
-       :profile          => { :type => Profile, :id_attr => :profile_id} 
+       :id                 => { :type => Integer }, 
+       :hostname           => { :type => String  },
+       :ip_address         => { :type => String  },
+       :registration_token => { :type => String  },
+       :mac_address        => { :type => String  },
+       :machine_id         => { :type => Integer }, 
+       :profile_id         => { :type => Integer }, 
+       :state              => { :type => String  },
+       :display_name       => { :type => String  }, 
+       :puppet_node_diff   => { :type => String  },
+       :machine            => { :type => Machine, :id_attr => :machine_id }, 
+       :profile            => { :type => Profile, :id_attr => :profile_id } 
     }
     self.set_attrs(ATTR_LIST)
      

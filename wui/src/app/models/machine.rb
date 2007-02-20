@@ -7,21 +7,23 @@
 class Machine < ManagedObject
 
     # corresponds with db schema
-    ATTR_LIST = { :id => {:type => Integer}, 
-                  :hostname => {:type => String}, 
-                  :ip_address => {:type => String},
-                  :architecture => {:type => String}, 
-                  :processor_speed => {:type => Integer}, 
-                  :processor_count => {:type => Integer}, 
-                  :memory => {:type => Integer},
-                  :profile_id => {:type => Integer}, 
-                  :profile => { :type => Profile, :id_attr => :profile_id},
-                  :kernel_options => {:type => String}, 
-                  :kickstart_metadata => {:type => String}, 
-                  :list_group => {:type => String}, 
-                  :mac_address => {:type => String}, 
-                  :is_container => {:type => Integer}, 
-                  :puppet_node_diff => {:type => String} }
+    ATTR_LIST = { :id                 => { :type => Integer }, 
+                  :hostname           => { :type => String  }, 
+                  :ip_address         => { :type => String  },
+                  :registration_token => { :type => String  },
+                  :architecture       => { :type => String  }, 
+                  :processor_speed    => { :type => Integer }, 
+                  :processor_count    => { :type => Integer }, 
+                  :memory             => { :type => Integer },
+                  :profile_id         => { :type => Integer }, 
+                  :profile            => { :type => Profile, :id_attr => :profile_id },
+                  :kernel_options     => { :type => String  }, 
+                  :kickstart_metadata => { :type => String  }, 
+                  :list_group         => { :type => String  }, 
+                  :mac_address        => { :type => String  }, 
+                  :is_container       => { :type => Integer }, 
+                  :puppet_node_diff   => { :type => String  } 
+    }
 
     self.set_attrs(ATTR_LIST)
 
