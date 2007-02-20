@@ -5,13 +5,15 @@ class Task < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { 
-        :id            => {:type => Integer },
-        :user_id       => {:type => Integer }, 
-        :operation     => {:type => String  }, 
-        :parameters    => {:type => String  }, 
-        :state         => {:type => String  }, 
-        :time          => {:type => Integer }, 
-        :user          => {:type => User,       :id_attr => :user_id       }
+        :id            => { :type => Integer },
+        :user_id       => { :type => Integer },
+        :user          => { :type => User,       :id_attr => :user_id },
+        :machine_id    => { :type => Integer },  
+        :machine       => { :type => Machine ,   :id_attr => :machine_id },
+        :deployment_id => { :type => Integer }, 
+        :deployment    => { :type => Deployment, :id_attr => :deployment_id },
+        :action_type   => { :type => String },
+        :time          => { :type => Integer }, 
     }
                    
     self.set_attrs(ATTR_LIST)
