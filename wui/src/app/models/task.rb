@@ -14,6 +14,7 @@ class Task < ManagedObject
         :deployment    => { :type => Deployment, :id_attr => :deployment_id },
         :action_type   => { :type => String },
         :time          => { :type => Integer }, 
+        :state         => { :type => String }
     }
                    
     self.set_attrs(ATTR_LIST)

@@ -32,7 +32,7 @@ import time
 
 class TaskData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "user_id", "machine_id", "deployment_id", "action_type", "time" ] 
+    FIELDS = [ "id", "user_id", "machine_id", "deployment_id", "action_type", "time", "state" ] 
 
     def _produce(klass, profile_args,operation=None):
         """
@@ -121,6 +121,7 @@ class Task(web_svc.AuthWebSvc):
        u = TaskData.produce(args,OP_ADD) # force validation
        data = u.to_datastruct()
        data["time"] = time.time()
+       data["state"] = codes.TASK_STATE_QUEUED
        # FIXME: enforce integrity of ID's (or just wait for Postgresql)     
        return self.db.simple_add(data)
 

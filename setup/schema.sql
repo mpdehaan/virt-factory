@@ -10,7 +10,8 @@ CREATE TABLE tasks (
    machine_id      INTEGER,
    deployment_id   INTEGER,
    action_type     VARCHAR(255) NOT NULL,
-   time            INTEGER
+   time            INTEGER,
+   state           VARCHAR(255)
 );
 
 CREATE TABLE users (
