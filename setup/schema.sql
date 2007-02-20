@@ -1,3 +1,9 @@
+CREATE TABLE generic (
+   id              INTEGER PRIMARY KEY,
+   key             VARCHAR(255) UNIQUE NOT NULL,
+   value           VARCHAR(255)
+);
+
 CREATE TABLE tasks (
    id              INTEGER PRIMARY KEY,
    user_id         INTEGER,
