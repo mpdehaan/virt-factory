@@ -309,6 +309,9 @@ class Provisioning(web_svc.AuthWebSvc):
       self.machine = machine.Machine() 
       machines  = self.machine.list(token, {})
 
+      self.deployment = deployment.Deployment()
+      deployments = self.deployment.list(token, {})
+
       # cobbler can't be run multiple times at once...
       # cobbler does do it's own locking from the CLI, but the API, no, not from there...
       lock = threading.Lock()
@@ -317,7 +320,8 @@ class Provisioning(web_svc.AuthWebSvc):
       distributions = distributions.data
       profiles = profiles.data
       machines = machines.data
-      
+      deployments = deployments.data
+ 
       # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
       # the server field might have changed.
       

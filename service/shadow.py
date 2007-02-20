@@ -187,6 +187,9 @@ def main(argv):
         if argv[1].lower() == "import":
             prov_obj = provisioning.Provisioning()
             prov_obj.init(None, {})
+        elif argv[1].lower() == "sync":
+            prov_obj = provisioning.Provisioning()
+            prov_obj.sync(None, {}) # just for testing
         else:
             print """
 
