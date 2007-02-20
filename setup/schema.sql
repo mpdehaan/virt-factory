@@ -73,7 +73,8 @@ CREATE TABLE deployments (
    profile_id           INTEGER NOT NULL,
    state              INTEGER NOT NULL,
    display_name       VARCHAR(255) NOT NULL,
-   puppet_node_diff   TEXT
+   puppet_node_diff   TEXT,
+   netboot_enabled    INTEGER
 );
 
 CREATE TABLE machines (
@@ -92,6 +93,7 @@ CREATE TABLE machines (
    is_container       INTEGER,
    profile_id         INTEGER,
    puppet_node_diff   TEXT,
+   netboot_enabled    INTEGER
 );
 
 CREATE TABLE regtokens (

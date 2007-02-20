@@ -30,9 +30,9 @@ import traceback
 
 class MachineData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "architecture", "processor_speed", "processor_count", "memory",
+    FIELDS = [ "id", "hostname", "ip_address", "registration_token", "architecture", "processor_speed", "processor_count", "memory",
                "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
-               "profile_id", "puppet_node_diff" ]
+               "profile_id", "puppet_node_diff", "netboot_enabled" ]
 
     def _produce(klass, machine_args,operation=None):
         """
@@ -207,9 +207,11 @@ class Machine(web_svc.AuthWebSvc):
             'architecture' : architecture,
             'processor_speed' : processor_speed,
             'processor_count' : processor_count,
-            'memory' : memory
+            'memory' : memory,
+            'netboot_enabled' : 0
         }
         print args
+
         return self.edit(token, args)
         
     def edit(self, token, machine_args):
@@ -271,6 +273,7 @@ class Machine(web_svc.AuthWebSvc):
          SELECT machines.id AS mid, 
          machines.hostname,
          machines.ip_address,
+         machines.registration_token,
          machines.architecture,
          machines.processor_speed,
          machines.processor_count,
@@ -282,6 +285,7 @@ class Machine(web_svc.AuthWebSvc):
          machines.is_container,
          machines.profile_id,
          machines.puppet_node_diff,
+         machines.netboot_enabled,
          profiles.name,
          profiles.version,
          profiles.distribution_id,
@@ -310,32 +314,34 @@ class Machine(web_svc.AuthWebSvc):
                  "id"                 : x[0],
                  "hostname"           : x[1],
                  "ip_address"         : x[2],
-                 "architecture"       : x[3],
-                 "processor_speed"    : x[4],
-                 "processor_count"    : x[5],
-                 "memory"             : x[6],
-                 "kernel_options"     : x[7],
-                 "kickstart_metadata" : x[8],
-                 "list_group"         : x[9],
-                 "mac_address"        : x[10],
-                 "is_container"       : x[11],
-                 "profile_id"           : x[12],
-                 "puppet_node_diff"   : x[13]
+                 "registration_token" : x[3]
+                 "architecture"       : x[4],
+                 "processor_speed"    : x[5],
+                 "processor_count"    : x[6],
+                 "memory"             : x[7],
+                 "kernel_options"     : x[8],
+                 "kickstart_metadata" : x[9],
+                 "list_group"         : x[10],
+                 "mac_address"        : x[11],
+                 "is_container"       : x[12],
+                 "profile_id"         : x[13],
+                 "puppet_node_diff"   : x[14],
+                 "netboot_enabled"    : x[15]
              }).to_datastruct(True)
 
              if x[12] is not None and x[12] != -1:
                  data["profile"] = profile.ProfileData.produce({
-                      "id"                 : x[12],
-                      "name"               : x[14],
-                      "version"            : x[15],
-                      "distribution_id"    : x[16],
-                      "virt_storage_size"  : x[17],
-                      "virt_ram"           : x[18],
-                      "kickstart_metadata" : x[19],
-                      "kernel_options"     : x[20],
-                      "valid_targets"      : x[21],
-                      "is_container"       : x[22],
-                      "puppet_classes"     : x[23]
+                      "id"                 : x[13],
+                      "name"               : x[16],
+                      "version"            : x[17],
+                      "distribution_id"    : x[18],
+                      "virt_storage_size"  : x[19],
+                      "virt_ram"           : x[20],
+                      "kickstart_metadata" : x[21],
+                      "kernel_options"     : x[22],
+                      "valid_targets"      : x[23],
+                      "is_container"       : x[24],
+                      "puppet_classes"     : x[25]
                  }).to_datastruct(True)
 
              machines.append(data)

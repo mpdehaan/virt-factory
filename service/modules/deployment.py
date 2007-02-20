@@ -31,8 +31,8 @@ import threading
 
 class DeploymentData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "hostname", "ip_address", "mac_address", "machine_id", "profile_id",
-               "state", "display_name", "puppet_node_diff" ]
+    FIELDS = [ "id", "hostname", "ip_address", "registration_token", "mac_address", "machine_id", "profile_id",
+               "state", "display_name", "puppet_node_diff", "netboot_enabled" ]
 
     def _produce(klass, deployment_dep_args,operation=None):
         """
@@ -198,6 +198,8 @@ class Deployment(web_svc.AuthWebSvc):
         
         return self.db.simple_delete({ "id" : u.id })
 
+    ## BIG FIXME:  NEEDS AN ASSOCIATE METHOD, JUST LIKE MACHINE, FOR VIRTY REGISTRATION
+    ## (that, and virty registration needs to indicate virtness so the right method is called!)
 
     def list(self, token, deployment_dep_args):
          """
@@ -218,12 +220,14 @@ class Deployment(web_svc.AuthWebSvc):
          deployments.id,
          deployments.hostname,
          deployments.ip_address,
+         deployments.registration_token,
          deployments.mac_address,
          deployments.machine_id,
          deployments.profile_id,
          deployments.state,
          deployments.display_name,
          deployments.puppet_node_diff,
+         deployments.netboot_enabled,
          profiles.id,
          profiles.name,
          profiles.version,
@@ -264,45 +268,47 @@ class Deployment(web_svc.AuthWebSvc):
          for x in results:
 
              profile_data = profile.ProfileData.produce({
-                    "id"                 : x[9],
-                    "name"               : x[10],
-                    "version"            : x[11],
-                    "distribtuion_id"    : x[12],
-                    "virt_storage_size"  : x[13],
-                    "virt_ram"           : x[14],
-                    "kickstart_metadata" : x[15],
-                    "kernel_options"     : x[16],
-                    "valid_targets"      : x[17],
-                    "is_container"       : x[18],
-                    "puppet_classes"     : x[19]
+                    "id"                 : x[10],
+                    "name"               : x[11],
+                    "version"            : x[12],
+                    "distribtuion_id"    : x[13],
+                    "virt_storage_size"  : x[14],
+                    "virt_ram"           : x[15],
+                    "kickstart_metadata" : x[16],
+                    "kernel_options"     : x[17],
+                    "valid_targets"      : x[18],
+                    "is_container"       : x[19],
+                    "puppet_classes"     : x[20]
              }).to_datastruct(True)
 
              machine_data = machine.MachineData.produce({
-                    "id"                 : x[20],
-                    "hostname"           : x[21],
-                    "ip_address"         : x[22],
-                    "architecture"       : x[23],
-                    "processor_speed"    : x[24],
-                    "processor_count"    : x[25],
-                    "memory"             : x[26],
-                    "kernel_options"     : x[27],
-                    "kickstart_metadata" : x[28],
-                    "list_group"         : x[29],
-                    "mac_address"        : x[30],
-                    "is_container"       : x[31],
-                    "profile_id"           : x[32]
+                    "id"                 : x[21],
+                    "hostname"           : x[22],
+                    "ip_address"         : x[23],
+                    "architecture"       : x[24],
+                    "processor_speed"    : x[25],
+                    "processor_count"    : x[26],
+                    "memory"             : x[27],
+                    "kernel_options"     : x[28],
+                    "kickstart_metadata" : x[29],
+                    "list_group"         : x[30],
+                    "mac_address"        : x[31],
+                    "is_container"       : x[32],
+                    "profile_id"         : x[33]
              }).to_datastruct(True)
 
              data = DeploymentData.produce({         
-                "id"               : x[0],
-                "hostname"         : x[1],
-                "ip_address"       : x[2],
-                "mac_address"      : x[3],
-                "machine_id"       : x[4],
-                "profile_id"         : x[5],
-                "state"            : x[6],
-                "display_name"     : x[7],
-                "puppet_node_diff" : x[8]
+                "id"                 : x[0],
+                "hostname"           : x[1],
+                "ip_address"         : x[2],
+                "registration_token" : x[3]
+                "mac_address"        : x[4],
+                "machine_id"         : x[5],
+                "profile_id"         : x[6],
+                "state"              : x[7],
+                "display_name"       : x[8],
+                "puppet_node_diff"   : x[9],
+                "netboot_enabled"    : x[10]
              }).to_datastruct(True)
 
              data["profile"] = profile_data
@@ -339,10 +345,10 @@ class Deployment(web_svc.AuthWebSvc):
 
          st = """
          SELECT deployments.id,
-         deployments.hostname, deployments.ip_address, deployments.mac_address,
-         deployments.machine_id,deployments.profile_id,deployments.state,
+         deployments.hostname, deployments.ip_address, deployments.registration_token, deployments.mac_address,
+         deployments.machine_id, deployments.profile_id, deployments.state,
          deployments.display_name,
-         deployments.puppet_node_diff,
+         deployments.puppet_node_diff, deployments.netboot_enabled,
          profiles.id, machines.id
          FROM deployments,profiles,machines WHERE deployments.id=:id AND 
          profiles.id = deployments.profile_id AND machines.id = deployments.machine_id
@@ -357,19 +363,20 @@ class Deployment(web_svc.AuthWebSvc):
          # checking is required
          machine_obj = machine.Machine()
          profile_obj = profile.Profile()
-         machine_results = machine_obj.get(token, { "id" : x[4] })
-         profile_results   = profile_obj.get(token, { "id" : x[5] })
+         machine_results = machine_obj.get(token, { "id" : x[5] })
+         profile_results   = profile_obj.get(token, { "id" : x[6] })
 
          data = DeploymentData.produce({
-                "id"               : x[0],
-                "hostname"         : x[1],
-                "ip_address"       : x[2],
-                "mac_address"      : x[3],
-                "machine_id"       : x[4],
-                "profile_id"         : x[5],
-                "state"            : x[6],
-                "display_name"     : x[7],
-                "puppet_node_diff" : x[8]
+                "id"                 : x[0],
+                "hostname"           : x[1],
+                "ip_address"         : x[2],
+                "registration_token" : x[3],
+                "mac_address"        : x[4],
+                "machine_id"         : x[5],
+                "profile_id"         : x[6],
+                "state"              : x[7],
+                "display_name"       : x[8],
+                "puppet_node_diff"   : x[9],
          }).to_datastruct(True)
 
          data["machine"] = machine_results.data
