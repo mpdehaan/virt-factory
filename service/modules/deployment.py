@@ -148,6 +148,10 @@ class Deployment(web_svc.AuthWebSvc):
          display_name = mac + " / " + profilename
 
          deployment_dep_args["display_name"] = display_name
+         deployment_dep_args["netboot_enabled"] = 0  # no PXE for virt yet, FIXME: add when supported by us.
+         # NOTE: when adding PXE for virt, registration must disable it, to prevent reboot loop.
+         # and we'll need some sort of virt/PXE WUI config monster :)
+         
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
          return self.db.simple_add(u.to_datastruct())
@@ -239,7 +243,7 @@ class Deployment(web_svc.AuthWebSvc):
             'mac_address': mac_addr,
             'profile_id': profile_id,
             'state' : 'registered',
-            'netboot_enabled' : 0
+            'netboot_enabled' : 0    # important, prevent possible PXE install loop.
         }
         print args
 

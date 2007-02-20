@@ -289,6 +289,11 @@ class CobblerTranslatedSystem:
        new_item.set_kernel_options(kernel_options)
        new_item.set_ksmeta(ks_meta)
 
+       if from_db.has_key("netboot_enabled"):
+           new_item.set_netboot_enabled(from_db["netboot_enabled"])
+       else:
+           new_item.set_netboot_enabled(False)
+
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
        
