@@ -198,6 +198,55 @@ class Deployment(web_svc.AuthWebSvc):
         
         return self.db.simple_delete({ "id" : u.id })
 
+
+    # required for compatibility with machine table for registration.
+    def new(self, token):
+        return self.add(token, {})
+
+
+    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
+                  architecture=None, processor_speed=None, processor_count=None,
+                  memory=None):
+        """
+        Associate a machine with an ip/host/mac address
+        """
+        print "associating..."
+        # determine the profile from the token. 
+        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
+        regtoken_obj = regtoken.RegToken()
+        if token is None:
+            print "token is None???"
+        results = regtoken_obj.get_by_token(None, { "token" : token })
+        print "get_by_token"
+        print "results: %s" % results
+        if results.error_code != 0:
+            raise codes.InvalidArgumentsException("bad token")
+        # FIXME: check that at least some results are returned.
+
+        if results.data[0].has_key("profile_id"):
+            profile_id = results.data[0]["profile_id"]
+
+        # NOTE: it looks like the deployments table has no way to specify
+        # the number of virtual CPU's requested.  This is true.  It comes
+        # from the profile.  There is nothing to be gained from what
+        # registration would tell us because we set it originally, thus
+        # we already know.  Someone /could/ have tweaked it on the guest,
+        # but it doesn't really affect how we manage it.
+        args = {
+            'id': machine_id,
+            'hostname': hostname,
+            'ip_address': ip_addr,
+            'mac_address': mac_addr,
+            'profile_id': profile_id,
+            'state' : 'registered',
+            'netboot_enabled' : 0
+        }
+        print args
+
+        return self.edit(token, args)
+
+    
+
     ## BIG FIXME:  NEEDS AN ASSOCIATE METHOD, JUST LIKE MACHINE, FOR VIRTY REGISTRATION
     ## (that, and virty registration needs to indicate virtness so the right method is called!)
 
