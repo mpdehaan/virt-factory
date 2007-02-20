@@ -63,7 +63,7 @@ $node_bare_packages
 $puppet_packages
 
 %post
-/usr/bin/sm_register $server_param $token_param $profile_param
+/usr/bin/sm_register $server_param $token_param $profile_param $registration_virt_toggle
 $extra_post_magic
 $kickstart_done
 

@@ -228,7 +228,7 @@ class CobblerTranslatedProfile:
 # to be fixed.
 
 class CobblerTranslatedSystem:
-   def __init__(self,cobbler_api,profiles,from_db):
+   def __init__(self,cobbler_api,profiles,from_db,is_virt=False):
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
@@ -279,7 +279,11 @@ class CobblerTranslatedSystem:
        if from_db.has_key("kickstart_metadata"):
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["token_param"]          = "get_this_from_the_database" # FIXME
-        
+
+       if is_virt:
+           ks_meta["registration_virt_toggle"] = "--virtual"
+       else:
+           ks_meta["registration_virt_toggle"] = ""
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
