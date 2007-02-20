@@ -61,6 +61,7 @@ CREATE TABLE deployments (
    id                 INTEGER PRIMARY KEY,
    hostname           VARCHAR(255),
    ip_address         VARCHAR(255),
+   registration_token VARCHAR(255),
    mac_address        VARCHAR(255),
    machine_id         INTEGER NOT NULL,
    profile_id           INTEGER NOT NULL,
@@ -73,6 +74,7 @@ CREATE TABLE machines (
    id                 INTEGER PRIMARY KEY,
    hostname           VARCHAR(255),
    ip_address         VARCHAR(255),
+   registration_token VARCHAR(255),
    architecture       INTEGER,
    processor_speed    INTEGER,
    processor_count    INTEGER,
@@ -82,8 +84,8 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   profile_id           INTEGER,
-   puppet_node_diff   TEXT
+   profile_id         INTEGER,
+   puppet_node_diff   TEXT,
 );
 
 CREATE TABLE regtokens (
