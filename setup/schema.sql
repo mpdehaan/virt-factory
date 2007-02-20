@@ -9,7 +9,8 @@ CREATE TABLE tasks (
    user_id         INTEGER,
    machine_id      INTEGER,
    deployment_id   INTEGER,
-   action_type     VARCHAR(255) NOT NULL
+   action_type     VARCHAR(255) NOT NULL,
+   time            INTEGER
 );
 
 CREATE TABLE users (
@@ -29,7 +30,7 @@ CREATE TABLE events (
    user_id         INTEGER NOT NULL,
    machine_id      INTEGER,
    deployment_id   INTEGER,
-   profile_id        INTEGER,
+   profile_id      INTEGER,
    severity        INTEGER NOT NULL,
    category        VARCHAR (255) NOT NULL,
    action          VARCHAR (255) NOT NULL,

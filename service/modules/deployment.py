@@ -157,7 +157,18 @@ class Deployment(web_svc.AuthWebSvc):
 
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
-         return self.db.simple_add(u.to_datastruct())
+         results = self.db.simple_add(u.to_datastruct())
+
+         # schedule the task to make this really happen.
+         task_obj = task.Task()
+         task_obj.add(token, {
+             "user_id"       : None,                                   # FIXME, get user from token record
+             "machine_id"    : deployment_dep_args["machine_id"],
+             "deployment_id" : results.data["id"],
+             "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT,
+         })
+
+         return results
 
     def generate_mac(self):
          """
@@ -180,6 +191,13 @@ class Deployment(web_svc.AuthWebSvc):
          be changed.
          """
 
+         deployment_obj = deployment.Deployment()
+         old_record = deployment_obj.get(token, { "id" : deployment_dep_args["id"]})
+         old_id = old_record.data["id"]
+
+         # FIXME: huge unsupported deal here.  We don't currently do migrations, and this
+         # pretty much requires one.  WUI shouldn't have any editable fields for this YET.
+
          try:
              machine_obj = machine.Machine()
              result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
@@ -200,7 +218,22 @@ class Deployment(web_svc.AuthWebSvc):
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          # TODO: make this work w/ u.to_datastruct() 
          self.cobbler_sync(u.to_datastruct())
-         return self.db.simple_edit(deployment_dep_args)
+
+
+         results = self.db.simple_edit(deployment_dep_args)
+ 
+         # do not schedule a migration unless the new machine_id is different from the old machine_id
+         # also note that the migration isn't currently supported anway :)
+         if deployment_dep_args.has_key("machine_id") and deployment_dep_args["machine_id"] != old_id:
+             task_obj = task.Task()
+             task_obj.add(token, {
+                 "user_id"       : None,
+                 "machine_id"    : deployment_dep_args["machine_id"],
+                 "deployment_id" : deployment_dep_args["id"],
+                 "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT,
+             })
+
+         return results
 
     def delete(self, token, deployment_dep_args):
         """
@@ -208,11 +241,20 @@ class Deployment(web_svc.AuthWebSvc):
         """
         u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
         
+
         # check to see that what we are deleting exists
         rc = self.get(token, deployment_dep_args)
         if not rc:
             raise NoSuchObjectException()
         
+        task_obj = task.Task()
+        task_obj.add(token, {
+            "user_id"       : None,
+            "machine_id"    : rc.data["machine_id"],
+            "deployment_id" : rc.data["id"],
+            "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
+        })
+
         return self.db.simple_delete({ "id" : u.id })
 
 
