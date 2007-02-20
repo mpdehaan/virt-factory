@@ -151,11 +151,24 @@ class Deployment(web_svc.AuthWebSvc):
          deployment_dep_args["netboot_enabled"] = 0  # no PXE for virt yet, FIXME: add when supported by us.
          # NOTE: when adding PXE for virt, registration must disable it, to prevent reboot loop.
          # and we'll need some sort of virt/PXE WUI config monster :)
-         
+
+         deployment_dep_args["mac_address"] = self.generate_mac()        
+         deployment_dep_args["state"] = "defined" # FIXME: make this a real constant (w/ a better value)
+
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
          return self.db.simple_add(u.to_datastruct())
 
+    def generate_mac(self):
+         """
+         Compilicated.  New deployments need to get a MAC address that we specify, because we need
+         a MAC address to generate a cobbler system PRIOR to issuing the koan install commands
+         using that specific system as a parameter to --system (in koan).
+         """
+         # this is only here for short term testing and needs to be fixxored ASAP.
+         # use the XenSource MAC range (for now) and offset based on database id (highest used)
+         return "DD:EE:AA:DD:BB:FF" # FIXME: total hack, until I get the mac address generator written
+         
     def cobbler_sync(self, data):
          cobbler_api = cobbler.api.BootAPI()
          profiles = profile.Profile().list(None, {}).data
