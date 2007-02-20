@@ -154,6 +154,10 @@ class Machine(web_svc.AuthWebSvc):
             except ShadowManagerException:
                 raise OrphanedObjectException(comment="profile_id")
 
+        # all systems are created with netboot originally enabled, and
+        # then once they check in, we turn it back off.
+        args["netboot_enabled"] = 1
+
         # TODO: make this work w/ u.to_datastruct() 
         result = self.db.simple_add(args)
         if u.profile_id:
