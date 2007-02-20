@@ -25,7 +25,7 @@ import web_svc
 import traceback
 import threading
 
-
+import task
 
 #---------------------------------------------------------
 
@@ -237,15 +237,13 @@ class Deployment(web_svc.AuthWebSvc):
 
     def delete(self, token, deployment_dep_args):
         """
-        Deletes a deployment.  The deployment_dep_args must only contain the id field.
-        """
-        u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
-        
+        This just schedules a task for taskatron to perform the deletion.
+        This is because actual deletion (in the middle of the taskatron call)
+        some libvirt ops must be performed.   
 
-        # check to see that what we are deleting exists
-        rc = self.get(token, deployment_dep_args)
-        if not rc:
-            raise NoSuchObjectException()
+        FIXME: this seems to imply having a "locked" flag on most objects both
+        for WUI display and knowing that WUI can't muck with them at this point.
+        """
         
         task_obj = task.Task()
         task_obj.add(token, {
@@ -254,6 +252,21 @@ class Deployment(web_svc.AuthWebSvc):
             "deployment_id" : rc.data["id"],
             "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
         })
+        
+
+
+    def database_delete(self, token, deployment_dep_args):
+        """
+        Deletes a deployment.  The deployment_dep_args must only contain the id field.
+        This will be called by taskatron.
+        """
+        u = DeploymentData.produce(deployment_dep_args,OP_DELETE) # force validation
+        
+
+        # check to see that what we are deleting exists
+        rc = self.get(token, deployment_dep_args)
+        if not rc:
+            raise NoSuchObjectException()
 
         return self.db.simple_delete({ "id" : u.id })
 
