@@ -42,7 +42,7 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self, hostname, ip, mac, image_name):
+    def register(self, hostname, ip, mac, image_name, virtyness):
         # should return a machine_id, maybe more
         print "--------------------"
         print "Registering..."
@@ -51,12 +51,13 @@ class Register(object):
         print "  ip=", ip
         print "  mac=", mac
         print "  image_name=", image_name
+        print "  virtyness=", virtyness
         if image_name is None:
             image_name = ""
         if mac is None:
             mac = "00:00:00:00:00:00"
         try:
-            rc = self.server.register(self.token, hostname, ip, mac, image_name)
+            rc = self.server.register(self.token, hostname, ip, mac, image_name,virtyness)
         except TypeError:
             print "must specify --imagename"
             sys.exit(1)
@@ -75,15 +76,17 @@ def main(argv):
     password   = None
     server_url = None
     image_name = ""
+    virtual    = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:i:", [
+        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:i:v:", [
             "help", 
             "token=", 
             "username=",
             "password=", 
             "serverurl=",
-            "imagename="
+            "imagename=",
+            "virtual"
         ])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
@@ -103,6 +106,8 @@ def main(argv):
             password = val
         if opt in ["-s", "--serverurl"]:
             server_url = val
+        if opt in ["-v", "--virtual"]:
+            virtual = True
         if opt in ["-i", "--imagename"]:
             print "read the image name"
             image_name = val
@@ -145,7 +150,7 @@ def main(argv):
     print net_info
 
     try:
-        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], image_name)
+        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], image_name, virtual)
     except socket.error:
         print "Could not connect to server."
         sys.exit(1)
