@@ -7,10 +7,9 @@ CREATE TABLE generic (
 CREATE TABLE tasks (
    id              INTEGER PRIMARY KEY,
    user_id         INTEGER,
-   operation       INTEGER NOT NULL,
-   parameters      VARCHAR,
-   state           INTEGER NOT NULL,
-   time            REAL NOT NULL
+   machine_id      INTEGER,
+   deployment_id   INTEGER,
+   action_type     VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE users (

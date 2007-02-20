@@ -318,7 +318,7 @@ class Machine(web_svc.AuthWebSvc):
                  "id"                 : x[0],
                  "hostname"           : x[1],
                  "ip_address"         : x[2],
-                 "registration_token" : x[3]
+                 "registration_token" : x[3],
                  "architecture"       : x[4],
                  "processor_speed"    : x[5],
                  "processor_count"    : x[6],

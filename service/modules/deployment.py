@@ -367,7 +367,7 @@ class Deployment(web_svc.AuthWebSvc):
                 "id"                 : x[0],
                 "hostname"           : x[1],
                 "ip_address"         : x[2],
-                "registration_token" : x[3]
+                "registration_token" : x[3],
                 "mac_address"        : x[4],
                 "machine_id"         : x[5],
                 "profile_id"         : x[6],
