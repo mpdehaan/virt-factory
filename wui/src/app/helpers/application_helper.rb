@@ -32,12 +32,6 @@ module ApplicationHelper
            <li><A HREF="/deployment/edit">Add a Virtual Deployment</A></li>
            </ul>
        </li>
-       <li><strong>Task Queue</strong>
-           <ul>
-           <li><A HREF="/task/list">View Task Queue</A></li>
-           <li><A HREF="/task/edit">Add a Task</A></A>
-           </ul>
-       </li>
        <li><strong>Users</strong>
            <ul>
            <li><A HREF="/user/list">View ShadowManager Users</A></li>
