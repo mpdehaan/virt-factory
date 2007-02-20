@@ -149,7 +149,13 @@ class Deployment(web_svc.AuthWebSvc):
 
          deployment_dep_args["display_name"] = display_name
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
+         self.cobbler_sync(u.to_datastruct())
          return self.db.simple_add(u.to_datastruct())
+
+    def cobbler_sync(self, data):
+         cobbler_api = cobbler.api.BootAPI()
+         profiles = profile.Profile().list(None, {}).data
+         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data)
 
     def edit(self, token, deployment_dep_args):
          """
@@ -176,6 +182,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          # TODO: make this work w/ u.to_datastruct() 
+         self.cobbler_sync(u.to_datastruct())
          return self.db.simple_edit(deployment_dep_args)
 
     def delete(self, token, deployment_dep_args):

@@ -125,6 +125,7 @@ def input_string_or_hash(options,delim):
 
 class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
+       shadow_config = config_data.Config().get()
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -136,8 +137,8 @@ class CobblerTranslatedDistribution:
        if from_db.has_key("kickstart_metadata"):
            # load initial kickstart metadata (which is a string) and get back a hash
            (success, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"]," ")
-       ks_meta["sm_repo_url"] = "FIXME"         
        ks_meta["tree"]        = "FIXME"
+       ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"]
        new_item.set_ksmeta(ks_meta)
        cobbler_api.distros().add(new_item, with_copy=True)
        cobbler_api.serialize()
@@ -158,6 +159,9 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
+
+       shadow_config = config_data.Config().get()
+
        new_item = cobbler_api.new_profile()
        new_item.set_name(from_db["name"])
        
@@ -166,7 +170,7 @@ class CobblerTranslatedProfile:
        for d in distributions:
            if d["id"] == distribution_id:
                distribution_name = d["name"]
-               break    
+               break
 
        assert distribution_name is not None, "has distribution name"
        print "distro name is %s" % distribution_name
@@ -194,7 +198,7 @@ class CobblerTranslatedProfile:
        if from_db.has_key("kickstart_metadata"):
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["node_common_packages"] = "sm-node-daemon koan"
+       ks_meta["node_common_packages"] = "koan # sm-node-daemon" # BIG FIXME: have to add sm-node-daemon to our repo in packaging!
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
            ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virstinst"  # FIXME: is this package list right?
            ks_meta["node_bare_packages"]   = ""
@@ -205,8 +209,10 @@ class CobblerTranslatedProfile:
        ks_meta["extra_post_magic"]     = ""
        # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
        # registered (and thus doesn't have a token).
-       ks_meta["token_param"]          = "UNSET" # intentional, FIXME: make the registration tool and backend understand this
-       ks_meta["profile_param"]          = from_db["name"]
+       ks_meta["token_param"]          = "--token=UNSET" # intentional, FIXME: make the registration tool and backend understand this
+       ks_meta["profile_param"]        = from_db["name"]
+       # FIXME: make sure this repo is created by an RPM or the user at some point
+       ks_meta["repo_line"]            = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
        new_item.set_ksmeta(ks_meta)
 
        print new_item
@@ -233,7 +239,8 @@ class CobblerTranslatedSystem:
  
        machine_id = from_db["id"]
 
-       
+       shadow_config = config_data.Config().get()
+ 
 
        if not from_db.has_key("profile_id"):
            # what happened here is that the machine was registered but no profile is 
