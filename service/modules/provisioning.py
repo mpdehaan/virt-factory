@@ -367,7 +367,7 @@ class Provisioning(web_svc.AuthWebSvc):
          # better than just giving profiles to the provisioning code.
          for dp in deployments:
             print "- deployment: %s" % dp
-            CobblerTranslatedSystem(cobbler_api,deployments,dp)
+            CobblerTranslatedSystem(cobbler_api,deployments,dp,is_virt=True)
          cobbler_api.serialize()
          cobbler_api.sync()
       except:

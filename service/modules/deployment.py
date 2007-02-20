@@ -159,7 +159,7 @@ class Deployment(web_svc.AuthWebSvc):
     def cobbler_sync(self, data):
          cobbler_api = cobbler.api.BootAPI()
          profiles = profile.Profile().list(None, {}).data
-         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data)
+         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virt=True)
 
     def edit(self, token, deployment_dep_args):
          """
