@@ -264,6 +264,7 @@ class CobblerTranslatedSystem:
            assert "no profile name found"
 
        new_item = cobbler_api.new_system()
+       print "setting name to: %s" % from_db["mac_address"]
        new_item.set_name(from_db["mac_address"])
        print "profile name is %s" % profile_name
        new_item.set_profile(profile_name)

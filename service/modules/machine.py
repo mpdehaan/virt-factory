@@ -198,8 +198,10 @@ class Machine(web_svc.AuthWebSvc):
             raise codes.InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
 
-        if results.data[0].has_key("profile_id"):
-            profile_id = results.data[0]["profile_id"]
+        if len(results.data) > 0:
+            print results.data
+            if results.data[0].has_key("profile_id"):
+                profile_id = results.data[0]["profile_id"]
 
 
         args = {
@@ -235,6 +237,7 @@ class Machine(web_svc.AuthWebSvc):
         result = self.db.simple_edit(machine_args)
         if u.profile_id:
             self.cobbler_sync(u.to_datastruct())
+        return success()
 
     def delete(self, token, machine_args):
         """
@@ -388,7 +391,7 @@ class Machine(web_svc.AuthWebSvc):
 
     def insert_profiles(self, token, machines):
         for machine in machines:
-            if machine["profile_id"] is not None and machine["profile_id"] != -1:
+            if machine.has_key("profile_id") and machine["profile_id"] is not None and machine["profile_id"] != -1:
                 profile_obj = profile.Profile()
                 profile_results = profile_obj.get(token, {"id":machine["profile_id"]})
                 if not profile_results.ok():

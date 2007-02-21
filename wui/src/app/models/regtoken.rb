@@ -8,7 +8,7 @@ class Regtoken < ManagedObject
     ATTR_LIST = { 
         :id             => { :type => Integer }, 
         :token          => { :type => String  }, 
-        :profile_       => { :type => Integer },
+        :profile_id     => { :type => Integer },
         :uses_remaining => { :type => Integer }, 
         :profile        => { :type => Profile, :id_attr => :profile_id } 
     }
