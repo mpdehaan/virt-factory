@@ -151,7 +151,7 @@ class ShadowImporter:
        distribution_name = self.get_node_text(DISTRIBUTION_TAG)
        if (distribution_name is not None):
            distribution_obj = distribution.Distribution()
-           distribution_result = distribution_obj.get_by_name(None, {"name": "var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_profiles_pxeboot"})
+           distribution_result = distribution_obj.get_by_name(None, {"name": "var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot"})
            if (distribution_result.error_code != 0):
                raise codes.InvalidArgumentsException(comment="bad distribution name")
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]

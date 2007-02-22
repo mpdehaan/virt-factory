@@ -24,7 +24,7 @@ CREATE TABLE events (
    user_id         INTEGER NOT NULL,
    machine_id      INTEGER,
    deployment_id   INTEGER,
-   image_id        INTEGER,
+   profile_id        INTEGER,
    severity        INTEGER NOT NULL,
    category        VARCHAR (255) NOT NULL,
    action          VARCHAR (255) NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE distributions (
    kickstart_metadata  VARCHAR(255)   
 );
 
-CREATE TABLE images (
+CREATE TABLE profiles (
    id INTEGER PRIMARY KEY,
    name               VARCHAR (255) UNIQUE,
    version            VARCHAR (255) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE deployments (
    ip_address         VARCHAR(255),
    mac_address        VARCHAR(255),
    machine_id         INTEGER NOT NULL,
-   image_id           INTEGER NOT NULL,
+   profile_id           INTEGER NOT NULL,
    state              INTEGER NOT NULL,
    display_name       VARCHAR(255) NOT NULL,
    puppet_node_diff   TEXT
@@ -82,14 +82,14 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   image_id           INTEGER,
+   profile_id           INTEGER,
    puppet_node_diff   TEXT
 );
 
 CREATE TABLE regtokens (
    id                 INTEGER PRIMARY KEY,
    token              VARCHAR(255),
-   image_id           INTEGER, 
+   profile_id           INTEGER, 
    uses_remaining     INTEGER
 );
 
@@ -99,3 +99,4 @@ CREATE TABLE sessions (
    session_timestamp  REAL NOT NULL
 );
    
+
