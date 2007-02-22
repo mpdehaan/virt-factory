@@ -144,3 +144,4 @@ class ApplicationControllerUnlocked < ActionController::Base
     layout "shadowmanager-layout"
 
 end
+

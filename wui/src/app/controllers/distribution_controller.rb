@@ -13,3 +13,4 @@ class DistributionController < AbstractObjectController
    end
 
 end
+
