@@ -123,13 +123,14 @@ class XmlRpcInterface:
            raise InvalidMethodException
 
 
-def serve(websvc, pemfile, host):
+def serve(websvc, pemfile, cafile, host):
      """
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
 
-     ctx = initContext(pemfile)
+#     ctx = initContext(cafile, keyfile, pemfile)
+     ctx = init_context('sslv23', pemfile, cafile, SSL.verify_peer|SSL.verify_fail_if_no_peer_cert )
      server = ShadowSSLXMLRPCServer(ctx, (host, 2112))
      server.register_instance(websvc)
      server.serve_forever()
@@ -137,21 +138,34 @@ def serve(websvc, pemfile, host):
 def sslCallback(*args):
    print args
 
-def initContext(pemfile):
-   """
-   Helper method for m2crypto's SSL libraries.
-   """
-   protocol = "sslv23"
-   verify =  SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
-   verify_depth = 10
-   ctx = SSL.Context(protocol)
-   ctx.load_cert(pemfile)
-   ctx.load_client_ca(pemfile)
-   ctx.load_verify_info(pemfile)
-   ctx.set_verify(verify, verify_depth)
-   ctx.set_session_id_ctx('xmlrpcssl')
-   ctx.set_info_callback(sslCallback)
-   return ctx
+def init_context(protocol, certfile, cafile, verify, verify_depth=10):
+    ctx = SSL.Context(protocol)
+    ctx.load_cert_chain(certfile)
+    ctx.load_verify_locations(cafile)
+    ctx.set_client_CA_list_from_file(cafile)
+    ctx.set_verify(verify, verify_depth)
+    #ctx.set_allow_unknown_ca(1)
+    ctx.set_session_id_ctx('echod')
+    ctx.set_info_callback()
+    return ctx
+
+
+
+## def initContext(cafile, keyfile, pemfile):
+##    """
+##    Helper method for m2crypto's SSL libraries.
+##    """
+##    protocol = "sslv23"
+##    verify =  SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
+##    verify_depth = 10
+##    ctx = SSL.Context(protocol)
+##    ctx.load_cert(keyfile)
+##    ctx.load_client_ca(cafile)
+##    ctx.load_verify_info(cafile)
+##    ctx.set_verify(verify, verify_depth)
+##    ctx.set_session_id_ctx('xmlrpcssl')
+##    ctx.set_info_callback(sslCallback)
+##    return ctx
 
 
 class SSLXMLRPCHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -181,15 +195,6 @@ class ShadowSSLXMLRPCServer(SSL.SSLServer, SimpleXMLRPCServer.SimpleXMLRPCServer
     def errorHandler(self, *args):
        print args
 
-    def initContext(self, pemfile):
-       ctx = SSL.Context(self.protocol)
-       ctx.load_cert(pemfile)
-       ctx.load_client_ca(pemfile)
-       ctx.load_verify_info(pemfile)
-       ctx.set_verify(self.verify, self.verify_depth)
-       ctx.set_session_id_ctx('xmlrpcssl')
-       ctx.set_info_callback(self.callback)
-       return ctx
        
 def main(argv):
     """
@@ -197,7 +202,14 @@ def main(argv):
     """
     
     websvc = XmlRpcInterface()
-    pemfile = "server.pem"
+#    pemfile = "server.pem"
+#    pemfile = "/var/lib/puppet/ssl/certs/grimlock.devel.redhat.com.pem"
+#    cafile = "/var/lib/puppet/ssl/certs/ca.pem"
+#    keyfile =  "/var/lib/puppet/ssl/prinate_keys/grimlock.devel.redhat.com.pem"
+
+    pemfile = "adrian-server.pem"
+    cafile = "adrian-ca.crt"
+    
     host = "grimlock.devel.redhat.com"
      
     if len(argv) > 1:
@@ -209,7 +221,7 @@ def main(argv):
        sys.exit(1)
     else:
         print "serving...\n"
-        serve(websvc, pemfile, host)
+        serve(websvc, pemfile, cafile, host)
 
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
