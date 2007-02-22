@@ -42,7 +42,7 @@ from modules import authentication
 from modules import config
 from modules import deployment
 from modules import distribution
-from modules import image
+from modules import profile
 from modules import machine
 from modules import provisioning
 from modules import registration
@@ -86,7 +86,7 @@ class XmlRpcInterface:
         """
         self.handlers = {}
         for x in [user, machine,
-                 image, deployment,
+                 profile, deployment,
                  distribution,config,
                  provisioning, registration,
                  authentication, task, regtoken, puppet]:
@@ -206,5 +206,6 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv)
+
 
 

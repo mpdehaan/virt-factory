@@ -29,3 +29,4 @@ class Logger(Singleton):
         handler.setFormatter(formatter)
         self.logger.addHandler(handler)
         self.__no_handlers = False
+

@@ -57,9 +57,10 @@ TEMPLATE::node_packages
 
 %post
 TEMPLATE::yum_config_stanza
-/usr/bin/sm_register $TEMPLATE::server_param $TEMPLATE::token_param $TEMPLATE::image_param
+/usr/bin/sm_register $TEMPLATE::server_param $TEMPLATE::token_param $TEMPLATE::profile_param
 TEMPLATE::puppet_setup
 TEMPLATE::kickstart_done
+
 
 
 
