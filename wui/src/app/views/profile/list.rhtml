@@ -1,5 +1,5 @@
-      <% @page_title = "View Image Profiles" %>
-      <%= ApplicationHelper.menubar("image","list") %>
+      <% @page_title = "View Profile Profiles" %>
+      <%= ApplicationHelper.menubar("profile","list") %>
      
       <div id="content-main">
       
@@ -16,7 +16,7 @@
             <TD></TD>
          </TR>
       <% else %>
-         There are no image definitions installed into ShadowManager.
+         There are no profile definitions installed into ShadowManager.
       <% end %>
 
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
@@ -24,18 +24,19 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.name, :controller => "image", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to item.name, :controller => "profile", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
              <TD> <%= item.distribution.name if item.distribution %> </TD>
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
              <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %> </TD>
-             <TD> <%= link_to "[X]", :controller => "image", :action=> "delete", :id=> item.id %></TD>
+             <TD> <%= link_to "[X]", :controller => "profile", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
       <% if @items.length > 0 %>
       </TABLE>
       </div>
       <% end %>
+
 

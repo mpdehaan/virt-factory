@@ -48,29 +48,29 @@
             </TD>
          </TR>
          <TR>
-            <TD>Image</TD>
+            <TD>Profile</TD>
             <TD>
-                <% if @item.image %>
+                <% if @item.profile %>
                     <TABLE BORDER=0>
                         <TR>
                             <TD>Name</TD>
-                            <TD><%= @item.image.name %></TD>
+                            <TD><%= @item.profile.name %></TD>
                         </TR>
                         <TR> 
                             <TD>Version</TD>
-                            <TD><%= @item.image.version %></TD>
+                            <TD><%= @item.profile.version %></TD>
                         </TR>
                         <TR> 
                             <TD>Filename</TD>
-                            <TD><%= @item.image.filename %></TD>
+                            <TD><%= @item.profile.filename %></TD>
                         </TR>
                         <TR>
                             <TD>Specfile</TD>
-                            <TD><%= @item.image.specfile %></TD>
+                            <TD><%= @item.profile.specfile %></TD>
                         </TR>
                         <TR>
 			    <TD>Puppet Classes</TD>
-			    <TD><%= @item.image.puppet_classes %></TD>
+			    <TD><%= @item.profile.puppet_classes %></TD>
 			</TR>
                     </TABLE>
                 <% end %>
@@ -87,4 +87,5 @@
       </TABLE>
       </div>
       <% @callout_1 = "View a deployment" %>
+
 

@@ -1,7 +1,7 @@
-# images are system profiles + distribution information, both virtual and not.  Some are appliances, others are specifications
+# profiles are system profiles + distribution information, both virtual and not.  Some are appliances, others are specifications
 # for machines that will contain one or more appliances
 
-class Image < ManagedObject
+class Profile < ManagedObject
 
     # corresponds with what's in the database
     ATTR_LIST = { :id => {:type => Integer}, 
@@ -20,11 +20,12 @@ class Image < ManagedObject
     self.set_attrs(ATTR_LIST)
 
     # web service methods start with this
-    METHOD_PREFIX = "image"
+    METHOD_PREFIX = "profile"
 
-    # when showing an image onscreen, just use the name field in the database
+    # when showing an profile onscreen, just use the name field in the database
     def objname
         name
     end
 
 end
+
