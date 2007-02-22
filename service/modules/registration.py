@@ -20,7 +20,7 @@ import config
 import machine
 import regtoken
 import web_svc
-import image
+import profile
 
 import logging
 import os
@@ -60,7 +60,7 @@ class Registration(web_svc.AuthWebSvc):
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
-    def register(self, token, hostname, ip_addr, mac_addr, image_name):
+    def register(self, token, hostname, ip_addr, mac_addr, profile_name):
         self.__check_auth(token)
         
         machine_obj = machine.Machine()
@@ -76,27 +76,28 @@ class Registration(web_svc.AuthWebSvc):
             machine_id = results.data 
             print "new machine id = %s" % machine_id
 
-        image_id = None
+        profile_id = None
 
-        # see if there is an image id for the token.  this does not work
+        # see if there is an profile id for the token.  this does not work
         # for usernames and passwords.
         regtoken_obj = regtoken.RegToken()
         regtoken_obj.db.simple_list({}, { "token" : token })
         if results.error_code != 0 and len(results.data) != 0:
-            image_id = results.data[0]["image_id"]
+            profile_id = results.data[0]["profile_id"]
 
-        print "passed in image name is (%s)" % image_name
+        print "passed in profile name is (%s)" % profile_name
 
-        if image_id != None and image_name != "":
-            # no image ID found for token, try a name lookup
-            image_obj = image.Image()
-            images = image_obj.db.simple_list({}, { "name" : image_name })
-            if images.error_code != 0 and len(images.data) != 0:
-                image_id = results.data[0]["id"]
+        if profile_id != None and profile_name != "":
+            # no profile ID found for token, try a name lookup
+            profile_obj = profile.Profile()
+            profiles = profile_obj.db.simple_list({}, { "name" : profile_name })
+            if profiles.error_code != 0 and len(profiles.data) != 0:
+                profile_id = results.data[0]["id"]
 
         print "calling associate with machine_id: ", machine_id
-        return machine_obj.associate(token, machine_id, hostname, ip_addr, mac_addr, image_id)
+        return machine_obj.associate(token, machine_id, hostname, ip_addr, mac_addr, profile_id)
 
 
 methods = Registration()
 register_rpc = methods.register_rpc
+
