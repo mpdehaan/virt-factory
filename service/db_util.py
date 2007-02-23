@@ -88,7 +88,14 @@ class DbUtil(object):
             limit = profile_args["limit"]
         return (offset, limit) 
 
-    def filter_param_list(self, full_list, provided_params):
+    def filter_param_list(self, full_parameter_list, provided_params):
+        """
+        Filters the parameter list (full_parameter_list) based on the
+        hash of input parameters with values (provided_params). The
+        output list includes those parameters in full_parameter_list
+        with values provided in provided_params.
+        """
+        
         return_list = []
         provided_keys = provided_params.keys()
         for param in full_list:
