@@ -274,8 +274,8 @@ class Deployment(web_svc.AuthWebSvc):
              ],
              args,
              {
-                "machine.id"    : "deployment.machine_id",
-                "profile.id"    : "deployment.profile_id" 
+                "machine.id"    : "deployments.machine_id",
+                "profile.id"    : "deployments.profile_id" 
              },
          )
 
