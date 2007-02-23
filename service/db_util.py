@@ -113,7 +113,7 @@ class DbUtil(object):
     def nested_get(self, schemas_list, args, where_args={}):
         return self.nested_list(schemas_list, args, where_args, return_single=True)
 
-    def nested_list(self, schemas_list, args, where_args={}, return_single=False):
+    def nested_list(self, schemas_list, args, where_args={}, return_single=False, allow_none=False):
         """
         Select * from foo, with joins on it's nested tables.
         FIXME: outer join support ???
@@ -170,18 +170,18 @@ class DbUtil(object):
                 if table == schemas_list[0]["table"] or "%ss" % table == schemas_list[0]["table"]:
                     # only nest table results for joined tables
                     print "DEBUG: not nesting"
-                    result_hash[real_field] = result
+                    if result is not None or allow_none:
+                        result_hash[real_field] = result
                 else:
                     print "DEBUG: nesting joined table"
                     if not result_hash.has_key(table):
                         result_hash[table] = {}    
-                    result_hash[table][real_field] = result
+                    if result is not None or allow_none:
+                        result_hash[table][real_field] = result
             result_list.append(result_hash)
                  
         self.logger.info("SUCCESS, list=%s" % result_list)
 
-        # FIXME: this very clearly doesn't call remove_nulls and 
-        # might need to be fixed.
         if return_single:
             return success(result_hash)
         else:
