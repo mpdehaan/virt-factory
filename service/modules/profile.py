@@ -220,22 +220,12 @@ class Profile(web_svc.AuthWebSvc):
         """
 
         u = ProfileData.produce(profile_args,OP_GET) # force validation
-        result = self.db.simple_get(u.to_datastruct())
+        result = self.db.nested_get([distribution.Distribution.DB_SCHEMA], u.to_datastruct(), {})
         
         if (result.error_code != ERR_SUCCESS):
             return result
-        self.insert_distribution(token, [result.data])
         return success(result.data)
 
-    def insert_distribution(self, token, profiles):
-        for profile in profiles:
-            if profile["distribution_id"] is not None and profile["distribution_id"] != -1:
-                distribution_obj = distribution.Distribution()
-                distribution_results = distribution_obj.get(token, {"id":profile["distribution_id"]})
-                if not distribution_results.ok():
-                    raise OrphanedObjectException(comment="distribution_id")
-                profile["distribution"] = distribution_results.data
-                
     def get_by_name(self, token, profile_args):
         """
         Return a specific profile profile record by name. Only the "name" is required
@@ -247,10 +237,9 @@ class Profile(web_svc.AuthWebSvc):
         else:
             raise ValueError("name is required")
 
-        result = self.db.simple_list({}, {"name": name})
+        result = self.db.nested_list([distribution.Distribution.DB_SCHEMA], {}, {"name": name})
         if (result.error_code != ERR_SUCCESS):
             return result
-        self.insert_distribution(token, result.data)
 
         if (len(result.data) == 1):
             return success(result.data[0])

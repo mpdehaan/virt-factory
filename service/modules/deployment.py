@@ -51,11 +51,7 @@ class DeploymentData(baseobj.BaseObject):
 
     def from_datastruct(self,deployment_dep_args):
         """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the deployment as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        deployment object for interaction with the ORM.  See methods below for examples.
+        Load object from hash
         """
 
         return self.deserialize(deployment_dep_args)
@@ -296,41 +292,14 @@ class Deployment(web_svc.AuthWebSvc):
         else:
             raise ValueError("hostname is required")
 
-        result = self.db.simple_list({}, {"hostname": hostname})
-        if (result.error_code != ERR_SUCCESS):
-            return result
-        self.insert_components(token, result.data)
-        return success(result.data)
+        return self.db.nested_list([machine.Machine.DB_SCHEMA, profile.Profile.DB_SCHEMA], {}, {"hostname": hostname})
         
     def get(self, token, args):
          """
          Return a specific deployment record.  Only the "id" is required in deployment_dep_args.
          """
 
-         results = self.db.simple_get(args)
-         if not results.ok(): 
-             return results
-         data = self.insert_components(token, results.data)
-         return success(data)
-
-    def insert_components(self, token, deployments):
-        if type(deployments) != list:
-            deployments = [deployments]
-        for deployment in deployments:
-            if deployment["profile_id"] is not None and deployment["profile_id"] != -1:
-                profile_obj = profile.Profile()
-                profile_results = profile_obj.get(token, {"id":deployment["profile_id"]})
-                if not profile_results.ok():
-                    raise OrphanedObjectException(comment="profile_id")
-                deployment["profile"] = profile_results.data
-            if deployment["machine_id"] is not None and deployment["machine_id"] != -1:
-                machine_obj = machine.Machine()
-                machine_results = machine_obj.get(token, {"id":deployment["machine_id"]})
-                if not machine_results.ok():
-                    raise OrphanedObjectException(comment="machine_id")
-                deployment["machine"] = machine_results.data
-        return deployments
-
+         return self.db.nested_get([profile.Profile.DB_SCHEMA, machine.Machine.DB_SCHEMA], args)
 
 methods = Deployment()
 register_rpc = methods.register_rpc

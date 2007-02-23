@@ -273,10 +273,9 @@ class Machine(web_svc.AuthWebSvc):
             # FIXME: this should be a shadowmanager exception if API is exposed remotely
             raise ValueError("hostname is required")
 
-        result = self.db.simple_list({}, {"hostname": hostname})
+        result = self.db.nested_list([profile.Profile.DB_SCHEMA], machine_args, {"hostname": hostname})
         if (result.error_code != ERR_SUCCESS):
             return result
-        self.insert_profiles(token, result.data)
         return success(result.data)
         
 
@@ -286,29 +285,7 @@ class Machine(web_svc.AuthWebSvc):
         """
         
         u = MachineData.produce(machine_args,OP_GET) # force validation
-        result = self.db.simple_get(u.to_datastruct())
-        if (result.error_code != ERR_SUCCESS):
-            return result
-        
-        # FIXME: redo this with profile id
-        data = self.insert_profiles(token, [result.data])
-        return success(data[0])
-
-    def insert_profiles(self, token, machines):
-        # FIXME: I've added return codes to this though the side-effects
-        # probably should be minimized?  Also, in general, we need to move
-        # most of the codebase to use object.item form versus the Raw DB hash stuff.
-        # Next release maybe.
-        if not type(machines) == list:
-            machines = [machines]
-        for machine in machines:
-            if machine["profile_id"] is not None and machine["profile_id"] != -1:
-                profile_obj = profile.Profile()
-                profile_results = profile_obj.get(token, {"id":machine["profile_id"]})
-                if not profile_results.ok():
-                    raise OrphanedObjectException(comment="profile_id")
-                machine["profile"] = profile_results.data
-        return machines     
+        return self.db.simple_get(u.to_datastruct())
 
 methods = Machine()
 register_rpc = methods.register_rpc
