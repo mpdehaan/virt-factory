@@ -207,11 +207,14 @@ class Profile(web_svc.AuthWebSvc):
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         return self.db.nested_list (
+         self.logger.debug("profile_list called")
+         results =  self.db.nested_list (
                 [ distribution.Distribution.DB_SCHEMA ],
                 profile_args,
                 { "distributions.id" : "profiles.distribution_id" }
          ) 
+         self.logger.debug(results)
+         return results
 
 
     def get(self, token, profile_args):

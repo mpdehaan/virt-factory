@@ -86,9 +86,8 @@ class AbstractObjectController < ApplicationController
     def edit_submit
         begin
             obj = ManagedObject.from_hash(object_class,@params["form"], @session)
-#            print obj.methods.join("\n"), "\n"
             operation = obj.id.nil? ? "add" : "edit"
-            obj.save
+            obj.save()
             @flash[:notice] = "#{object_class::METHOD_PREFIX} #{obj.objname} #{operation} succeeded."
             redirect_to :action => 'list'
             return

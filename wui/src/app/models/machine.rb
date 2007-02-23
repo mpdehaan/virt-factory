@@ -34,7 +34,7 @@ class Machine < ManagedObject
     # fill in explanation here.
 
     def save
-        self.is_container = self.profile.is_container if self.get_profile
+        self.is_container = self.profile.is_container
         super
     end
 end
