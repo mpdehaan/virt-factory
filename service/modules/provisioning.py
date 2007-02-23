@@ -99,6 +99,8 @@ Now log in through the Web UI...  You're good to go.\n
 
 class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
+       if from_db["id"] < 0:
+           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -114,6 +116,8 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
+       if from_db["id"] < 0:
+           return
        new_item = cobbler_api.new_profile()
        new_item.set_name(from_db["name"])
        
@@ -159,6 +163,8 @@ class CobblerTranslatedProfile:
 
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db):
+       if from_db["id"] < 0:
+           return
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
