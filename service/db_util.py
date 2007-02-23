@@ -97,9 +97,18 @@ class DbUtil(object):
         return return_list
 
     # FIXME: is this right? -akl
-    def simple_list(self, args, where_args={}):
+    def simple_list(self, schema, args, where_args={}):
         """
         Shorthand for writing a select * from foo
+        """
+        return self.nested_list([schema], args, where_args={})
+
+    def nested_get(self, schemas_list, args, where_args={})
+        return self.nested_list(schemas_list, args, where_args)
+
+    def nested_list(self, schemas_list, args, where_args={}, return_single=False):
+        """
+        Select * from foo, with joins on it's nested tables.
         """
         (offset, limit) = self.get_limit_parms(args)
 
@@ -113,43 +122,54 @@ class DbUtil(object):
                where_parts.append(x + " = " + y)
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:
-           where_clause = ""         
+           where_clause = ""
 
-        buf = "SELECT " + string.join(self.db_schema["fields"], ",") +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
+        
+        fields = [] 
+        for table in schemas_list:
+            for field in table["fields"]:
+                fields.append("%s.%s" % (table, field))
+        clause = fields.join(",")
+
+        buf = "SELECT " + clause +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
         self.logger.info( "QUERY: %s" % buf)
         self.logger.info( "OFFSET, LIMIT: %s, %s" % (offset,limit))
         self.cursor.execute(buf, (offset,limit))
         results = self.cursor.fetchall()
         self.logger.info("RESULTS OF QUERY: %s" % results)
- 
+
         if results is None:
              return success([])
 
-        data_list = []
-        for x in results:
-            data_hash = dict(zip(self.db_schema["fields"], x))
-            data_list.append(data_hash)
-
+        # build the nested confusingness
+        result_list = []
+        for each_result in results:
+            result_hash = {}
+            for field, result in zip(fields,result_entries):
+                (table, field) = x.split(".")
+                if table == schemas_list[0]:
+                    result_hash[field] = result:
+                else:
+                    if notresult_hash.has_key(table):
+                        result_hash[table] = {}    
+                    result_hash[table][field] = result
+            result_list.append(result_hash)
+                 
         self.logger.info("SUCCESS, list=%s" % data_list)
 
         base_obj = baseobj.BaseObject()
-        return success(base_obj.remove_nulls(data_list))
-
-    def simple_get(self, args):
+        if return_single:
+            return success(base_obj.remove_nulls(result_hash))
+        else:
+            return success(base_obj.remove_nulls(result_list))
+        
+    def simple_get(self, schema, args):
         """
         Shorthand for writing a one table select.  
         """
-        buf = "SELECT " + string.join(self.db_schema["fields"], ',')  + " FROM " + self.db_schema["table"] + " WHERE id=:id"
-        self.cursor.execute(buf, { "id" : args["id"] })
-        result = self.cursor.fetchone()
+        return self.nested_get(self, [schema], args)
 
-        if result is None:
-            raise NoSuchObjectException(comment=table_name)
-
-        data_hash = dict(zip(self.db_schema["fields"], result))
-        
-        base_obj = baseobj.BaseObject()
-        return success(base_obj.remove_nulls(data_hash))
+    def nested_get(self, 
 
     def simple_list_by(self, fieldname, fieldvalue):
         """
