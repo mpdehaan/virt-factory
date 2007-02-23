@@ -113,17 +113,23 @@ class DbUtil(object):
         """
         (offset, limit) = self.get_limit_parms(args)
 
+         
+
         if len(where_args) > 0:
            where_parts = []
            for x in where_args:
                y = where_args[x]
                if type(y) == str or type(y) == unicode:
-                   y = "'%s'" % y
+                   y = "%s" % y  # NOTE: users need to escape where_args if needed _before_ passing in
                self.logger.info( x+y)
                where_parts.append(x + " = " + y)
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:
            where_clause = ""
+
+        if not return_single:
+            # don't list empty rows
+            where_clause = where_clause + " AND %s.id > 0 " % self.db_schema["table"]
 
         
         fields = [] 
