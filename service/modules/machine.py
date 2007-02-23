@@ -229,6 +229,7 @@ class Machine(web_svc.AuthWebSvc):
         result = self.db.simple_edit(machine_args)
         if u.profile_id:
             self.cobbler_sync(u.to_datastruct())
+        return result
 
     def delete(self, token, args):
         """
