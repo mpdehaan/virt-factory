@@ -42,7 +42,7 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
-    def register(self, hostname, ip, mac, profile_name):
+    def register(self, hostname, ip, mac, profile_name, virtual):
         # should return a machine_id, maybe more
         print "--------------------"
         print "Registering..."
@@ -51,12 +51,13 @@ class Register(object):
         print "  ip=", ip
         print "  mac=", mac
         print "  profile_name=", profile_name
+        print "  virtual=", virtual
         if profile_name is None:
             profile_name = ""
         if mac is None:
             mac = "00:00:00:00:00:00"
         try:
-            rc = self.server.register(self.token, hostname, ip, mac, profile_name)
+            rc = self.server.register(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
             print "must specify --profilename"
             sys.exit(1)
@@ -70,20 +71,22 @@ def showHelp():
 
 def main(argv):
 
-    regtoken   = None
+    regtoken   = "UNSET"
     username   = None
     password   = None
     server_url = None
     profile_name = ""
+    virtual      = False
 
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:i:", [
+        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:v", [
             "help", 
             "token=", 
             "username=",
             "password=", 
             "serverurl=",
-            "profilename="
+            "profilename=",
+            "virtual"
         ])
     except getopt.error, e:
         print "Error parsing command list arguments: %s" % e
@@ -105,6 +108,8 @@ def main(argv):
             server_url = val
         if opt in ["-i", "--profilename"]:
             print "read the profile name"
+        if opt in ["-v", "--virtual"]:
+            virtual = True
             profile_name = val
 
     if server_url is None:
@@ -145,7 +150,7 @@ def main(argv):
     print net_info
 
     try:
-        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name)
+        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
     except socket.error:
         print "Could not connect to server."
         sys.exit(1)
