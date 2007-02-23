@@ -32,7 +32,7 @@ import time
 
 class TaskData(baseobj.BaseObject):
 
-    FIELDS = [ "id", "user_id", "operation", "parameters", "state", "time" ] 
+    FIELDS = [ "id", "user_id", "action_type", "machine_id", "deployment_id", "state", "time" ] 
 
     def _produce(klass, profile_args,operation=None):
         """
@@ -92,7 +92,7 @@ class Task(web_svc.AuthWebSvc):
    DB_SCHEMA = {
        "table" : "tasks",
        "fields" : TaskData.FIELDS,
-       "add"   : [ "user_id", "operation", "parameters", "state", "time" ],
+       "add"   : [ "id", "user_id", "action_type", "machine_id", "deployment_id", "state", "time" ],
        "edit"  : [ "state" ]
     }
 
