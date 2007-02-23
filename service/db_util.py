@@ -134,13 +134,6 @@ class DbUtil(object):
         else:
            where_clause = ""
 
-        if not return_single:
-            # don't list empty rows
-            if where_clause.find("WHERE") != -1:
-                where_clause = where_clause + " AND %s.id > 0 " % self.db_schema["table"]
-            else:
-                where_clause = " WHERE %s.id > 0 " % self.db_schema["table"]
-        
         fields = [] 
         schemas_list.insert(0, self.db_schema)
         for table in schemas_list:
@@ -159,7 +152,7 @@ class DbUtil(object):
         self.logger.info("RESULTS OF QUERY: %s" % results)
 
         if results is None:
-             return success([])
+            return success([])
 
         # build the nested confusingness
         result_list = []
