@@ -97,14 +97,14 @@ class DbUtil(object):
         return return_list
 
     # FIXME: is this right? -akl
-    def simple_list(self, schema, args, where_args={}):
+    def simple_list(self, args, where_args={}):
         """
         Shorthand for writing a select * from foo
         """
-        return self.nested_list([schema], args, where_args={})
+        return self.nested_list([], args, where_args={})
 
     def nested_get(self, schemas_list, args, where_args={})
-        return self.nested_list(schemas_list, args, where_args)
+        return self.nested_list(schemas_list, args, where_args, return_single=True)
 
     def nested_list(self, schemas_list, args, where_args={}, return_single=False):
         """
@@ -126,6 +126,7 @@ class DbUtil(object):
 
         
         fields = [] 
+        schemas_list.insert(0, self.db_schema)
         for table in schemas_list:
             for field in table["fields"]:
                 fields.append("%s.%s" % (table, field))
@@ -163,13 +164,13 @@ class DbUtil(object):
         else:
             return success(base_obj.remove_nulls(result_list))
         
-    def simple_get(self, schema, args):
+    def simple_get(self, args):
         """
         Shorthand for writing a one table select.  
         """
-        return self.nested_get(self, [schema], args)
+        return self.nested_get(self, [], args)
 
-    def nested_get(self, 
+
 
     def simple_list_by(self, fieldname, fieldvalue):
         """

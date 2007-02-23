@@ -56,37 +56,13 @@ class ProfileData(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         profile object for interaction with the ORM.  See methods below for examples.
         """
-
-        self.id                 = self.load(profile_args,"id")
-        self.name               = self.load(profile_args,"name")
-        self.version            = self.load(profile_args,"version")
-        self.distribution_id    = self.load(profile_args,"distribution_id")
-        self.virt_storage_size  = self.load(profile_args,"virt_storage_size")
-        self.virt_ram           = self.load(profile_args,"virt_ram")
-        self.kickstart_metadata = self.load(profile_args,"kickstart_metadata")
-        self.kernel_options     = self.load(profile_args,"kernel_options")
-        self.valid_targets      = self.load(profile_args,"valid_targets")
-        self.is_container       = self.load(profile_args,"is_container")
-        self.puppet_classes     = self.load(profile_args,"puppet_classes")
+        return self.deserialize(self,profile_args)
 
     def to_datastruct_internal(self):
         """
         Serialize the object for transmission over WS.
         """
-
-        return {
-            "id"                 : self.id,
-            "name"               : self.name,
-            "version"            : self.version,
-            "distribution_id"    : self.distribution_id,
-            "virt_storage_size"  : self.virt_storage_size,
-            "virt_ram"           : self.virt_ram,
-            "kickstart_metadata" : self.kickstart_metadata,
-            "kernel_options"     : self.kernel_options,
-            "valid_targets"      : self.valid_targets,
-            "is_container"       : self.is_container,
-            "puppet_classes"     : self.puppet_classes  
-        }
+        return self.serialize()
 
     def validate(self,operation):
         """
@@ -169,14 +145,6 @@ class Profile(web_svc.AuthWebSvc):
          Create a profile.  profile_args should contain all fields except ID.
          """
 
-         st = """
-         INSERT INTO profiles (name,version,
-         distribution_id,virt_storage_size,virt_ram,kickstart_metadata,kernel_options,
-         valid_targets,is_container, puppet_classes)
-         VALUES (:name,:version,:distribution_id,
-         :virt_storage_size,:virt_ram,:kickstart_metadata,:kernel_options,
-         :valid_targets,:is_container, :puppet_classes)
-         """
          u = ProfileData.produce(profile_args,OP_ADD)
 
          if u.distribution_id is not None:
@@ -186,23 +154,7 @@ class Profile(web_svc.AuthWebSvc):
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
 
-         lock = threading.Lock()
-         lock.acquire()
-
-         try:
-             self.db.cursor.execute(st, u.to_datastruct())
-             self.db.connection.commit()
-         except Exception:
-             lock.release()
-             # FIXME: be more fined grained (find where IntegrityError is defined)
-             raise SQLException(traceback=traceback.format_exc())
-
-         rowid = self.db.cursor.lastrowid
-         lock.release()
-
-         self.cobbler_sync(u.to_datastruct()) 
-     
-         return success(rowid)
+         return self.db.simple_add(u.to_datastruct())
          
     def cobbler_sync(self, data):
 
@@ -217,24 +169,9 @@ class Profile(web_svc.AuthWebSvc):
          be changed.
          """
 
-         u = ProfileData.produce(profile_args,OP_EDIT) # force validation
-
-         st = """
-         UPDATE profiles 
-         SET name=:name, version=:version, 
-         virt_storage_size=:virt_storage_size, virt_ram=:virt_ram,
-         kickstart_metadata=:kickstart_metadata,kernel_options=:kernel_options, 
-         valid_targets=:valid_targets, is_container=:is_container,
-         puppet_classes=:puppet_classes
-         WHERE id=:id
-         """
-
-         self.db.cursor.execute(st, u.to_datastruct())
-         self.db.connection.commit()
-
+         result = self.db.simple_edit(profile_args)
          self.cobbler_sync(u.to_datastruct())
-
-         return success(u.to_datastruct(True))
+         return result
 
 
     def delete(self, token, profile_args):
@@ -244,41 +181,23 @@ class Profile(web_svc.AuthWebSvc):
 
          u = ProfileData.produce(profile_args,OP_DELETE) # force validation
 
-         st = """
-         DELETE FROM profiles WHERE profiles.id=:id
-         """
+         machine_obj = machine.Machine()
+         deployment_obj = profile.Proile()
 
-         st2 = """
-         SELECT profiles.id FROM deployments,profiles 
-         WHERE deployments.profile_id = profiles.id
-         AND profiles.id=:id
-         """
-
-         st3 = """
-         SELECT profiles.id FROM machines,profiles 
-         WHERE machines.profile_id = profiles.id
-         AND profiles.id=:id
-         """
-
+         machines    = machine_obj.list(token, { "id" : u.machine_id })
+         deployments = deployment_obj.list(token, { "id" : u.profile_id })
+         
          # check to see that what we are deleting exists
          profile_result = self.get(None,u.to_datastruct())
          if not profile_result.error_code == 0:
             raise NoSuchObjectException(comment="profile_delete")
 
-         # check to see that deletion won't orphan a deployment or machine
-         self.db.cursor.execute(st2, { "id" : u.id })
-         results = self.db.cursor.fetchall()
-         if results is not None and len(results) != 0:
-            raise OrphanedObjectException(comment="deployment")
-         self.db.cursor.execute(st3, { "id" : u.id })
-         results = self.db.cursor.fetchall()
-         if results is not None and len(results) != 0:
+         if len(machines.data) > 0:
             raise OrphanedObjectException(comment="machine")
-
-         self.db.cursor.execute(st, { "id" : u.id })
-         self.db.connection.commit()
-
-         return success()
+         if len(deployments.data) > 0:
+            raise OrphanedObjectException(comment="deployment")
+         
+         return self.db.simple_delete({"id" : u.id })
 
 
     def list(self, token, profile_args):
@@ -288,80 +207,11 @@ class Profile(web_svc.AuthWebSvc):
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         offset = 0
-         limit  = 100
-         if profile_args.has_key("offset"):
-            offset = profile_args["offset"]
-         if profile_args.has_key("limit"):
-            limit = profile_args["limit"]
-
-         st = """
-         SELECT 
-         profiles.id,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id, 
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container,
-         profiles.puppet_classes,
-         distributions.id,
-         distributions.kernel,
-         distributions.initrd,
-         distributions.options,
-         distributions.kickstart,
-         distributions.name,
-         distributions.architecture,
-         distributions.kernel_options,
-         distributions.kickstart_metadata
-         FROM profiles 
-         LEFT OUTER JOIN distributions ON profiles.distribution_id = distributions.id 
-         LIMIT ?,?
-         """ 
-
-         results = self.db.cursor.execute(st, (offset,limit))
-         results = self.db.cursor.fetchall()
-         if results is None:
-             return success([])
-
-         profiles = []
-         for x in results:
-             # note that the distribution is *not* expanded as it may
-             # not be valid in all cases
-                 
-             data = ProfileData.produce({         
-                "id"        : x[0],
-                "name"      : x[1],
-                "version"   : x[2],
-                "distribution_id"    : x[3],
-                "virt_storage_size"  : x[4],
-                "virt_ram"           : x[5],
-                "kickstart_metadata" : x[6],
-                "kernel_options"     : x[7],
-                "valid_targets"      : x[8],
-                "is_container"       : x[9],
-                "puppet_classes"     : x[10]
-             }).to_datastruct(True)
-
-             if x[11] is not None and x[11] != -1:
-                 data["distribution"] = distribution.DistributionData.produce({
-                     "id"                 : x[11],
-                     "kernel"             : x[12],
-                     "initrd"             : x[13],
-                     "options"            : x[14],
-                     "kickstart"          : x[15],
-                     "name"               : x[16],
-                     "architecture"       : x[17],
-                     "kernel_options"     : x[18],
-                     "kickstart_metadata" : x[19]
-                 }).to_datastruct(True)
-
-             profiles.append(data)
-
-         return success(profiles)
+         return self.db.nested_list (
+                [ distribution.DistributionData.DB_SCHEMA ],
+                profile_args,
+                { "distributions.id" : "profiles.distribution_id" }
+         ) 
 
 
     def get(self, token, profile_args):

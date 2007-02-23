@@ -116,11 +116,6 @@ class RegToken(web_svc.AuthWebSvc):
          Create a registration token.   Only profile_id and uses_remaining are used as input.
          """
 
-         st = """
-         INSERT INTO regtokens (token, profile_id, uses_remaining)
-         VALUES (:token, :profile_id, :uses_remaining)
-         """
-
          # token is base64 encoded short string from /dev/urandom
          fd = open("/dev/urandom")
          data = fd.read(20) 
@@ -140,22 +135,7 @@ class RegToken(web_svc.AuthWebSvc):
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='profile_id',traceback=traceback.format_exc())
 
-         lock = threading.Lock()
-         lock.acquire()
-
-         try:
-             self.db.cursor.execute(st, u.to_datastruct())
-             self.db.connection.commit()
-         except Exception:
-             lock.release()
-             # FIXME: be more fined grained (find where IntegrityError is defined)
-             raise SQLException(traceback=traceback.format_exc())
-
-         rowid = self.db.cursor.lastrowid
-         lock.release()
-
-         return success(rowid)
-
+         return self.db.simple_insert(u.to_datastruct()
 
     def delete(self, token, args):
          """
@@ -177,67 +157,14 @@ class RegToken(web_svc.AuthWebSvc):
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         offset = 0
-         limit  = 100
-         if args.has_key("offset"):
-            offset = args["offset"]
-         if args.has_key("limit"):
-            limit = args["limit"]
+         # FIXME: make nested lists be able to do outer joins, or else fill
+         # in "EMPTY" database rows for unset profiles and make those undeleteable.
 
-         st = """
-         SELECT 
-         regtokens.id,
-         regtokens.token,
-         regtokens.profile_id,
-         regtokens.uses_remaining,
-         profiles.id,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id, 
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container
-         FROM regtokens
-         LEFT OUTER JOIN profiles ON regtokens.profile_id = profiles.id 
-         LIMIT ?,?
-         """ 
-
-         results = self.db.cursor.execute(st, (offset,limit))
-         results = self.db.cursor.fetchall()
-         if results is None:
-             return success([])
-
-         collection = []
-         for x in results:
-             # note that the distribution is *not* expanded as it may
-             # not be valid in all cases
-             data = RegTokenData.produce({         
-                "id"             : x[0],
-                "token"          : x[1],
-                "profile_id"       : x[2],
-                "uses_remaining" : x[3]
-             }).to_datastruct(True)
-
-             if x[2] is not None and x[2] != -1:
-                 data["profile"] = profile.ProfileData.produce({
-                     "id"                 : x[4],
-                     "name"               : x[5],
-                     "version"            : x[6],
-                     "distribution_id"    : x[7],
-                     "virt_storage_size"  : x[8],
-                     "virt_ram"           : x[9],
-                     "kickstart_metadata" : x[10],
-                     "kernel_options"     : x[11],
-                     "valid_targets"      : x[12],
-                     "is_container"       : x[13]
-                 }).to_datastruct(True)
-
-             collection.append(data)
-
-         return success(collection)
+         return self.db.nested_list(
+            [ profile.Profile.DB_SCHEMA ],
+            args,
+            { "profiles.id" : "regtokens.profile_id" }
+         )
 
     def __decrement_uses_remaining(self, id, uses):
         """

@@ -231,28 +231,19 @@ class Machine(web_svc.AuthWebSvc):
         if u.profile_id:
             self.cobbler_sync(u.to_datastruct())
 
-    def delete(self, token, machine_args):
+    def delete(self, token, args):
         """
         Deletes a machine.  The machine_args must only contain the id field.
         """
         
-        u = MachineData.produce(machine_args,OP_DELETE) # force validation
+        u = MachineData.produce(args,OP_DELETE) # force validation
         
-        # deployment orphan prevention
-        st2 = """
-        SELECT machines.id FROM deployments,machines where machines.id = deployments.profile_id
-        AND machines.id=:id
-        """
-        # check to see that what we are deleting exists
-        # this will raise an exception if the machine isn't there. 
-        # self.get(token,machine_args)
-
-        self.db.cursor.execute(st2, { "id" : u.id })
-        results = self.db.cursor.fetchall()
-        if results is not None and len(results) != 0:
+        deployment_obj = deployment.Deployment()
+        deployments = deployment_obj.list({"id" : u.machine_id })
+        if len(deployments.data) > 0:
             raise OrphanedObjectException(comment="profile")
-
-        return self.db.simple_delete({ "id" : u.id })
+        
+        return self.db.simple_delete(args)
 
     def list(self, token, machine_args):
          """
@@ -261,91 +252,13 @@ class Machine(web_svc.AuthWebSvc):
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         offset = 0
-         limit  = 100
-         if machine_args.has_key("offset"):
-            offset = machine_args["offset"]
-         if machine_args.has_key("limit"):
-            limit = machine_args["limit"]
-
-         st = """
-         SELECT machines.id AS mid, 
-         machines.hostname,
-         machines.ip_address,
-         machines.registration_token,
-         machines.architecture,
-         machines.processor_speed,
-         machines.processor_count,
-         machines.memory,
-         machines.kernel_options,
-         machines.kickstart_metadata,
-         machines.list_group,
-         machines.mac_address,
-         machines.is_container,
-         machines.profile_id,
-         machines.puppet_node_diff,
-         machines.is_locked, 
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id,
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container,
-         profiles.puppet_classes
-         FROM machines
-         LEFT OUTER JOIN profiles ON machines.profile_id = profiles.id  
-         LIMIT ?,?
-         """ 
-
-         results = self.db.cursor.execute(st, (offset,limit))
-         results = self.db.cursor.fetchall()
-
-         if results is None:
-             return success([])
-
-         machines = []
-         for x in results:
-
-             data = MachineData.produce({         
-                 "id"                 : x[0],
-                 "hostname"           : x[1],
-                 "ip_address"         : x[2],
-                 "registration_token" : x[3]
-                 "architecture"       : x[4],
-                 "processor_speed"    : x[5],
-                 "processor_count"    : x[6],
-                 "memory"             : x[7],
-                 "kernel_options"     : x[8],
-                 "kickstart_metadata" : x[9],
-                 "list_group"         : x[10],
-                 "mac_address"        : x[11],
-                 "is_container"       : x[12],
-                 "profile_id"         : x[13],
-                 "puppet_node_diff"   : x[14]
-             }).to_datastruct(True)
-
-             if x[13] is not None and x[13] != -1:
-                 data["profile"] = profile.ProfileData.produce({
-                      "id"                 : x[13],
-                      "name"               : x[15],
-                      "version"            : x[16],
-                      "distribution_id"    : x[17],
-                      "virt_storage_size"  : x[18],
-                      "virt_ram"           : x[19],
-                      "kickstart_metadata" : x[20],
-                      "kernel_options"     : x[21],
-                      "valid_targets"      : x[22],
-                      "is_container"       : x[23],
-                      "puppet_classes"     : x[24]
-                 }).to_datastruct(True)
-
-             machines.append(data)
-
-         return success(machines)
-
+         return self.db.nested_list (
+            [ profile.Profile.DB_SCHEMA ],
+            machine_args,
+            {
+               "machines.profile_id" : "profiles.id"
+            } 
+         )
 
     def get_by_hostname(self, token, machine_args):
         """
@@ -357,6 +270,7 @@ class Machine(web_svc.AuthWebSvc):
         if machine_args.has_key("hostname"):
             hostname = machine_args["hostname"]
         else:
+            # FIXME: this should be a shadowmanager exception if API is exposed remotely
             raise ValueError("hostname is required")
 
         result = self.db.simple_list({}, {"hostname": hostname})
@@ -377,10 +291,16 @@ class Machine(web_svc.AuthWebSvc):
             return result
         
         # FIXME: redo this with profile id
-        self.insert_profiles(token, [result.data])
-        return success(result.data)
+        data = self.insert_profiles(token, [result.data])
+        return success(data[0])
 
     def insert_profiles(self, token, machines):
+        # FIXME: I've added return codes to this though the side-effects
+        # probably should be minimized?  Also, in general, we need to move
+        # most of the codebase to use object.item form versus the Raw DB hash stuff.
+        # Next release maybe.
+        if not type(machines) == list:
+            machines = [machines]
         for machine in machines:
             if machine["profile_id"] is not None and machine["profile_id"] != -1:
                 profile_obj = profile.Profile()
@@ -388,7 +308,8 @@ class Machine(web_svc.AuthWebSvc):
                 if not profile_results.ok():
                     raise OrphanedObjectException(comment="profile_id")
                 machine["profile"] = profile_results.data
-     
+        return machines     
+
 methods = Machine()
 register_rpc = methods.register_rpc
 

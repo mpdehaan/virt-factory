@@ -269,125 +269,24 @@ class Deployment(web_svc.AuthWebSvc):
         return self.db.simple_delete({ "id" : u.id })
 
 
-    def list(self, token, deployment_dep_args):
+    def list(self, token, args):
          """
          Return a list of deployments.  The deployment_dep_args list is currently *NOT*
          used.  Ideally we need to include LIMIT information here for
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         offset = 0
-         limit  = 100
-         if deployment_dep_args.has_key("offset"):
-            offset = deployment_dep_args["offset"]
-         if deployment_dep_args.has_key("limit"):
-            limit = deployment_dep_args["limit"]
-
-         st = """
-         SELECT 
-         deployments.id,
-         deployments.hostname,
-         deployments.ip_address,
-         deployments.registration_token,
-         deployments.mac_address,
-         deployments.machine_id,
-         deployments.profile_id,
-         deployments.state,
-         deployments.display_name,
-         deployments.puppet_node_diff,
-         deployments.is_locked,
-         profiles.id,
-         profiles.name,
-         profiles.version,
-         profiles.distribution_id,
-         profiles.virt_storage_size,
-         profiles.virt_ram,
-         profiles.kickstart_metadata,
-         profiles.kernel_options,
-         profiles.valid_targets,
-         profiles.is_container,
-         profiles.puppet_classes,
-         machines.id,
-         machines.hostname,
-         machines.ip_address, 
-         machines.architecture,
-         machines.processor_speed,
-         machines.processor_count,
-         machines.memory,
-         machines.kernel_options,
-         machines.kickstart_metadata,
-         machines.list_group,
-         machines.mac_address,
-         machines.is_container,
-         machines.profile_id,
-         machines.registration_token,
-         machines.is_locked
-         FROM deployments,profiles,machines 
-         WHERE profiles.id = deployments.profile_id AND
-         machines.id = deployments.machine_id
-         LIMIT ?,?
-         """ 
-
-         results = self.db.cursor.execute(st, (offset,limit))
-         results = self.db.cursor.fetchall()
-         if results is None:
-             return success([])
-
-         deployments = []
-
-         for x in results:
-
-             profile_data = profile.ProfileData.produce({
-                    "id"                 : x[11],
-                    "name"               : x[12],
-                    "version"            : x[13],
-                    "distribtuion_id"    : x[14],
-                    "virt_storage_size"  : x[15],
-                    "virt_ram"           : x[16],
-                    "kickstart_metadata" : x[17],
-                    "kernel_options"     : x[18],
-                    "valid_targets"      : x[19],
-                    "is_container"       : x[20],
-                    "puppet_classes"     : x[21]
-             }).to_datastruct(True)
-
-             machine_data = machine.MachineData.produce({
-                    "id"                 : x[22],
-                    "hostname"           : x[23],
-                    "ip_address"         : x[24],
-                    "architecture"       : x[25],
-                    "processor_speed"    : x[26],
-                    "processor_count"    : x[27],
-                    "memory"             : x[28],
-                    "kernel_options"     : x[29],
-                    "kickstart_metadata" : x[30],
-                    "list_group"         : x[31],
-                    "mac_address"        : x[32],
-                    "is_container"       : x[33],
-                    "profile_id"         : x[34],
-                    "registration_token" : x[35].
-                    "is_locked"          : x[36]
-             }).to_datastruct(True)
-
-             data = DeploymentData.produce({         
-                "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "registration_token" : x[3]
-                "mac_address"        : x[4],
-                "machine_id"         : x[5],
-                "profile_id"         : x[6],
-                "state"              : x[7],
-                "display_name"       : x[8],
-                "puppet_node_diff"   : x[9]
-                "is_locked"          : x[10]
-             }).to_datastruct(True)
-
-             data["profile"] = profile_data
-             data["machine"] = machine_data
-             deployments.append(data)
-
-         return success(deployments)
+         return self.db..nested_list(
+             [
+                machine.Machine.DB_SCHEMA, 
+                profile.Profile.DB_SCHEMA
+             ],
+             args,
+             {
+                "machine.id"    : "deployment.machine_id",
+                "profile.id"    : "deployment.profile_id" 
+             },
+         )
 
 
     def get_by_hostname(self, token, deployment_args):
@@ -408,56 +307,20 @@ class Deployment(web_svc.AuthWebSvc):
         self.insert_components(token, result.data)
         return success(result.data)
         
-    def get(self, token, deployment_dep_args):
+    def get(self, token, args):
          """
          Return a specific deployment record.  Only the "id" is required in deployment_dep_args.
          """
 
-         u = DeploymentData.produce(deployment_dep_args,OP_GET) # force validation
-
-         st = """
-         SELECT deployments.id,
-         deployments.hostname, deployments.ip_address, deployments.registration_token, deployments.mac_address,
-         deployments.machine_id,deployments.profile_id,deployments.state,
-         deployments.display_name,
-         deployments.puppet_node_diff, deployments.is_locked
-         profiles.id, machines.id
-         FROM deployments,profiles,machines WHERE deployments.id=:id AND 
-         profiles.id = deployments.profile_id AND machines.id = deployments.machine_id
-         """
-
-         self.db.cursor.execute(st,{ "id" : u.id })
-         x = self.db.cursor.fetchone()
-         if x is None:
-             raise NoSuchObjectException()
-
-         # exceptions will be raised by these next two calls, so no RC
-         # checking is required
-         machine_obj = machine.Machine()
-         profile_obj = profile.Profile()
-         machine_results = machine_obj.get(token, { "id" : x[5] })
-         profile_results   = profile_obj.get(token, { "id" : x[6] })
-
-         data = DeploymentData.produce({
-                "id"                 : x[0],
-                "hostname"           : x[1],
-                "ip_address"         : x[2],
-                "registration_token" : x[3]
-                "mac_address"        : x[4],
-                "machine_id"         : x[5],
-                "profile_id"         : x[6],
-                "state"              : x[7],
-                "display_name"       : x[8],
-                "puppet_node_diff"   : x[9],
-                "is_locked"          : x[10]
-         }).to_datastruct(True)
-
-         data["machine"] = machine_results.data
-         data["profile"]   = profile_results.data
-
+         results = self.db.simple_get(args)
+         if not results.ok(): 
+             return results
+         data = self.insert_components(token, results.data)
          return success(data)
 
     def insert_components(self, token, deployments):
+        if type(deployments) != list:
+            deployments = [deployments]
         for deployment in deployments:
             if deployment["profile_id"] is not None and deployment["profile_id"] != -1:
                 profile_obj = profile.Profile()
@@ -471,6 +334,7 @@ class Deployment(web_svc.AuthWebSvc):
                 if not machine_results.ok():
                     raise OrphanedObjectException(comment="machine_id")
                 deployment["machine"] = machine_results.data
+        return deployments
 
 
 methods = Deployment()
