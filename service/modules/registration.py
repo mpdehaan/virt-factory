@@ -18,6 +18,7 @@ import baseobj
 import authentication
 import config
 import machine
+import deployment
 import regtoken
 import web_svc
 import profile
@@ -60,21 +61,24 @@ class Registration(web_svc.AuthWebSvc):
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
-    def register(self, token, hostname, ip_addr, mac_addr, profile_name):
+    def register(self, token, hostname, ip_addr, mac_addr, profile_name, virtual):
         self.__check_auth(token)
         
-        machine_obj = machine.Machine()
-        results = machine_obj.db.simple_list({}, { "mac_address" : mac_addr })
+        if virtual:
+            abstract_obj = deployment.Deployment()
+        else:
+            abstract_obj = machine.Machine()
+        results = abstract_obj.db.simple_list({}, { "mac_address" : mac_addr })
         if results.error_code != 0:
             return results
         if len(results.data) != 0:
-            print "simple machine query"
-            machine_id =  results.data[0]["id"]
-            print "existing machine id = %s" % machine_id
+            print "simple query"
+            abstract_id =  results.data[0]["id"]
+            print "existing id = %s" % abstract_id
         else:
-            results = machine_obj.new(token)
-            machine_id = results.data 
-            print "new machine id = %s" % machine_id
+            results = abstract_obj.new(token)
+            abstract_id = results.data 
+            print "new abstract id = %s" % abstract_id
 
         profile_id = None
 
@@ -94,8 +98,8 @@ class Registration(web_svc.AuthWebSvc):
             if profiles.error_code != 0 and len(profiles.data) != 0:
                 profile_id = results.data[0]["id"]
 
-        print "calling associate with machine_id: ", machine_id
-        return machine_obj.associate(token, machine_id, hostname, ip_addr, mac_addr, profile_id)
+        print "calling associate with abstract_id: ", abstract_id
+        return abstract_obj.associate(token, abstract_id, hostname, ip_addr, mac_addr, profile_id)
 
 
 methods = Registration()

@@ -121,7 +121,52 @@ class Deployment(web_svc.AuthWebSvc):
 
         web_svc.AuthWebSvc.__init__(self)
         self.db.db_schema = self.DB_SCHEMA
-                        
+
+    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
+              architecture=None, processor_speed=None, processor_count=None,
+              memory=None):
+        """
+        Associate a machine with an ip/host/mac address
+        """
+        print "associating..."
+        # determine the profile from the token.
+        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
+        regtoken_obj = regtoken.RegToken()
+        if token is None:
+            print "token is None???"
+        results = regtoken_obj.get_by_token(None, { "token" : token })
+        print "get_by_token"
+        print "results: %s" % results
+        if results.error_code != 0:
+            raise codes.InvalidArgumentsException("bad token")
+        # FIXME: check that at least some results are returned.
+
+        if results.data[0].has_key("profile_id"):
+            profile_id = results.data[0]["profile_id"]
+
+        args = {
+            'id': machine_id,
+            'hostname': hostname,
+            'ip_address': ip_addr,
+            'mac_address': mac_addr,
+            'profile_id': profile_id
+         }
+         # FIXME: with the filter mods, 
+         # do I have to fill in the args I don't use? 
+         # how does that work?
+         print args
+         return self.edit(token, args)
+
+    def cobbler_sync(self, data):
+         cobbler_api = cobbler.api.BootAPI()
+         profiles = profile.Profile().list(None, {}).data
+         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virt=True)
+
+    # for duck typing compatibility w/ machine           
+    def new(self, token):
+         args = {}
+         print "deployment_new"
+         return self.add(token, args)    
 
     def add(self, token, deployment_dep_args):
          """
@@ -148,8 +193,17 @@ class Deployment(web_svc.AuthWebSvc):
          display_name = mac + " / " + profilename
 
          deployment_dep_args["display_name"] = display_name
+         deployment_dep_args["netboot_enabled"] = 0
+         deployment_dep_args["mac_address"] = self.generate_mac_address()
+         deployment_dep_args["state"] = "defined" # FIXME: constant
+
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
+         self.cobbler_sync(u.to_datastruct())
          return self.db.simple_add(u.to_datastruct())
+
+    def generate_mac_address(self):
+         # FIXME: this needs to use the XenSource space and offset by DB id
+         return "DD:EE:AA:DD::BB:FF"
 
     def edit(self, token, deployment_dep_args):
          """
@@ -173,9 +227,11 @@ class Deployment(web_svc.AuthWebSvc):
 
          display_name = mac + "/" + profilename
          deployment_dep_args["display_name"] = display_name
+         
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          # TODO: make this work w/ u.to_datastruct() 
+         self.cobbler_sync(deployment_dep_args)
          return self.db.simple_edit(deployment_dep_args)
 
     def delete(self, token, deployment_dep_args):
