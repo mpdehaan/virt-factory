@@ -72,11 +72,12 @@ class Registration(web_svc.AuthWebSvc):
         if results.error_code != 0:
             return results
         if len(results.data) != 0:
-            print "simple query"
+            self.logger.debug("results = %s" % results)
             abstract_id =  results.data[0]["id"]
             print "existing id = %s" % abstract_id
         else:
             results = abstract_obj.new(token)
+            self.logger.debug("results = %s" % results)
             abstract_id = results.data 
             print "new abstract id = %s" % abstract_id
 

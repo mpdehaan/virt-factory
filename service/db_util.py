@@ -190,13 +190,6 @@ class DbUtil(object):
         """
         return self.nested_get(self, [], args)
 
-
-
-    def simple_list_by(self, fieldname, fieldvalue):
-        """
-        Shorthand for writing a list statement with a WHERE clause.
-        """
-
     def simple_edit(self, args):
         """
         Shorthand for writing an edit statement.
