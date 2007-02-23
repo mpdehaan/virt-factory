@@ -21,6 +21,7 @@ import baseobj
 import profile
 import machine
 import web_svc
+import task
 
 import traceback
 import threading
@@ -199,7 +200,17 @@ class Deployment(web_svc.AuthWebSvc):
 
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
-         return self.db.simple_add(u.to_datastruct())
+         results = self.db.simple_add(u.to_datastruct())
+
+         task_obj = task.Task()
+         task_obj.add(token, {
+            "user_id"       : None,
+            "machine_id"    : deployment_dep_args["machine_id"],
+            "deployment_id" : results.data["id"],
+            "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT, 
+         })
+
+         return results
 
     def generate_mac_address(self):
          # FIXME: this needs to use the XenSource space and offset by DB id
@@ -234,7 +245,17 @@ class Deployment(web_svc.AuthWebSvc):
          self.cobbler_sync(deployment_dep_args)
          return self.db.simple_edit(deployment_dep_args)
 
-    def delete(self, token, deployment_dep_args):
+    def delete(self, token):
+        # delete scheduled through taskatron.
+        # FIXME: lock this object once we have locks
+        task_obj = task.Task()
+        task_obj.add(token, {
+           "deployment_id" : rc.data["id"],
+           "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
+        })
+        return success() # FIXME: always?
+
+    def database_delete(self, token, deployment_dep_args):
         """
         Deletes a deployment.  The deployment_dep_args must only contain the id field.
         """
