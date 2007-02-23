@@ -98,7 +98,7 @@ class DbUtil(object):
         
         return_list = []
         provided_keys = provided_params.keys()
-        for param in full_list:
+        for param in full_parameter_list:
             if param in provided_keys:
                 return_list.append(param)
         return return_list
@@ -136,8 +136,10 @@ class DbUtil(object):
 
         if not return_single:
             # don't list empty rows
-            where_clause = where_clause + " AND %s.id > 0 " % self.db_schema["table"]
-
+            if where_clause.find("WHERE") != -1:
+                where_clause = where_clause + " AND %s.id > 0 " % self.db_schema["table"]
+            else:
+                where_clause = " WHERE %s.id > 0 " % self.db_schema["table"]
         
         fields = [] 
         schemas_list.insert(0, self.db_schema)
@@ -163,23 +165,24 @@ class DbUtil(object):
         result_list = []
         for each_result in results:
             result_hash = {}
-            for field, result in zip(fields,result_entries):
-                (table, field) = x.split(".")
+            for field, result in zip(fields,each_result):
+                (table, real_field) = field.split(".")
                 if table == schemas_list[0]:
-                    result_hash[field] = result
+                    result_hash[real_field] = result
                 else:
-                    if notresult_hash.has_key(table):
+                    if not result_hash.has_key(table):
                         result_hash[table] = {}    
-                    result_hash[table][field] = result
+                    result_hash[table][real_field] = result
             result_list.append(result_hash)
                  
         self.logger.info("SUCCESS, list=%s" % result_list)
 
-        base_obj = baseobj.BaseObject()
+        # FIXME: this very clearly doesn't call remove_nulls and 
+        # might need to be fixed.
         if return_single:
-            return success(base_obj.remove_nulls(result_hash))
+            return success(result_hash)
         else:
-            return success(base_obj.remove_nulls(result_list))
+            return success(result_list)
         
     def simple_get(self, args):
         """

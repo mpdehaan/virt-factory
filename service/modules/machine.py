@@ -156,7 +156,7 @@ class Machine(web_svc.AuthWebSvc):
 
         # TODO: generate the registration token here and make it actually random and decent.
         u.registration_token = "THIS IS WRONG AND NEEDS TO BE FIXED"
-        result = self.db.simple_add(args)
+        result = self.db.simple_add(u.to_datastruct())
         if u.profile_id:
             self.cobbler_sync(u.to_datastruct())
         return result
@@ -171,8 +171,7 @@ class Machine(web_svc.AuthWebSvc):
         Allocate a new machine record to be fill in later. Return a machine_id
         """
 
-        args = {}
-        print "machine_new"
+        args = { "profile_id" : -1 }
         return self.add(token, args)
 
 

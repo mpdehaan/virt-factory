@@ -56,7 +56,7 @@ class ProfileData(baseobj.BaseObject):
         propogated.  It's best to use this for validation and build a *second*
         profile object for interaction with the ORM.  See methods below for examples.
         """
-        return self.deserialize(self,profile_args)
+        return self.deserialize(profile_args)
 
     def to_datastruct_internal(self):
         """
