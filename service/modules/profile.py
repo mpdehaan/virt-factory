@@ -208,7 +208,7 @@ class Profile(web_svc.AuthWebSvc):
          """
 
          return self.db.nested_list (
-                [ distribution.DistributionData.DB_SCHEMA ],
+                [ distribution.Distribution.DB_SCHEMA ],
                 profile_args,
                 { "distributions.id" : "profiles.distribution_id" }
          ) 

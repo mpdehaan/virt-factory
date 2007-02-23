@@ -103,12 +103,13 @@ class DbUtil(object):
         """
         return self.nested_list([], args, where_args={})
 
-    def nested_get(self, schemas_list, args, where_args={})
+    def nested_get(self, schemas_list, args, where_args={}):
         return self.nested_list(schemas_list, args, where_args, return_single=True)
 
     def nested_list(self, schemas_list, args, where_args={}, return_single=False):
         """
         Select * from foo, with joins on it's nested tables.
+        FIXME: outer join support ???
         """
         (offset, limit) = self.get_limit_parms(args)
 
@@ -129,10 +130,13 @@ class DbUtil(object):
         schemas_list.insert(0, self.db_schema)
         for table in schemas_list:
             for field in table["fields"]:
-                fields.append("%s.%s" % (table, field))
-        clause = fields.join(",")
+                fields.append("%s.%s" % (table["table"], field))
+        fields_clause = ",".join(fields)
 
-        buf = "SELECT " + clause +  " FROM " + self.db_schema["table"]  + " " + where_clause + " LIMIT ?,?"
+        table_names = [ table["table"] for table in schemas_list ]
+        table_clause = " FROM " + ",".join(table_names)
+
+        buf = "SELECT " + fields_clause + " " + table_clause + " " + where_clause + " LIMIT ?,?"
         self.logger.info( "QUERY: %s" % buf)
         self.logger.info( "OFFSET, LIMIT: %s, %s" % (offset,limit))
         self.cursor.execute(buf, (offset,limit))
@@ -149,14 +153,14 @@ class DbUtil(object):
             for field, result in zip(fields,result_entries):
                 (table, field) = x.split(".")
                 if table == schemas_list[0]:
-                    result_hash[field] = result:
+                    result_hash[field] = result
                 else:
                     if notresult_hash.has_key(table):
                         result_hash[table] = {}    
                     result_hash[table][field] = result
             result_list.append(result_hash)
                  
-        self.logger.info("SUCCESS, list=%s" % data_list)
+        self.logger.info("SUCCESS, list=%s" % result_list)
 
         base_obj = baseobj.BaseObject()
         if return_single:

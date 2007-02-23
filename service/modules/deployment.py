@@ -145,18 +145,13 @@ class Deployment(web_svc.AuthWebSvc):
         if results.data[0].has_key("profile_id"):
             profile_id = results.data[0]["profile_id"]
 
-        args = {
+        return self.edit({
             'id': machine_id,
             'hostname': hostname,
             'ip_address': ip_addr,
             'mac_address': mac_addr,
             'profile_id': profile_id
-         }
-         # FIXME: with the filter mods, 
-         # do I have to fill in the args I don't use? 
-         # how does that work?
-         print args
-         return self.edit(token, args)
+         })
 
     def cobbler_sync(self, data):
          cobbler_api = cobbler.api.BootAPI()
@@ -276,7 +271,7 @@ class Deployment(web_svc.AuthWebSvc):
          GUI pagination when we start worrying about hundreds of systems.
          """
 
-         return self.db..nested_list(
+         return self.db.nested_list(
              [
                 machine.Machine.DB_SCHEMA, 
                 profile.Profile.DB_SCHEMA
