@@ -1,6 +1,6 @@
 CREATE TABLE tasks (
    id              INTEGER PRIMARY KEY,
-   user_id         INTEGER,
+   user_id         INTEGER NOT NULL,
    action_type     INTEGER NOT NULL,
    machine_id      INTEGER NOT NULL,
    deployment_id   INTEGER NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE events (
    user_id         INTEGER NOT NULL,
    machine_id      INTEGER,
    deployment_id   INTEGER,
-   profile_id        INTEGER,
+   profile_id      INTEGER,
    severity        INTEGER NOT NULL,
    category        VARCHAR (255) NOT NULL,
    action          VARCHAR (255) NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   profile_id         INTEGER,
+   profile_id         INTEGER NOT NULL,
    puppet_node_diff   TEXT,
    is_locked          INTEGER
 );
