@@ -1,8 +1,9 @@
 CREATE TABLE tasks (
    id              INTEGER PRIMARY KEY,
    user_id         INTEGER,
-   operation       INTEGER NOT NULL,
-   parameters      VARCHAR,
+   action_type     INTEGER NOT NULL,
+   machine_id      INTEGER NOT NULL,
+   deployment_id   INTEGER NOT NULL,
    state           INTEGER NOT NULL,
    time            REAL NOT NULL
 );
@@ -58,21 +59,24 @@ CREATE TABLE profiles (
 );
 
 CREATE TABLE deployments (
-   id                 INTEGER PRIMARY KEY,
-   hostname           VARCHAR(255),
-   ip_address         VARCHAR(255),
-   mac_address        VARCHAR(255),
-   machine_id         INTEGER NOT NULL,
-   profile_id           INTEGER NOT NULL,
-   state              INTEGER NOT NULL,
-   display_name       VARCHAR(255) NOT NULL,
-   puppet_node_diff   TEXT
+   id                  INTEGER PRIMARY KEY,
+   hostname            VARCHAR(255),
+   ip_address          VARCHAR(255),
+   registration_token  VARCHAR(255),
+   mac_address         VARCHAR(255),
+   machine_id          INTEGER NOT NULL,
+   profile_id          INTEGER NOT NULL,
+   state               INTEGER NOT NULL,
+   display_name        VARCHAR(255) NOT NULL,
+   puppet_node_diff    TEXT,
+   is_locked           INTEGER
 );
 
 CREATE TABLE machines (
    id                 INTEGER PRIMARY KEY,
    hostname           VARCHAR(255),
    ip_address         VARCHAR(255),
+   registration_token VARCHAR(255),
    architecture       INTEGER,
    processor_speed    INTEGER,
    processor_count    INTEGER,
@@ -82,14 +86,15 @@ CREATE TABLE machines (
    list_group         VARCHAR(255),
    mac_address        VARCHAR(255),
    is_container       INTEGER,
-   profile_id           INTEGER,
-   puppet_node_diff   TEXT
+   profile_id         INTEGER,
+   puppet_node_diff   TEXT,
+   is_locked          INTEGER
 );
 
 CREATE TABLE regtokens (
    id                 INTEGER PRIMARY KEY,
    token              VARCHAR(255),
-   profile_id           INTEGER, 
+   profile_id         INTEGER, 
    uses_remaining     INTEGER
 );
 
