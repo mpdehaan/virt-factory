@@ -98,7 +98,7 @@ class DbUtil(object):
         
         return_list = []
         provided_keys = provided_params.keys()
-        for param in full_list:
+        for param in full_parameter_list:
             if param in provided_keys:
                 return_list.append(param)
         return return_list
