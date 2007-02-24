@@ -9,6 +9,7 @@ class Machine < ManagedObject
     # corresponds with db schema
     ATTR_LIST = { :id => {:type => Integer}, 
                   :hostname => {:type => String}, 
+                  :registration_token => {:type => String},
                   :ip_address => {:type => String},
                   :architecture => {:type => String}, 
                   :processor_speed => {:type => Integer}, 
@@ -21,7 +22,8 @@ class Machine < ManagedObject
                   :list_group => {:type => String}, 
                   :mac_address => {:type => String}, 
                   :is_container => {:type => Integer}, 
-                  :puppet_node_diff => {:type => String} }
+                  :puppet_node_diff => {:type => String},
+                  :is_locked => {:type => Integer} }
 
     self.set_attrs(ATTR_LIST)
 
