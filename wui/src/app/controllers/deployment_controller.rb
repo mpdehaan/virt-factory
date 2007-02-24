@@ -25,7 +25,7 @@ class DeploymentController < AbstractObjectController
 
        @profiles = []
        ManagedObject.retrieve_all(Profile, @session).each do |profile|
-           @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_BAREMETAL
+           @profiles << [profile.name, profile.id] unless profile.id < 0 or profile.valid_targets == PROFILE_IS_BAREMETAL
        end
    end
 end

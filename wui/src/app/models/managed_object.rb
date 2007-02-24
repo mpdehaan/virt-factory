@@ -47,7 +47,7 @@ class ManagedObject
 
                     # if we haven't yet defined the subobject (by pulling it out of the hash)
                     # get it from the web service, otherwise return it directly
-
+                   
                     if !instance_variable_get(attr_symbol)
                         id = instance_variable_get(id_symbol) 
                         if (id > 0)
@@ -92,7 +92,9 @@ class ManagedObject
     def self.retrieve_all(object_class, session)
         print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list"
         results = self.call_server("#{object_class::METHOD_PREFIX}_list", session, {})
-        results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil?}
+        # results.each { |r| puts r }
+        results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? }
+        return results
     end
 
     # retrieves a single object (not a list) that corresponds to a certain id.  Should return
