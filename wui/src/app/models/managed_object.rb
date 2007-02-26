@@ -89,10 +89,10 @@ class ManagedObject
     # with really long system lists (i.e. a couple thousand).  Ok to add in later release.
     #+++
 
-    def self.retrieve_all(object_class, session)
-        print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list"
+    def self.retrieve_all(object_class, session, retrieve_nulls = false)
+        print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list\n"
         results = self.call_server("#{object_class::METHOD_PREFIX}_list", session, {})
-        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? and hash["id"] > 0 }
+        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? and (retrieve_nulls or hash["id"] >= 0) }
         results.reject! { |foo| foo.nil? }
         return results
     end
