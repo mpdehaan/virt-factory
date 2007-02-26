@@ -191,20 +191,17 @@ class CobblerTranslatedProfile:
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
 
         
-        ks_meta["node_common_packages"] = "koan sm-node-daemon" # FIXME: requires RPM to create repo
-        ks_meta["node_virt_packages"] = ""
-        ks_meta["node_bare_packages"] = ""
-        if from_db.has_key("is_container") and from_db["is_container"] != 0:
-            # FIXME: is this package list right?
-            ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virstinst"  
-            ks_meta["node_bare_packages"]   = ""
-@@ -205,8 +209,10 @@ class CobblerTranslatedProfile:
-        ks_meta["extra_post_magic"]     = ""
-        # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
-        # registered (and thus doesn't have a token).
+       ks_meta["node_common_packages"] = "koan sm-node-daemon" # FIXME: requires RPM to create repo
+       ks_meta["node_virt_packages"] = ""
+       ks_meta["node_bare_packages"] = ""
+       if from_db.has_key("is_container") and from_db["is_container"] != 0:
+           # FIXME: is this package list right?
+           ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virstinst"  
+           ks_meta["node_bare_packages"]   = ""
+       ks_meta["extra_post_magic"]     = ""
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["profile_param"]        = "--token=UNSET" # intentional, make regtool understand
+       ks_meta["profile_param"]        = "--token=%s" % from_db["registration_token"]
        ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
       
 

@@ -148,11 +148,15 @@ class ShadowImporter:
        self.set_node_text(profile_dict, VALID_TARGETS_TAG)
        self.set_node_text(profile_dict, IS_CONTAINER_TAG, "int")
        self.set_node_text(profile_dict, PUPPET_CLASSES_TAG)
-       distribution_name = self.get_node_text(DISTRIBUTION_TAG)
+       self.set_node_text(profile_dict, DISTRIBUTION_TAG)
+       distribution_name = profile_dict[DISTRIBUTION_TAG]
+       print "distro name = ", distribution_name
        if (distribution_name is not None):
            distribution_obj = distribution.Distribution()
-           distribution_result = distribution_obj.get_by_name(None, {"name": "var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot"})
+           distribution_result = distribution_obj.get_by_name(None, {"name": distribution_name})
+           print "distro result = ", distribution_result.error_code
            if (distribution_result.error_code != 0):
+               print distribution_result
                raise codes.InvalidArgumentsException(comment="bad distribution name")
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
        profile_obj = profile.Profile()

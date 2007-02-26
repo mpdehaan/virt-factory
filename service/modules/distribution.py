@@ -200,8 +200,8 @@ class Distribution(web_svc.AuthWebSvc):
         else:
             raise ValueError("name is required")
             
-        result = self.db.simple_list({}, {"name": name})
-        if (len(result.data) == 1):
+        result = self.db.simple_list({}, {"name": "'%s'" % name})
+        if (len(result.data) > 0):
             return success(result.data[0])
         else:
             return NoSuchObjectException(comment="get_by_name")

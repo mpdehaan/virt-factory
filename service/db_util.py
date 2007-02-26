@@ -128,8 +128,7 @@ class DbUtil(object):
                y = where_args[x]
                if type(y) == str or type(y) == unicode:
                    y = "%s" % y  # NOTE: users need to escape where_args if needed _before_ passing in
-               self.logger.info( x+y)
-               where_parts.append(x + " = " + y)
+               where_parts.append(str(x) + " = " + str(y))
            where_clause = " WHERE " + string.join(where_parts, " AND ")
         else:
            where_clause = ""
@@ -191,7 +190,7 @@ class DbUtil(object):
         """
         Shorthand for writing a one table select.  
         """
-        return self.nested_get(self, {}, args)
+        return self.nested_get([], args, {})
 
     def simple_edit(self, args):
         """

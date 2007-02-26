@@ -275,7 +275,7 @@ class Machine(web_svc.AuthWebSvc):
             # FIXME: this should be a shadowmanager exception if API is exposed remotely
             raise ValueError("hostname is required")
 
-        result = self.db.nested_list([profile.Profile.DB_SCHEMA], machine_args, {"hostname": hostname})
+        result = self.db.nested_list([profile.Profile.DB_SCHEMA], machine_args, {"hostname": "'%s'" % hostname})
         if (result.error_code != ERR_SUCCESS):
             return result
         return success(result.data)
@@ -285,7 +285,7 @@ class Machine(web_svc.AuthWebSvc):
         Internal use only.  Find if any machines have a given regtoken.
         """
         return self.db.nested_list([profile.Profile.DB_SCHEMA], {}, 
-                 { "registration_token" : regtoken })
+                 { "registration_token" : "'%s'" % regtoken })
 
     def get(self, token, machine_args):
         """

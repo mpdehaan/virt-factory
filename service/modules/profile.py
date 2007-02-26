@@ -240,7 +240,7 @@ class Profile(web_svc.AuthWebSvc):
         else:
             raise ValueError("name is required")
 
-        result = self.db.nested_list([distribution.Distribution.DB_SCHEMA], {}, {"name": name})
+        result = self.db.nested_list([distribution.Distribution.DB_SCHEMA], {}, {"profiles.name": "'%s'" % name})
         if (result.error_code != ERR_SUCCESS):
             return result
 

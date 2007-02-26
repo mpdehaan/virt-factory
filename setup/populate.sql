@@ -10,6 +10,5 @@ INSERT INTO regtokens VALUES(-1, "__NULL__", -1, NULL);
 
 INSERT INTO deployments VALUES(-1, "__NULL__", "", "", "", -1, -1, -1, "__NULL__", "", 0);
 
-INSERT INTO regtokens VALUES(-1, "UNSET", -1, -1);
 
 

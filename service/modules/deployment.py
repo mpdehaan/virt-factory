@@ -216,7 +216,7 @@ class Deployment(web_svc.AuthWebSvc):
          high = id / (127*256)
          mid  = (id % (127*256)) / 256
          low  = id % 256 
-         return ":".join.[ "0x00", "0x16", "0x3E", "02x" % high, "02x" % mid, "02x" % low ]
+         return ":".join([ "0x00", "0x16", "0x3E", "02x" % high, "02x" % mid, "02x" % low ])
 
     def edit(self, token, deployment_dep_args):
          """
@@ -303,7 +303,7 @@ class Deployment(web_svc.AuthWebSvc):
         else:
             raise ValueError("hostname is required")
 
-        return self.db.nested_list([machine.Machine.DB_SCHEMA, profile.Profile.DB_SCHEMA], {}, {"hostname": hostname})
+        return self.db.nested_list([machine.Machine.DB_SCHEMA, profile.Profile.DB_SCHEMA], {}, {"hostname": "'%s'" % hostname})
 
 
     def _get_by_regtoken(self, token, regtoken):
@@ -311,7 +311,7 @@ class Deployment(web_svc.AuthWebSvc):
         Internal use only.  Find if any deployments have a given regtoken.
         """
         return self.db.nested_list([profile.Profile.DB_SCHEMA], {},   
-                 { "registration_token" : regtoken })
+                 { "registration_token" : '"%s"' % regtoken })
 
         
     def get(self, token, args):
