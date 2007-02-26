@@ -95,6 +95,32 @@ run "shadow import" at a later date with additional rsync mirrors.
 Now log in through the Web UI...  You're good to go.\n
 """
 
+def input_string_or_hash(options,delim=","):
+    """
+    Borrowed from cobbler, this allows the kickstart metadata options to be more
+    flexible in regards to input data -- which  may be in the DB as a string and
+    is entered here in hash form. 
+    """
+    if options is None:
+        return (True, {})
+    elif type(options) != dict:
+        new_dict = {}
+        tokens = options.split(delim)
+        for t in tokens:
+            tokens2 = t.split("=")
+            if len(tokens2) == 1 and tokens2[0] != '':
+                new_dict[tokens2[0]] = None
+            elif len(tokens2) == 2 and tokens2[0] != '':
+                new_dict[tokens2[0]] = tokens2[1]
+            else:
+                return (False, {})
+        new_dict.pop('', None)
+        return (True, new_dict)
+    else:
+        options.pop('',None)
+        return (True, options)
+
+
 #--------------------------------------------------------------------
 
 class CobblerTranslatedDistribution:
@@ -108,9 +134,16 @@ class CobblerTranslatedDistribution:
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           new_item.set_ksmeta(from_db["kickstart_metadata"])
+           (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
+       if from_db.has_key("netboot_enabled"):
+           new_item.set_netboot_enabled(from_db["netboot_enabled"])
+       else:
+           new_item.set_netboot_enabled(False)
+       ks_meta["token_param"] = "--token=%s" % "FIXME" # FIXME: get this from the database
        cobbler_api.distros().add(new_item, with_copy=True)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -118,6 +151,9 @@ class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
        if from_db["id"] < 0:
            return
+       
+       shadow_config = config_data.Config().get()
+
        new_item = cobbler_api.new_profile()
        new_item.set_name(from_db["name"])
        
@@ -150,9 +186,30 @@ class CobblerTranslatedProfile:
        new_item.set_virt_ram(virt_ram)
 
 
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           new_item.set_ksmeta(from_db["kickstart_metadata"])
+           (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
+
+        
+        ks_meta["node_common_packages"] = "koan sm-node-daemon" # FIXME: requires RPM to create repo
+        ks_meta["node_virt_packages"] = ""
+        ks_meta["node_bare_packages"] = ""
+        if from_db.has_key("is_container") and from_db["is_container"] != 0:
+            # FIXME: is this package list right?
+            ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virstinst"  
+            ks_meta["node_bare_packages"]   = ""
+@@ -205,8 +209,10 @@ class CobblerTranslatedProfile:
+        ks_meta["extra_post_magic"]     = ""
+        # NOTE: the following token_param of UNSET is used for PXE menu provisioning when a machine isn't explicitly
+        # registered (and thus doesn't have a token).
+
+       ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
+       ks_meta["profile_param"]        = "--token=UNSET" # intentional, make regtool understand
+       ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
+      
+
        cobbler_api.profiles().add(new_item, with_copy=True)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -162,15 +219,19 @@ class CobblerTranslatedProfile:
 # to be fixed.
 
 class CobblerTranslatedSystem:
-   def __init__(self,cobbler_api,profiles,from_db):
+   def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
        if from_db["id"] < 0:
            return
+ 
+       shadow_config = config_data.Config().get()
+
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
        # the system.  
  
        machine_id = from_db["id"]
-
+       if from_db["id"] < 0:
+           return
        
 
        if not from_db.has_key("profile_id"):
@@ -201,26 +262,36 @@ class CobblerTranslatedSystem:
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
        
        kernel_options = ""
-       kickstart_metadata = ""
+       # kickstart_metadata = ""
        pxe_address = ""
 
        if from_db.has_key("kernel_options"):
            kernel_options = from_db["kernel_options"]
+
+       ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
-           kickstart_metadata = from_db["kickstart_metadata"]
+           # kickstart_metadata = from_db["kickstart_metadata"]
+           # load initial kickstart metadata (which is a string) and get back a hash
+           (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
+       ks_meta["tree" ] = "FIXME"
+       ks_meta["server_param"] = "--server=http://%s:%150" % shadow_config["this_server"]["address"] 
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
        if from_db.has_key("ip_address"):
            pxe_address = from_db["ip_address"]
 
+       # FIXME: deal with is_virtual
+
+
        new_item.set_kernel_options(kernel_options)
-       new_item.set_ksmeta(kickstart_metadata)
+       new_item.set_ksmeta(ks_meta)
 
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
        
        cobbler_api.systems().add(new_item, with_copy=True)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -246,15 +317,17 @@ class Provisioning(web_svc.AuthWebSvc):
       self.machine = machine.Machine() 
       machines  = self.machine.list(token, {})
 
-      #self.deployment = deployment.Deployment()
-      
-      # cobbler can't be run multiple times at once...
+      self.deployment = deployment.Deployment()
+      deployments = self.deployment.list(token, {})      
+
+      # cobbler does do it's own locking, but not for API users...
       lock = threading.Lock()
       lock.acquire()
       
       distributions = distributions.data
-      profiles = profiles.data
-      machines = machines.data
+      profiles      = profiles.data
+      machines      = machines.data
+      deployments   = deployments.data
       
       # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
       # the server field might have changed.
@@ -280,6 +353,10 @@ class Provisioning(web_svc.AuthWebSvc):
          for p in machines:
             print "- machine: %s" % p
             CobblerTranslatedSystem(cobbler_api,profiles,p)
+         for dp in deployments:
+            print "- deployment: %s" % dp
+            CobblerTranslatedSystem(cobbler_api,deployments,dp)
+
          cobbler_api.serialize()
          cobbler_api.sync()
       except:
@@ -394,7 +471,7 @@ class Provisioning(web_svc.AuthWebSvc):
               # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
               # directory structure.  See cobbler's action_import.py for that.
 
-              "kickstart" : "/etc/shadowmanager/default.ks",
+              "kickstart" : "/var/lib/shadowmanager/kick-fc6.ks",
               "kickstart_metadata" : ""
            }
            print "cobbler distro add: %s" % add_data
