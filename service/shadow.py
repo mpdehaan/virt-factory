@@ -207,14 +207,17 @@ def main(argv):
     
     websvc = XmlRpcInterface()
      
-    if len(argv) > 1:
-       if argv[1].lower() == "import":
+    for arg in sys.argv:
+       if arg == "import" or "--import":
           prov_obj = provisioning.Provisioning()
           prov_obj.init(None, {})
-       elif argv[1].lower() == "sync":
+       elif arg == "sync" or "--sync":
           prov_obj = provisioning.Provisioning()
           prov_obj.sync(None, {}) # just for testing
-       elif argv[1].lower() == "debug":
+       elif arg == "debug" or "--debug":
+          serve(websvc)
+       elif arg == "daemon" or "--daemon":
+          daemonize("/var/run/shadow.pid")
           serve(websvc)
        else:
           print """
@@ -227,7 +230,7 @@ def main(argv):
           sys.exit(1)
     else:
        print "serving...\n"
-       daemonize("/var/run/shadow.pid")
+       # daemonize only if --daemonize, because I forget to type "debug" -- MPD
        serve(websvc)
        
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
