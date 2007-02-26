@@ -191,7 +191,7 @@ class DbUtil(object):
         """
         Shorthand for writing a one table select.  
         """
-        return self.nested_get(self, [], args)
+        return self.nested_get(self, {}, args)
 
     def simple_edit(self, args):
         """
