@@ -193,7 +193,7 @@ class Deployment(web_svc.AuthWebSvc):
          deployment_dep_args["mac_address"] = self.generate_mac_address(deployment.data[-1]["id"])
          deployment_dep_args["state"] = "defined" # FIXME: constant
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
-         deployment_dep_args["registration_token"] = regtoken.generate()
+         deployment_dep_args["registration_token"] = regtoken.RegToken().generate()
 
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())

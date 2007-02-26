@@ -69,6 +69,7 @@ CREATE TABLE deployments (
    state               INTEGER NOT NULL,
    display_name        VARCHAR(255) NOT NULL,
    puppet_node_diff    TEXT,
+   netboot_enabled     INTEGER,
    is_locked           INTEGER
 );
 
@@ -88,6 +89,7 @@ CREATE TABLE machines (
    is_container       INTEGER,
    profile_id         INTEGER NOT NULL,
    puppet_node_diff   TEXT,
+   netboot_enabled    INTEGER,
    is_locked          INTEGER
 );
 

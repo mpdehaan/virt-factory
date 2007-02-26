@@ -155,7 +155,7 @@ class Machine(web_svc.AuthWebSvc):
                 raise OrphanedObjectException(comment="profile_id")
 
         # TODO: generate the registration token here and make it actually random and decent.
-        u.registration_token = regtoken.generate(token)
+        u.registration_token = regtoken.RegToken().generate(token)
         u.netboot_enabled = 1 # initially, allow PXE, until it registers
         result = self.db.simple_add(u.to_datastruct())
         if u.profile_id:
