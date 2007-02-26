@@ -280,6 +280,12 @@ class Machine(web_svc.AuthWebSvc):
             return result
         return success(result.data)
         
+    def _get_by_regtoken(self, token, regtoken):
+        """
+        Internal use only.  Find if any machines have a given regtoken.
+        """
+        return self.db.nested_list([profile.Profile.DB_SCHEMA], {}, 
+                 { "registration_token" : regtoken })
 
     def get(self, token, machine_args):
         """

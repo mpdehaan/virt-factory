@@ -296,6 +296,15 @@ class Deployment(web_svc.AuthWebSvc):
             raise ValueError("hostname is required")
 
         return self.db.nested_list([machine.Machine.DB_SCHEMA, profile.Profile.DB_SCHEMA], {}, {"hostname": hostname})
+
+
+    def _get_by_regtoken(self, token, regtoken):
+        """
+        Internal use only.  Find if any deployments have a given regtoken.
+        """
+        return self.db.nested_list([profile.Profile.DB_SCHEMA], {},   
+                 { "registration_token" : regtoken })
+
         
     def get(self, token, args):
          """
@@ -303,6 +312,8 @@ class Deployment(web_svc.AuthWebSvc):
          """
 
          return self.db.nested_get([profile.Profile.DB_SCHEMA, machine.Machine.DB_SCHEMA], args)
+
+
 
 methods = Deployment()
 register_rpc = methods.register_rpc

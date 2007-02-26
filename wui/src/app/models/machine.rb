@@ -22,6 +22,7 @@ class Machine < ManagedObject
                   :list_group => {:type => String}, 
                   :mac_address => {:type => String}, 
                   :is_container => {:type => Integer}, 
+                  :netboot_enabled => { :type => Integer },
                   :puppet_node_diff => {:type => String},
                   :is_locked => {:type => Integer} }
 

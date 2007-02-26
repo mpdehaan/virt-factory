@@ -62,6 +62,7 @@ class Registration(web_svc.AuthWebSvc):
         return machine_obj.new(token)
 
     def register(self, token, hostname, ip_addr, mac_addr, profile_name, virtual):
+
         self.__check_auth(token)
         
         if virtual:
@@ -86,9 +87,23 @@ class Registration(web_svc.AuthWebSvc):
         # see if there is an profile id for the token.  this does not work
         # for usernames and passwords.
         regtoken_obj = regtoken.RegToken()
-        regtoken_obj.db.simple_list({}, { "token" : token })
+        results = regtoken_obj.db.simple_list({}, { "token" : token })
         if results.error_code != 0 and len(results.data) != 0:
             profile_id = results.data[0]["profile_id"]
+
+        # if profile id is still None, check the machines table
+        if profile_id is not None:
+            machine_obj = machine.Machine() 
+            results = machine_obj._get_by_regtoken(regtoken, regtoken)
+            if results.error_code != 0 and len(results.data) != 0:
+                profile_id = results.data[0]["profile_id"]
+
+        # if profile id is still None, check the deployments table
+        if profile_id is not None:
+            deployment_obj = deployment.Deployment()
+            results = deployment_obj._get_by_regtoken(regtoken, regtoken)
+            if results.error_code != 0 and len(results.data) != 0:
+                profile_id = results.data[0]["profile_id"]
 
         print "passed in profile name is (%s)" % profile_name
 

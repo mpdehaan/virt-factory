@@ -16,6 +16,8 @@ import baseobj
 from codes import *
 
 import profile
+import machine
+import deployment
 import web_svc
 
 import os
@@ -202,18 +204,36 @@ class RegToken(web_svc.AuthWebSvc):
               token=:regtoken
         """
 
+        # FIXME: this really should use the db_util stuff to have one less place
+        # to make schema changes.
         self.db.cursor.execute(st, {'regtoken': regtoken})
         x = self.db.cursor.fetchone()
 
+        is_specific_token = False
+
         if x is None:
-            raise RegTokenInvalidException(comment="regtoken not found in regtoken.check")
+            
+            # no generic regtoken was used, but a new machine or deployment might
+            # be using a regtoken by way of kickstart, so those tables must also be checked
+            machine_obj = machine.Machine()
+            machines = machine_obj.get_by_regtoken(regtoken)
+            if len(machines.data) < 0:
+                deployment_obj = deployment.Deployment()
+                deployments = deployment_obj.get_by_regtoken(regtoken)
+                if len(deployments.data) < 0:
+                    raise RegTokenInvalidException(comment="regtoken not found in regtoken.check")
+                else:
+                    is_specific_token = True
+            else:
+                is_specific_token = True
 
-        (id, uses) = x
-        if uses == 0:
-            raise RegTokenExhaustedException(comment="regtoken max uses reached")
+        if not is_specific_token:
+            (id, uses) = x
+            if uses == 0:
+                raise RegTokenExhaustedException(comment="regtoken max uses reached")
 
-        if uses is not None:
-            self.__decrement_uses_remaining(id, uses)
+            if uses is not None:
+                self.__decrement_uses_remaining(id, uses)
 
         # we don't really need to check this, since failure will raise exceptions
         return True
