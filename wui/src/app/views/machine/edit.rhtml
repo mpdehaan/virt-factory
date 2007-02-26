@@ -15,6 +15,8 @@
                 <TD>Recorded IP</TD>
                 <TD><%= @item.ip_address %></TD>
             </TR>
+         <% end %>
+         <% if @operation == "edit" and !@item.mac_address.nil? %>
             <TR>
                 <TD>Recorded MAC</TD>
                 <TD><%= @item.mac_address %></TD>
@@ -24,7 +26,7 @@
             <TD>Profile</TD>
             <TD><%= f.select :profile_id, @profiles %></TD>
          </TR>
-         <% if !@item.hostname.nil? and @operation == "edit" %>
+         <% if !@item.hostname.nil? %>
              <TR>
                  <TD>Architecture</TD>
                  <TD><%= @item.architecture %></TD>
