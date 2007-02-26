@@ -27,7 +27,6 @@ class AbstractObjectController < ApplicationController
     def list
         begin
             @items = ManagedObject.retrieve_all(object_class, @session)
-          print @items[0].class
         rescue XMLRPCClientException => ex
             @items = []
             set_flash_on_exception(ex)
