@@ -169,6 +169,9 @@ class Deployment(web_svc.AuthWebSvc):
          mac = None
          profilename = None
 
+         # find highest deployment id
+         all_deployments = self.list(token, {})
+
          try:
              machine_obj = machine.Machine()
              result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
@@ -187,7 +190,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          deployment_dep_args["display_name"] = display_name
          deployment_dep_args["netboot_enabled"] = 0
-         deployment_dep_args["mac_address"] = self.generate_mac_address()
+         deployment_dep_args["mac_address"] = self.generate_mac_address(deployment.data[-1]["id"])
          deployment_dep_args["state"] = "defined" # FIXME: constant
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
          deployment_dep_args["registration_token"] = regtoken.generate()
@@ -206,9 +209,14 @@ class Deployment(web_svc.AuthWebSvc):
 
          return results
 
-    def generate_mac_address(self):
-         # FIXME: this needs to use the XenSource space and offset by DB id
-         return "DD:EE:AA:DD::BB:FF"
+    def generate_mac_address(self, id):
+         # pick an offset into the XenSource range as given by the highest used object id
+         # FIXME: verify that sqlite id fields work as counters and don't fill in on deletes
+         # FIXME: verify math below
+         high = id / (127*256)
+         mid  = (id % (127*256)) / 256
+         low  = id % 256 
+         return ":".join.[ "0x00", "0x16", "0x3E", "02x" % high, "02x" % mid, "02x" % low ]
 
     def edit(self, token, deployment_dep_args):
          """
