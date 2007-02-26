@@ -208,15 +208,15 @@ def main(argv):
     websvc = XmlRpcInterface()
      
     for arg in sys.argv:
-       if arg == "import" or "--import":
+       if arg == "import" or arg == "--import":
           prov_obj = provisioning.Provisioning()
           prov_obj.init(None, {})
-       elif arg == "sync" or "--sync":
+       elif arg == "sync" or arg == "--sync":
           prov_obj = provisioning.Provisioning()
           prov_obj.sync(None, {}) # just for testing
-       elif arg == "debug" or "--debug":
+       elif arg == "debug" or arg == "--debug":
           serve(websvc)
-       elif arg == "daemon" or "--daemon":
+       elif arg == "daemon" or arg == "--daemon":
           daemonize("/var/run/shadow.pid")
           serve(websvc)
        else:
