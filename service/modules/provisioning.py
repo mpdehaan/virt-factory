@@ -276,6 +276,7 @@ class CobblerTranslatedSystem:
        ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:%150" % shadow_config["this_server"]["address"] 
 
+
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
        if from_db.has_key("ip_address"):
@@ -286,6 +287,11 @@ class CobblerTranslatedSystem:
 
        new_item.set_kernel_options(kernel_options)
        new_item.set_ksmeta(ks_meta)
+       
+       if from_db.has_key("netboot_enabled"):
+           new_item.set_netboot_enabled(from_db["netboot_enabled"])
+       else:
+           new_item.set_netboot_enabled(False)
 
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)

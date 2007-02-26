@@ -111,19 +111,22 @@ class RegToken(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
         self.db.db_schema = self.DB_SCHEMA
 
+    def generate(self, token):
+         """
+         token is base64 encoded short string from /dev/urandom
+         """
+         fd = open("/dev/urandom")
+         data = fd.read(20)
+         fd.close()
+         data = base64.b64encode(data)
+         data = data.replace("=","")
+         return data.upper() 
+
     def add(self, token, args):
          """
          Create a registration token.   Only profile_id and uses_remaining are used as input.
          """
-
-         # token is base64 encoded short string from /dev/urandom
-         fd = open("/dev/urandom")
-         data = fd.read(20) 
-         fd.close()
-         data = base64.b64encode(data)
-         data = data.replace("=","")
-         args["token"] = data.upper() # make it easier to read. 
-         print "regtoken = (%s)" % args["token"]
+         args["token"] = self.generate(token)
        
          u = RegTokenData.produce(args,OP_ADD)
          print u.to_datastruct()

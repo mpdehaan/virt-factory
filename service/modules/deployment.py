@@ -22,6 +22,7 @@ import profile
 import machine
 import web_svc
 import task
+import regtoken
 
 import traceback
 import threading
@@ -33,7 +34,7 @@ import threading
 class DeploymentData(baseobj.BaseObject):
 
     FIELDS = [ "id", "hostname", "ip_address", "registration_token", "mac_address", "machine_id", "profile_id",
-               "state", "display_name", "puppet_node_diff", "is_locked" ]
+               "state", "display_name", "netboot_enabled", "puppet_node_diff", "is_locked" ]
 
     def _produce(klass, deployment_dep_args,operation=None):
         """
@@ -188,6 +189,8 @@ class Deployment(web_svc.AuthWebSvc):
          deployment_dep_args["netboot_enabled"] = 0
          deployment_dep_args["mac_address"] = self.generate_mac_address()
          deployment_dep_args["state"] = "defined" # FIXME: constant
+         deployment_dep_args["netboot_enabled"] = 0 # never PXE's
+         deployment_dep_args["registration_token"] = regtoken.generate()
 
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
@@ -232,7 +235,7 @@ class Deployment(web_svc.AuthWebSvc):
          
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
-         # TODO: make this work w/ u.to_datastruct() 
+         deployment_dep_args["netboot_enabled"] = 0 # never PXE's
          self.cobbler_sync(deployment_dep_args)
          return self.db.simple_edit(deployment_dep_args)
 

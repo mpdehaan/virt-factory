@@ -32,7 +32,7 @@ class MachineData(baseobj.BaseObject):
 
     FIELDS = [ "id", "hostname", "ip_address", "registration_token", "architecture", "processor_speed", "processor_count", "memory",
                "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
-               "profile_id", "puppet_node_diff", "is_locked" ]
+               "profile_id", "puppet_node_diff", "netboot_enabled", "is_locked" ]
 
     def _produce(klass, machine_args,operation=None):
         """
@@ -155,7 +155,8 @@ class Machine(web_svc.AuthWebSvc):
                 raise OrphanedObjectException(comment="profile_id")
 
         # TODO: generate the registration token here and make it actually random and decent.
-        u.registration_token = "THIS IS WRONG AND NEEDS TO BE FIXED"
+        u.registration_token = regtoken.generate(token)
+        u.netboot_enabled = 1 # initially, allow PXE, until it registers
         result = self.db.simple_add(u.to_datastruct())
         if u.profile_id:
             self.cobbler_sync(u.to_datastruct())
@@ -207,6 +208,7 @@ class Machine(web_svc.AuthWebSvc):
             'architecture' : architecture,
             'processor_speed' : processor_speed,
             'processor_count' : processor_count,
+            'netboot_enabled' : 0, # elimiinate PXE install loop
             'memory' : memory
         }
         print args
