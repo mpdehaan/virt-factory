@@ -13,8 +13,9 @@ class DeploymentController < AbstractObjectController
 
        # get a list of address to ip mappings
        @machines = ManagedObject.retrieve_all(Machine, @session).collect do |machine|
-           [machine.hostname, machine.id]
+           [machine.hostname, machine.id] unless machine.id < 0 or machine.hostname.nil?
        end
+       @machines.reject! { |foo| foo.nil? }
 
        # start all dropdowns with a blank entry when the user first comes to them
        @machines.insert(0,EMPTY_ENTRY)
@@ -27,6 +28,8 @@ class DeploymentController < AbstractObjectController
        ManagedObject.retrieve_all(Profile, @session).each do |profile|
            @profiles << [profile.name, profile.id] unless profile.id < 0 or profile.valid_targets == PROFILE_IS_BAREMETAL
        end
+       @profiles.reject! { |foo| foo.nil? }
+
    end
 end
 
