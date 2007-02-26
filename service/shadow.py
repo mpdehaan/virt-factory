@@ -216,18 +216,9 @@ def main(argv):
           prov_obj.sync(None, {}) # just for testing
        elif arg == "debug" or arg == "--debug":
           serve(websvc)
-       elif arg == "daemon" or arg == "--daemon":
-          daemonize("/var/run/shadow.pid")
-          serve(websvc)
-       else:
-          print """
-          
-          I'm sorry, I can't do that, Dave.
-          
-          Usage: shadow [import]
-          
-          """
-          sys.exit(1)
+    if "daemon" in sys.argv or "--daemon" in sys.argv:
+       daemonize("/var/run/shadow.pid")
+       serve(websvc)
     else:
        print "serving...\n"
        # daemonize only if --daemonize, because I forget to type "debug" -- MPD
