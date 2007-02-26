@@ -18,8 +18,8 @@
       <% @items.each do |item| %>
          <TR>
              
-             <TD> <%= link_to item.hostname, :controller => "machine", :action=> "edit", :id=> item.id %></TD>
-             <TD> <%= ARCHITECTURES[item.architecture] %> </TD>
+             <TD> <%= link_to item.hostname ? item.hostname : "(Pending)", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= ARCHITECTURES[item.architecture] ? ARCHITECTURES[item.architecture] : "?" %> </TD>
              <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
              <TD> <%= item.mac_address %> </TD>
              <TD> <%= link_to "[X]", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
