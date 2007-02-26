@@ -14,7 +14,9 @@ class MachineController < AbstractObjectController
        # container.
 
        ManagedObject.retrieve_all(Profile, @session).each do |profile|
-           @profiles << [profile.name, profile.id] unless profile.id < 0 or profile.valid_targets == PROFILE_IS_VIRT
+           if !profile.nil?
+               @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_VIRT
+           end
        end
        @profiles.insert(0,EMPTY_ENTRY)
    end

@@ -92,8 +92,8 @@ class ManagedObject
     def self.retrieve_all(object_class, session)
         print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list"
         results = self.call_server("#{object_class::METHOD_PREFIX}_list", session, {})
-        # results.each { |r| puts r }
-        results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? }
+        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? and hash["id"] > 0 }
+        results.reject! { |foo| foo.nil? }
         return results
     end
 
@@ -119,6 +119,11 @@ class ManagedObject
 
        # create the instance, we'll fill it's data as we go along
        object_instance = object_class.new(session) if object_instance.nil?
+
+       # initially create nil values for everything, even if not in passed-in arguments.
+       object_class::ATTR_LIST.each do |sym,meta|
+           object_instance.method(sym.to_s+"=").call(nil)
+       end
 
        # for each variable passed in as input to the function
        if !hash.nil? 
