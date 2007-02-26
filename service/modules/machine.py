@@ -158,7 +158,7 @@ class Machine(web_svc.AuthWebSvc):
         u.registration_token = regtoken.RegToken().generate(token)
         u.netboot_enabled = 1 # initially, allow PXE, until it registers
         result = self.db.simple_add(u.to_datastruct())
-        if u.profile_id:
+        if u.profile_id >= 0:
             self.cobbler_sync(u.to_datastruct())
         return result
 
@@ -229,7 +229,7 @@ class Machine(web_svc.AuthWebSvc):
 
         # TODO: make this work w/ u.to_datastruct() 
         result = self.db.simple_edit(machine_args)
-        if u.profile_id:
+        if u.profile_id >= 0:
             self.cobbler_sync(u.to_datastruct())
         return result
 
