@@ -153,8 +153,9 @@ class Profile(web_svc.AuthWebSvc):
                  self.distribution.get(None, { "id" : u.distribution_id})
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
-
-         return self.db.simple_add(u.to_datastruct())
+         data = u.to_datastruct()
+         self.cobbler_sync(data)
+         return self.db.simple_add(data)
          
     def cobbler_sync(self, data):
 
@@ -169,8 +170,10 @@ class Profile(web_svc.AuthWebSvc):
          be changed.
          """
 
-         result = self.db.simple_edit(profile_args)
-         self.cobbler_sync(u.to_datastruct())
+         u = ProfileData.produce(profile_args,OP_EDIT)
+         data = u.to_datastruct()
+         result = self.db.simple_edit(data)
+         self.cobbler_sync(data)
          return result
 
 

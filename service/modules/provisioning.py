@@ -125,8 +125,6 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
-       if from_db["id"] < 0:
-           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -149,8 +147,6 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
-       if from_db["id"] < 0:
-           return
        
        shadow_config = config_data.Config().get()
 
@@ -159,12 +155,11 @@ class CobblerTranslatedProfile:
        
        distribution_id = from_db["distribution_id"]
        distribution_name = None
-       for d in distributions:
-           if d["id"] == distribution_id:
-               distribution_name = d["name"]
-               break    
-
-       assert distribution_name is not None, "has distribution name"
+       
+       distribution_obj = distribution.Distribution()
+       distrib = distribution_obj.get(None, { "id" : distribution_id })
+       if distrib.ok():
+            distribution_name = distrib.data["name"]
 
        new_item.set_distro(distribution_name)
 
@@ -201,7 +196,7 @@ class CobblerTranslatedProfile:
        ks_meta["extra_post_magic"]     = ""
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["profile_param"]        = "--token=%s" % from_db["registration_token"]
+       ks_meta["profile_param"]        = "--token=UNSET" # intentional, system can override
        ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
       
 
@@ -217,7 +212,9 @@ class CobblerTranslatedProfile:
 
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
-       if from_db["id"] < 0:
+
+       if not from_db.has_key("mac_address") or from_db["mac_address"] is None:
+           # ok to have a record of it, just not in cobbler ...
            return
  
        shadow_config = config_data.Config().get()
@@ -272,7 +269,7 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:%150" % shadow_config["this_server"]["address"] 
-
+       ks_meta["profile_param"]  = "--token=%s" % from_db["registration_token"] 
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
