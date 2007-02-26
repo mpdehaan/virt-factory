@@ -61,6 +61,30 @@ def trace_me():
    bar = string.join(traceback.format_list(x))
    return bar
 
+
+def daemonize(pidfile=None):
+    """
+    Daemonize this process with the UNIX double-fork trick.
+    Writes the new PID to the provided file name if not None.
+    """
+
+    print pidfile
+    pid = os.fork()
+    if pid > 0:
+       print pid
+       sys.exit(0)
+    os.setsid()
+    os.umask(0)
+    pid = os.fork()
+
+
+    if pid > 0:
+       print "ffff", pid
+       if pidfile is not None:
+          open(pidfile, "w").write(str(pid))
+       sys.exit(0)
+
+
 class XmlRpcInterface:
 
     def __init__(self):
@@ -184,28 +208,33 @@ def main(argv):
     websvc = XmlRpcInterface()
      
     if len(argv) > 1:
-        if argv[1].lower() == "import":
-            prov_obj = provisioning.Provisioning()
-            prov_obj.init(None, {})
-        else:
-            print """
-
-            I'm sorry, I can't do that, Dave.
-
-            Usage: shadow [import]
-
-            """
-            sys.exit(1)
+       if argv[1].lower() == "import":
+          prov_obj = provisioning.Provisioning()
+          prov_obj.init(None, {})
+       elif argv[1].lower() == "sync":
+          prov_obj = provisioning.Provisioning()
+          prov_obj.sync(None, {}) # just for testing
+       elif argv[1].lower() == "debug":
+          serve(websvc)
+       else:
+          print """
+          
+          I'm sorry, I can't do that, Dave.
+          
+          Usage: shadow [import]
+          
+          """
+          sys.exit(1)
     else:
-        print "serving...\n"
-        serve(websvc)
-
+       print "serving...\n"
+       daemonize("/var/run/shadow.pid")
+       serve(websvc)
+       
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
 #        (and might not be enough for RHEL, but is good for Fedora/Centos)
 
 if __name__ == "__main__":
     main(sys.argv)
-
 
 
