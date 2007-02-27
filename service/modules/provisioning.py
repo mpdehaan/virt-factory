@@ -206,6 +206,15 @@ class CobblerTranslatedProfile:
 # reason profile_name is ending up as None, and this needs
 # to be fixed.
 
+def cobbler_remove_system(cobbler_api, from_db):
+   try:
+       if from_db.has_key("mac_address"):
+           cobbler_api.systems().remove(from_db["mac_address"])
+           cobbler_api.serialize()
+   except:
+       # this exception might be ok...
+       traceback.print_exc()
+
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
 
@@ -226,6 +235,8 @@ class CobblerTranslatedSystem:
  
        if from_db.has_key("id") and from_db["id"] < 0:
            self.logger.debug("not cobblerfying because db id < 0")
+           # remove if already there
+           cobbler_remove_system(cobbler_api, from_db)
            return
 
        if not from_db.has_key("profile_id"):
@@ -233,6 +244,8 @@ class CobblerTranslatedSystem:
            # assigned by the user in GUI land, so until that happens it can't be 
            # provisioned.  This is /NOT/ neccessarily an error condition.
            self.logger.debug("not cobblerfying because no profile_id")
+           # remove if already there
+           cobbler_remove_system(cobbler_api, from_db)
            return
 
        profile_id = from_db["profile_id"]
