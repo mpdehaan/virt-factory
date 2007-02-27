@@ -136,11 +136,6 @@ class CobblerTranslatedDistribution:
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
-       if from_db.has_key("netboot_enabled"):
-           new_item.set_netboot_enabled(from_db["netboot_enabled"])
-       else:
-           new_item.set_netboot_enabled(False)
-       ks_meta["token_param"] = "--token=%s" % "FIXME" # FIXME: get this from the database
        cobbler_api.distros().add(new_item, with_copy=True)
        cobbler_api.serialize()
 
@@ -277,7 +272,7 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
-       ks_meta["profile_param"]  = "--token=%s" % from_db["registration_token"] 
+       ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
@@ -297,6 +292,12 @@ class CobblerTranslatedSystem:
 
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
+       
+       if from_db.has_key("netboot_enabled"):
+           new_item.set_netboot_enabled(from_db["netboot_enabled"])
+       else:
+           new_item.set_netboot_enabled(False)
+
        
        cobbler_api.systems().add(new_item, with_copy=True)
        cobbler_api.serialize()

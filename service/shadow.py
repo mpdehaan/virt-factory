@@ -211,11 +211,11 @@ def main(argv):
        if arg == "import" or arg == "--import":
           prov_obj = provisioning.Provisioning()
           prov_obj.init(None, {})
+          break
        elif arg == "sync" or arg == "--sync":
           prov_obj = provisioning.Provisioning()
           prov_obj.sync(None, {}) # just for testing
-       elif arg == "debug" or arg == "--debug":
-          serve(websvc)
+          break
     if "daemon" in sys.argv or "--daemon" in sys.argv:
        daemonize("/var/run/shadow.pid")
        serve(websvc)
