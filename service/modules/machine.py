@@ -195,9 +195,11 @@ class Machine(web_svc.AuthWebSvc):
             raise codes.InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
 
-        if results.data[0].has_key("profile_id"):
+        if len(results.data) > 0 and results.data[0].has_key("profile_id"):
             profile_id = results.data[0]["profile_id"]
 
+        if profile_id is None:
+            profile_id = -1  # the unassigned profile id
 
         args = {
             'id': machine_id,

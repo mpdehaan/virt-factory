@@ -52,6 +52,7 @@ class Register(object):
         print "  mac=", mac
         print "  profile_name=", profile_name
         print "  virtual=", virtual
+        print "---------------------"
         if profile_name is None:
             profile_name = ""
         if mac is None:
@@ -61,7 +62,10 @@ class Register(object):
         except TypeError:
             print "must specify --profilename"
             sys.exit(1)
-        print rc
+        if rc[0] == 0:
+            print "Registration succeeded."
+        else:
+            print "Failed: ", rc
         return rc
 
 
@@ -130,31 +134,13 @@ def main(argv):
     else:
         reg_obj.login(username, password)
 
-    
-    #rc = reg_obj.register()
-    #
-    #if rc[0] != 0:
-    #    print "There was an error logging in"
-    #    # FIXME: why don't we just return an xmlrpc fault here?
-    #    sys.exit(2)
-    #    
-    #machine_id = rc[1]['data']
-    # 
-   
     net_info = machine_info.get_netinfo(server_url)
     
-    # FIXME: error checking on this value...
-    # FIXME: fill in hardware info.
-    
-    # FIXME: require --profile=name if the token doesn't have it associated.
-    print net_info
-
     try:
         rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
     except socket.error:
         print "Could not connect to server."
         sys.exit(1)
-    print "rc = ", rc
     if rc[0] == ERR_TOKEN_INVALID:
         print "Bad token!  No registration for you!"
         sys.exit(rc[0])

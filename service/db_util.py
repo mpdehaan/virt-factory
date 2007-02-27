@@ -108,7 +108,7 @@ class DbUtil(object):
         """
         Shorthand for writing a select * from foo
         """
-        return self.nested_list([], args, where_args={})
+        return self.nested_list([], args, where_args)
 
     def nested_get(self, schemas_list, args, where_args={}):
         if not where_args.has_key("id"):  

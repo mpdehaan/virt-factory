@@ -151,7 +151,7 @@ class RegToken(web_svc.AuthWebSvc):
          return self.db.simple_delete(args)
 
     def get_by_token(self, token, args):
-         results = self.db.simple_list({}, { "token" : args["token"]})
+         results = self.db.simple_list({}, { "token" : "'%s'" % args["token"]})
          print "get_by_token", results
          return results
 
