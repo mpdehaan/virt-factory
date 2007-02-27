@@ -224,11 +224,9 @@ class CobblerTranslatedSystem:
        # we get a profile by seeing if a deployment references
        # the system.  
  
-       machine_id = from_db["id"]
-       if from_db["id"] < 0:
+       if from_db.has_key("id") and from_db["id"] < 0:
            self.logger.debug("not cobblerfying because db id < 0")
            return
-       
 
        if not from_db.has_key("profile_id"):
            # what happened here is that the machine was registered but no profile is 
