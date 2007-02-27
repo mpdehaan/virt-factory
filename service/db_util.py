@@ -111,6 +111,10 @@ class DbUtil(object):
         return self.nested_list([], args, where_args={})
 
     def nested_get(self, schemas_list, args, where_args={}):
+        if not where_args.has_key("id"):  
+            # this wasn't called from simple get, thus we need the full table name
+            id_key = "%s.id" % self.db_schema["table"]
+            where_args[id_key] = args["id"]
         return self.nested_list(schemas_list, args, where_args, return_single=True)
 
     def nested_list(self, schemas_list, args, where_args={}, return_single=False, allow_none=False):
@@ -119,8 +123,6 @@ class DbUtil(object):
         FIXME: outer join support ???
         """
         (offset, limit) = self.get_limit_parms(args)
-
-         
 
         if len(where_args) > 0:
            where_parts = []
@@ -190,7 +192,8 @@ class DbUtil(object):
         """
         Shorthand for writing a one table select.  
         """
-        return self.nested_get([], args, {})
+        where_args = { "id" : args["id"] }
+        return self.nested_get([], args, where_args)
 
     def simple_edit(self, args):
         """
