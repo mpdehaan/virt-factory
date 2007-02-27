@@ -303,15 +303,36 @@ class Deployment(web_svc.AuthWebSvc):
         else:
             raise ValueError("hostname is required")
 
-        return self.db.nested_list([machine.Machine.DB_SCHEMA, profile.Profile.DB_SCHEMA], {}, {"hostname": "'%s'" % hostname})
+         return self.db.nested_list(
+             [
+                machine.Machine.DB_SCHEMA, 
+                profile.Profile.DB_SCHEMA
+             ],
+             {},
+             {
+                "hostname": "'%s'" % hostname,
+                "machines.id"    : "deployments.machine_id",
+                "profiles.id"    : "deployments.profile_id" 
+             },
+         )
 
 
     def _get_by_regtoken(self, token, regtoken):
         """
         Internal use only.  Find if any deployments have a given regtoken.
         """
-        return self.db.nested_list([profile.Profile.DB_SCHEMA], {},   
-                 { "registration_token" : '"%s"' % regtoken })
+         return self.db.nested_list(
+             [
+                machine.Machine.DB_SCHEMA, 
+                profile.Profile.DB_SCHEMA
+             ],
+             {},
+             {
+                "registration_token" : '"%s"' % regtoken,
+                "machines.id"    : "deployments.machine_id",
+                "profiles.id"    : "deployments.profile_id" 
+             },
+         )
 
         
     def get(self, token, args):
