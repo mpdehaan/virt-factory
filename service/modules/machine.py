@@ -22,6 +22,7 @@ import cobbler
 import provisioning
 import web_svc
 import regtoken
+import deployment
 
 import threading
 import traceback
@@ -159,7 +160,7 @@ class Machine(web_svc.AuthWebSvc):
         u.netboot_enabled = 1 # initially, allow PXE, until it registers
         result = self.db.simple_add(u.to_datastruct())
         if u.profile_id >= 0:
-            self.cobbler_sync(u.to_datastruct())
+            self.cobbler_sync(machine_args)
         return result
 
     def cobbler_sync(self, data):
@@ -232,7 +233,8 @@ class Machine(web_svc.AuthWebSvc):
         # TODO: make this work w/ u.to_datastruct() 
         result = self.db.simple_edit(machine_args)
         if u.profile_id >= 0:
-            self.cobbler_sync(u.to_datastruct())
+            sync_args = self.get(token, { "id" : machine_args["id"] })
+            self.cobbler_sync(sync_args.data)
         return result
 
     def delete(self, token, args):
@@ -243,9 +245,9 @@ class Machine(web_svc.AuthWebSvc):
         u = MachineData.produce(args,OP_DELETE) # force validation
         
         deployment_obj = deployment.Deployment()
-        deployments = deployment_obj.list({"id" : u.machine_id })
+        deployments = deployment_obj.db.simple_list({}, {"machine_id" : u.id })
         if len(deployments.data) > 0:
-            raise OrphanedObjectException(comment="profile")
+            raise OrphanedObjectException(comment="deployment")
         
         return self.db.simple_delete(args)
 

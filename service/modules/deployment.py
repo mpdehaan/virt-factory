@@ -243,8 +243,11 @@ class Deployment(web_svc.AuthWebSvc):
 
          u = DeploymentData.produce(deployment_dep_args,OP_EDIT) # force validation
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
-         self.cobbler_sync(deployment_dep_args)
-         return self.db.simple_edit(deployment_dep_args)
+
+         results = self.db.simple_edit(deployment_dep_args)
+         sync_args = self.get(token, { "id" : u.id })
+         self.cobbler_sync(sync_args.data)
+         return results
 
     def delete(self, token, args):
  

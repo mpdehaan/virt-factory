@@ -41,6 +41,7 @@ import distribution
 import profile
 import machine
 import web_svc
+import logger
 
 import os
 import threading
@@ -213,8 +214,13 @@ class CobblerTranslatedProfile:
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
 
+       self.logger = logger.Logger().logger
+
+       self.logger.debug("from_db is ...")
+       self.logger.debug(from_db)
        if not from_db.has_key("mac_address") or from_db["mac_address"] is None:
            # ok to have a record of it, just not in cobbler ...
+           self.logger.debug("this system has no mac, no not cobblerfying")
            return
  
        shadow_config = config_data.Config().get()
@@ -225,6 +231,7 @@ class CobblerTranslatedSystem:
  
        machine_id = from_db["id"]
        if from_db["id"] < 0:
+           self.logger.debug("not cobblerfying because db id < 0")
            return
        
 
@@ -232,6 +239,7 @@ class CobblerTranslatedSystem:
            # what happened here is that the machine was registered but no profile is 
            # assigned by the user in GUI land, so until that happens it can't be 
            # provisioned.  This is /NOT/ neccessarily an error condition.
+           self.logger.debug("not cobblerfying because no profile_id")
            return
 
        profile_id = from_db["profile_id"]
@@ -251,7 +259,7 @@ class CobblerTranslatedSystem:
 
        new_item = cobbler_api.new_system()
        new_item.set_name(from_db["mac_address"])
-       print "profile name is %s" % profile_name
+       self.logger.debug("cobbler profile name is %s" % profile_name)
        new_item.set_profile(profile_name)
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
        
@@ -268,7 +276,7 @@ class CobblerTranslatedSystem:
            # load initial kickstart metadata (which is a string) and get back a hash
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["tree" ] = "FIXME"
-       ks_meta["server_param"] = "--server=http://%s:%150" % shadow_config["this_server"]["address"] 
+       ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
        ks_meta["profile_param"]  = "--token=%s" % from_db["registration_token"] 
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
@@ -292,6 +300,7 @@ class CobblerTranslatedSystem:
        
        cobbler_api.systems().add(new_item, with_copy=True)
        cobbler_api.serialize()
+       self.logger.debug("cobbler system serialized")
 
 #--------------------------------------------------------------------
 
