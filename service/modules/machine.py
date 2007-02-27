@@ -160,7 +160,7 @@ class Machine(web_svc.AuthWebSvc):
         u.netboot_enabled = 1 # initially, allow PXE, until it registers
         result = self.db.simple_add(u.to_datastruct())
         if u.profile_id >= 0:
-            self.cobbler_sync(machine_args)
+            self.cobbler_sync(args)
         return result
 
     def cobbler_sync(self, data):
