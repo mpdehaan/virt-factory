@@ -248,19 +248,19 @@ class Machine(web_svc.AuthWebSvc):
         return self.db.simple_delete(args)
 
     def list(self, token, machine_args):
-         """
-         Return a list of machines.  The machine_args list is currently *NOT*
-         used.  Ideally we need to include LIMIT information here for
-         GUI pagination when we start worrying about hundreds of systems.
-         """
+        """
+        Return a list of machines.  The machine_args list is currently *NOT*
+        used.  Ideally we need to include LIMIT information here for
+        GUI pagination when we start worrying about hundreds of systems.
+        """
 
-         return self.db.nested_list (
+        return self.db.nested_list (
             [ profile.Profile.DB_SCHEMA ],
             machine_args,
             {
-               "machines.profile_id" : "profiles.id"
+                "machines.profile_id" : "profiles.id"
             } 
-         )
+        )
 
     def get_by_hostname(self, token, machine_args):
         """

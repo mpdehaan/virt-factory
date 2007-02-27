@@ -272,23 +272,23 @@ class Deployment(web_svc.AuthWebSvc):
 
 
     def list(self, token, args):
-         """
-         Return a list of deployments.  The deployment_dep_args list is currently *NOT*
-         used.  Ideally we need to include LIMIT information here for
-         GUI pagination when we start worrying about hundreds of systems.
-         """
+        """
+        Return a list of deployments.  The deployment_dep_args list is currently *NOT*
+        used.  Ideally we need to include LIMIT information here for
+        GUI pagination when we start worrying about hundreds of systems.
+        """
 
-         return self.db.nested_list(
-             [
+        return self.db.nested_list(
+            [
                 machine.Machine.DB_SCHEMA, 
                 profile.Profile.DB_SCHEMA
-             ],
-             args,
-             {
+            ],
+            args,
+            {
                 "machines.id"    : "deployments.machine_id",
                 "profiles.id"    : "deployments.profile_id" 
-             },
-         )
+            },
+        )
 
 
     def get_by_hostname(self, token, deployment_args):
@@ -303,36 +303,36 @@ class Deployment(web_svc.AuthWebSvc):
         else:
             raise ValueError("hostname is required")
 
-         return self.db.nested_list(
-             [
+        return self.db.nested_list(
+            [
                 machine.Machine.DB_SCHEMA, 
                 profile.Profile.DB_SCHEMA
-             ],
-             {},
-             {
+            ],
+            {},
+            {
                 "hostname": "'%s'" % hostname,
                 "machines.id"    : "deployments.machine_id",
                 "profiles.id"    : "deployments.profile_id" 
-             },
-         )
+            },
+        )
 
 
     def _get_by_regtoken(self, token, regtoken):
         """
         Internal use only.  Find if any deployments have a given regtoken.
         """
-         return self.db.nested_list(
-             [
+        return self.db.nested_list(
+            [
                 machine.Machine.DB_SCHEMA, 
                 profile.Profile.DB_SCHEMA
-             ],
-             {},
-             {
+            ],
+            {},
+            {
                 "registration_token" : '"%s"' % regtoken,
                 "machines.id"    : "deployments.machine_id",
                 "profiles.id"    : "deployments.profile_id" 
-             },
-         )
+            },
+        )
 
         
     def get(self, token, args):
