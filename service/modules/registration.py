@@ -94,14 +94,14 @@ class Registration(web_svc.AuthWebSvc):
         # if profile id is still None, check the machines table
         if profile_id is not None:
             machine_obj = machine.Machine() 
-            results = machine_obj._get_by_regtoken(regtoken, regtoken)
+            results = machine_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken })
             if results.error_code != 0 and len(results.data) != 0:
                 profile_id = results.data[0]["profile_id"]
 
         # if profile id is still None, check the deployments table
         if profile_id is not None:
             deployment_obj = deployment.Deployment()
-            results = deployment_obj._get_by_regtoken(regtoken, regtoken)
+            results = deployment_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken })
             if results.error_code != 0 and len(results.data) != 0:
                 profile_id = results.data[0]["profile_id"]
 

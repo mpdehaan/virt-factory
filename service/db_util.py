@@ -199,6 +199,10 @@ class DbUtil(object):
         """
         Shorthand for writing an edit statement.
         """
+
+        if args["id"] < 0:
+            raise NoSuchObjectException()
+
         edit_keys = self.filter_param_list(self.db_schema["edit"],args)
         buf = "UPDATE " + self.db_schema["table"] + " SET "
         buf = buf + ", ".join([x + "=:" + x for x in edit_keys])
@@ -248,6 +252,9 @@ class DbUtil(object):
         """
         Shorthand for basic delete by id.
         """
+        if args["id"] < 0:
+            raise NoSuchObjectException()
+
         buf = "DELETE FROM " + self.db_schema["table"] + " WHERE id=:id" 
         self.cursor.execute(buf, args)
         self.connection.commit()

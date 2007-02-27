@@ -216,10 +216,10 @@ class RegToken(web_svc.AuthWebSvc):
             # no generic regtoken was used, but a new machine or deployment might
             # be using a regtoken by way of kickstart, so those tables must also be checked
             machine_obj = machine.Machine()
-            machines = machine_obj.get_by_regtoken(regtoken)
+            machines = machine_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken})
             if len(machines.data) < 0:
                 deployment_obj = deployment.Deployment()
-                deployments = deployment_obj.get_by_regtoken(regtoken)
+                deployments = deployment_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken })
                 if len(deployments.data) < 0:
                     raise RegTokenInvalidException(comment="regtoken not found in regtoken.check")
                 else:

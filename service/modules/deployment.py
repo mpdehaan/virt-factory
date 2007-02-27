@@ -165,7 +165,6 @@ class Deployment(web_svc.AuthWebSvc):
          """
          Create a deployment.  deployment_dep_args should contain all fields except ID.
          """
-
          mac = None
          profilename = None
 
@@ -247,12 +246,13 @@ class Deployment(web_svc.AuthWebSvc):
          self.cobbler_sync(deployment_dep_args)
          return self.db.simple_edit(deployment_dep_args)
 
-    def delete(self, token):
+    def delete(self, token, args):
+ 
         # delete scheduled through taskatron.
         # FIXME: lock this object once we have locks
         task_obj = task.Task()
         task_obj.add(token, {
-           "deployment_id" : rc.data["id"],
+           "deployment_id" : args["id"],
            "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
         })
         return success() # FIXME: always?
@@ -317,7 +317,7 @@ class Deployment(web_svc.AuthWebSvc):
         )
 
 
-    def _get_by_regtoken(self, token, regtoken):
+    def _get_by_regtoken(self, token, args):
         """
         Internal use only.  Find if any deployments have a given regtoken.
         """
@@ -328,7 +328,7 @@ class Deployment(web_svc.AuthWebSvc):
             ],
             {},
             {
-                "registration_token" : '"%s"' % regtoken,
+                "registration_token" : '"%s"' % args["registration_token"],
                 "machines.id"    : "deployments.machine_id",
                 "profiles.id"    : "deployments.profile_id" 
             },

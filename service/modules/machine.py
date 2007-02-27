@@ -287,7 +287,7 @@ class Machine(web_svc.AuthWebSvc):
             return result
         return success(result.data)
         
-    def _get_by_regtoken(self, token, regtoken):
+    def get_by_regtoken(self, token, args):
         """
         Internal use only.  Find if any machines have a given regtoken.
         """
@@ -295,7 +295,7 @@ class Machine(web_svc.AuthWebSvc):
             [profile.Profile.DB_SCHEMA],
             {},
             {
-                "registration_token" : "'%s'" % regtoken,
+                "registration_token" : "'%s'" % args["registration_token"],
                 "machines.profile_id" : "profiles.id"
             }
         )
