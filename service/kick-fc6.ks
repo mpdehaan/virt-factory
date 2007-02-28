@@ -60,10 +60,9 @@ part swap --size=1024 --ondisk=$d1 --asprimary
 $node_common_packages
 $node_virt_packages
 $node_bare_packages
-$puppet_packages
 
 %post
-/usr/bin/sm_register $server_param $token_param $profile_param
+/usr/bin/sm_register $server_param $token_param
 $extra_post_magic
 $kickstart_done
 

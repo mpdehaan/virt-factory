@@ -126,6 +126,8 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -143,6 +145,8 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
        
        shadow_config = config_data.Config().get()
 
@@ -159,8 +163,11 @@ class CobblerTranslatedProfile:
 
        new_item.set_distro(distribution_name)
 
-       if from_db.has_key("kickstart"):
-           new_item.set_kickstart(from_db["kickstart"])
+       # intentional.
+       # use the same kickstart template for all profiles but template it out based on
+       # distro, profile, and system settings. 
+       new_item.set_kickstart("/var/lib/shadowmanager/kick-fc6.ks")
+
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        
@@ -182,7 +189,7 @@ class CobblerTranslatedProfile:
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
 
         
-       ks_meta["node_common_packages"] = "koan sm-node-daemon" # FIXME: requires RPM to create repo
+       ks_meta["node_common_packages"] = "koan puppet sm-node-daemon" # FIXME: requires RPM to create repo
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
@@ -192,10 +199,11 @@ class CobblerTranslatedProfile:
        ks_meta["extra_post_magic"]     = ""
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["profile_param"]        = "--token=UNSET" # intentional, system can override
+       ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
        ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
       
-
+       new_item.set_ksmeta(ks_meta)
+      
        cobbler_api.profiles().add(new_item, with_copy=True)
        cobbler_api.serialize()
 
@@ -217,6 +225,9 @@ def cobbler_remove_system(cobbler_api, from_db):
 
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
+       
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
 
        self.logger = logger.Logger().logger
 
