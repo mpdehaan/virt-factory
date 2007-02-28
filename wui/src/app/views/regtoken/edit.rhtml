@@ -1,19 +1,28 @@
+<%# note, this view only has an "Add" mode, you can't edit a registration token, they can only be deleted %>
+
+      <% @page_title = "Create Registration Tokens" %>
+
+      <%= ApplicationHelper.menubar("regtoken","edit") %>
+
       <div id="content-main">
-      <form name="form" action="submit">
+
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+
       <TABLE BORDER=0>
-         <TR>
-            <TD>Username</TD>
-            <TD><%= text_field("form", "username") %></TD>
-         </TR>
-         <TR> 
-            <TD>Password</TD>
-            <TD><%= text_field("form", "password") %></TD>            
-         </TR>
-         <TR>
-            <TD COLSPAN="2"><input type="submit" value="Log In"></TD>
+            <TR>
+                <TD>Image</TD>
+                <TD><%= f.select :image_id, @images %></TD>
+            </TR>
+            <TR>
+                <TD>Usage Limit (Optional)</TD>
+                <TD><%= f.text_field :uses_remaining %></TD>
+            <TR>
+            <TR> 
+                 <TD COLSPAN="2"><input type="submit" value="Create"></TD>
+            </TR>
          </TR>
       </TABLE>
-      </form>
-      </div>
+      <% end %>
 
+      </div>
 
