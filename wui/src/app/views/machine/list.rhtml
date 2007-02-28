@@ -6,9 +6,9 @@
       <TABLE class='listing'>
          <TR>
             <TD>Hostname</TD>
-            <!-- <TD>Architecture</TD> -->
             <TD>Profile</TD>
             <TD>Mac Address</TD>
+            <TD></TD>
             <TD></TD>
          </TR>
       <% else %>
@@ -16,15 +16,22 @@
       <% end %>
       
       <% @items.each do |item| %>
-         <TR>
+         <% if item.is_locked == 1 %>
+             <TR BGCOLOR="#555555">
+         <% else %>
+             <TR>
+         <% end %>
              
-             <TD> <%= link_to item.hostname ? item.hostname : "(Pending)", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
-      <!-- commented out until provided by registration.
-             <TD> <%= ARCHITECTURES[item.architecture] ? ARCHITECTURES[item.architecture] : "?" %> </TD>
-      -->
+             <TD> <%= item.hostname ? item.hostname : "(Pending)" %> </TD>
+
              <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
              <TD> <%= item.mac_address %> </TD>
-             <TD> <%= link_to "[X]", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
+             <% if item.is_locked == 1 %>
+                <TD COLSPAN="2">(Locked)</TD>
+             <% else %>
+                <TD> <%= link_to "[edit]", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
+                <TD> <%= link_to "[delete]", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
+             <% end %>
          </TR>
       <% end %>
 

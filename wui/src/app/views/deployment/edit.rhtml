@@ -8,7 +8,12 @@
       <TABLE BORDER=0>
          <TR>
             <TD>Machine</TD>
-            <TD><%= f.select :machine_id, @machines %></TD>
+            <TD><%= if @operation == "add"
+                        f.select :machine_id, @machines
+                    else
+                        @machine.name
+                    end %>
+            </TD>
          </TR>
          <TR>
             <TD>Profile</TD>

@@ -192,7 +192,7 @@ class Deployment(web_svc.AuthWebSvc):
          deployment_dep_args["display_name"] = display_name
          deployment_dep_args["netboot_enabled"] = 0
          deployment_dep_args["mac_address"] = self.generate_mac_address(all_deployments.data[-1]["id"])
-         deployment_dep_args["state"] = "defined" # FIXME: constant
+         deployment_dep_args["state"] = DEPLOYMENT_STATE_CREATING
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
          deployment_dep_args["registration_token"] = regtoken.RegToken().generate(token)
 
@@ -202,10 +202,11 @@ class Deployment(web_svc.AuthWebSvc):
 
          task_obj = task.Task()
          task_obj.add(token, {
-            "user_id"       : None,
+            "user_id"       : -1,  # FIXME: obtain from token
             "machine_id"    : deployment_dep_args["machine_id"],
             "deployment_id" : results.data,
             "action_type"   : TASK_OPERATION_INSTALL_VIRT, 
+            "state"         : TASK_STATE_QUEUED
          })
 
          return results
@@ -253,13 +254,26 @@ class Deployment(web_svc.AuthWebSvc):
          return results
 
     def delete(self, token, args):
- 
+
+        obj = self.get(token, { "id" : args["id"] })
+        if not obj.ok():
+            raise NoSuchObjectException()
+
+        # mark this object as being deleted and uneditable.
+        args = obj.data
+        args["state"] = DEPLOYMENT_STATE_DELETING
+        args["is_locked"] = 1
+        self.edit(token, args)
+
         # delete scheduled through taskatron.
         # FIXME: lock this object once we have locks
         task_obj = task.Task()
         task_obj.add(token, {
+           "user_id"       : -1, # FIXME: get from token
+           "machine_id"    : obj.data["machine_id"],
            "deployment_id" : args["id"],
-           "action_type"   : TASK_OPERATION_DELETE_VIRT
+           "action_type"   : TASK_OPERATION_DELETE_VIRT,
+           "state"         : TASK_STATE_QUEUED
         })
         return success() # FIXME: always?
 
