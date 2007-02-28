@@ -12,6 +12,8 @@
             <TD>Mac Address</TD>
             <TD>Profile</TD>
             <TD>State</TD>
+            <TD></TD>
+            <TD></TD>
          </TR>
       <% else %>
          There are no virtual profiles created or deployed yet.  Use the "Add" link to create one.
@@ -20,16 +22,23 @@
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
       <% @items.each do |item| %>
+         <% if item.is_locked == 1 %>
+         <TR BGCOLOR="#555555">
+         <% else %>
          <TR>
-             
+         <% end %>
              <TD> <%= link_to item.machine.hostname, :controller => "machine", :action=> "edit", :id=> item.machine.id %></TD>
-             <TD> <%= item.hostname ? item.hostname : "?" %> </TD>
-             <TD> <%= item.ip_address ? item.ip_address : "?" %> </TD>
-             <TD> <%= item.mac_address ? item.mac_address : "?" %> </TD>
+             <TD> <%= item.hostname ? item.hostname : "(Unknown)" %> </TD>
+             <TD> <%= item.ip_address ? item.ip_address : "(Unknown)" %> </TD>
+             <TD> <%= item.mac_address ? item.mac_address : "(Unknown)" %> </TD>
              <TD> <%= link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id %></TD>
              <TD> <%= item.state %> </TD>
-             <TD> <%= link_to "edit", :controller => "deployment", :action=> "edit", :id=> item.id %></TD>
-             <TD> <%= link_to "X", :controller => "deployment", :action=> "delete", :id=> item.id %></TD>
+             <% if item.is_locked == 1 %>
+                <TD> <%= link_to "[edit]", :controller => "deployment", :action=> "edit", :id=> item.id %></TD>
+                <TD> <%= link_to "[delete]", :controller => "deployment", :action=> "delete", :id=> item.id %></TD>
+             <% else %>
+                <TD COLSPAN="2"> (Locked) </TD>
+             <% end %>
          </TR>
       <% end %>
       </TABLE>

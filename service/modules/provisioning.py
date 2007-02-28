@@ -126,6 +126,8 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -136,11 +138,6 @@ class CobblerTranslatedDistribution:
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
-       if from_db.has_key("netboot_enabled"):
-           new_item.set_netboot_enabled(from_db["netboot_enabled"])
-       else:
-           new_item.set_netboot_enabled(False)
-       ks_meta["token_param"] = "--token=%s" % "FIXME" # FIXME: get this from the database
        cobbler_api.distros().add(new_item, with_copy=True)
        cobbler_api.serialize()
 
@@ -148,6 +145,8 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
        
        shadow_config = config_data.Config().get()
 
@@ -164,8 +163,11 @@ class CobblerTranslatedProfile:
 
        new_item.set_distro(distribution_name)
 
-       if from_db.has_key("kickstart"):
-           new_item.set_kickstart(from_db["kickstart"])
+       # intentional.
+       # use the same kickstart template for all profiles but template it out based on
+       # distro, profile, and system settings. 
+       new_item.set_kickstart("/var/lib/shadowmanager/kick-fc6.ks")
+
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        
@@ -187,7 +189,7 @@ class CobblerTranslatedProfile:
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
 
         
-       ks_meta["node_common_packages"] = "koan sm-node-daemon" # FIXME: requires RPM to create repo
+       ks_meta["node_common_packages"] = "koan puppet sm-node-daemon" # FIXME: requires RPM to create repo
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
@@ -197,10 +199,11 @@ class CobblerTranslatedProfile:
        ks_meta["extra_post_magic"]     = ""
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["profile_param"]        = "--token=UNSET" # intentional, system can override
+       ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
        ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
       
-
+       new_item.set_ksmeta(ks_meta)
+      
        cobbler_api.profiles().add(new_item, with_copy=True)
        cobbler_api.serialize()
 
@@ -211,8 +214,20 @@ class CobblerTranslatedProfile:
 # reason profile_name is ending up as None, and this needs
 # to be fixed.
 
+def cobbler_remove_system(cobbler_api, from_db):
+   try:
+       if from_db.has_key("mac_address"):
+           cobbler_api.systems().remove(from_db["mac_address"])
+           cobbler_api.serialize()
+   except:
+       # this exception might be ok...
+       traceback.print_exc()
+
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
+       
+       if from_db.has_key("id") and from_db["id"] < 0:
+           return
 
        self.logger = logger.Logger().logger
 
@@ -229,17 +244,19 @@ class CobblerTranslatedSystem:
        # we get a profile by seeing if a deployment references
        # the system.  
  
-       machine_id = from_db["id"]
-       if from_db["id"] < 0:
+       if from_db.has_key("id") and from_db["id"] < 0:
            self.logger.debug("not cobblerfying because db id < 0")
+           # remove if already there
+           cobbler_remove_system(cobbler_api, from_db)
            return
-       
 
        if not from_db.has_key("profile_id"):
            # what happened here is that the machine was registered but no profile is 
            # assigned by the user in GUI land, so until that happens it can't be 
            # provisioned.  This is /NOT/ neccessarily an error condition.
            self.logger.debug("not cobblerfying because no profile_id")
+           # remove if already there
+           cobbler_remove_system(cobbler_api, from_db)
            return
 
        profile_id = from_db["profile_id"]
@@ -277,7 +294,7 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
-       ks_meta["profile_param"]  = "--token=%s" % from_db["registration_token"] 
+       ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
@@ -297,6 +314,12 @@ class CobblerTranslatedSystem:
 
        if pxe_address != "":
            new_item.set_pxe_address(pxe_address)
+       
+       if from_db.has_key("netboot_enabled"):
+           new_item.set_netboot_enabled(from_db["netboot_enabled"])
+       else:
+           new_item.set_netboot_enabled(False)
+
        
        cobbler_api.systems().add(new_item, with_copy=True)
        cobbler_api.serialize()

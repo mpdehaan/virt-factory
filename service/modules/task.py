@@ -75,7 +75,7 @@ class TaskData(baseobj.BaseObject):
  
         if operation in [OP_ADD]:
 
-            if self.operation not in VALID_TASK_OPERATIONS:
+            if self.action_type not in VALID_TASK_OPERATIONS:
                 invalid_fields["operation"] = REASON_RANGE
         
         if operation in [OP_ADD, OP_EDIT]:

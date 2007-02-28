@@ -11,6 +11,7 @@
             <TD>Description</TD>
             <TD>Email</TD>
             <TD></TD>
+            <TD></TD>
          </TR>
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
@@ -23,7 +24,8 @@
              <TD> <%= item.last %> </TD>
              <TD> <%= item.description %> </TD>
              <TD> <%= item.email %> </TD>
-             <TD> <%= link_to "[X]", :controller => "user", :action=> "delete", :id=> item.id %></TD>
+             <TD> <%= link_to "[edit]",   :controller => "user", :action=> "edit",   :id=> item.id %></TD>
+             <TD> <%= link_to "[delete]", :controller => "user", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
       </TABLE>

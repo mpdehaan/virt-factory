@@ -4,13 +4,13 @@
       <div id="content-main">
       
       <% if @items.length > 0 %>
-      <TABLE class='listing'>
+      <TABLE class='listing' CELLSPACING=10 CELLPADDING=10>
          <TR>
             <TD>Name</TD>
             <TD>Version</TD>
             <TD>Distribution</TD>
-            <TD>Virtual Storage Size</TD>
-            <TD>Virtual RAM</TD>
+            <TD>Storage</TD>
+            <TD>Memory</TD>
             <TD>Targets</TD>
             <TD>Container?</TD>
             <TD></TD>
@@ -26,12 +26,12 @@
              
              <TD> <%= link_to item.name, :controller => "profile", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
-             <TD> <%= item.distribution.name if item.distribution %> </TD>
+             <TD> <%= item.distribution.name.split("_").slice(-6,6).join("-") if item.distribution %> </TD>
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
-             <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %> </TD>
-             <TD> <%= link_to "[X]", :controller => "profile", :action=> "delete", :id=> item.id %></TD>
+             <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Y" : "N" %> </TD>
+             <TD> <%= link_to "[delete]", :controller => "profile", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
       <% if @items.length > 0 %>

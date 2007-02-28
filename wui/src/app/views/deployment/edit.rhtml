@@ -8,7 +8,12 @@
       <TABLE BORDER=0>
          <TR>
             <TD>Machine</TD>
-            <TD><%= f.select :machine_id, @machines %></TD>
+            <TD><%= if @operation == "add"
+                        f.select :machine_id, @machines
+                    else
+                        @machine.name
+                    end %>
+            </TD>
          </TR>
          <TR>
             <TD>Profile</TD>
@@ -19,12 +24,8 @@
                     end %>
              </TD>
          </TR>
-         <TR> 
-            <TD>State</TD>
-            <TD><%= f.text_field :state %></TD>
-         </TR>
          <TR>
-            <TD>Puppet Class Node Overrides</TD>
+            <TD>Puppet Class Node Overrides (Optional)</TD>
             <TD><%= f.text_field :puppet_node_diff %></TD>
          </TR>
          <TR>
@@ -33,9 +34,6 @@
       </TABLE>
       <% end %>
       </div>
-
-      <!-- FIXME: remove globals? -->
-      <% @callout_1 = @operation + " a deployment" %>
 
       <!-- FIXME: at the bottom of this page, or elsewhere, we need buttons to change the state of the 
            deployment.  (start,stop, also migrate -->

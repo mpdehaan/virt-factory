@@ -140,7 +140,7 @@ class RegToken(web_svc.AuthWebSvc):
              except ShadowManagerException:
                  raise OrphanedObjectException(comment='profile_id',traceback=traceback.format_exc())
 
-         return self.db.simple_insert(u.to_datastruct())
+         return self.db.simple_add(u.to_datastruct())
 
     def delete(self, token, args):
          """

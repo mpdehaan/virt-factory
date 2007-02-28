@@ -27,6 +27,7 @@
             <TD><%= f.select :profile_id, @profiles %></TD>
          </TR>
          <% if !@item.hostname.nil? %>
+             <!-- commented out until provided by registration
              <TR>
                  <TD>Architecture</TD>
                  <TD><%= @item.architecture %></TD>
@@ -43,6 +44,7 @@
                  <TD>Memory</TD>
                  <TD><%= @item.memory %></TD>
              </TR>
+             -->
              <!-- don't display until needed later
              <TR>
                 <TD>Kernel Options</TD>

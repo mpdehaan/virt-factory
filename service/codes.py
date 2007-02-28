@@ -80,15 +80,21 @@ REASON_FORMAT = "format"
 REASON_NOFILE = "no_file"
 
 # operations types for queued actions
-TASK_OPERATION_COBBLER_SYNC = "cobbler_sync"
-TASK_OPERATION_INSTALL_METAL = "install_metal"
-TASK_OPERATION_INSTALL_VIRT = "install_virt"
-TASK_OPERATION_PUPPET_SYNC = "puppet_sync"
+TASK_OPERATION_COBBLER_SYNC = "cobbler_sync"     # not used by actions yet
+TASK_OPERATION_INSTALL_METAL = "install_metal"   # not used at all yet, maybe not needed
+TASK_OPERATION_INSTALL_VIRT = "install_virt"     # definitely needed
+TASK_OPERATION_PUPPET_SETUP = "puppet_setup"     # can be done by node-daemon at startup, not needed?
+TASK_OPERATION_DELETE_VIRT = "delete_virt"       # definitely needed
+TASK_OPERATION_STOP_VIRT   = "stop_virt"         # definitely needed
+TASK_OPERATION_START_VIRT  = "start_virt"        # definitely needed
 VALID_TASK_OPERATIONS = [
    TASK_OPERATION_COBBLER_SYNC,
    TASK_OPERATION_INSTALL_METAL,
    TASK_OPERATION_INSTALL_VIRT,
-   TASK_OPERATION_PUPPET_SYNC
+   TASK_OPERATION_PUPPET_SETUP,
+   TASK_OPERATION_DELETE_VIRT,
+   TASK_OPERATION_START_VIRT,
+   TASK_OPERATION_STOP_VIRT
 ]
 
 # states for queued actions
@@ -105,6 +111,25 @@ VALID_TASK_STATES = [
    TASK_STATE_FINISHED
 ]
 
+
+DEPLOYMENT_STATE_CREATING = "creating"
+DEPLOYMENT_STATE_STOPPING = "stopping"
+DEPLOYMENT_STATE_STOPPED = "stopped"
+DEPLOYMENT_STATE_STARTING = "starting"
+DEPLOYMENT_STATE_STARTED = "started"
+DEPLOYMENT_STATE_DELETING = "deleting"
+DEPLOYMENT_STATE_MIGRATING = "migrating"
+DEPLOYMENT_STATE_UNKNOWN   = "unknown"
+VALID_DEPLOYMENT_STATES = [
+   DEPLOYMENT_STATE_CREATING,
+   DEPLOYMENT_STATE_STOPPING,
+   DEPLOYMENT_STATE_STOPPED,
+   DEPLOYMENT_STATE_STARTING,
+   DEPLOYMENT_STATE_STARTED,
+   DEPLOYMENT_STATE_DELETING,
+   DEPLOYMENT_STATE_MIGRATING,
+   DEPLOYMENT_STATE_UNKNOWN
+]
 
 class ShadowManagerException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR

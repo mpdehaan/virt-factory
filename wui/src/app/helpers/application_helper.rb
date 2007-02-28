@@ -23,7 +23,6 @@ module ApplicationHelper
        <li><strong>Image Profiles</strong>
 	   <ul>
 	   <li><A HREF="#{app_root}/profile/list">View Image Profiles</A></li>
-	   <li><A HREF="#{app_root}/profile/edit">(Developers) Add an Image Profile</A></li>
 	   </ul>
        </li>
        <li><strong>Virtual Deployments</strong>
@@ -35,7 +34,6 @@ module ApplicationHelper
        <li><strong>Task Queue</strong>
            <ul>
            <li><A HREF="#{app_root}/task/list">View Task Queue</A></li>
-           <li><A HREF="#{app_root}/task/edit">Add a Task</A></A>
            </ul>
        </li>
        <li><strong>Users</strong>
