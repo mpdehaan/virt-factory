@@ -40,7 +40,7 @@
             <TD><%= f.text_field :email %></TD>
          </TR>
          <TR>
-            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
          </TR>
       </TABLE>
       <% end %>
