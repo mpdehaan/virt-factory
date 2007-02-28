@@ -6,6 +6,7 @@
 
 # Specifies gem version of Rails to use when vendor/rails is not present
 RAILS_GEM_VERSION = ''
+RELATIVE_URL_ROOT = ENV['RELATIVE_URL_ROOT']
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
@@ -51,4 +52,4 @@ end
 # end
 
 # Include your application configuration below
-ActionController::AbstractRequest.relative_url_root = "/sm"
+ActionController::AbstractRequest.relative_url_root = RELATIVE_URL_ROOT
