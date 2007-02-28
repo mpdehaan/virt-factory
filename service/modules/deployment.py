@@ -23,9 +23,11 @@ import machine
 import web_svc
 import task
 import regtoken
+import provisioning
 
 import traceback
 import threading
+import cobbler.api
 
 
 
@@ -136,7 +138,7 @@ class Deployment(web_svc.AuthWebSvc):
         print "get_by_token"
         print "results: %s" % results
         if results.error_code != 0:
-            raise codes.InvalidArgumentsException("bad token")
+            raise InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
 
         if results.data[0].has_key("profile_id"):
@@ -153,7 +155,7 @@ class Deployment(web_svc.AuthWebSvc):
     def cobbler_sync(self, data):
          cobbler_api = cobbler.api.BootAPI()
          profiles = profile.Profile().list(None, {}).data
-         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virt=True)
+         provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virtual=True)
 
     # for duck typing compatibility w/ machine           
     def new(self, token):
@@ -189,10 +191,10 @@ class Deployment(web_svc.AuthWebSvc):
 
          deployment_dep_args["display_name"] = display_name
          deployment_dep_args["netboot_enabled"] = 0
-         deployment_dep_args["mac_address"] = self.generate_mac_address(deployment.data[-1]["id"])
+         deployment_dep_args["mac_address"] = self.generate_mac_address(all_deployments.data[-1]["id"])
          deployment_dep_args["state"] = "defined" # FIXME: constant
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
-         deployment_dep_args["registration_token"] = regtoken.RegToken().generate()
+         deployment_dep_args["registration_token"] = regtoken.RegToken().generate(token)
 
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
          self.cobbler_sync(u.to_datastruct())
@@ -202,8 +204,8 @@ class Deployment(web_svc.AuthWebSvc):
          task_obj.add(token, {
             "user_id"       : None,
             "machine_id"    : deployment_dep_args["machine_id"],
-            "deployment_id" : results.data["id"],
-            "action_type"   : codes.TASK_OPERATION_INSTALL_VIRT, 
+            "deployment_id" : results.data,
+            "action_type"   : TASK_OPERATION_INSTALL_VIRT, 
          })
 
          return results
@@ -215,7 +217,7 @@ class Deployment(web_svc.AuthWebSvc):
          high = id / (127*256)
          mid  = (id % (127*256)) / 256
          low  = id % 256 
-         return ":".join([ "0x00", "0x16", "0x3E", "02x" % high, "02x" % mid, "02x" % low ])
+         return ":".join([ "0x00", "0x16", "0x3E", "%02x" % high, "%02x" % mid, "%02x" % low ])
 
     def edit(self, token, deployment_dep_args):
          """
@@ -256,7 +258,7 @@ class Deployment(web_svc.AuthWebSvc):
         task_obj = task.Task()
         task_obj.add(token, {
            "deployment_id" : args["id"],
-           "action_type"   : codes.TASK_OPERATION_DELETE_VIRT
+           "action_type"   : TASK_OPERATION_DELETE_VIRT
         })
         return success() # FIXME: always?
 
