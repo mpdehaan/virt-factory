@@ -28,6 +28,9 @@ import time
 import traceback
 
 class UserData(baseobj.BaseObject):
+
+    FIELDS = [ "id", "username", "password", "first", "middle", "last", "description", "email" ]
+
     def _produce(klass, user_args,operation=None):
         """
         Factory method.  Create a user object from input data, optionally
@@ -99,6 +102,16 @@ class UserData(baseobj.BaseObject):
             self.id = int(self.id)
 
 class User(web_svc.AuthWebSvc):
+
+    edit_fields = [ "first", "middle", "last", "description", "email", "username", "password" ]
+    
+    DB_SCHEMA = {
+        "table"  : "users",
+        "fields" : UserData.FIELDS,
+        "edit"   : edit_fields,
+        "add"    : edit_fields
+    }
+
     def __init__(self):
         self.methods = {"user_add": self.add,
                         "user_edit": self.edit,
@@ -107,7 +120,7 @@ class User(web_svc.AuthWebSvc):
                         "user_get": self.get,}
 
         web_svc.AuthWebSvc.__init__(self)
-
+        self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, user_args):
          """

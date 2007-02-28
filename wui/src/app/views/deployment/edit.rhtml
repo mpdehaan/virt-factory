@@ -11,7 +11,7 @@
             <TD><%= if @operation == "add"
                         f.select :machine_id, @machines
                     else
-                        @machine.name
+                        @item.machine.hostname ? @item.machine.hostname : @item.machine.mac_address
                     end %>
             </TD>
          </TR>

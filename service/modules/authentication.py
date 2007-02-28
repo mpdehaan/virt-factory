@@ -38,6 +38,8 @@ class Authentication(web_svc.WebSvc):
          Try to log in user with (user,password) and return a token, or raise
          UserInvalidException or PasswordInvalidException on error.
          """
+
+
          # this method is the exception to the rule and doesn't do object validation.
          # login is the only special method like this in the whole API.  It's also
          # the only method that doesn't take a hash for a parameter, though this
@@ -45,9 +47,15 @@ class Authentication(web_svc.WebSvc):
          st = """
          SELECT id, password FROM users WHERE username=:username
          """
+         
 
          if not os.path.exists("/var/lib/shadowmanager/primary_db"):
              raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
+         
+         # the system account cannot be used to obtain a token under any circumstances. 
+         # it exists for database referential integrity when logging, or when creating tasks (etc).
+         if username == "system":
+             raise UserInvalidException(comment=username)
 
          self.db.cursor.execute(st, { "username" : username })
          results = self.db.cursor.fetchone()

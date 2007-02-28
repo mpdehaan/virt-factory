@@ -158,7 +158,18 @@ class Task(web_svc.AuthWebSvc):
        GUI pagination when we start worrying about hundreds of systems.
        """
        
-       return self.db.simple_list(args)
+       return self.db.nested_list(
+              [
+                 user.User.DB_SCHEMA,
+                 machine.Machine.DB_SCHEMA,
+                 deployment.Deployment.DB_SCHEMA
+              ],
+              args, 
+              {
+                 "users.id"       : "tasks.user_id",
+                 "machines.id"    : "tasks.machine_id",
+                 "deployments.id" : "tasks.deployment_id",
+              })
 
 
    def get(self, token, args):

@@ -7,11 +7,14 @@ class Task < ManagedObject
     ATTR_LIST = { 
         :id            => {:type => Integer },
         :user_id       => {:type => Integer }, 
-        :operation     => {:type => String  }, 
-        :parameters    => {:type => String  }, 
-        :state         => {:type => String  }, 
+        :action_type   => {:type => String  }, 
+        :machine_id    => {:type => Integer },
+        :deployment_id => {:type => Integer },
+        :state         => {:type => String  },
         :time          => {:type => Integer }, 
-        :user          => {:type => User,       :id_attr => :user_id       }
+        :user          => {:type => User,        :id_attr => :user_id        },
+        :machine       => {:type => Machine,     :id_attr => :machine_id     },
+        :deployment    => {:type => Deployment,  :id_attr => :deployment_id  }
     }
                    
     self.set_attrs(ATTR_LIST)

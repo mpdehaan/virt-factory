@@ -1,3 +1,5 @@
+INSERT INTO users VALUES (-1, "system", "locked", "?", "?", "?", "?", "?");
+
 INSERT INTO users VALUES (1, "admin", "fedora", "?", "?", "?", "?", "?");
 
 INSERT INTO distributions VALUES (-1, "*Unassigned*", "", "", "", "", 0, "", "");
