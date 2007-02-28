@@ -214,10 +214,11 @@ class Deployment(web_svc.AuthWebSvc):
          # pick an offset into the XenSource range as given by the highest used object id
          # FIXME: verify that sqlite id fields work as counters and don't fill in on deletes
          # FIXME: verify math below
-         high = id / (127*256)
-         mid  = (id % (127*256)) / 256
-         low  = id % 256 
-         return ":".join([ "0x00", "0x16", "0x3E", "%02x" % high, "%02x" % mid, "%02x" % low ])
+         x = id + 1
+         high = x / (127*256)
+         mid  = (x % (127*256)) / 256
+         low  = x % 256 
+         return ":".join([ "00", "16", "3E", "%02x" % high, "%02x" % mid, "%02x" % low ])
 
     def edit(self, token, deployment_dep_args):
          """
