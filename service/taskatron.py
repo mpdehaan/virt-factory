@@ -321,8 +321,10 @@ class StopVirtThread(PuppetSyncThread(ShadowWorkerThread):
     def core_fn(self):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
-        return self.get_handle(machine_hostname).stop_virt(ddata)
-
+        # all of these fns should raise exceptions on failure.
+        self.get_handle(machine_hostname).stop_virt(ddata)
+        mrec.database_delete(mdata)
+        return        
 
 #--------------------------------------------------------------------------
       
