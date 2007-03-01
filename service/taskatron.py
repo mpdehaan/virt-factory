@@ -20,6 +20,7 @@ import time
 import string
 import traceback
 import threading
+import sys
 
 from codes import *
 import config_data
@@ -35,6 +36,13 @@ from modules import machine
 from modules import provisioning
 from modules import registration
 from modules import user
+
+from M2Crypto import SSL
+from M2Crypto.m2xmlrpclib import SSL_Transport, Server
+from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+
+PEM_FILE = "tmp/foo.pem"   # FIXME: NOT DONE: need to pick client pem file
+
 
 #--------------------------------------------------------------------------
 
@@ -60,9 +68,7 @@ class TaskScheduler:
    def clean_up_tasks(self):
        """
        If we start up and any tasks are marked as "running", this means
-       taskatron died before they were finished.  Should they be marked
-       finished/stopped or queued?
-       FIXME: figure this out.
+       taskatron died before they were finished.  Requeue them.
        """
        task_obj = task_module.Task()
        task_results = task_obj.list(None, {})
@@ -89,6 +95,8 @@ class TaskScheduler:
        one element, if not, process everything in the list.
        """
 
+       now = time.time()
+
        task_obj = task_module.Task()
        task_results = task_obj.list(None, {})
        tasks = task_results.data
@@ -96,37 +104,39 @@ class TaskScheduler:
        # not a lot of tasks, no need for db sort...
        def sorter(a,b):
            return cmp(a["time"], b["time"])
-
        tasks.sort(sorter,reverse=True)
 
+       # run any tasks in the queue.
        for item in tasks:
            print "---"
            print "taskatron considering: %s" % item
            item = task_module.TaskData.produce(item)
            op = item.operation
 
-           task_lock = threading.Lock()
            context = TaskContext(self.logger, item, tasks, task_lock)
 
            print "state : %s" % item.state
            if item.state == TASK_STATE_QUEUED:
-               if op == TASK_OPERATION_COBBLER_SYNC:
-                   worker = CobblerSyncThread(context)
-               elif op == TASK_OPERATION_INSTALL_METAL:
-                   worker = CobblerInstallMetalThread(context)
-               elif op == TASK_OPERATION_INSTALL_VIRT:
-                   worker = CobblerInstallVirtThread(context)
-               elif op == TASK_OPERATION_PUPPET_SYNC:
-                   worker = PuppetSyncThread(context)
+               if op == TASK_OPERATION_INSTALL_VIRT:
+                   worker = InstallVirtThread(context)
+               elif op == TASK_OPERATION_STOP_VIRT:
+                   worker = StopVirtTaskThread(context)               
+               elif op == TASK_OPERATION_START_VIRT:
+                   worker = StartVirtThread(context)
+               elif op == TASK_OPERATION_DELETE_VIRT:  
+                   worker = DeleteVirtThread(context)
                else:
                    raise TaskException(comment="unknown task type")
-               worker.start()
+               worker.consider()
 
        task_results2 = task_obj.list(None, {})
        tasks = task_results2.data
        print "==="
+
+       # keep finished tasks in the list for 30 minutes or so
+
        for item in tasks:
-           if item["state"] == TASK_STATE_FINISHED:
+           if item["state"] == TASK_STATE_FINISHED and time.time() - now > 30*60:
                print "deleting: %s" % item
                task_obj.delete(None, item)
        
@@ -163,7 +173,9 @@ class ShadowWorkerThread(threading.Thread):
         self.logger   = context.logger
         self.item     = context.item
         self.items    = context.items
-        self.tasklock = context.tasklock
+
+    def main_loop(self):
+        return
 
     def set_running(self):
         """
@@ -179,6 +191,7 @@ class ShadowWorkerThread(threading.Thread):
         self.item.state = TASK_ITEM_RUNNING
         task_obj = task_module.Task()
         task_obj.edit(None, self.item.to_datastruct())
+         
 
     def set_finished(self):
         """
@@ -189,102 +202,126 @@ class ShadowWorkerThread(threading.Thread):
         self.item.state = TASK_STATE_FINISHED
         task_obj = task_module.Task()
         task_obj.edit(None, self.item.to_datastruct())
+        
+    def set_failed(self):
+        """
+        Set a task as failed.
+        """
+        self.logger.debug("Failing task : %s" % self.item.id)
+        print "Failing task : %s" % self.item.id
+        self.item_state = TASK_STATE_FAILED
+        task_obj = task_module.Task()
+        task_obj.edit(None, self.item.to_datastruct())
 
     def log_exc(self):
+        """
+        Log a stacktrace.
+        """
         (t, v, tb) = sys.exc_info()
         self.logger.debug("Exception occured: %s" % t )
         self.logger.debug("Exception value: %s" % v)
         self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
  
-#--------------------------------------------------------------------------
-
-class CobblerSyncThread(ShadowWorkerThread):
-
-    """
-    Background thread for updating the cobbler config and tree.
-    """   
-
     def run(self):
-
-        # can't run this at the same time as other tasks...
-        # FIXME: also can't run while any systems are in the
-        # "provisioning" state... need to implement this.
-
-        self.tasklock.acquire()
+        """
+        The loop for all threads only differs by self.core_fn(), which should be overridden.
+        """
         try:
             self.set_running()
-            prov_obj = provisioning.Provisioning()
-            prov_obj.sync(None, {})
+            # the failure mode here is that the node should always raise exceptions if an operation fails.
+            self.core_fn()
+            self.set_finished()
         except Exception, e:
             self.log_exc()
-            self.tasklock.release()
-        self.set_finished()
-        self.tasklock.release()
+            self.set_failed()
+
+    def get_virt_records(self):
+        """
+        Helper function to retrieve objects and datastructures based on the machine and deployment info in the 
+        task entry.
+        """
+        mid = self.item.machine_id
+        did = self.item.deployment_id
+        machine_obj = machine.Machine()
+        deployment_obj = deployment.Deployment()
+        machine_record = machine_obj.get(None, { "id" : mid })
+        deployment_record = deployment_obj.get(none, { "id" : did })
+        if not machine_obj.ok():
+            raise TaskException(comment="machine missing")
+        if not deployment_obj.ok():
+            raise TaskException(comment="deployment missing")
+        return (machine_obj, machine_record.data, deployment_obj, deployment_record.data)
+
+    def callback(self, *args):
+        print args
+        return
+
+    def get_handle(self,hostname):
+        """
+        Return a xmlrpc server object for a given hostname.
+        """
+        ctx = SSL.Context('sslv23')
+        ctx.load_cert(PEM_FILE)
+        ctx.load_client_ca(PEM_FILE)
+        ctx.load_verify_info(PEM_FILE)
+        ctx.set_session_id_ctx('xmlrpcssl')
+
+        ctx.set_info_callback(self.callback)
+        address = (hostname, 2112)
+        rserver = xmlrpcserver(ctx, address)
+        return rserver 
 
 #--------------------------------------------------------------------------
-
-class CobblerInstallMetalThread(ShadowWorkerThread):
+        
+class InstallVirtThread(ShadowWorkerThread):
 
     """
-    Background thread for installing a bare metal system.
+    Background thread for installing a virtualized system.
     """
-
-    def run(self):
-        # FIXME: make call to node to reprovision itself.
-        # this does NOT need the lock.
-        #self.tasklock.acquire()
-        try:
-            self.set_running()
-            # FIXME: do stuff here
-        except Exception, e:
-            self.log_exc()
-            #self.tasklock.release()
-        self.set_finished()
-        #self.tasklock.release()
+        
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        return self.get_handle(machine_hostname).install_virt(ddata)
 
 #--------------------------------------------------------------------------
 
-#--------------------------------------------------------------------------
-
-class CobblerInstallVirtThread(ShadowWorkerThread):
+class DeleteVirtThread(ShadowWorkerThread):
 
     """
     Background thread for installing a virtualized system.
     """
 
-    def run(self):
-        # FIXME: make call to node to install virt profile
-        # this does NOT need the lock.
-        #self.tasklock.acquire()
-        try:
-            self.set_running()
-            # FIXME: do stuff here
-        except Exception, e:
-            self.log_exc()
-            #self.tasklock.release()
-        self.set_finished()
-        #self.tasklock.release()
-
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        return self.get_handle(machine_hostname).delete_virt(ddata)
 
 #--------------------------------------------------------------------------
 
-class PuppetSyncThread(ShadowWorkerThread):
+class StartVirtThread(ShadowWorkerThread):
+
+    """
+    Background thread for installing a virtualized system.
+    """
+
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        return self.get_handle(machine_hostname).start_virt(ddata)
+
+#--------------------------------------------------------------------------
+
+class StopVirtThread(PuppetSyncThread(ShadowWorkerThread):
 
     """
     Background thread for updating the puppet config.
     """
 
-    def run(self):
-        # update puppet mappings to match database
-        #self.tasklock.acquire()
-        try:
-            self.set_running()
-            # FIXME: do stuff here
-        except Exception, e:
-            self.log_exc()
-            #self.tasklock.release()
-        self.set_finished()
-        #self.tasklock.release()
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        return self.get_handle(machine_hostname).stop_virt(ddata)
 
 
 #--------------------------------------------------------------------------
@@ -296,16 +333,12 @@ def main(argv):
     
     scheduler = TaskScheduler()     
 
-    if len(argv) > 1 and argv[1].lower() == "--serve":
+    if len(argv) > 1 and argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
         scheduler.run_forever()
-    elif len(argv) > 1 and argv[1].lower() == "--next":
-        scheduler.tick()
     else:
-        print "Usage:" 
-        print "daemon mode:   taskatron.py --serve"
-        print "debug:         taskatron.py --next"
-        sys.exit(1)
+        print "Running single task in debug mode, since --daemon wasn't specified..."
+        scheduler.tick()
 
 if __name__ == "__main__":
     main(sys.argv)
