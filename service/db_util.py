@@ -161,20 +161,14 @@ class DbUtil(object):
             result_hash = {}
             for field, result in zip(fields,each_result):
                 (table, real_field) = field.split(".")
-                print "DEBUG: real_field: %s" % real_field
-                print "DEBUG: processing: %s" % table
-                print "DEBUG: origin table: %s" % schemas_list[0]["table"]
                 if table.endswith("s"):
                     # tables are plural, the API doesn't want plurals for returns
                     table = table[0:-1]
-                    print "DEBUG: new table name: %s" % table
                 if table == schemas_list[0]["table"] or "%ss" % table == schemas_list[0]["table"]:
                     # only nest table results for joined tables
-                    print "DEBUG: not nesting"
                     if result is not None or allow_none:
                         result_hash[real_field] = result
                 else:
-                    print "DEBUG: nesting joined table"
                     if not result_hash.has_key(table):
                         result_hash[table] = {}    
                     if result is not None or allow_none:

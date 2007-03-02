@@ -330,9 +330,9 @@ class Deployment(web_svc.AuthWebSvc):
             ],
             {},
             {
-                "hostname": "'%s'" % hostname,
-                "machines.id"    : "deployments.machine_id",
-                "profiles.id"    : "deployments.profile_id" 
+                "deployments.hostname" : "'%s'" % hostname,
+                "machines.id"          : "deployments.machine_id",
+                "profiles.id"          : "deployments.profile_id" 
             },
         )
 
