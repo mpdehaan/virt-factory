@@ -15,6 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+
 import os
 import time
 import string
@@ -25,6 +26,7 @@ import sys
 from codes import *
 import config_data
 import logger
+logger.logfilepath = "/var/lib/shadowmanager/taskatron.log" # FIXME
 
 from modules import task as task_module 
 from modules import authentication
@@ -41,8 +43,7 @@ from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
-PEM_FILE = "tmp/foo.pem"   # FIXME: NOT DONE: need to pick client pem file
-
+PEM_ROOT = "/var/lib/puppet/ssl/ca/signed"
 
 #--------------------------------------------------------------------------
 
@@ -169,10 +170,11 @@ class ShadowWorkerThread(threading.Thread):
         """
         Constructify.
         """
-        threading.Thread.__init__(self)
-        self.logger   = context.logger
-        self.item     = context.item
-        self.items    = context.items
+        if context is not None:
+            threading.Thread.__init__(self)
+            self.logger   = context.logger
+            self.item     = context.item
+            self.items    = context.items
 
     def main_loop(self):
         return
@@ -256,14 +258,19 @@ class ShadowWorkerThread(threading.Thread):
         print args
         return
 
-    def get_handle(self,hostname):
+    def get_handle(self,hostname,testmode=False):
         """
         Return a xmlrpc server object for a given hostname.
         """
+
+        pem_file = os.path.join(PEM_ROOT, "%s.pem" % hostname)
+        if testmode:
+            print "pem_file", pem_file
+
         ctx = SSL.Context('sslv23')
-        ctx.load_cert(PEM_FILE)
-        ctx.load_client_ca(PEM_FILE)
-        ctx.load_verify_info(PEM_FILE)
+        ctx.load_cert(pem_file)
+        ctx.load_client_ca(pem_file)
+        ctx.load_verify_info(pem_file)
         ctx.set_session_id_ctx('xmlrpcssl')
 
         ctx.set_info_callback(self.callback)
@@ -312,7 +319,7 @@ class StartVirtThread(ShadowWorkerThread):
 
 #--------------------------------------------------------------------------
 
-class StopVirtThread(PuppetSyncThread(ShadowWorkerThread):
+class StopVirtThread(ShadowWorkerThread):
 
     """
     Background thread for updating the puppet config.
@@ -332,10 +339,15 @@ def main(argv):
     """
     Start things up.
     """
-    
+   
     scheduler = TaskScheduler()     
 
-    if len(argv) > 1 and argv[1].lower() == "--daemon":
+    # def get_handle(self,hostname):
+    if len(sys.argv) > 1 and sys.argv[1].lower() == "test":
+        temp_obj = ShadowWorkerThread(None)
+        handle = temp_obj.get_handle("mdehaan.rdu.redhat.com",True)
+        print t.test()
+    elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
         scheduler.run_forever()
     else:
