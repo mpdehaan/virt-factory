@@ -14,6 +14,9 @@ class Test(web_svc.WebSvc):
     def add(self, numb1, numb2):
         return success((numb1 + numb2))
 
+    def test():
+        return "foo"
+
 
 methods = Test()
 register_rpc = methods.register_rpc

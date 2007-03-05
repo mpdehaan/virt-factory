@@ -15,11 +15,10 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# "across the nodes I see my shadow.py ..."
-
 import SimpleXMLRPCServer
 import os
 import socket
+import glob
 
 #socket.setdefaulttimeout(0)
 
@@ -123,49 +122,52 @@ class XmlRpcInterface:
            raise InvalidMethodException
 
 
-def serve(websvc, pemfile, cafile, host):
+def serve(websvc,hostname):
      """
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
 
 #     ctx = initContext(cafile, keyfile, pemfile)
-     ctx = init_context('sslv23', pemfile, cafile, SSL.verify_peer|SSL.verify_fail_if_no_peer_cert )
-     server = ShadowSSLXMLRPCServer(ctx, (host, 2112))
+#     ctx = init_context('sslv23', pemfile, cafile, SSL.verify_peer|SSL.verify_fail_if_no_peer_cert )
+     ctx = initContext(hostname)
+     server = ShadowSSLXMLRPCServer(ctx, (hostname, 2112))
      server.register_instance(websvc)
      server.serve_forever()
 
 def sslCallback(*args):
    print args
 
-def init_context(protocol, certfile, cafile, verify, verify_depth=10):
-    ctx = SSL.Context(protocol)
-    ctx.load_cert_chain(certfile)
-    ctx.load_verify_locations(cafile)
-    ctx.set_client_CA_list_from_file(cafile)
-    ctx.set_verify(verify, verify_depth)
-    #ctx.set_allow_unknown_ca(1)
-    ctx.set_session_id_ctx('echod')
-    ctx.set_info_callback()
-    return ctx
-
-
-
-## def initContext(cafile, keyfile, pemfile):
-##    """
-##    Helper method for m2crypto's SSL libraries.
-##    """
-##    protocol = "sslv23"
-##    verify =  SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
-##    verify_depth = 10
+##def init_context(protocol, certfile, cafile, verify, verify_depth=10):
 ##    ctx = SSL.Context(protocol)
-##    ctx.load_cert(keyfile)
-##    ctx.load_client_ca(cafile)
-##    ctx.load_verify_info(cafile)
+##    ctx.load_cert_chain(certfile)
+##    ctx.load_verify_locations(cafile)
+##    ctx.set_client_CA_list_from_file(cafile)
 ##    ctx.set_verify(verify, verify_depth)
-##    ctx.set_session_id_ctx('xmlrpcssl')
-##    ctx.set_info_callback(sslCallback)
+##    #ctx.set_allow_unknown_ca(1)
+##    ctx.set_session_id_ctx('echod')
+##    ctx.set_info_callback()
 ##    return ctx
+
+
+
+def initContext(hostname):
+    """
+    Helper method for m2crypto's SSL libraries.
+    """
+    protocol = "sslv23"
+    verify =  SSL.verify_peer|SSL.verify_fail_if_no_peer_cert
+    verify_depth = 10
+    ctx = SSL.Context(protocol)
+    ctx.load_client_ca("/var/lib/puppet/ssl/certs/ca.pem")
+    ctx.load_cert(
+         certfile="/var/lib/puppet/ssl/certs/%s.pem" % hostname, 
+         keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % hostname)
+    ctx.load_verify_info("/var/lib/puppet/ssl/certs/ca.pem")
+    ctx.set_verify(verify, verify_depth)
+    ctx.set_session_id_ctx('xmlrpcssl')
+    ctx.set_info_callback(sslCallback)
+    return ctx
 
 
 class SSLXMLRPCHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
@@ -202,15 +204,16 @@ def main(argv):
     """
     
     websvc = XmlRpcInterface()
-#    pemfile = "server.pem"
-#    pemfile = "/var/lib/puppet/ssl/certs/grimlock.devel.redhat.com.pem"
-#    cafile = "/var/lib/puppet/ssl/certs/ca.pem"
-#    keyfile =  "/var/lib/puppet/ssl/prinate_keys/grimlock.devel.redhat.com.pem"
+#   pemfile = "server.pem"
+#   pemfile = "/var/lib/puppet/ssl/certs/grimlock.devel.redhat.com.pem"
+#   cafile = "/var/lib/puppet/ssl/certs/ca.pem"
+#   keyfile =  "/var/lib/puppet/ssl/prinate_keys/grimlock.devel.redhat.com.pem"
+#   pems = glob.glob("/var/lib/puppet/ssl/private_keys")
+#   pemfile = pems[0]
+#   cafile = "/var/lib/puppet/ssl/certs/ca.pem" # adrian-server.pem"
+#   cafile = "/var/lib/puppet/ssl/certa/mdehaan.rdu.redhat.com.pem"    
 
-    pemfile = "adrian-server.pem"
-    cafile = "adrian-ca.crt"
-    
-    host = "grimlock.devel.redhat.com"
+    host = "mdehaan.rdu.redhat.com"  # FIXME: do I have to set this?
      
     if len(argv) > 1:
        print """
@@ -221,7 +224,7 @@ def main(argv):
        sys.exit(1)
     else:
         print "serving...\n"
-        serve(websvc, pemfile, cafile, host)
+        serve(websvc,host)
 
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
