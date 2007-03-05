@@ -57,6 +57,7 @@ part swap --size=1024 --ondisk=$d1 --asprimary
 #EOF
 
 %packages
+ntp
 $node_common_packages
 $node_virt_packages
 $node_bare_packages

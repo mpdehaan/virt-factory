@@ -190,7 +190,7 @@ class ShadowWorkerThread(threading.Thread):
             self.pem_file = context.pem_file
         else:
             # FIXME: only for debug purposes, remove this line and the else.
-            self.pem_file = "/var/lib/puppet/ssl/certs/mdehaan.rdu.redhat.com.pem"
+            self.pem_file = "/var/lib/puppet/ssl/certs/mdehaan.redhat.com.pem"
 
     def debug(self,str):
         self.logger.debug(str)
@@ -295,9 +295,10 @@ class ShadowWorkerThread(threading.Thread):
         ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
 
         # Load target cert ...
+        # FIXME: paths
         ctx.load_cert(
-           certfile="/var/lib/puppet/ssl/certs/%s.pem" % hostname,
-           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % hostname
+           certfile="/var/lib/puppet/ssl/certs/%s.pem" % "mdehaan.rdu.redhat.com",
+           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % "mdehaan.rdu.redhat.com"
         )
 
         ctx.set_session_id_ctx('xmlrpcssl')
@@ -305,6 +306,7 @@ class ShadowWorkerThread(threading.Thread):
         ctx.set_info_callback(self.callback)
         # address = (hostname, 2112)
         uri = "https://%s:2112" % hostname
+        print "contacting: %s" % uri
         rserver = Server(uri, SSL_Transport(ssl_context = ctx))
         return rserver 
 
@@ -372,10 +374,9 @@ def main(argv):
    
     scheduler = TaskScheduler()     
 
-    # def get_handle(self,hostname):
     if len(sys.argv) > 1 and sys.argv[1].lower() == "--test":
         temp_obj = ShadowWorkerThread(None)
-        handle = temp_obj.get_handle("mdehaan.rdu.redhat.com",True)
+        handle = temp_obj.get_handle("smurfy.devel.redhat.com",True)
         print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
