@@ -7,6 +7,8 @@ Michael DeHaan <mdehaan@redhat.com>
 Adrian Likins <alikins@redhat.com>
 Scott Seago <sseago@redhat.com>
 
+XMLRPCSSL portions based on http://linux.duke.edu/~icon/misc/xmlrpcssl.py
+
 This software may be freely redistributed under the terms of the GNU
 general public license.
 
@@ -22,6 +24,7 @@ import string
 import traceback
 import threading
 import sys
+import glob
 
 from codes import *
 import config_data
@@ -43,8 +46,6 @@ from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
-PEM_ROOT = "/var/lib/puppet/ssl/ca/signed"
-
 #--------------------------------------------------------------------------
 
 class TaskScheduler:
@@ -64,7 +65,18 @@ class TaskScheduler:
        config_obj = config_data.Config()
        self.config = config_obj.get()
        # FIXME: use seperate log file (?)
-       self.logger = logger.Logger().logger
+       self.logger = logger.Logger().logger 
+       self.pem_file = self.get_pem_file()
+
+   def get_pem_file(self):
+       # FIXME: there may some chance puppet would have multiple files
+       # in this directory if there was more than one hostname.  Account
+       # for that when the time comes.
+       
+       files = glob.glob("/var/lib/puppet/ssl/private_keys/*pem")
+       if len(files) == 0:
+           raise RuntimeError("no file in /var/lib/puppet/ssl/private_keys")
+       return files[0]
 
    def clean_up_tasks(self):
        """
@@ -114,7 +126,7 @@ class TaskScheduler:
            item = task_module.TaskData.produce(item)
            op = item.action_type
 
-           context = TaskContext(self.logger, item, tasks)
+           context = TaskContext(self.logger, item, tasks, self.pem_file)
 
            print "state : %s" % item.state
            if item.state == TASK_STATE_QUEUED:
@@ -153,10 +165,11 @@ class TaskContext:
     State passed around to all worker threads when they are created.
     """
 
-    def __init__(self, logger, item, items):
+    def __init__(self, logger, item, items, pem_file):
         self.logger = logger
         self.item = item
         self.items = items
+        self.pem_file = pem_file
 
 #-------------------------------------------------------------------------
 
@@ -174,6 +187,10 @@ class ShadowWorkerThread(threading.Thread):
             self.logger   = context.logger
             self.item     = context.item
             self.items    = context.items
+            self.pem_file = context.pem_file
+        else:
+            # FIXME: only for debug purposes, remove this line and the else.
+            self.pem_file = "/var/lib/puppet/ssl/certs/mdehaan.rdu.redhat.com.pem"
 
     def debug(self,str):
         self.logger.debug(str)
@@ -269,19 +286,26 @@ class ShadowWorkerThread(threading.Thread):
         Return a xmlrpc server object for a given hostname.
         """
 
-        pem_file = os.path.join(PEM_ROOT, "%s.pem" % hostname)
         if testmode:
-            print "pem_file", pem_file
+            print "pem_file", self.pem_file
 
         ctx = SSL.Context('sslv23')
-        ctx.load_cert(pem_file)
-        ctx.load_client_ca(pem_file)
-        ctx.load_verify_info(pem_file)
+        
+        # Load CA cert
+        ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
+
+        # Load target cert ...
+        ctx.load_cert(
+           certfile="/var/lib/puppet/ssl/certs/%s.pem" % hostname,
+           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % hostname
+        )
+
         ctx.set_session_id_ctx('xmlrpcssl')
 
         ctx.set_info_callback(self.callback)
-        address = (hostname, 2112)
-        rserver = xmlrpcserver(ctx, address)
+        # address = (hostname, 2112)
+        uri = "https://%s:2112" % hostname
+        rserver = Server(uri, SSL_Transport(ssl_context = ctx))
         return rserver 
 
 #--------------------------------------------------------------------------
@@ -352,7 +376,7 @@ def main(argv):
     if len(sys.argv) > 1 and sys.argv[1].lower() == "--test":
         temp_obj = ShadowWorkerThread(None)
         handle = temp_obj.get_handle("mdehaan.rdu.redhat.com",True)
-        print t.test()
+        print handle.test()
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
         scheduler.run_forever()
