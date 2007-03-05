@@ -376,7 +376,7 @@ def main(argv):
     if len(sys.argv) > 1 and sys.argv[1].lower() == "--test":
         temp_obj = ShadowWorkerThread(None)
         handle = temp_obj.get_handle("mdehaan.rdu.redhat.com",True)
-        print handle.test()
+        print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
         scheduler.run_forever()
