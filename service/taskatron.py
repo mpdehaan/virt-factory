@@ -25,8 +25,10 @@ import traceback
 import threading
 import sys
 import glob
+import socket
 
 from codes import *
+import machine_info
 import config_data
 import logger
 logger.logfilepath = "/var/lib/shadowmanager/taskatron.log" # FIXME
@@ -94,15 +96,15 @@ class TaskScheduler:
                task_obj.edit(None, item.to_datastruct())
          
 
-   def run_forever(self):
+   def run_forever(self, hostname):
        """
        Run forever.
        """
        while(True):
-           self.tick(False)
+           self.tick(hostname, False)
            time.sleep(1)
 
-   def tick(self,once=True):
+   def tick(self,hostname,once=True):
        """
        The code for processing the queue.  If once, eat just
        one element, if not, process everything in the list.
@@ -126,7 +128,7 @@ class TaskScheduler:
            item = task_module.TaskData.produce(item)
            op = item.action_type
 
-           context = TaskContext(self.logger, item, tasks, self.pem_file)
+           context = TaskContext(self.logger, item, tasks, hostname)
 
            print "state : %s" % item.state
            if item.state == TASK_STATE_QUEUED:
@@ -165,11 +167,11 @@ class TaskContext:
     State passed around to all worker threads when they are created.
     """
 
-    def __init__(self, logger, item, items, pem_file):
+    def __init__(self, logger, item, items, hostname):
         self.logger = logger
         self.item = item
         self.items = items
-        self.pem_file = pem_file
+        self.hostname = hostname
 
 #-------------------------------------------------------------------------
 
@@ -187,10 +189,10 @@ class ShadowWorkerThread(threading.Thread):
             self.logger   = context.logger
             self.item     = context.item
             self.items    = context.items
-            self.pem_file = context.pem_file
+            self.hostname = context.hostname
         else:
             # FIXME: only for debug purposes, remove this line and the else.
-            self.pem_file = "/var/lib/puppet/ssl/certs/mdehaan.redhat.com.pem"
+            self.hostname = "mdehaan.rdu.redhat.com"
 
     def debug(self,str):
         self.logger.debug(str)
@@ -281,13 +283,10 @@ class ShadowWorkerThread(threading.Thread):
         print args
         return
 
-    def get_handle(self,hostname,testmode=False):
+    def get_handle(self,target,testmode=False):
         """
         Return a xmlrpc server object for a given hostname.
         """
-
-        if testmode:
-            print "pem_file", self.pem_file
 
         ctx = SSL.Context('sslv23')
         
@@ -297,15 +296,14 @@ class ShadowWorkerThread(threading.Thread):
         # Load target cert ...
         # FIXME: paths
         ctx.load_cert(
-           certfile="/var/lib/puppet/ssl/certs/%s.pem" % "mdehaan.rdu.redhat.com",
-           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % "mdehaan.rdu.redhat.com"
+           certfile="/var/lib/puppet/ssl/certs/%s.pem" % self.hostname,
+           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % self.hostname
         )
 
         ctx.set_session_id_ctx('xmlrpcssl')
 
         ctx.set_info_callback(self.callback)
-        # address = (hostname, 2112)
-        uri = "https://%s:2112" % hostname
+        uri = "https://%s:2112" % target
         print "contacting: %s" % uri
         rserver = Server(uri, SSL_Transport(ssl_context = ctx))
         return rserver 
@@ -371,20 +369,27 @@ def main(argv):
     """
     Start things up.
     """
+
+    info = machine_info.get_netinfo("http://%s:5150" % socket.gethostname())
    
     scheduler = TaskScheduler()     
 
-    if len(sys.argv) > 1 and sys.argv[1].lower() == "--test":
+    if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
         temp_obj = ShadowWorkerThread(None)
-        handle = temp_obj.get_handle("smurfy.devel.redhat.com",True)
+        handle = temp_obj.get_handle(sys.argv[2],True)
         print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
-        scheduler.run_forever()
-    else:
+        scheduler.run_forever(info['hostname'])
+    elif len(sys.argv) == 0:
         print "Running single task in debug mode, since --daemon wasn't specified..."
         scheduler.clean_up_tasks()
-        scheduler.tick()
+        scheduler.tick(info['hostname'], True)
+    else:
+        print "Usage: "
+        print "service --test server.fqdn"
+        print "service --daemon"
+        print "service (just runs through one pass)"
 
 if __name__ == "__main__":
     main(sys.argv)
