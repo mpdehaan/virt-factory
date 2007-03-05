@@ -28,7 +28,6 @@ import glob
 import socket
 
 from codes import *
-import machine_info
 import config_data
 import logger
 logger.logfilepath = "/var/lib/shadowmanager/taskatron.log" # FIXME
@@ -370,8 +369,6 @@ def main(argv):
     Start things up.
     """
 
-    info = machine_info.get_netinfo("http://%s:5150" % socket.gethostname())
-   
     scheduler = TaskScheduler()     
 
     if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
@@ -380,11 +377,11 @@ def main(argv):
         print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
-        scheduler.run_forever(info['hostname'])
+        scheduler.run_forever(socket.get_hostname())
     elif len(sys.argv) == 0:
         print "Running single task in debug mode, since --daemon wasn't specified..."
         scheduler.clean_up_tasks()
-        scheduler.tick(info['hostname'], True)
+        scheduler.tick(socket.get_hostname(), True)
     else:
         print "Usage: "
         print "service --test server.fqdn"
