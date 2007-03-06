@@ -11,6 +11,7 @@ Group: Applications/System
 Requires: ruby >= 1.8.1
 Requires: ruby(abi) = 1.8
 Requires: rubygem(rails) >= 1.2.2
+Requires: rubygem(mongrel) >= 1.0.1
 Requires: httpd >= 2.0
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
