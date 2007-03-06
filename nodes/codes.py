@@ -43,6 +43,7 @@ ERR_INVALID_METHOD      = 12
 ERR_TASK                = 13
 ERR_REG_TOKEN_INVALID   = 14
 ERR_REG_TOKEN_EXHAUSTED = 15
+ERR_VIRT                = 16
 
 # architecture field for machines and profiles
 ARCH_X86 = "x86"
@@ -271,6 +272,12 @@ class MisconfiguredException(ShadowManagerException):
    """
    error_code = ERR_MISCONFIGURED
 
+
+class VirtException(ShadowManagerException):
+   """
+   Errors from virt provisioning and libvirt
+   """
+   error_code = ERR_VIRT
 
 def success(data=None,job_id=None):
    """
