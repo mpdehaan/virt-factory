@@ -21,6 +21,8 @@ import getopt
 import sys
 import xmlrpclib
 import socket
+import os
+import os.path
 
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 ERR_ARGUMENTS_INVALID = 8 # ...
@@ -64,6 +66,18 @@ class Register(object):
             sys.exit(1)
         if rc[0] == 0:
             print "Registration succeeded."
+            fd1 = open("/etc/sysconfig/virtfactory/token","w+")
+            fd1.write(self.token)
+            fd1.close()
+            fd2 = open("/etc/sysconfig/virtfactory/server","w+")
+            fd2.write(self.hostname)
+            fd2.close()
+            fd3 = open("/etc/sysconfig/virtfactory/mac", "w+")
+            fd3.write(self.mac)
+            fd3.close()
+            fd4 = open("/etc/sysconfig/virtfactory/profile", "w+")
+            fd4.write(self.profile_name)
+            fd4.close()
         else:
             print "Failed: ", rc
         return rc
@@ -81,6 +95,12 @@ def main(argv):
     server_url = None
     profile_name = ""
     virtual      = False
+
+    # ensure we have somewhere to save parameters to, the node daemon will want
+    # to know them later.
+
+    if not os.path.exists("/etc/sysconfig/virtfactory"):
+        os.makedirs("/etc/sysconfig/virtfactory")
 
     try:
         opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:v", [
