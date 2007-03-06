@@ -7,6 +7,8 @@ Michael DeHaan <mdehaan@redhat.com>
 Adrian Likins <alikins@redhat.com>
 Scott Seago <sseago@redhat.com>
 
+XMLRPCSSL portions based on http://linux.duke.edu/~icon/misc/xmlrpcssl.py
+
 This software may be freely redistributed under the terms of the GNU
 general public license.
 
@@ -15,16 +17,20 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+
 import os
 import time
 import string
 import traceback
 import threading
 import sys
+import glob
+import socket
 
 from codes import *
 import config_data
 import logger
+logger.logfilepath = "/var/lib/shadowmanager/taskatron.log" # FIXME
 
 from modules import task as task_module 
 from modules import authentication
@@ -40,9 +46,6 @@ from modules import user
 from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
-
-PEM_FILE = "tmp/foo.pem"   # FIXME: NOT DONE: need to pick client pem file
-
 
 #--------------------------------------------------------------------------
 
@@ -63,7 +66,18 @@ class TaskScheduler:
        config_obj = config_data.Config()
        self.config = config_obj.get()
        # FIXME: use seperate log file (?)
-       self.logger = logger.Logger().logger
+       self.logger = logger.Logger().logger 
+       self.pem_file = self.get_pem_file()
+
+   def get_pem_file(self):
+       # FIXME: there may some chance puppet would have multiple files
+       # in this directory if there was more than one hostname.  Account
+       # for that when the time comes.
+       
+       files = glob.glob("/var/lib/puppet/ssl/private_keys/*pem")
+       if len(files) == 0:
+           raise RuntimeError("no file in /var/lib/puppet/ssl/private_keys")
+       return files[0]
 
    def clean_up_tasks(self):
        """
@@ -81,15 +95,15 @@ class TaskScheduler:
                task_obj.edit(None, item.to_datastruct())
          
 
-   def run_forever(self):
+   def run_forever(self, hostname):
        """
        Run forever.
        """
        while(True):
-           self.tick(False)
+           self.tick(hostname, False)
            time.sleep(1)
 
-   def tick(self,once=True):
+   def tick(self,hostname,once=True):
        """
        The code for processing the queue.  If once, eat just
        one element, if not, process everything in the list.
@@ -111,9 +125,9 @@ class TaskScheduler:
            print "---"
            print "taskatron considering: %s" % item
            item = task_module.TaskData.produce(item)
-           op = item.operation
+           op = item.action_type
 
-           context = TaskContext(self.logger, item, tasks, task_lock)
+           context = TaskContext(self.logger, item, tasks, hostname)
 
            print "state : %s" % item.state
            if item.state == TASK_STATE_QUEUED:
@@ -127,7 +141,7 @@ class TaskScheduler:
                    worker = DeleteVirtThread(context)
                else:
                    raise TaskException(comment="unknown task type")
-               worker.consider()
+               worker.run()
 
        task_results2 = task_obj.list(None, {})
        tasks = task_results2.data
@@ -152,11 +166,11 @@ class TaskContext:
     State passed around to all worker threads when they are created.
     """
 
-    def __init__(self, logger, item, items, tasklock):
+    def __init__(self, logger, item, items, hostname):
         self.logger = logger
         self.item = item
         self.items = items
-        self.tasklock = tasklock
+        self.hostname = hostname
 
 #-------------------------------------------------------------------------
 
@@ -169,10 +183,19 @@ class ShadowWorkerThread(threading.Thread):
         """
         Constructify.
         """
-        threading.Thread.__init__(self)
-        self.logger   = context.logger
-        self.item     = context.item
-        self.items    = context.items
+        if context is not None:
+            threading.Thread.__init__(self)
+            self.logger   = context.logger
+            self.item     = context.item
+            self.items    = context.items
+            self.hostname = context.hostname
+        else:
+            # FIXME: only for debug purposes, remove this line and the else.
+            self.hostname = "mdehaan.rdu.redhat.com"
+
+    def debug(self,str):
+        self.logger.debug(str)
+        print str
 
     def main_loop(self):
         return
@@ -181,14 +204,13 @@ class ShadowWorkerThread(threading.Thread):
         """
         Flag a task as running in the database ... and log it.
         """
-        self.logger.debug("Running task  : %s" % self.item.id)
-        self.logger.debug("   operation  : %s" % self.item.operation)
-        self.logger.debug("  parameters  : %s" % self.item.parameters)
-        print "Running task  : %s" % self.item.id
-        print "   operation  : %s" % self.item.operation
-        print "  parameters  : %s" % self.item.parameters
-       
-        self.item.state = TASK_ITEM_RUNNING
+        self.debug("Running task  : %s" % self.item.id)
+        self.debug("      action  : %s" % self.item.action_type)
+        self.debug("     machine  : %s" % self.item.machine_id)
+        self.debug("  deployment  : %s" % self.item.deployment_id)
+        self.debug("        user  : %s" % self.item.user_id)
+        self.debug("        time  : %s" % self.item.time)
+        self.item.state = TASK_STATE_RUNNING
         task_obj = task_module.Task()
         task_obj.edit(None, self.item.to_datastruct())
          
@@ -197,7 +219,7 @@ class ShadowWorkerThread(threading.Thread):
         """
         Flag a task as not running in the database ... and log that too.
         """
-        self.logger.debug("Finished task : %s" % self.item.id)
+        self.debug("Finished task : %s" % self.item.id)
         print "Finished task : %s" % self.item.id
         self.item.state = TASK_STATE_FINISHED
         task_obj = task_module.Task()
@@ -207,7 +229,7 @@ class ShadowWorkerThread(threading.Thread):
         """
         Set a task as failed.
         """
-        self.logger.debug("Failing task : %s" % self.item.id)
+        self.debug("Failing task : %s" % self.item.id)
         print "Failing task : %s" % self.item.id
         self.item_state = TASK_STATE_FAILED
         task_obj = task_module.Task()
@@ -218,9 +240,9 @@ class ShadowWorkerThread(threading.Thread):
         Log a stacktrace.
         """
         (t, v, tb) = sys.exc_info()
-        self.logger.debug("Exception occured: %s" % t )
-        self.logger.debug("Exception value: %s" % v)
-        self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+        self.debug("Exception occured: %s" % t )
+        self.debug("Exception value: %s" % v)
+        self.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
  
     def run(self):
         """
@@ -232,10 +254,11 @@ class ShadowWorkerThread(threading.Thread):
             self.core_fn()
             self.set_finished()
         except Exception, e:
+            self.debug("*** THREAD FAILED ***")
             self.log_exc()
             self.set_failed()
 
-    def get_virt_records(self):
+    def get_records(self):
         """
         Helper function to retrieve objects and datastructures based on the machine and deployment info in the 
         task entry.
@@ -245,30 +268,43 @@ class ShadowWorkerThread(threading.Thread):
         machine_obj = machine.Machine()
         deployment_obj = deployment.Deployment()
         machine_record = machine_obj.get(None, { "id" : mid })
-        deployment_record = deployment_obj.get(none, { "id" : did })
-        if not machine_obj.ok():
+        if not machine_record.ok():
             raise TaskException(comment="machine missing")
-        if not deployment_obj.ok():
-            raise TaskException(comment="deployment missing")
+        if did >= 0:
+            deployment_record = deployment_obj.get(None, { "id" : did })
+            if not deployment_record.ok():
+                raise TaskException(comment="deployment missing")
+        else:
+            deployment_record = None
         return (machine_obj, machine_record.data, deployment_obj, deployment_record.data)
 
     def callback(self, *args):
         print args
         return
 
-    def get_handle(self,hostname):
+    def get_handle(self,target,testmode=False):
         """
         Return a xmlrpc server object for a given hostname.
         """
+
         ctx = SSL.Context('sslv23')
-        ctx.load_cert(PEM_FILE)
-        ctx.load_client_ca(PEM_FILE)
-        ctx.load_verify_info(PEM_FILE)
+        
+        # Load CA cert
+        ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
+
+        # Load target cert ...
+        # FIXME: paths
+        ctx.load_cert(
+           certfile="/var/lib/puppet/ssl/certs/%s.pem" % self.hostname,
+           keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % self.hostname
+        )
+
         ctx.set_session_id_ctx('xmlrpcssl')
 
         ctx.set_info_callback(self.callback)
-        address = (hostname, 2112)
-        rserver = xmlrpcserver(ctx, address)
+        uri = "https://%s:2112" % target
+        print "contacting: %s" % uri
+        rserver = Server(uri, SSL_Transport(ssl_context = ctx))
         return rserver 
 
 #--------------------------------------------------------------------------
@@ -312,7 +348,7 @@ class StartVirtThread(ShadowWorkerThread):
 
 #--------------------------------------------------------------------------
 
-class StopVirtThread(PuppetSyncThread(ShadowWorkerThread):
+class StopVirtThread(ShadowWorkerThread):
 
     """
     Background thread for updating the puppet config.
@@ -332,15 +368,25 @@ def main(argv):
     """
     Start things up.
     """
-    
+
     scheduler = TaskScheduler()     
 
-    if len(argv) > 1 and argv[1].lower() == "--daemon":
+    if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
+        temp_obj = ShadowWorkerThread(None)
+        handle = temp_obj.get_handle(sys.argv[2],True)
+        print handle.test_add(1,2)
+    elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
-        scheduler.run_forever()
-    else:
+        scheduler.run_forever(socket.get_hostname())
+    elif len(sys.argv) == 0:
         print "Running single task in debug mode, since --daemon wasn't specified..."
-        scheduler.tick()
+        scheduler.clean_up_tasks()
+        scheduler.tick(socket.get_hostname(), True)
+    else:
+        print "Usage: "
+        print "service --test server.fqdn"
+        print "service --daemon"
+        print "service (just runs through one pass)"
 
 if __name__ == "__main__":
     main(sys.argv)

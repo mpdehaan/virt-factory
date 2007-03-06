@@ -57,6 +57,7 @@ part swap --size=1024 --ondisk=$d1 --asprimary
 #EOF
 
 %packages
+ntp
 $node_common_packages
 $node_virt_packages
 $node_bare_packages
@@ -64,6 +65,10 @@ $node_bare_packages
 %post
 /usr/bin/sm_register $server_param $token_param
 $extra_post_magic
+/sbin/chkconfig --level 345 puppetd on
+/sbin/chkconfig --level 345 vf-node-daemon on
+/usr/sbin/puppetd --waitforcert 10 --server $server_name -v
+/usr/bin/sm_register $server_param --puppetca
 $kickstart_done
 
 

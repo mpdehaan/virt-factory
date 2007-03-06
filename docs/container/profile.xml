@@ -2,12 +2,12 @@
 <appliance-container>
   <name>Container</name>
   <version>1</version>
-  <distribution>var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_xen</distribution>
-  <virt_storage_size>10000000</virt_storage_size>
-  <virt_ram>1000000</virt_ram>
+  <distribution>var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot</distribution>
+  <virt_storage_size>0</virt_storage_size>
+  <virt_ram>0</virt_ram>
   <kickstart_metadata></kickstart_metadata>
   <kernel_options></kernel_options>
   <valid_targets>is_baremetal</valid_targets>
   <is_container>1</is_container>
-  <puppet_classes>class1 class2</puppet_classes>
+  <puppet_classes>site_settings class1 class2</puppet_classes>
 </appliance-container>

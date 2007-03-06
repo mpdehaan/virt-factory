@@ -294,6 +294,7 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
+       ks_meta["server_name"] = shadow_config["this_server"]["address"] 
        ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
