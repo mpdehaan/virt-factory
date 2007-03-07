@@ -1,2 +1,2 @@
 #!/bin/sh
-(cd src; ruby script/server)
+(cd src; ruby script/server webrick)
