@@ -2,7 +2,7 @@
 <appliance-container>
   <name>Test1</name>
   <version>1.234</version>
-  <distribution>var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot</distribution>
+  <distribution>var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_xen</distribution>
   <virt_storage_size>5</virt_storage_size>
   <virt_ram>512</virt_ram>
   <kickstart_metadata></kickstart_metadata>
