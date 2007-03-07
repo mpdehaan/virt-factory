@@ -16,8 +16,8 @@
 
 
 
-from codes import *
-import baseobj
+from server.codes import *
+from server import baseobj
 
 import web_svc
 

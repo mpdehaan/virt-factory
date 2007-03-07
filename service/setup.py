@@ -19,7 +19,7 @@ if __name__ == "__main__":
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
         logpath  = "/var/log/%s/" % NAME
-	settingspath = "/var/lib/%s/settings/" % NAME
+	settingspath = "/var/lib/%s/" % NAME
         setup(
                 name="%s/server" % NAME,
                 version = VERSION,
@@ -28,11 +28,18 @@ if __name__ == "__main__":
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
 		#scripts = ["scripts/virtfactory-node"],
-		scripts = ["scripts/taskatron",
+		scripts = ["scripts/vf_server",
+			   "scripts/taskatron",
 			   "scripts/vf_import",
 			   "scripts/vf_get_puppet_node"],
-		package_dir = {"%s/server" % NAME: "src", "%s/server/modules" % NAME: "modules/"},
-		packages = ["%s/server" % NAME, "%s/server/modules" % NAME],
+		package_dir = {"%s" % NAME: "",
+			       "%s/server" % NAME: "src",
+			       "%s/server/modules" % NAME: "modules/",
+			       "%s/server/yaml" % NAME: "yaml/"},
+		packages = ["%s" % NAME,
+			    "%s/server" % NAME,
+			    "%s/server/modules" % NAME,
+			    "%s/server/yaml" % NAME],
 		#scripts = ["%s/%s" % (NAME, NAME)],
                 data_files = [(settingspath, ["settings"])],
                 description = SHORT_DESC,

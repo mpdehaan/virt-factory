@@ -35,7 +35,8 @@ from codes import *
 
 import config_data
 import logger
-logger.logfilepath = "/var/lib/shadowmanager/svclog"
+# FIXME: this should be using the config settings -akl
+logger.logfilepath = "/var/lib/virtfactory/svclog"
 
 from modules import task 
 from modules import authentication
@@ -171,7 +172,7 @@ def database_reset():
      """
      Used for testing.  Not callable from the web service.
      """
-     DATABASE_PATH = "/var/lib/shadowmanager/primary_db"
+     DATABASE_PATH = "/var/lib/virtfactory/primary_db"
      try:
          os.remove(DATABASE_PATH)
      except:

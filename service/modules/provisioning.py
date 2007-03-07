@@ -31,8 +31,9 @@
 
 import cobbler.api
 
-from codes import *
-import config_data
+from server.codes import *
+from server import config_data
+from server import logger
 
 import baseobj
 import config
@@ -41,7 +42,6 @@ import distribution
 import profile
 import machine
 import web_svc
-import logger
 
 import os
 import threading

@@ -29,21 +29,26 @@ import sys
 import glob
 import socket
 
-from codes import *
-import config_data
-import logger
-logger.logfilepath = "/var/lib/shadowmanager/taskatron.log" # FIXME
+import distutils.sysconfig
+sys.path.append("%s/virtfactory" % distutils.sysconfig.get_python_lib())
 
-from modules import task as task_module 
-from modules import authentication
-from modules import config
-from modules import deployment
-from modules import distribution
-from modules import profile
-from modules import machine
-from modules import provisioning
-from modules import registration
-from modules import user
+from server.codes import *
+from server import config_data
+from server import logger
+# FIXME: pull this from the config file -akl
+logger.logfilepath = "/var/lib/virtfactory/taskatron.log" # FIXME
+
+print sys.path
+from server.modules import task as task_module 
+from server.modules import authentication
+from server.modules import config
+from server.modules import deployment
+from server.modules import distribution
+from server.modules import profile
+from server.modules import machine
+from server.modules import provisioning
+from server.modules import registration
+from server.modules import user
 
 from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
@@ -379,11 +384,11 @@ def main(argv):
         print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
-        scheduler.run_forever(socket.get_hostname())
+        scheduler.run_forever(socket.gethostname())
     elif len(sys.argv) == 0:
         print "Running single task in debug mode, since --daemon wasn't specified..."
         scheduler.clean_up_tasks()
-        scheduler.tick(socket.get_hostname(), True)
+        scheduler.tick(socket.gethostname(), True)
     else:
         print "Usage: "
         print "service --test server.fqdn"
