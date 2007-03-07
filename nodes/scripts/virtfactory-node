@@ -1,0 +1,10 @@
+#!/usr/bin/python
+
+# wrapper for the node server code
+
+from virtfactory-nodes import server
+
+
+
+if __name__ == "__main__":
+    server.main(sys.argv)
