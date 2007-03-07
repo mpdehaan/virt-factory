@@ -17,6 +17,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import libvirt
+import glob
 import sys
 import subprocess
 import os
@@ -151,7 +153,7 @@ class Virt(web_svc.WebSvc):
             fd = open(filename)
             xml = fd.read()
             fd.close()
-            connection = libvirt.open()
+            connection = libvirt.open(None)
             try:
                 domain = connection.createLinux(xml, 0)
             except:
@@ -169,8 +171,14 @@ class Virt(web_svc.WebSvc):
 
         # FIXME: use real XML parser in case it's not neatly formatted by koan in the future.
 
-        files = glob.glob("/var/lib/koan/virt/*").extend(glob.glob("/var/koan/virt/*"))
+        files = []
+        files1 = glob.glob("/var/lib/koan/virt/*")
+        files2 = glob.glob("/var/koan/virt/*")
+        files.extend(files1)
+        files.extend(files2)
+
         found = None
+        print files
         for fname in files:
             fd = open(fname)
             xml = fd.read()
@@ -193,7 +201,7 @@ class Virt(web_svc.WebSvc):
         There is other info we care about in domain.info(), but not yet...
         """        
 
-        (conn, domain) = self.connect(self,uuid)
+        (conn, domain) = self.connect(uuid)
         domain_info = domain.info()
         return VIRT_STATE_NAME_MAP[domain_info[0]]
 
@@ -230,7 +238,7 @@ class Virt(web_svc.WebSvc):
         conn = libvirt.open(None)
         domain = None
         try:
-            domain = lookupByUUIDString(uuid)
+            domain = conn.lookupByUUIDString(uuid)
         except libvirt.libvirtError, lve:
             raise VirtException(comment = "Domain (%s) not found: %s" % (uuid, str(lve)))
         return (conn, domain)
@@ -272,5 +280,9 @@ if __name__ == "__main__":
 
     # install a virtual system
     print virt.command_install("Test1",False)
-    
+
+    # start a virtual system
+    # print virt.command_start("00:16:3e:71:64:5a")
+
+
 

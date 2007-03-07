@@ -170,6 +170,13 @@ def main(argv):
     elif rc[0] != 0:
         print "There was an error.  Check the server side logs."
         sys.exit(rc[0])
+ 
+    # it's all good
+    cmdline = " ".join(sys.argv[1:])
+    fd5 = open("/etc/sysconfig/virtfactory/register","w+")
+    fd5.write(cmdline)
+    fd5.close()
+
 
 if __name__ == "__main__":
     main(sys.argv)

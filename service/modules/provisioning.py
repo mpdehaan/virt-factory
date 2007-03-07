@@ -201,7 +201,23 @@ class CobblerTranslatedProfile:
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
        ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
-      
+       ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
+       ks_meta["server_name"] = shadow_config["this_server"]["address"] 
+
+       # Calculate the kickstart tree location from the distro.
+       distribution_name = distrib.data["name"]
+       cobbler_distro = cobbler_api.distros().find(distribution_name)
+       if cobbler_distro is None:
+           assert("no cobbler distro named %s" % distribution_name)
+       kernel_path = cobbler_distro.kernel
+       print kernel_path
+       tree_path = kernel_path.split("/")[0:-2]
+       print tree_path
+       tree_path = "/".join(tree_path)
+       print tree_path
+       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track" % shadow_config["this_server"]["address"])
+       ks_meta["tree"] = tree_url 
+ 
        new_item.set_ksmeta(ks_meta)
       
        cobbler_api.profiles().add(new_item, with_copy=True)
@@ -292,7 +308,6 @@ class CobblerTranslatedSystem:
            # kickstart_metadata = from_db["kickstart_metadata"]
            # load initial kickstart metadata (which is a string) and get back a hash
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
-       ks_meta["tree" ] = "FIXME"
        ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
        ks_meta["server_name"] = shadow_config["this_server"]["address"] 
        ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
