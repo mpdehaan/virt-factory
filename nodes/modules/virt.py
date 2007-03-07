@@ -17,10 +17,15 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+import sys
+import subprocess
+import os
+
+if __name__ == "__main__":
+   sys.path.append("../")
+
 from codes import *
 import web_svc
-import os
-import subprocess
 
 # map of Xen number codes to states that make sense
 VIRT_STATE_NAME_MAP = [
@@ -49,7 +54,7 @@ class Virt(web_svc.WebSvc):
         fd.close()
         self.methods = {
             "virt_install" : self.command_install,
-            "virt_stop"    : self.command_stop,
+            "virt_stop"    : self.command_shutdown,
             "virt_start"   : self.command_start,
             "virt_delete"  : self.command_delete
         }
@@ -260,3 +265,12 @@ class Virt(web_svc.WebSvc):
 
 methods = Virt()
 register_rpc = methods.register_rpc
+
+if __name__ == "__main__":
+    # development testing only
+    virt = Virt()
+
+    # install a virtual system
+    print virt.command_install("Test1",False)
+    
+
