@@ -70,13 +70,13 @@ class Register(object):
             fd1.write(self.token)
             fd1.close()
             fd2 = open("/etc/sysconfig/virtfactory/server","w+")
-            fd2.write(self.hostname)
+            fd2.write(hostname)
             fd2.close()
             fd3 = open("/etc/sysconfig/virtfactory/mac", "w+")
-            fd3.write(self.mac)
+            fd3.write(mac)
             fd3.close()
             fd4 = open("/etc/sysconfig/virtfactory/profile", "w+")
-            fd4.write(self.profile_name)
+            fd4.write(profile_name)
             fd4.close()
         else:
             print "Failed: ", rc
