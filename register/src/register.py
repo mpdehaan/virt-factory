@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-ShadowManager client code.
+Virtfactory client code.
 
 Copyright 2007, Red Hat, Inc
 Adrian Likins <alikins@redhat.com>
