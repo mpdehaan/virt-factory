@@ -20,7 +20,7 @@ from codes import *
 import os
 import yaml
 
-CONFIG_FILE = "/var/lib/shadowclient/settings"
+CONFIG_FILE = "/var/lib/virtfactory/node-settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):

@@ -26,8 +26,8 @@ import os
 if __name__ == "__main__":
    sys.path.append("../")
 
-from codes import *
-import web_svc
+from nodes.codes import *
+from modules import web_svc
 
 # map of Xen number codes to states that make sense
 VIRT_STATE_NAME_MAP = [

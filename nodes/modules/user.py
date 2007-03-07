@@ -16,9 +16,10 @@
 
 
 
-from codes import *
+from nodes.codes import *
 
-import web_svc
+import sys
+from modules import web_svc
 
 import os
 import base64

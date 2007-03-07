@@ -19,7 +19,7 @@ if __name__ == "__main__":
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
         logpath  = "/var/log/%s/" % NAME
-	settingspath = "/var/lib/%s/settings/" % NAME
+	settingspath = "/var/lib/%s/" % NAME
         setup(
                 name="%s/nodes" % NAME,
                 version = VERSION,
@@ -27,11 +27,16 @@ if __name__ == "__main__":
                 author_email = "et-mgmt-tools@redhat.com",
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
-		scripts = ["scripts/virtfactory-node"],
-		package_dir = {"%s/nodes" % NAME: "src", "%s/nodes/modules" % NAME: "modules/"},
-		packages = ["%s/nodes" % NAME, "%s/nodes/modules" % NAME],
-		#scripts = ["%s/%s" % (NAME, NAME)],
-                data_files = [(settingspath, ["settings"])],
+		scripts = ["scripts/vf_node_server"],
+		package_dir = {"%s" % NAME: "",
+			       "%s/nodes" % NAME: "src",
+			       "%s/nodes/modules" % NAME: "modules/",
+			       "%s/nodes/yaml" % NAME: "yaml/"},
+		packages = ["%s" % NAME,
+		            "%s/nodes" % NAME,
+			    "%s/nodes/modules" % NAME,
+			    "%s/nodes/yaml" % NAME],
+                data_files = [(settingspath, ["node-settings"])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )

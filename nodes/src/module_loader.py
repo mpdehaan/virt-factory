@@ -1,13 +1,15 @@
 #!/usr/bin/python
 
 
+import distutils.sysconfig
 import os
 import sys
 import glob
 
 
-module_path="modules/"
+module_path="%s/virtfactory/nodes/" % distutils.sysconfig.get_python_lib()
 sys.path.append(module_path)
+
 
 def load_modules(module_path, blacklist=None):
     filenames = glob.glob("%s/*.py" % module_path)
@@ -16,15 +18,17 @@ def load_modules(module_path, blacklist=None):
 
     mods = {}
 
-#    print "filenames", filenames
     for fn in filenames:
         basename = os.path.basename(fn)
+        if basename == "__init__.py":
+            continue
         if basename[-3:] == ".py":
             modname = basename[:-3]
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
         try:
+            print "%s/%s" % (module_path, modname)
             blip =  __import__("%s/%s" % (module_path, modname))
             if not hasattr(blip, "register_rpc"):
                 print "%s/%s module not a proper module" % (module_path, modname) 
