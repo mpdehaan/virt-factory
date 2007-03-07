@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 """
 Laser Taskatron 3000
 (aka ShadowManager backend task scheduler code)
