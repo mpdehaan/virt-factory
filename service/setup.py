@@ -27,7 +27,6 @@ if __name__ == "__main__":
                 author_email = "et-mgmt-tools@redhat.com",
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
-		#scripts = ["scripts/virtfactory-node"],
 		scripts = ["scripts/vf_server",
 			   "scripts/taskatron",
 			   "scripts/vf_import",

@@ -2,7 +2,7 @@
 
 """
 Laser Taskatron 3000
-(aka ShadowManager backend task scheduler code)
+(aka Virt-factory-a-tron 3000 backend task scheduler code)
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -30,13 +30,13 @@ import glob
 import socket
 
 import distutils.sysconfig
-sys.path.append("%s/virtfactory" % distutils.sysconfig.get_python_lib())
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
 from server.codes import *
 from server import config_data
 from server import logger
 # FIXME: pull this from the config file -akl
-logger.logfilepath = "/var/lib/virtfactory/taskatron.log" # FIXME
+logger.logfilepath = "/var/lib/virt-factory/taskatron.log" # FIXME
 
 print sys.path
 from server.modules import task as task_module 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-# ShadowManager backend code.
+# Virt-factory backend code.
 #
 # Copyright 2006, Red Hat, Inc
 # Michael DeHaan <mdehaan@redhat.com>
@@ -21,7 +21,7 @@ from codes import *
 import os
 import yaml
 
-CONFIG_FILE = "/var/lib/virtfactory/settings"
+CONFIG_FILE = "/var/lib/virt-factory/settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):

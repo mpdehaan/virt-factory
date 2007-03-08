@@ -1,8 +1,8 @@
 ---
 databases:
-    primary: /var/lib/virtfactory/primary_db
+    primary: /var/lib/virt-factory/primary_db
 logs:
-    service: /var/lib/virtfactory/svclog
+    service: /var/lib/virt-factory/svclog
 mirrors:
     FC-6: 'rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD'
 this_server:

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-ShadowManager backend code.
+Virt-factory backend code.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -36,7 +36,7 @@ from codes import *
 import config_data
 import logger
 # FIXME: this should be using the config settings -akl
-logger.logfilepath = "/var/lib/virtfactory/svclog"
+logger.logfilepath = "/var/lib/virt-factory/svclog"
 
 from modules import task 
 from modules import authentication
@@ -172,7 +172,7 @@ def database_reset():
      """
      Used for testing.  Not callable from the web service.
      """
-     DATABASE_PATH = "/var/lib/virtfactory/primary_db"
+     DATABASE_PATH = "/var/lib/virt-factory/primary_db"
      try:
          os.remove(DATABASE_PATH)
      except:
