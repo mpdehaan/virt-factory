@@ -4,6 +4,9 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
+	-rm -rf *.src.rpm
+	-rm -rf *.rpm
+	-rm -rf *.tar.gz
 
 #manpage:
 #	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
