@@ -4,7 +4,7 @@ import sys
 from distutils.core import setup, Extension
 import string
 
-NAME = "virtfactory"
+NAME = "virt-factory"
 VERSION = "0.0.1"
 SHORT_DESC = "%s webservicesserver" % NAME
 LONG_DESC = """
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
         setup(
-                name="%s/server" % NAME,
+                name="%s-server" % NAME,
                 version = VERSION,
                 author = "Michael DeHaan, Adrian Likins, Scott Seago",
                 author_email = "et-mgmt-tools@redhat.com",
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 			    "%s/server/modules" % NAME,
 			    "%s/server/yaml" % NAME],
 		#scripts = ["%s/%s" % (NAME, NAME)],
-                data_files = [(settingspath, ["settings"])],
+                data_files = [(settingspath, ["settings", "kickstart/kick-fc6.ks"])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )
