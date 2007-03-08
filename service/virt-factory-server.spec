@@ -2,7 +2,7 @@
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
 
 Summary: Virt-factory web service server for use with virt-factory
-Name: virt-factory-nodes
+Name: virt-factory-server
 Version: 0.0.1
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
@@ -15,7 +15,7 @@ Url: http://virt-factory.et.redhat.com
 
 %description
 
-Virt-factory-node is a web service server for use with the virt-factory provisioning and management system
+Virt-factory-server is a web service server for use with the virt-factory provisioning and management system
 %prep
 %setup -q
 %build
@@ -26,17 +26,22 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
 
 %files
-%{_bindir}/vf_node_server
+%{_bindir}/vf_server
+%{_bindir}/taskatron
+%{_bindir}/vf_import
+%{_bindir}/vf_get_puppet_node
 %dir /var/lib/virt-factory
-%config(noreplace) /var/lib/virt-factory/node-settings
+%config(noreplace) /var/lib/virt-factory/settings
+# kickstart templaces
+%config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
-%dir %{python_sitelib}/virt-factory/nodes
+%dir %{python_sitelib}/virt-factory/server
 %{python_sitelib}/virt-factory/*.py*
-%{python_sitelib}/virt-factory/nodes/*.py*
-%dir %{python_sitelib}/virt-factory/nodes/modules
-%dir %{python_sitelib}/virt-factory/nodes/modules/*.py*
-%dir %{python_sitelib}/virt-factory/nodes/yaml
-%{python_sitelib}/virt-factory/nodes/yaml/*.py*
+%{python_sitelib}/virt-factory/server/*.py*
+%dir %{python_sitelib}/virt-factory/server/modules
+%dir %{python_sitelib}/virt-factory/server/modules/*.py*
+%dir %{python_sitelib}/virt-factory/server/yaml
+%{python_sitelib}/virt-factory/server/yaml/*.py*
 
 
 
