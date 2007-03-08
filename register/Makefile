@@ -3,7 +3,7 @@ all: rpm
 clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
-	-rm -rf *.src.rpm
+	-rm -rf *~
 	-rm -rf *.rpm
 	-rm -rf *.tar.gz	
 #manpage:
@@ -14,9 +14,14 @@ clean:
 #	python tests/tests.py
 #	-rm -rf /tmp/_cobbler-*
 
+build: clean
+	python setup.py build -f
+
+install: build
+	python setup.py install -f
+
 rpm: 
 	python setup.py sdist
-	mkdir -p rpm-build
 	cp dist/*.gz .
 	rpmbuild --define "_topdir %(pwd)" \
 	--define "_builddir %{_topdir}" \
