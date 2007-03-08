@@ -28,7 +28,7 @@ if __name__ == "__main__":
                 license = "GPL",
 		scripts = ["scripts/vf_node_server"],
 		package_dir = {"%s" % NAME: "",
-			       "%s/nodes" % NAME: "src",
+			       "%s/nodes" % NAME: "nodes",
 			       "%s/nodes/modules" % NAME: "modules/",
 			       "%s/nodes/yaml" % NAME: "yaml/"},
 		packages = ["%s" % NAME,
