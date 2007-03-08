@@ -1,25 +1,28 @@
+all: rpm
 
+clean:
+	-rm -f  MANIFEST
+	-rm -rf dist/ build/
+	-rm -rf *~
 
-FILES           = baseobj codes shadow  
-SUBDIRS		= modules
+#manpage:
+#	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
+#	pod2html cobbler.pod > cobbler.html
 
-PYFILES         = $(addsuffix .py, $(FILES))
-PYCFILES        = $(addsuffix .pyc, $(FILES))
+#test:
+#	python tests/tests.py
+#	-rm -rf /tmp/_cobbler-*
 
-PYCHECKER       = /usr/bin/pychecker
-
-clean::
-	@rm -fv *.pyc *~ .*~ \#*\# 
-#	@find . -name .\#\* -exec rm -fv {} \;
-	@rm -fv *.rpm
-
-pychecker:: 
-	@$(PYCHECKER) $(PYFILES) || exit 0
-
-#eful macro
-descend-subdirs = @$(foreach d,$(SUBDIRS), $(MAKE) -C $(d) $@ || exit 1; )
-
-# Now do the same in the subdirs
-all clean install pychecker :: $(SUBDIRS)
-	$(descend-subdirs)
-
+rpm: 
+	python setup.py sdist
+	mkdir -p rpm-build
+	cp dist/*.gz .
+	rpmbuild --define "_topdir %(pwd)" \
+	--define "_builddir %{_topdir}" \
+	--define "_rpmdir %{_topdir}" \
+	--define "_srcrpmdir %{_topdir}" \
+	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
+	--define "_specdir %{_topdir}" \
+	--define "_sourcedir  %{_topdir}" \
+	-ba virt-factory-nodes.spec
+	
