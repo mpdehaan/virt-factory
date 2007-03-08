@@ -33,7 +33,7 @@ if __name__ == "__main__":
 			   "scripts/vf_import",
 			   "scripts/vf_get_puppet_node"],
 		package_dir = {"%s" % NAME: "",
-			       "%s/server" % NAME: "src",
+			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
 			       "%s/server/yaml" % NAME: "yaml/"},
 		packages = ["%s" % NAME,
