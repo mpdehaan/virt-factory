@@ -26,7 +26,7 @@ if __name__ == "__main__":
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
 		scripts = ["scripts/vf_register"],
-		package_dir = {"%s/register" % NAME: "src"},
+		package_dir = {"%s/register" % NAME: "register"},
 		packages = ["%s/register" % NAME],
 #		data_files = [("%s-register.spec" % NAME)],
                 description = SHORT_DESC,
