@@ -1,4 +1,4 @@
 ---
 logs:
-    service: /var/log/virtfactory/log
+    service: /var/log/virt-factory/log
 

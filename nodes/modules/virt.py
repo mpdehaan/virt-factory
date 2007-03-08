@@ -51,7 +51,7 @@ class Virt(web_svc.WebSvc):
         """
  
         # get the server 
-        fd = open("/etc/sysconfig/virtfactory/server")
+        fd = open("/etc/sysconfig/virt-factory/server")
         self.server_name = fd.read().strip()
         fd.close()
         self.methods = {

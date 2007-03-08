@@ -7,7 +7,7 @@ import sys
 import glob
 
 
-module_path="%s/virtfactory/nodes/" % distutils.sysconfig.get_python_lib()
+module_path="%s/virt-factory/nodes/" % distutils.sysconfig.get_python_lib()
 sys.path.append(module_path)
 
 
