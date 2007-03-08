@@ -15,7 +15,6 @@ clean:
 
 rpm: 
 	python setup.py sdist
-	mkdir -p rpm-build
 	cp dist/*.gz .
 	rpmbuild --define "_topdir %(pwd)" \
 	--define "_builddir %{_topdir}" \
