@@ -35,6 +35,7 @@ class Server(xmlrpclib.ServerProxy):
 
 class Register(object):
     def __init__(self,url):
+        self.server_url = url
         self.server = Server(url)
         self.token = None
 
@@ -70,7 +71,7 @@ class Register(object):
             fd1.write(self.token)
             fd1.close()
             fd2 = open("/etc/sysconfig/virt-factory/server","w+")
-            fd2.write(hostname)
+            fd2.write(self.server_url)
             fd2.close()
             fd3 = open("/etc/sysconfig/virt-factory/mac", "w+")
             fd3.write(mac)
@@ -78,6 +79,14 @@ class Register(object):
             fd4 = open("/etc/sysconfig/virt-factory/profile", "w+")
             fd4.write(profile_name)
             fd4.close()
+            server = string.split(self.server_url, '/')[2]
+            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --onetime"
+            os.system(puppetcmd)
+            rc2 = self.server.sign_node_cert(self.token, hostname)
+            if rc2[0] != 0:
+                print "Failed: ", rc2
+                rc = rc2
+            
         else:
             print "Failed: ", rc
         return rc
