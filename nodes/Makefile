@@ -4,7 +4,6 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
-	-rm -rf *.src.rpm
 	-rm -rf *.rpm
 	-rm -rf *.tar.gz
 
@@ -15,6 +14,12 @@ clean:
 #test:
 #	python tests/tests.py
 #	-rm -rf /tmp/_cobbler-*
+
+build: clean
+	python setup.py build -f
+
+install: build
+	python setup.py install -f
 
 rpm: 
 	python setup.py sdist
