@@ -4,6 +4,9 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
+	-rm -rf *.rpm
+	-rm -rf *.tar.gz
+
 
 #manpage:
 #	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
@@ -12,6 +15,12 @@ clean:
 #test:
 #	python tests/tests.py
 #	-rm -rf /tmp/_cobbler-*
+
+build: clean
+	python setup.py build -f
+
+install: build
+	python setup.py install -f
 
 rpm: 
 	python setup.py sdist
