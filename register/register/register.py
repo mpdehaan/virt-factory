@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Virtfactory client code.
+Virt-factory client code.
 
 Copyright 2007, Red Hat, Inc
 Adrian Likins <alikins@redhat.com>
@@ -66,16 +66,16 @@ class Register(object):
             sys.exit(1)
         if rc[0] == 0:
             print "Registration succeeded."
-            fd1 = open("/etc/sysconfig/virtfactory/token","w+")
+            fd1 = open("/etc/sysconfig/virt-factory/token","w+")
             fd1.write(self.token)
             fd1.close()
-            fd2 = open("/etc/sysconfig/virtfactory/server","w+")
+            fd2 = open("/etc/sysconfig/virt-factory/server","w+")
             fd2.write(hostname)
             fd2.close()
-            fd3 = open("/etc/sysconfig/virtfactory/mac", "w+")
+            fd3 = open("/etc/sysconfig/virt-factory/mac", "w+")
             fd3.write(mac)
             fd3.close()
-            fd4 = open("/etc/sysconfig/virtfactory/profile", "w+")
+            fd4 = open("/etc/sysconfig/virt-factory/profile", "w+")
             fd4.write(profile_name)
             fd4.close()
         else:
@@ -99,8 +99,8 @@ def main(argv):
     # ensure we have somewhere to save parameters to, the node daemon will want
     # to know them later.
 
-    if not os.path.exists("/etc/sysconfig/virtfactory"):
-        os.makedirs("/etc/sysconfig/virtfactory")
+    if not os.path.exists("/etc/sysconfig/virt-factory"):
+        os.makedirs("/etc/sysconfig/virt-factory")
 
     try:
         opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:v", [
@@ -173,7 +173,7 @@ def main(argv):
  
     # it's all good
     cmdline = " ".join(sys.argv[1:])
-    fd5 = open("/etc/sysconfig/virtfactory/register","w+")
+    fd5 = open("/etc/sysconfig/virt-factory/register","w+")
     fd5.write(cmdline)
     fd5.close()
 
