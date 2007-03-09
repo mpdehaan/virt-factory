@@ -1,15 +1,15 @@
 #!/bin/bash
 #
 #
-# virtfactory-wui       startup script for virtfactory-wui
+# virt-factory-wui       startup script for virt-factory-wui
 #
 # chkconfig: - 85 15
-# description: virtfactory-wui is the web front end for virtfactory.
+# description: virt-factory-wui is the web front end for virt-factory.
 #              
 
-VIRTFACTORY_DIR=/usr/share/virtfactory-wui
-MONGREL_LOG=/var/log/virtfactory-wui/mongrel.log
-MONGREL_PID=/var/run/virtfactory-wui/mongrel.pid
+VIRTFACTORY_DIR=/usr/share/virt-factory-wui
+MONGREL_LOG=/var/log/virt-factory-wui/mongrel.log
+MONGREL_PID=/var/run/virt-factory-wui/mongrel.pid
 ADDR=127.0.0.1
 RAILS_ENVIRONMENT=production
 USER=virtfact
@@ -33,7 +33,7 @@ case "$1" in
       RETVAL=$?
   ;;
     *)
-      echo "Usage: virtfactory-wui {start|stop|restart}"
+      echo "Usage: virt-factory-wui {start|stop|restart}"
       exit 1
   ;;
 esac      
