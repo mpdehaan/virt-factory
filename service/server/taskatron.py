@@ -29,26 +29,26 @@ import sys
 import glob
 import socket
 
-import distutils.sysconfig
-sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+# import distutils.sysconfig
+# sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
-from server.codes import *
-from server import config_data
-from server import logger
+from codes import *
+import config_data
+import logger
 # FIXME: pull this from the config file -akl
 logger.logfilepath = "/var/lib/virt-factory/taskatron.log" # FIXME
 
 print sys.path
-from server.modules import task as task_module 
-from server.modules import authentication
-from server.modules import config
-from server.modules import deployment
-from server.modules import distribution
-from server.modules import profile
-from server.modules import machine
-from server.modules import provisioning
-from server.modules import registration
-from server.modules import user
+from modules import task as task_module 
+from modules import authentication
+from modules import config
+from modules import deployment
+from modules import distribution
+from modules import profile
+from modules import machine
+from modules import provisioning
+from modules import registration
+from modules import user
 
 from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
@@ -391,9 +391,9 @@ def main(argv):
         scheduler.tick(socket.gethostname(), True)
     else:
         print "Usage: "
-        print "service --test server.fqdn"
-        print "service --daemon"
-        print "service (just runs through one pass)"
+        print "vf_taskatron --test server.fqdn"
+        print "vf_taskatron --daemon"
+        print "vf_tasktron  (no args) (just runs through one pass)"
 
 if __name__ == "__main__":
     main(sys.argv)

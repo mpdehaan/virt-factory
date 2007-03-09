@@ -27,7 +27,7 @@ if __name__ == "__main__":
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
 		scripts = ["scripts/vf_server",
-			   "scripts/taskatron",
+			   "scripts/vf_taskatron",
 			   "scripts/vf_import",
 			   "scripts/vf_get_puppet_node",
 			   "db/vf_create_db.sh"],
