@@ -6,9 +6,6 @@ ShadowManager backend code.
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 
-Thanks to:
-Peter Vetere <pvetere@redhat.com>
-
 This software may be freely redistributed under the terms of the GNU
 general public license.
 
@@ -17,10 +14,13 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-import libvirt
+# NOTE: this module implements virt support via koan and xm commands.
+# the xm commands /should/ be replaced with libvirt logic, though
+# libvirt inactive domain management is not currently available in RHEL5.
+# if it does become available, switch the xm commands over.
+
 import glob
 import sys
-import subprocess
 import os
 
 if __name__ == "__main__":
@@ -29,16 +29,7 @@ if __name__ == "__main__":
 from codes import *
 import web_svc
 
-# map of Xen number codes to states that make sense
-VIRT_STATE_NAME_MAP = [
-   "running", "running", "running", "paused", "shutdown", "shutoff", "crashed"
-]
-
-# FIXME: this node needs a way to rerun registration to update info.
-# the easiest way to do this seems to be to save servername and other params in /etc/sysconfig
-# during registration
-# and initiate from here via RPC call.  shouldn't be virt specific though!
-
+XM_BIN = "/usr/sbin/xm"
 
 class Virt(web_svc.WebSvc):
     
@@ -55,16 +46,20 @@ class Virt(web_svc.WebSvc):
         self.server_name = fd.read().strip()
         fd.close()
         self.methods = {
-            "virt_install" : self.command_install,
-            "virt_stop"    : self.command_shutdown,
-            "virt_start"   : self.command_start,
-            "virt_delete"  : self.command_delete
+            "virt_install"  : self.install,
+            "virt_shutdown" : self.shutdown,
+            "virt_shutdown" : self.destroy,
+            "virt_create"   : self.create,
+            "virt_pause"    : self.pause,
+            "virt_unpause"  : self.unpause,
+            "virt_undefine" : self.undefine,
+            "virt_shutdown" : self.shutdown
         }
         web_svc.WebSvc.__init__(self)
 
     #=======================================================================
    
-    def command_install(self, target_name, system=True):
+    def install(self, target_name, system=True):
 
         """
         Install a new virt system by way of a named cobbler profile.
@@ -90,185 +85,149 @@ class Virt(web_svc.WebSvc):
 
     #=======================================================================
    
-    def command_shutdown(self, mac_address):
+    def shutdown(self, mac_address):
 
          """
          Make the machine with the given mac_address stop running.
          Whatever that takes.
          """
 
-         (filename, uuid) = self.find_virt(mac_address)
-         state = self.get_state(uuid)
-         if self == "crashed":
-             destroy(uuid)
-         elif state == "paused":
-             self.resume(uuid)
-             self.shutdown(uuid)
-         else:
-             self.call(uuid, "shutdown")
-    
+         self.__xm_command("shutdown", mac_address, [ "r", "p", "b", "-----" ])
+
     #=======================================================================
    
-    def command_suspend(self, mac_address):
+    def pause(self, mac_address):
 
         """
         Pause the machine with the given mac_address.
         """
 
-        (filename, uuid) = self.find_virt(mac_address)
-        state = self.get_state(uuid)
-        if state == "running":
-            self.call(uuid, "suspend")
-        else:
-            raise VirtException(comment="can't suspend what isn't running")
+        return self.__xm_command("pause", mac_address, [ "r", "b", "-----" ])
+
 
     #=======================================================================
    
-    def command_resume(self, mac_address):
+    def unpause(self, mac_address):
 
         """
         Unpause the machine with the given mac_address.
         """
 
-        (filename, uuid) = self.find_virt(mac_address)
-        state = self.get_state(uuid)
-        if state == "paused":
-            return self.call(uuid, "suspend")
-        else:
-            raise VirtException(comment="can't resume what isn't paused")
+        return self.__xm_command("unpause", mac_address, [ "p" ])
 
     #=======================================================================
 
-    def command_start(self, mac_address):
+    def create(self, mac_address):
 
         """
-        Start the machine via the given mac address, whether that means, 
+        Start the machine via the given mac address. 
         """
-
-        (filename, uuid) = self.find_virt(mac_address)
-        state = self.get_state(uuid)
-        if state == "paused":
-            self.call(uuid, "resume")
-        elif state == "shutoff" or state == "shutdown" or state == "crashed":
-            fd = open(filename)
-            xml = fd.read()
-            fd.close()
-            connection = libvirt.open(None)
-            try:
-                domain = connection.createLinux(xml, 0)
-            except:
-                raise VirtException(comment="failed to create %s" % uuid)     
-            return success(0)   
-
-    #=======================================================================
-
-    def find_virt(self, mac):
-
-        """
-        For a given mac address, if possible, return a tuple containing it's uuid and the XML filename
-        that describes it.
-        """
-
-        # FIXME: use real XML parser in case it's not neatly formatted by koan in the future.
-
-        files = []
-        files1 = glob.glob("/var/lib/koan/virt/*")
-        files2 = glob.glob("/var/koan/virt/*")
-        files.extend(files1)
-        files.extend(files2)
-
-        found = None
-        print files
-        for fname in files:
-            fd = open(fname)
-            xml = fd.read()
-            if xml.find(mac) != -1:
-                lines = xml.split("\n")
-                for line in lines:
-                    if line.find("<uuid>") != -1:
-                        uuid = line.replace("<uuid>","").replace("</uuid>","").strip()
-                        fd.close()
-                        return (fname, uuid)
-            fd.close()
-        raise VirtException(comment="no system with mac=%s" % mac)
   
-    #=======================================================================
+        return self.__xm_command("create", mac_address, None)
+   
+    # ======================================================================
 
-    def get_state(self,uuid):
+    def destroy(self, mac_address):
 
         """
-        Return the Xen state code, mapped into a state we understand.
-        There is other info we care about in domain.info(), but not yet...
-        """        
+        Pull the virtual power from the virtual domain, giving it virtually no
+        time to virtually shut down.
+        """
 
-        (conn, domain) = self.connect(uuid)
-        domain_info = domain.info()
-        return VIRT_STATE_NAME_MAP[domain_info[0]]
+        return self.__xm_command("destroy", mac_address, [ "p", "b", "-----", "r" ])
+
 
     #=======================================================================
 
-    def command_delete(self, mac_address):
+    def undefine(self, mac_address):
         
         """
-        Stop a domain, and then wipe it from the face of the earth
+        Stop a domain, and then wipe it from the face of the earth.
         by deleting the disk image and it's configuration file.
         """
 
-        (filename, uuid) = self.find_virt(mac_address)
-        state = self.get_state(uuid)
-        basename = os.path.basename(filename)
-        if (state == "running" or state == "crashed" or state == "paused"): 
-             self.command_shutdown(mac_address)
-        try: 
-             os.unlink("/var/lib/xen/images/%s.disk" % basename)
-        except Exception, e:
-             raise VirtException(comment="failure during delete of (%s): %s" % (mac_address, str(e)))
-        return success()    
-    
+        return self.__xm_command("undefine", mac_address, [ "off" ] )
 
     #=======================================================================
 
-    def connect(self,uuid):
+    def __get_xm_state(self, mac_address):
 
         """
-        Establish a libvirt connection with the given UUID'd system and return (conn, domain)
-        objects as a tuple.
-        """
 
-        conn = libvirt.open(None)
-        domain = None
-        try:
-            domain = conn.lookupByUUIDString(uuid)
-        except libvirt.libvirtError, lve:
-            raise VirtException(comment = "Domain (%s) not found: %s" % (uuid, str(lve)))
-        return (conn, domain)
+        Run xm to get the state portion out of the output.
+        This will be a width 5 string that may contain:
+        
+           p       -- paused
+           r       -- running
+           b       -- blocked  (basically running though)
+           "-----" -- no state (basically running though)
+        
+        if not found at all, the domain doesn't at all exist, or it's off.
+        since we'll know if virtfactory deleted it, assume off.  if needed,
+        we can later comb the Xen directories to see if a file is still around.
+
+        """  
+
+        cmd_mac = mac_address.replace(":","_").lower()
+        output = self.__run_xm("list", None, True)
+        lines = output.split("\n")
+        if len(lines) == 1:
+            print "state --> off"
+            return "off"
+        for line in lines[1:]:
+            try:
+                (name, id, mem, cpus, state, time) = line.split(None)
+                if name == cmd_mac:
+                    print "state --> %s" % state
+                    return state       
+            except:
+                pass
+        print "state --> off"      
+        return "off"
 
     #=======================================================================
 
-    def call(uuid, routine_name, *args):
- 
+    def __xm_command(self, command, mac_address, valid_states):
+        
         """
-        Helper function used to send most commands to libvirt.
+        Execute an xm command for a mac_address only if the xm state is one of valid_states.
+        Otherwise, it's an error.
         """
 
-        (conn, domain) = self.connect(uuid)
+        current_state = self.__get_xm_state(mac_address)
+        if valid_states is not None:
+            print "valid states:", valid_states
+            for state in valid_states:
+                if current_state.find(state) != -1:
+                    return self.__run_xm(command, mac_address, False)
+            comment = "invalid state %s for %s on %s" % (current_state, command, mac_address)
+            print comment
+            raise VirtException(comment=comment)
+        else:
+            return self.__run_xm(command, mac_address, False)
 
-        # Get a reference to the domain's control routine.
-        ctrl_func = None
-        try:
-            ctrl_func = getattr(domain, routine_name)
-        except AttributeError:
-            raise VirtualizationException, "Unknown function: %s" % routine_name
+    #=======================================================================
 
-        result = 0
-        try:
-            result = apply(ctrl_func, args)
-        except TypeError, te:
-            raise VirtException(comment="invalid arguments (%s) to (%s): %s" % (str(args), routine_name, str(te)))
+    def __run_xm(self, command, mac_address, string_out):
 
-        if result != 0:
-            raise VirtException(comment="op failed: (%s) on (%s): %s" % (routine_name, uuid, str(result)))
-        return result
+         """
+         Run a xm command named "command" against a domain named after a mac_address
+         (only with :'s converted to _ and lowercased), returning either an integer
+         or a string based on the boolean value of string_out.
+         """       
+
+         if mac_address is not None:
+             cmd_mac = mac_address.replace(":","_").lower()
+             xm_command = "%s %s %s" % (XM_BIN, command, cmd_mac)
+         else:
+             xm_command = "%s %s" % (XM_BIN, command)
+         print xm_command
+         if string_out:
+             (cin, couterr) = os.popen4(xm_command)
+             output = couterr.read()
+             return output
+         else:
+             return os.system(xm_command)
 
 
 methods = Virt()
@@ -279,10 +238,20 @@ if __name__ == "__main__":
     virt = Virt()
 
     # install a virtual system
-    print virt.command_install("Test1",False)
+    # print virt.install("Test1",False)
 
     # start a virtual system
-    # print virt.command_start("00:16:3e:71:64:5a")
+    TEST = "00:16:3E:53:83:0B"
+    
+    virt.create(TEST)
+    virt.shutdown(TEST)
+    virt.create(TEST)
+    virt.pause(TEST)
+    virt.unpause(TEST)
+    virt.shutdown(TEST)
+    virt.create(TEST)
+    virt.destroy(TEST)
+
 
 
 
