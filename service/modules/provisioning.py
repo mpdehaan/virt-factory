@@ -211,11 +211,11 @@ class CobblerTranslatedProfile:
            assert("no cobbler distro named %s" % distribution_name)
        kernel_path = cobbler_distro.kernel
        print kernel_path
-       tree_path = kernel_path.split("/")[0:-2]
+       tree_path = kernel_path.split("/")[0:-3]
        print tree_path
        tree_path = "/".join(tree_path)
        print tree_path
-       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track" % shadow_config["this_server"]["address"])
+       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track/ks_mirror" % shadow_config["this_server"]["address"])
        ks_meta["tree"] = tree_url 
  
        new_item.set_ksmeta(ks_meta)
