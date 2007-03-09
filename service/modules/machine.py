@@ -1,5 +1,5 @@
 """
-ShadowManager backend code.
+Virt-factory backend code.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>

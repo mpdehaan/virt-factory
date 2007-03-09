@@ -1,5 +1,6 @@
+#!/usr/bin/python
 """
-ShadowManager backend code.
+Virt-factory backend code.
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>

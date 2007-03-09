@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 # Virt-factory backend code.
 #
 # Copyright 2006, Red Hat, Inc
