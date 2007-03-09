@@ -43,6 +43,7 @@ if __name__ == "__main__":
 			    "%s/server/yaml" % NAME],
 		#scripts = ["%s/%s" % (NAME, NAME)],
                 data_files = [(settingspath, ["settings", "kickstart/kick-fc6.ks"]),
+			      (initpath, ["init-scripts/vf_server"]),
 			      (schemapath, ["db/schema/schema.sql", 
 					    "db/schema/populate.sql"])],
                 description = SHORT_DESC,

@@ -2,3 +2,4 @@ include settings
 recursive-include kickstart * 
 recursive-include docs *
 recursive-include db *
+recursive-include init-scripts *

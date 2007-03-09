@@ -31,6 +31,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_import
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db.sh
+/etc/init.d/vf_server
 %dir /var/lib/virt-factory
 %config(noreplace) /var/lib/virt-factory/settings
 # kickstart templaces
@@ -52,6 +53,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 * Fri Mar 09 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-2
 - add schema to /usr/share/virt-factory
 - add vf_create_db.sh to create db
+- add vf_server init script
 
 * Thu Mar 08 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-1
 - initial release
