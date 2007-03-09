@@ -20,6 +20,7 @@ if __name__ == "__main__":
         initpath = "/etc/init.d/"
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
+	schemapath = "/usr/share/%s/db_schema/" % NAME
         setup(
                 name="%s-server" % NAME,
                 version = VERSION,
@@ -30,7 +31,8 @@ if __name__ == "__main__":
 		scripts = ["scripts/vf_server",
 			   "scripts/taskatron",
 			   "scripts/vf_import",
-			   "scripts/vf_get_puppet_node"],
+			   "scripts/vf_get_puppet_node",
+			   "db/vf_create_db.sh"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
@@ -40,7 +42,9 @@ if __name__ == "__main__":
 			    "%s/server/modules" % NAME,
 			    "%s/server/yaml" % NAME],
 		#scripts = ["%s/%s" % (NAME, NAME)],
-                data_files = [(settingspath, ["settings", "kickstart/kick-fc6.ks"])],
+                data_files = [(settingspath, ["settings", "kickstart/kick-fc6.ks"]),
+			      (schemapath, ["db/schema/schema.sql", 
+					    "db/schema/populate.sql"])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )
