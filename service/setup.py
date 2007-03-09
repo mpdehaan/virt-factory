@@ -12,9 +12,7 @@ A small pluggabe xml-rpc daemon used by %s to implement various web services hoo
 """ % NAME
 
 if __name__ == "__main__":
-        # docspath="share/doc/koan-%s/" % VERSION
         manpath  = "share/man/man1/"
-#        cobpath  = "/var/lib/cobbler/"
         etcpath  = "/etc/%s" % NAME
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
@@ -41,9 +39,9 @@ if __name__ == "__main__":
 			    "%s/server" % NAME,
 			    "%s/server/modules" % NAME,
 			    "%s/server/yaml" % NAME],
-		#scripts = ["%s/%s" % (NAME, NAME)],
-                data_files = [(settingspath, ["settings", "kickstart/kick-fc6.ks"]),
+                data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/vf_server"]),
+			      (etcpath, ["settings"]),
 			      (schemapath, ["db/schema/schema.sql", 
 					    "db/schema/populate.sql"])],
                 description = SHORT_DESC,

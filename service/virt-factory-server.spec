@@ -33,7 +33,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_create_db.sh
 /etc/init.d/vf_server
 %dir /var/lib/virt-factory
-%config(noreplace) /var/lib/virt-factory/settings
+%config(noreplace) /etc/virt-factory/settings
 # kickstart templaces
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
