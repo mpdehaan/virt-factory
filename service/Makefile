@@ -4,8 +4,7 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
-	-rm -rf *.rpm
-	-rm -rf *.tar.gz
+	-rm -rf rpm-build/
 
 
 #manpage:
@@ -22,10 +21,18 @@ build: clean
 install: build
 	python setup.py install -f
 
-rpm: 
+sdist: clean
 	python setup.py sdist
-	cp dist/*.gz .
-	rpmbuild --define "_topdir %(pwd)" \
+
+# this is just for testing purposes, dont use this
+nukedb:
+	-rm -rf /var/lib/virt-factory/primary_db 
+	
+
+rpm: sdist 
+	mkdir -p rpm-build
+	cp dist/*.gz rpm-build/
+	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
 	--define "_srcrpmdir %{_topdir}" \

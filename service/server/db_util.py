@@ -25,7 +25,6 @@ from pysqlite2 import dbapi2 as sqlite
 import logger
 import os
 import string
-import baseobj
 
 class DbUtil(object):
     def __init__(self):
