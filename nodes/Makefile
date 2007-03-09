@@ -4,9 +4,7 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
-	-rm -rf *.rpm
-	-rm -rf *.tar.gz
-
+	-rm -rf rpm-build
 #manpage:
 #	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
 #	pod2html cobbler.pod > cobbler.html
@@ -23,8 +21,9 @@ install: build
 
 rpm: 
 	python setup.py sdist
-	cp dist/*.gz .
-	rpmbuild --define "_topdir %(pwd)" \
+	mkdir -p rpm-build
+	cp dist/*.gz rpm-build/
+	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \
 	--define "_srcrpmdir %{_topdir}" \

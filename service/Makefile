@@ -4,8 +4,6 @@ clean:
 	-rm -f  MANIFEST
 	-rm -rf dist/ build/
 	-rm -rf *~
-	-rm -rf *.rpm
-	-rm -rf *.tar.gz
 	-rm -rf rpm-build/
 
 
