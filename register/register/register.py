@@ -17,6 +17,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import machine_info
 
+import string
 import getopt
 import sys
 import xmlrpclib
