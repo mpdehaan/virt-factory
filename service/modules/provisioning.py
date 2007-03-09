@@ -189,7 +189,8 @@ class CobblerTranslatedProfile:
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
 
         
-       ks_meta["node_common_packages"] = "koan puppet sm-node-daemon" # FIXME: requires RPM to create repo
+       # user will have to create vf_repo manually ATM
+       ks_meta["node_common_packages"] = "koan puppet virt-factory-nodes virt-factory-register" 
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
@@ -200,7 +201,7 @@ class CobblerTranslatedProfile:
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
-       ks_meta["repo_line"]  = "repo --name=shadowmanager --baseurl http://%s/sm_repo" % shadow_config["this_server"]["address"]
+       ks_meta["repo_line"]  = "repo --name=vf_repo --baseurl http://%s/vf_repo" % shadow_config["this_server"]["address"]
        ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
        ks_meta["server_name"] = shadow_config["this_server"]["address"] 
 
