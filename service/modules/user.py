@@ -17,8 +17,8 @@
 
 
 from server.codes import *
-from server import baseobj
 
+import baseobj
 import web_svc
 
 import os

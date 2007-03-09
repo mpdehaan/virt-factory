@@ -15,8 +15,8 @@
 ##
 
 from server.codes import *
-from server import baseobj
 
+import baseobj
 import provisioning
 import cobbler
 import web_svc
