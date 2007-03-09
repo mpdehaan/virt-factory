@@ -35,20 +35,24 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+
 from optparse import OptionParser
 import re
 import string
 import sys
+import distutils.sysconfig
 import tarfile
 import traceback
 import types
 from xml.dom.minidom import parse, parseString
 
-import codes
-import logger
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+
+from server.codes import *
+from server import logger
 logger.logfilepath = "/var/lib/shadowmanager/sm_import.log"
-from modules import distribution
-from modules import profile
+from server.modules import distribution
+from server.modules import profile
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
 PUPPET_FILE_DIR="/var/lib/shadowmanager/profiles"
@@ -157,7 +161,7 @@ class ShadowImporter:
            print "distro result = ", distribution_result.error_code
            if (distribution_result.error_code != 0):
                print distribution_result
-               raise codes.InvalidArgumentsException(comment="bad distribution name")
+               raise InvalidArgumentsException(comment="bad distribution name")
            profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
        profile_obj = profile.Profile()
        try:

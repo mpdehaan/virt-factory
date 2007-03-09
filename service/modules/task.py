@@ -1,5 +1,6 @@
+#!/usr/bin/python
 """
-ShadowManager backend code for task (background ops) framework.
+Virt-factory backend code for task (background ops) framework.
 
 Copyright 2007, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
