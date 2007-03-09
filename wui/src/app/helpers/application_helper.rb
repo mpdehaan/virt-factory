@@ -38,7 +38,7 @@ module ApplicationHelper
        </li>
        <li><strong>Users</strong>
            <ul>
-           <li><A HREF="#{app_root}/user/list">View ShadowManager Users</A></li>
+           <li><A HREF="#{app_root}/user/list">View virt-factory Users</A></li>
            <li><A HREF="#{app_root}/user/edit">Add a User</A></li>
            <li><A HREF="#{app_root}/user/logout">Logout</A></li>
            </ul>

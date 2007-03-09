@@ -26,7 +26,7 @@ class LoginController < ApplicationControllerUnlocked
       begin 
           (rc, results) = @@server.call("user_login",f_username,f_password)
       rescue Errno::ECONNREFUSED
-          @flash[:notice] = "Could not connect to ShadowManager server."
+          @flash[:notice] = "Could not connect to virt-factory server."
           redirect_to :action => "input"
           return
       end
@@ -44,7 +44,7 @@ class LoginController < ApplicationControllerUnlocked
           @session[:login] = results["data"]
           # go to the user/list page on default login.  
           # FIXME:  this isn't a super-compelling page to go to, we eventually would want
-          # something more "dashboard" like, or at least "Welcome to Shadowmanager" like.
+          # something more "dashboard" like, or at least "Welcome to virt-factory" like.
           redirect_to :controller => 'user', :action => 'list'
           return
       end
