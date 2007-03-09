@@ -145,6 +145,7 @@ class CobblerTranslatedDistribution:
 
 class CobblerTranslatedProfile:
    def __init__(self,cobbler_api,distributions,from_db):
+
        if from_db.has_key("id") and from_db["id"] < 0:
            return
        
@@ -244,12 +245,15 @@ class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
        
        if from_db.has_key("id") and from_db["id"] < 0:
+           print "my ID is less than 0"
            return
 
        self.logger = logger.Logger().logger
 
        self.logger.debug("from_db is ...")
        self.logger.debug(from_db)
+       print "***************"
+       print from_db
        if not from_db.has_key("mac_address") or from_db["mac_address"] is None:
            # ok to have a record of it, just not in cobbler ...
            self.logger.debug("this system has no mac, no not cobblerfying")
@@ -264,7 +268,7 @@ class CobblerTranslatedSystem:
        if from_db.has_key("id") and from_db["id"] < 0:
            self.logger.debug("not cobblerfying because db id < 0")
            # remove if already there
-           cobbler_remove_system(cobbler_api, from_db)
+           # cobbler_remove_system(cobbler_api, from_db)
            return
 
        if not from_db.has_key("profile_id"):
@@ -283,13 +287,15 @@ class CobblerTranslatedSystem:
        # FIXME: inefficient, again, write some query stuff here.
        # cobbler is going to need the name of the profile.
        profile_name = None
+       print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
        for i in profiles:
            if i["id"] == profile_id:
                profile_name = i["name"] 
                break
 
        if profile_name == None:
-           assert "no profile name found"
+           print "name not found"
+           return # can't deploy this
 
        new_item = cobbler_api.new_system()
        new_item.set_name(from_db["mac_address"])

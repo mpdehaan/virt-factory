@@ -196,9 +196,12 @@ class Deployment(web_svc.AuthWebSvc):
          deployment_dep_args["netboot_enabled"] = 0 # never PXE's
          deployment_dep_args["registration_token"] = regtoken.RegToken().generate(token)
 
+         # cobbler sync must run with a filled in item in the database, so we must commit
+         # prior to running cobbler sync
          u = DeploymentData.produce(deployment_dep_args,OP_ADD)
-         self.cobbler_sync(u.to_datastruct())
          results = self.db.simple_add(u.to_datastruct())
+         sync_args = self.get(token, { "id" : results.data }).data
+         self.cobbler_sync(sync_args)
 
          task_obj = task.Task()
          task_obj.add(token, {
