@@ -24,6 +24,11 @@ install: build
 sdist: clean
 	python setup.py sdist
 
+# this is just for testing purposes, dont use this
+nukedb:
+	-rm -rf /var/lib/virt-factory/primary_db 
+	
+
 rpm: sdist 
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
