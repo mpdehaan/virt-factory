@@ -36,7 +36,7 @@ if __name__ == "__main__":
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
-			       "%s/server/yaml" % NAME: "yaml/"},
+			       "%s/server/yaml" % NAME: "server/yaml/"},
 		packages = ["%s" % NAME,
 			    "%s/server" % NAME,
 			    "%s/server/modules" % NAME,
