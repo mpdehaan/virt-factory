@@ -21,7 +21,7 @@ from codes import *
 import os
 import yaml
 
-CONFIG_FILE = "/var/lib/virt-factory/settings"
+CONFIG_FILE = "/etc/virt-factory/settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
