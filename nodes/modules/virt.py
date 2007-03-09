@@ -26,8 +26,8 @@ import os
 if __name__ == "__main__":
    sys.path.append("../")
 
-from codes import *
-import web_svc
+from nodes.codes import *
+from modules import web_svc
 
 XM_BIN = "/usr/sbin/xm"
 
@@ -42,7 +42,7 @@ class Virt(web_svc.WebSvc):
         """
  
         # get the server 
-        fd = open("/etc/sysconfig/virtfactory/server")
+        fd = open("/etc/sysconfig/virt-factory/server")
         self.server_name = fd.read().strip()
         fd.close()
         self.methods = {

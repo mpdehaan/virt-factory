@@ -5,9 +5,7 @@ clean:
 	-rm -rf dist/ build/
 	-rm -rf *~
 	-rm -rf *.rpm
-	-rm -rf *.tar.gz
-
-
+	-rm -rf *.tar.gz	
 #manpage:
 #	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
 #	pod2html cobbler.pod > cobbler.html
@@ -32,5 +30,5 @@ rpm:
 	--define '_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm' \
 	--define "_specdir %{_topdir}" \
 	--define "_sourcedir  %{_topdir}" \
-	-ba virt-factory-server.spec
+	-ba virt-factory-register.spec
 	

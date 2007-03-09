@@ -1,5 +1,5 @@
 # the registration token controller is responsible for creating, listing, and removing registration
-# tokens that are used to enslave, I mean, register systems to shadowmanager.
+# tokens that are used to enslave, I mean, register systems to virt-factory.
 
 class RegtokenController < AbstractObjectController
 

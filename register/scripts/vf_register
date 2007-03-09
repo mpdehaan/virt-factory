@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+import sys
+import distutils.sysconfig
+
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+
+from register import register
+
+
+if __name__ == "__main__":
+    register.main(sys.argv)

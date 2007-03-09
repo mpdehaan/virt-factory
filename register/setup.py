@@ -6,13 +6,12 @@ import string
 
 NAME = "virt-factory"
 VERSION = "0.0.1"
-SHORT_DESC = "%s client server" % NAME
+SHORT_DESC = "%s registration client" % NAME
 LONG_DESC = """
-A small pluggabe xml-rpc used by %s to communicate to individual machines
+A utility to register machines to the %s server
 """ % NAME
 
 if __name__ == "__main__":
-        # docspath="share/doc/koan-%s/" % VERSION
         manpath  = "share/man/man1/"
         etcpath  = "/etc/%s" % NAME
         wwwpath  = "/var/www/%s" % NAME
@@ -20,22 +19,16 @@ if __name__ == "__main__":
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
         setup(
-                name="%s-nodes" % NAME,
+                name="%s-register" % NAME,
                 version = VERSION,
                 author = "Michael DeHaan, Adrian Likins, Scott Seago",
                 author_email = "et-mgmt-tools@redhat.com",
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
-		scripts = ["scripts/vf_node_server"],
-		package_dir = {"%s" % NAME: "",
-			       "%s/nodes" % NAME: "nodes",
-			       "%s/nodes/modules" % NAME: "modules/",
-			       "%s/nodes/yaml" % NAME: "yaml/"},
-		packages = ["%s" % NAME,
-		            "%s/nodes" % NAME,
-			    "%s/nodes/modules" % NAME,
-			    "%s/nodes/yaml" % NAME],
-                data_files = [(settingspath, ["node-settings"])],
+		scripts = ["scripts/vf_register"],
+		package_dir = {"%s/register" % NAME: "register"},
+		packages = ["%s/register" % NAME],
+#		data_files = [("%s-register.spec" % NAME)],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )

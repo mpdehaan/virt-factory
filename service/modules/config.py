@@ -1,5 +1,5 @@
 """
-ShadowManager backend code.
+Virt-factory backend code.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -17,14 +17,13 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 # file, and _potentially_ used by a CLI for initial setup/install...
 
 import os
-import yaml
+from server import yaml
+from server.codes import *
 
-from codes import *
-import config_data
-
+from server import config_data
 import web_svc
 
-CONFIG_FILE = "/var/lib/shadowmanager/settings"
+CONFIG_FILE = "/var/lib/virt-factory/settings"
 
 # note: if the user rsync's too close the arch info won't be in the path,
 # and this means we can't fill in the arch.  so the defaults probably
@@ -36,10 +35,10 @@ defaults = {
        "address" : "127.0.0.1"
     }, 
     "databases" : {
-       "primary" : "/var/lib/shadowmanager/primary_db"
+       "primary" : "/var/lib/virt-factory/primary_db"
     },
     "logs" : {
-       "service" : "/var/lib/shadowmanager/svclog"
+       "service" : "/var/lib/virt-factory/svclog"
     },
     "mirrors" : {
        "FC-6"   : "rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD"

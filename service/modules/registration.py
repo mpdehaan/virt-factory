@@ -13,8 +13,8 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-from codes import *
-import baseobj
+from server.codes import *
+from server import baseobj
 
 import authentication
 import config

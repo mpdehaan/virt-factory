@@ -15,8 +15,8 @@
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-from codes import *
-import baseobj
+from server.codes import *
+from server import baseobj
 
 import profile
 import machine

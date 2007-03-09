@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-# ShadowManager backend code.
+# Virt-factory backend code.
 #
 # Copyright 2006, Red Hat, Inc
 # Michael DeHaan <mdehaan@redhat.com>
@@ -15,12 +15,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
 from codes import *
 
 import os
 import yaml
 
-CONFIG_FILE = "/var/lib/shadowclient/settings"
+CONFIG_FILE = "/var/lib/virt-factory/settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
@@ -43,4 +44,5 @@ class Config(Singleton):
 
     def get(self):
         return self.ds
+
 

@@ -13,10 +13,10 @@
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ##
 
-from codes import *
+from nodes.codes import *
 
-import config_data
-import logger
+from nodes import config_data
+from nodes import logger
 
 
 import os

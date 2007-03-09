@@ -13,12 +13,12 @@
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 ##
 
-from codes import *
+from server.codes import *
 
 import baseobj
-import config_data
-import db_util
-import logger
+from server import config_data
+from server import db_util
+from server import logger
 
 from pysqlite2 import dbapi2 as sqlite
 

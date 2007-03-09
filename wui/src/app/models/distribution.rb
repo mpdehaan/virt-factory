@@ -1,4 +1,4 @@
-# a distribution is imported via "shadow import" and is not tweaked through the GUI, but is possibly viewable.
+# a distribution is imported via "service.py import" and is not tweaked through the GUI, but is possibly viewable.
 
 class Distribution < ManagedObject
 

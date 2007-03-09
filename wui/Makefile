@@ -1,4 +1,4 @@
-SPEC_FILE	= virtfactory-wui.spec
+SPEC_FILE	= virt-factory-wui.spec
 NAME		= $(shell rpm -q --specfile $(SPEC_FILE) --qf "%{name}\n" | head -1 )
 VERSION		= $(shell rpm -q --specfile $(SPEC_FILE) --qf "%{version}\n" | head -1)
 NV		= $(NAME)-$(VERSION)
@@ -15,8 +15,8 @@ DATADIR		= $(shell rpm --eval "%{_datadir}")
 all: rpm
 
 clean:
-	-rm -f virtfactory*.gz virtfactory*.rpm MANIFEST
-	-rm -rf virtfactory-wui-* dist build
+	-rm -f virt-factory*.gz virt-factory*.rpm MANIFEST
+	-rm -rf virt-factory-wui-* dist build
 
 tar:    clean
 	install -d $(NV)

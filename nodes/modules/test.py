@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 
-from codes import *
-import web_svc
+from nodes.codes import *
+from modules import web_svc
 
 
 

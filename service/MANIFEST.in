@@ -1,0 +1,3 @@
+include settings
+recursive-include kickstart * 
+recursive-include docs *

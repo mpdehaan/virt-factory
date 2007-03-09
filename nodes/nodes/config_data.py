@@ -15,13 +15,12 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 from codes import *
 
 import os
 import yaml
 
-CONFIG_FILE = "/var/lib/shadowmanager/settings"
+CONFIG_FILE = "/var/lib/virt-factory/node-settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
@@ -44,5 +43,4 @@ class Config(Singleton):
 
     def get(self):
         return self.ds
-
 

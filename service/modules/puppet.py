@@ -13,6 +13,8 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
+from server.codes import *
+
 from datetime import *
 import os
 import string
@@ -20,7 +22,6 @@ import time
 import machine
 import deployment
 
-from codes import *
 import web_svc
 
 PUPPETCA = "/usr/sbin/puppetca"

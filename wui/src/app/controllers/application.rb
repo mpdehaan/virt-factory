@@ -15,13 +15,13 @@ require "util/code-lookup"
 require "xmlrpc/client"
 @@server = XMLRPC::Client.new("127.0.0.1","/",5150)
 
-# the ShadowManager WUI automatically converts return codes that represent failure into Ruby exception
+# the virt-factory WUI automatically converts return codes that represent failure into Ruby exception
 # objects -- XMLRPCClientExceptions.  These exceptions split out meaningful data out of the return and
 # know how to explain themselves, on screen in the html page, to the user.
 
 class XMLRPCClientException < Exception
 
-    # the return code format for all ShadowManager methods is of the form (integer, hash) where
+    # the return code format for all virt-factory methods is of the form (integer, hash) where
     # hash can contain one or more of the following fields.  All fields are allowed to be missing.
     # the first integer is a return code, 0=success, other codes indicate failure.
     #
@@ -110,7 +110,7 @@ end
 class ApplicationController < ActionController::Base
 
     before_filter :login_required
-    layout "shadowmanager-layout"
+    layout "virt-factory-layout"
 
     def login_required
         unless @session[:login]
@@ -141,7 +141,7 @@ end
 
 # FIXME do something with the return data upon error (could be an error message or traceback
 class ApplicationControllerUnlocked < ActionController::Base
-    layout "shadowmanager-layout"
+    layout "virt-factory-layout"
 
 end
 

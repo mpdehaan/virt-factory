@@ -16,7 +16,7 @@
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-from codes import *
+from server.codes import *
 import web_svc
 
 import base64
