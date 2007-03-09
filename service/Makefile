@@ -21,8 +21,10 @@ build: clean
 install: build
 	python setup.py install -f
 
-rpm: 
+sdist: clean
 	python setup.py sdist
+
+rpm: sdist 
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
