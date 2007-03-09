@@ -110,7 +110,7 @@ end
 class ApplicationController < ActionController::Base
 
     before_filter :login_required
-    layout "shadowmanager-layout"
+    layout "virt-factory-layout"
 
     def login_required
         unless @session[:login]
@@ -141,7 +141,7 @@ end
 
 # FIXME do something with the return data upon error (could be an error message or traceback
 class ApplicationControllerUnlocked < ActionController::Base
-    layout "shadowmanager-layout"
+    layout "virt-factory-layout"
 
 end
 

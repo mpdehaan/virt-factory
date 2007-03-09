@@ -37,7 +37,7 @@ BOOLEAN_INT_SELECT = {
 
 ERRORS = { 
     ERR_INTERNAL_ERROR => "Internal Error",
-    ERR_MISCONFIGURED => "The shadow XMLRPC interface is not set up yet. Please consult the installation instructions",
+    ERR_MISCONFIGURED => "The virt-factory XMLRPC interface is not set up yet. Please consult the installation instructions",
     ERR_INVALID_ARGUMENTS => "Invalid Arguments",
     ERR_NO_SUCH_OBJECT => "No Such Object",
     ERR_ORPHANED_OBJECT => "Orphaned Object",
