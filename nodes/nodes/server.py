@@ -117,7 +117,7 @@ def serve(websvc,hostname):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-
+     print "I think my hostname is: %s" % hostname
      ctx = initContext(hostname)
      server = ShadowSSLXMLRPCServer(ctx, (hostname, 2112))
      server.register_instance(websvc)

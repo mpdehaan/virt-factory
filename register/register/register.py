@@ -17,7 +17,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import machine_info
 
-import string
 import getopt
 import sys
 import xmlrpclib
@@ -165,7 +164,8 @@ def main(argv):
         reg_obj.login(username, password)
 
     net_info = machine_info.get_netinfo(server_url)
-    
+    print net_info
+ 
     try:
         rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
     except socket.error:

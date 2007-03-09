@@ -301,6 +301,8 @@ class ShadowWorkerThread(threading.Thread):
 
         # Load target cert ...
         # FIXME: paths
+        print "loading certs for: %s" % self.hostname
+       
         ctx.load_cert(
            certfile="/var/lib/puppet/ssl/certs/%s.pem" % self.hostname,
            keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % self.hostname
@@ -309,6 +311,9 @@ class ShadowWorkerThread(threading.Thread):
         ctx.set_session_id_ctx('xmlrpcssl')
 
         ctx.set_info_callback(self.callback)
+
+        print "target is: %s" % target
+ 
         uri = "https://%s:2112" % target
         print "contacting: %s" % uri
         rserver = Server(uri, SSL_Transport(ssl_context = ctx))
@@ -325,7 +330,8 @@ class InstallVirtThread(ShadowWorkerThread):
     def core_fn(self):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
-        return self.get_handle(machine_hostname).install_virt(ddata)
+        print "go go gadget virt install!"
+        return self.get_handle(machine_hostname).virt_install(ddata)
 
 #--------------------------------------------------------------------------
 
@@ -385,7 +391,7 @@ def main(argv):
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         scheduler.clean_up_tasks()
         scheduler.run_forever(socket.gethostname())
-    elif len(sys.argv) == 0:
+    elif len(sys.argv) == 1:
         print "Running single task in debug mode, since --daemon wasn't specified..."
         scheduler.clean_up_tasks()
         scheduler.tick(socket.gethostname(), True)

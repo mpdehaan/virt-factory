@@ -20,6 +20,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import SimpleXMLRPCServer
 import os
 import subprocess
+import socket
 
 from pysqlite2 import dbapi2 as sqlite
 
@@ -191,7 +192,8 @@ def serve(websvc):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     server = ShadowXMLRPCServer(("127.0.0.1", 5150))
+     #server = ShadowXMLRPCServer((socket.gethostname(), 5150))
+     server = ShadowXMLRPCServer(('', 5150))
      server.register_instance(websvc)
      server.serve_forever()
 
