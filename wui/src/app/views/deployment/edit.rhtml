@@ -32,6 +32,22 @@
             <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
          </TR>
       </TABLE>
+ 
+      <br/>
+
+      <!-- FIXME: the right links should be shown based on the current db state -->
+
+      <% if @operation == "edit" %>
+      Control actions:
+      <ul>
+      <li><%= link_to "start",     :controller => "deployment", :action=> "start", :id => @item.id %></li>
+      <li><%= link_to "shutdown",  :controller => "deployment", :action=> "shutdown", :id => @item.id %></li>
+      <li><%= link_to "pause",     :controller => "deployment", :action=> "pause", :id => @item.id %></li>
+      <li><%= link_to "unpause",   :controller => "deployment", :action=> "unpause", :id => @item.id %></li>
+      <li><%= link_to "pull plug", :controller => "deployment", :action=> "destroy", :id => @item.id %></li>
+      </ul>
+      <% end %>
+
       <% end %>
       </div>
 

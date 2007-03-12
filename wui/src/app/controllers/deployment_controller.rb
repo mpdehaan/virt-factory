@@ -31,5 +31,31 @@ class DeploymentController < AbstractObjectController
        @profiles.reject! { |foo| foo.nil? }
 
    end
+
+    def self.pause(object_class,id,session)
+        MangedObject.call_server("virt_pause", session, { "id" => id }, id.to_s)
+        redirect_to :action=> "edit", :id => id
+    end
+
+    def self.unpause(object_class,id,session)
+        MangedObject.call_server("virt_unpause", session, { "id" => id }, id.to_s)
+        redirect_to :action=> "edit", :id => id
+    end
+
+    def self.start(object_class,id,session)
+        MangedObject.call_server("virt_start", session, { "id" => id }, id.to_s)
+        redirect_to :action=> "edit", :id => id
+    end
+
+    def self.stop(object_class,id,session)
+        MangedObject.call_server("virt_stop", session, { "id" => id }, id.to_s)
+        redirect_to :action=> "edit", :id => id
+    end
+    
+    def self.destroy(object_class,id,session)
+        MangedObject.call_server("virt_destroy", session, { "id" => id }, id.to_s)
+        redirect_to :action=> "edit", :id => id
+    end
+
 end
 
