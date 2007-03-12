@@ -24,6 +24,7 @@ import web_svc
 import task
 import regtoken
 import provisioning
+import nodecomm
 
 import traceback
 import threading
@@ -175,8 +176,8 @@ class Deployment(web_svc.AuthWebSvc):
 
          try:
              machine_obj = machine.Machine()
-             result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
-             mac = result.data["mac_address"]
+             machine_result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
+             mac = machine_result.data["mac_address"]
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
@@ -203,8 +204,13 @@ class Deployment(web_svc.AuthWebSvc):
          sync_args = self.get(token, { "id" : results.data }).data
          self.cobbler_sync(sync_args)
 
-         self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
-         return results
+         
+         handle = nodecomm.get_handle(machine_result.data["hostname"])
+         #rc = handle.virt_install(deployment_dep_args["mac_address"], True)
+         rc = handle.test_add(2,5)
+
+         #  self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
+         return rc
 
     def generate_mac_address(self, id):
          # pick an offset into the XenSource range as given by the highest used object id
