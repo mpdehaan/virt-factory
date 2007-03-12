@@ -16,13 +16,16 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import sys
+import distutils.sysconfig
 import string
 
-import logger
-logger.logfilepath = "/var/log/puppet/shadowmanager.log"
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
-from modules import puppet
-from codes import *
+from server import logger
+logger.logfilepath = "/var/log/puppet/virt-factory.log"
+
+from server.modules import puppet
+from server.codes import *
 
 #--------------------------------------------------------------------------
       

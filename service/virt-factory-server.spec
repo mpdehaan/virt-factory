@@ -33,7 +33,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %files
 %{_bindir}/vf_server
-%{_bindir}/taskatron
+%{_bindir}/vf_taskatron
 %{_bindir}/vf_import
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db.sh

@@ -150,7 +150,7 @@ class XmlRpcInterface:
                # register can
                #   take authtokens or regtokens, so they do there own
                # auth check
-               if method not in ["user_login", "token_check", "register" ]:
+               if method not in ["user_login", "token_check", "register", "sign_node_cert" ]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
            except ShadowManagerException, e:
