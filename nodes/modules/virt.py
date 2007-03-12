@@ -45,6 +45,8 @@ class Virt(web_svc.WebSvc):
         # get the server 
         fd = open("/etc/sysconfig/virt-factory/server")
         self.server_name = fd.read().strip()
+        self.server_name = self.server_name.replace("http://","")
+        self.server_name = self.server_name.split(":")[0]
         fd.close()
         self.methods = {
             "virt_install"  : self.install,
