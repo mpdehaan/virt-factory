@@ -27,6 +27,8 @@ import traceback
 import sys
 import glob
 import socket
+import socket
+import subprocess
 
 # import distutils.sysconfig
 # sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
@@ -48,9 +50,9 @@ from modules import provisioning
 from modules import registration
 from modules import user
 
-from M2Crypto import SSL
-from M2Crypto.m2xmlrpclib import SSL_Transport, Server
-from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
+#from M2Crypto import SSL
+#from M2Crypto.m2xmlrpclib import SSL_Transport, Server
+#from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
 #--------------------------------------------------------------------------
 
@@ -108,7 +110,7 @@ def dotick(hostname,once=False):
 
 
        print "state : %s" % item.state
-       if item.state == TASK_STATE_QUEUED or item.state == TASK_STATE_FAILED: # FIXME, remove last part
+       if item.state == TASK_STATE_QUEUED or 1 == 1:
            print "*** RUNNING"
            task = item
            set_running(task)
@@ -207,39 +209,55 @@ def callback(*args):
     print args
     return
 
-def get_handle(target):
-    """
-    Return a xmlrpc server object for a given hostname.
-    """
-    print "****************************** GET HANDLE "
-    ctx = SSL.Context('sslv23')
+#def get_handle(target):
+#    """
+#    Return a xmlrpc server object for a given hostname.
+#    """
+#    print "****************************** GET HANDLE "
+#    ctx = SSL.Context('sslv23')
+#
+#    fromhost = socket.gethostname()
+#    print "FROM: %s" % fromhost
+#        
+#    # Load CA cert
+#    ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
+#
+#    # Load target cert ...
+#    # FIXME: paths
+#    print "loading certs for: %s" % fromhost
+#       
+#    ctx.load_cert(
+#       certfile="/var/lib/puppet/ssl/certs/%s.pem" % fromhost,
+#       keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % fromhost
+#    )
+#
+#    ctx.set_session_id_ctx('xmlrpcssl')
+#
+#    ctx.set_info_callback(callback)
+#
+#    print "target is: %s" % target
+# 
+#    uri = "https://%s:2112" % target
+#    print "contacting: %s" % uri
+#    rserver = Server(uri, SSL_Transport(ssl_context = ctx))
+#    print rserver
+#    return rserver 
 
-    fromhost = socket.gethostname()
-    print "FROM: %s" % fromhost
-        
-    # Load CA cert
-    ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
-
-    # Load target cert ...
-    # FIXME: paths
-    print "loading certs for: %s" % fromhost
-       
-    ctx.load_cert(
-       certfile="/var/lib/puppet/ssl/certs/%s.pem" % fromhost,
-       keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % fromhost
-    )
-
-    ctx.set_session_id_ctx('xmlrpcssl')
-
-    ctx.set_info_callback(callback)
-
-    print "target is: %s" % target
- 
-    uri = "https://%s:2112" % target
-    print "contacting: %s" % uri
-    rserver = Server(uri, SSL_Transport(ssl_context = ctx))
-    print rserver
-    return rserver 
+def node_comm(machine_hostname, command, *cmd_args):
+     myhost = socket.gethostname() # FIXME
+     args = [
+         "/usr/bin/vf_nodecomm",
+         myhost,
+         machine_hostname,
+         command
+     ]
+     for x in cmd_args:
+         args.append(str(x))
+     print "args = ", args
+     rc =  subprocess.call(args)
+     print rc
+     if rc != 0:
+         raise UncaughtException(comment="failed")
 
        
 def install_virt(task):
@@ -248,29 +266,25 @@ def install_virt(task):
     machine_hostname = mdata["hostname"]
     print "hostname target is ... (%s)" % machine_hostname
     print "go go gadget virt install!"
-    handle = get_handle(machine_hostname)
-    print "got a handle"
-    return handle.test_add(3,4)
+    return node_comm(machine_hostname, "virt_install", ddata["mac_address"], True)
 
 
 def delete_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    return get_handle(machine_hostname).virt_delete(ddata)
-
+    return node_comm(machine_hostname, "virt_delete", ddata["mac_address"])
 
 def start_virt(task):
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    return get_handle(machine_hostname).virt_start(ddata)
-
+    return node_comm(machine_hostname, "virt_start", ddata["mac_address"])
 
 def delete_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = get_handle(machine_hostname).virt_stop(ddata)
+    rc = node_comm(machine_hostname, "virt_stop", ddata["mac_address"])
     mrec.set_state(DEPLOYMENT_STATE_STOPPED)
     return rc
 
@@ -279,7 +293,7 @@ def pause_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = get_handle(machine_hostname).virt_pause(ddata)
+    rc = node_comm(machine_hostname,"virt_pause",ddata["mac_address"])
     mrec.set_state(DEPLOYMENT_STATE_PAUSED)
     return rc
 
@@ -288,7 +302,7 @@ def destroy_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = get_handle(machine_hostname).virt_destroy(ddata)
+    rc = node_comm(machine_hostname, "virt_destroy", ddata["mac_address"])
     mrec.set_state(DEPLOYMENT_STATE_STOPPED)
     return rc
 
@@ -297,7 +311,7 @@ def unpause_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = get_handle(machine_hostname).virt_unpause(ddata)
+    rc = node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
     mrec.set_state(DEPLOYMENT_STATE_RUNNING)
     return rc
 
