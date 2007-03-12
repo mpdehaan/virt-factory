@@ -51,7 +51,8 @@ touch %{buildroot}%{_localstatedir}/log/%{name}/rails.log
 %{__install} -p -m0644 %{pbuild}/conf/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d
 %{__install} -Dp -m0755 %{pbuild}/conf/%{name} %{buildroot}%{_initrddir}
 %{__cp} -a %{pbuild}/src/* %{buildroot}%{app_root}
-%{__mv} %{buildroot}%{app_root}/tmp %{buildroot}%{_localstatedir}/lib/%{name}
+%{__rm} -rf %{buildroot}%{app_root}/tmp 
+%{__mkdir} %{buildroot}%{_localstatedir}/lib/%{name}/tmp
 %{__ln_s} %{_localstatedir}/lib/%{name}/tmp %{buildroot}%{app_root}/tmp
 find %{buildroot}%{app_root} -type f -perm +ugo+x -print0 | xargs -0 -r %{__chmod} a-x
 
