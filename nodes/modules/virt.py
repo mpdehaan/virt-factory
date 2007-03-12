@@ -22,6 +22,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import glob
 import sys
 import os
+import traceback
 
 if __name__ == "__main__":
    sys.path.append("../")
@@ -65,23 +66,27 @@ class Virt(web_svc.WebSvc):
         Install a new virt system by way of a named cobbler profile.
         """
 
-        if not os.path.exists("/usr/bin/koan"):
-            raise VirtException(comment="no /usr/bin/koan")
-        target = "profile"
-        if system:
-            target = "system"
-        koan_args = [
-            "/usr/bin/koan",
-            "--virt",
-            "--%s=%s" % (target, target_name),
-            "--server=%s" % self.server_name
-        ]
-        rc = subprocess.call(koan_args,shell=False)
-        if rc == 0:
-            return success(0)
-        else:
-            raise VirtException(comment="koan returned %d" % rc)
-
+        try:
+            if not os.path.exists("/usr/bin/koan"):
+                raise VirtException(comment="no /usr/bin/koan")
+            target = "profile"
+            if system:
+                target = "system"
+            koan_args = [
+                "/usr/bin/koan",
+                "--virt",
+                "--%s=%s" % (target, target_name),
+                "--server=%s" % self.server_name
+            ]
+            rc = subprocess.call(koan_args,shell=False)
+            if rc == 0:
+                return success(0)
+            else:
+                raise VirtException(comment="koan returned %d" % rc)
+        except:
+            traceback.print_exc()
+            print "ow"
+            return -1
 
     #=======================================================================
    
