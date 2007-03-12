@@ -23,6 +23,7 @@ import glob
 import sys
 import os
 import traceback
+import subprocess
 
 if __name__ == "__main__":
    sys.path.append("../")
@@ -53,8 +54,7 @@ class Virt(web_svc.WebSvc):
             "virt_start"    : self.create,
             "virt_pause"    : self.pause,
             "virt_unpause"  : self.unpause,
-            "virt_delete"   : self.undefine,
-            "virt_status"   : self.get_status
+            "virt_delete"   : self.undefine
         }
         web_svc.WebSvc.__init__(self)
 
@@ -152,23 +152,6 @@ class Virt(web_svc.WebSvc):
         """
 
         return self.__xm_command("undefine", mac_address, [ "off" ] )
-
-    #=======================================================================
-
-    def get_status(self, mac_address)
-
-        """
-        Return a state suitable for server consumption.  Aka, codes.py values, not XM output.
-        """
-
-        state = self.__get_xm_state(self, mac_address)
-        if state == "off":
-            return DEPLOYMENT_STATE_STOPPED
-        if state.find("p") != -1:
-            return DEPLOYMENT_STATE_PAUSED
-        if state.find("b") != -1 or state.find("-----") != -1 or state.find("r") != -1:
-            return DEPLOYMENT_STATE_RUNNING
-        return DEPLOYMENT_STATE_UNKNOWN
 
     #=======================================================================
 
