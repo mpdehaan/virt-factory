@@ -19,48 +19,59 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-
+import sys
 import socket
 
 from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
-def get_handle(target):
+def get_handle(fromhost, target):
     """
     Return a xmlrpc server object for a given hostname.
     """
     print "****************************** GET HANDLE "
-    ctx = SSL.Context('sslv23')
+    my_ctx = SSL.Context('sslv23')
 
-    fromhost = "mdehaan.rdu.redhat.com" # socket.gethostname()
     print "FROM: %s" % fromhost
         
     # Load CA cert
-    ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
+    my_ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
 
     # Load target cert ...
     # FIXME: paths
     print "loading certs for: %s" % fromhost
        
-    ctx.load_cert(
+    my_ctx.load_cert(
        certfile="/var/lib/puppet/ssl/certs/%s.pem" % fromhost,
        keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % fromhost
     )
 
-    ctx.set_session_id_ctx('xmlrpcssl')
+    my_ctx.set_session_id_ctx('xmlrpcssl')
 
     #ctx.set_info_callback(callback)
 
     print "target is: %s" % target
  
-    uri = "https://%s:2112" % target
-    print "contacting: %s" % uri
-    rserver = Server(uri, SSL_Transport(ssl_context = ctx))
-    print rserver
-    return rserver 
+    my_uri = "https://%s:2112" % target
+    print "contacting: %s" % my_uri
+    my_rserver = Server(my_uri, SSL_Transport(ssl_context = my_ctx))
+    print my_rserver
+    return my_rserver 
+
+def main(args):
+    hostfrom = args[1]
+    hostto   = args[2]
+    method   = args[3]
+    method_args     = args[4:]
+    print "method      = ", method
+    print "method_args = ", method_args
+    handle = get_handle(hostfrom, hostto)
+    real_args = []
+    real_args.append(method)
+    real_args.extend(method_args)
+    print handle.call(*real_args)
 
 if __name__ == "__main__":
-    handle = get_handle("smurfy.devel.redhat.com")
-    print handle.test_add(2,4)
+    main(sys.argv)
 

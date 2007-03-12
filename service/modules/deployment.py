@@ -206,10 +206,8 @@ class Deployment(web_svc.AuthWebSvc):
 
          
          handle = nodecomm.get_handle(machine_result.data["hostname"])
-         #rc = handle.virt_install(deployment_dep_args["mac_address"], True)
-         rc = handle.test_add(2,5)
-
-         #  self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
+         
+         self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
          return rc
 
     def generate_mac_address(self, id):

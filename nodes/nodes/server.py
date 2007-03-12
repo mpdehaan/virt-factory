@@ -88,16 +88,9 @@ class XmlRpcInterface:
        the SimpleXMLRPCServer class will call _dispatch if it doesn't
        find a handler method 
        """
-       if method == "call":
-           print method
-           print params
-           method = params[0]
-           params = params[1:]
-           print method
-           print params 
+      
        if method in self.handlers:
            mh = self.handlers[method]
-           # params = params[1:]
            self.logger.debug("(X) -------------------------------------------")
            self.logger.debug("methods: %s params: %s" % (method, params))
          

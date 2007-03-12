@@ -29,6 +29,7 @@ if __name__ == "__main__":
 		scripts = ["scripts/vf_server",
 			   "scripts/vf_taskatron",
 			   "scripts/vf_import",
+			   "scripts/vf_nodecomm",
 			   "scripts/vf_get_puppet_node",
 			   "db/vf_create_db.sh"],
 		package_dir = {"%s" % NAME: "",
