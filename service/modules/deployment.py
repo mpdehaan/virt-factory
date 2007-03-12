@@ -24,6 +24,7 @@ import web_svc
 import task
 import regtoken
 import provisioning
+import nodecomm
 
 import traceback
 import threading
@@ -175,8 +176,8 @@ class Deployment(web_svc.AuthWebSvc):
 
          try:
              machine_obj = machine.Machine()
-             result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
-             mac = result.data["mac_address"]
+             machine_result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
+             mac = machine_result.data["mac_address"]
          except ShadowManagerException:
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
@@ -203,16 +204,13 @@ class Deployment(web_svc.AuthWebSvc):
          sync_args = self.get(token, { "id" : results.data }).data
          self.cobbler_sync(sync_args)
 
-         task_obj = task.Task()
-         task_obj.add(token, {
-            "user_id"       : -1,  # FIXME: obtain from token
-            "machine_id"    : deployment_dep_args["machine_id"],
-            "deployment_id" : results.data,
-            "action_type"   : TASK_OPERATION_INSTALL_VIRT, 
-            "state"         : TASK_STATE_QUEUED
-         })
+         
+         handle = nodecomm.get_handle(machine_result.data["hostname"])
+         #rc = handle.virt_install(deployment_dep_args["mac_address"], True)
+         rc = handle.test_add(2,5)
 
-         return results
+         #  self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
+         return rc
 
     def generate_mac_address(self, id):
          # pick an offset into the XenSource range as given by the highest used object id
@@ -256,29 +254,50 @@ class Deployment(web_svc.AuthWebSvc):
          self.cobbler_sync(sync_args.data)
          return results
 
-    def delete(self, token, args):
-
+    def __set_locked(self, token, args, dep_state=DEPLOYMENT_STATE_PENDING, lock=True):
         obj = self.get(token, { "id" : args["id"] })
         if not obj.ok():
             raise NoSuchObjectException()
-
-        # mark this object as being deleted and uneditable.
         args = obj.data
-        args["state"] = DEPLOYMENT_STATE_DELETING
-        args["is_locked"] = 1
+        args["state"] = dep_state
+        if lock:
+            args["is_locked"] = 1
+        else:
+            args["is_locked"] = 0
+        self.edit(token, args)
+     
+    def set_state(self, token, args, status_code):
+        obj = self.get(token, { "id" : args["id"] })
+        if not obj.ok():
+            raise NoSuchObjectException()
+        args = obj.data
+        args["state"] = status_code
         self.edit(token, args)
 
-        # delete scheduled through taskatron.
-        # FIXME: lock this object once we have locks
-        task_obj = task.Task()
-        task_obj.add(token, {
-           "user_id"       : -1, # FIXME: get from token
-           "machine_id"    : obj.data["machine_id"],
-           "deployment_id" : args["id"],
-           "action_type"   : TASK_OPERATION_DELETE_VIRT,
-           "state"         : TASK_STATE_QUEUED
-        })
+    def delete(self, token, args):
+        self.__set_locked(token, args, DEPLOYMENT_STATE_DELETING, True)
+        self.__queue_operation(token, args, TASK_OPERATION_DELETE_VIRT)
         return success() # FIXME: always?
+
+    def pause(self, token, args):
+        self.__set_locked(token, args, DEPLOYMENT_STATE_PAUSING, True)
+        self.__queue_operation(token, args, TASK_OPERATION_PAUSE_VIRT)
+        return success()
+
+    def unpause(self, token, args):
+        self.__set_locked(token, args, DEPLOYMENT_STATE_UNPAUSING, True)
+        self.__queue_operation(token, args, TASK_OPERATION_UNPAUSE_VIRT)
+        return success()
+
+    def shutdown(self, token, args):
+        self.__set_locked(token, args, DEPLOYMENT_STATE_STOPPING, True)
+        self.__queue_operation(token, args, TASK_OPERATION_SHUTDOWN_VIRT)
+        return success()
+
+    def start(self, token, args):
+        self.__set_locked(token, args, DEPLOYMENT_STATE_STARTING, True)
+        self.__queue_operation(token, args, TASK_OPERATION_START_VIRT)
+        return success()
 
     def database_delete(self, token, deployment_dep_args):
         """
@@ -312,6 +331,21 @@ class Deployment(web_svc.AuthWebSvc):
                 "profiles.id"    : "deployments.profile_id" 
             },
         )
+
+    def __queue_operation(self, token, args, task_operation):
+        
+         obj = self.get(token, { "id" : args["id"] })
+         if not obj.ok():
+             raise NoSuchObjectException()
+
+         task_obj = task.Task()
+         task_obj.add(token, {
+            "user_id"       : -1,  # FIXME: obtain from token
+            "machine_id"    : args["machine_id"],
+            "deployment_id" : results.data,
+            "action_type"   : task_operation,
+            "state"         : TASK_STATE_QUEUED
+         })
 
 
     def get_by_hostname(self, token, deployment_args):

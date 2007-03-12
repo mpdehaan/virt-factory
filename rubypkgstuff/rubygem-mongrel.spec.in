@@ -1,0 +1,73 @@
+# Generated from <%= File::basename(format.gem_path) %> by gem2spec -*- rpm-spec -*-
+%define gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
+%define gemname <%= spec.name %>
+%define geminstdir %{gemdir}/gems/%{gemname}-%{version}
+%{!?ruby_sitearch: %define ruby_sitearch %(ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")}
+
+Summary: <%= spec.summary %>
+Name: rubygem-%{gemname}
+
+Version: <%= spec.version %>
+Release: 1%{?dist}
+Group: Development/Libraries
+License: Ruby License
+URL: http://mongrel.rubyforge.org
+Source0: http://rubyforge.org/frs/download.php/16719/%{gemname}-%{version}.gem
+Source1: %{name}.spec.in
+BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
+Requires: rubygems
+<% for d in spec.dependencies %>
+Requires: rubygem(<%= d.name %>) <%= d.version_requirements.to_rpm %>
+<% end %>
+BuildRequires: rubygems
+Provides: rubygem(<%= spec.name %>) = %{version}
+
+%description
+<%= spec.description %>
+
+
+%prep
+
+%build
+
+%install
+%{__rm} -rf %{buildroot}
+mkdir -p %{buildroot}%{gemdir}
+<% rdoc_opt = spec.has_rdoc ? "--rdoc " : "" %>
+gem install --local --install-dir %{buildroot}%{gemdir} --force <%= rdoc_opt %>%{SOURCE0}
+%{__install} -d -m0755 %{buildroot}%{ruby_sitearch}
+#move any .so files to the proper arch-specific dir
+mv %{buildroot}%{geminstdir}/lib/http11.so %{buildroot}%{ruby_sitearch}
+%{__chmod} 0755 %{buildroot}%{ruby_sitearch}/http11.so
+rm -rf %{buildroot}%{geminstdir}/ext
+<% if ! spec.executables.empty? %>
+mkdir -p %{buildroot}/%{_bindir}
+mv %{buildroot}%{gemdir}/bin/* %{buildroot}/%{_bindir}
+rmdir %{buildroot}%{gemdir}/bin
+find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
+<% end %>
+
+%clean
+%{__rm} -rf %{buildroot}
+
+%files
+%defattr(-, root, root)
+<% for f in spec.executables %>
+%{_bindir}/<%= f %>
+<% end %>
+#arch-specific libs here
+%{ruby_sitearch}/http11.so
+%{gemdir}/gems/%{gemname}-%{version}/
+<% if spec.has_rdoc %>
+%doc %{gemdir}/doc/%{gemname}-%{version}
+<% end %>
+<% for f in spec.extra_rdoc_files %>
+%doc %{geminstdir}/<%= f %>
+<% end %>
+%{gemdir}/cache/%{gemname}-%{version}.gem
+%{gemdir}/specifications/%{gemname}-%{version}.gemspec
+
+%changelog
+* Tue Mar  6 2007  <sseago@redhat.com> - 1.0.1-1
+- Initial packaging.
+
