@@ -145,6 +145,12 @@ class TaskScheduler:
                    worker = StartVirtThread(context)
                elif op == TASK_OPERATION_DELETE_VIRT:  
                    worker = DeleteVirtThread(context)
+               elif op == TASK_OPERATION_PAUSE_VIRT:  
+                   worker = PauseVirtThread(context)
+               elif op == TASK_OPERATION_UNPAUSE_VIRT:  
+                   worker = UnpauseVirtThread(context)
+               elif op == TASK_OPERATION_DESTROY_VIRT:  
+                   worker = DestroyVirtThread(context)
                else:
                    raise TaskException(comment="unknown task type")
                worker.run()
@@ -330,7 +336,9 @@ class InstallVirtThread(ShadowWorkerThread):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
         print "go go gadget virt install!"
-        return self.get_handle(machine_hostname).virt_install(ddata)
+        rc = None
+        print self.get_handle(machine_hostname).test_add(2,4)
+        return self.get_handle(machine_hostname).virt_install(ddata, True)
 
 #--------------------------------------------------------------------------
 
@@ -343,7 +351,7 @@ class DeleteVirtThread(ShadowWorkerThread):
     def core_fn(self):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
-        return self.get_handle(machine_hostname).delete_virt(ddata)
+        return self.get_handle(machine_hostname).virt_delete(ddata)
 
 #--------------------------------------------------------------------------
 
@@ -356,7 +364,7 @@ class StartVirtThread(ShadowWorkerThread):
     def core_fn(self):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
-        return self.get_handle(machine_hostname).start_virt(ddata)
+        return self.get_handle(machine_hostname).virt_start(ddata)
 
 #--------------------------------------------------------------------------
 
@@ -369,10 +377,55 @@ class StopVirtThread(ShadowWorkerThread):
     def core_fn(self):
         (mrec, mdata, drec, ddata) = self.get_records()
         machine_hostname = mdata["hostname"]
-        # all of these fns should raise exceptions on failure.
-        self.get_handle(machine_hostname).stop_virt(ddata)
-        mrec.database_delete(mdata)
-        return        
+        rc = self.get_handle(machine_hostname).virt_stop(ddata)
+        mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+        return rc
+
+#--------------------------------------------------------------------------
+
+class PauseVirtThread(ShadowWorkerThread):
+
+    """
+    Background thread for updating the puppet config.
+    """
+
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        rc = self.get_handle(machine_hostname).virt_pause(ddata)
+        mrec.set_state(DEPLOYMENT_STATE_PAUSED)
+        return rc
+
+#--------------------------------------------------------------------------
+
+class DestroyVirtThread(ShadowWorkerThread):
+
+    """
+    Background thread for updating the puppet config.
+    """
+
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        rc = self.get_handle(machine_hostname).virt_destroy(ddata)
+        mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+        return rc
+
+#--------------------------------------------------------------------------
+
+class UnpauseVirtThread(ShadowWorkerThread):
+
+    """
+    Background thread for updating the puppet config.
+    """
+
+    def core_fn(self):
+        (mrec, mdata, drec, ddata) = self.get_records()
+        machine_hostname = mdata["hostname"]
+        rc = self.get_handle(machine_hostname).virt_unpause(ddata)
+        mrec.set_state(DEPLOYMENT_STATE_RUNNING)
+        return rc
+
 
 #--------------------------------------------------------------------------
       
