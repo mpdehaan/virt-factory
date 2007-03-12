@@ -20,11 +20,6 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-#import os
-import string
-#import traceback
-import sys
-#import glob
 import socket
 
 from M2Crypto import SSL
@@ -38,7 +33,7 @@ def get_handle(target):
     print "****************************** GET HANDLE "
     ctx = SSL.Context('sslv23')
 
-    fromhost = socket.gethostname()
+    fromhost = "mdehaan.rdu.redhat.com" # socket.gethostname()
     print "FROM: %s" % fromhost
         
     # Load CA cert
@@ -64,4 +59,8 @@ def get_handle(target):
     rserver = Server(uri, SSL_Transport(ssl_context = ctx))
     print rserver
     return rserver 
+
+if __name__ == "__main__":
+    handle = get_handle("smurfy.devel.redhat.com")
+    print handle.test_add(2,4)
 
