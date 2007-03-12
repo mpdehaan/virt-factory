@@ -22,6 +22,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import glob
 import sys
 import os
+import subprocess
 
 if __name__ == "__main__":
    sys.path.append("../")
