@@ -18,6 +18,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import machine_info
 
 import getopt
+import string
 import sys
 import xmlrpclib
 import socket
@@ -80,6 +81,7 @@ class Register(object):
             fd4.write(profile_name)
             fd4.close()
             server = string.split(self.server_url, '/')[2]
+            server = string.split(server, ':')[0]
             puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --onetime"
             os.system(puppetcmd)
             rc2 = self.server.sign_node_cert(self.token, hostname)
@@ -141,9 +143,9 @@ def main(argv):
             server_url = val
         if opt in ["-i", "--profilename"]:
             print "read the profile name"
+            profile_name = val
         if opt in ["-v", "--virtual"]:
             virtual = True
-            profile_name = val
 
     if server_url is None:
         print "must specify --serverurl, ex: http://foo.example.com:5150"
