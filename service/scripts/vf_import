@@ -14,9 +14,9 @@ Profile profiles should be a self-contained tarball with the following directory
 Each execution of the sm_import tool will do the following:
 
 	Use the XML data to insert a row into the profiles database IF it's not already imported
-	Import the manifests to /var/lib/shadowmanager/profiles/$profile-name/manifests/*
-	Import the data files to /var/lib/shadowmanager/profiles/$profile-name/files/*
-	Import the templates files to /var/lib/shadowmanager/profiles/$profile-name/templates/*
+	Import the manifests to /var/lib/virt-factory/profiles/$profile-name/manifests/*
+	Import the data files to /var/lib/virt-factory/profiles/$profile-name/files/*
+	Import the templates files to /var/lib/virt-factory/profiles/$profile-name/templates/*
 	Update the site-wide puppet manifest as necessary
 
 NOTE: this can only be run after the initial "shadow import", because
@@ -50,12 +50,12 @@ sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
 from server.codes import *
 from server import logger
-logger.logfilepath = "/var/lib/shadowmanager/sm_import.log"
+logger.logfilepath = "/var/lib/virt-factory/vf_import.log"
 from server.modules import distribution
 from server.modules import profile
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
-PUPPET_FILE_DIR="/var/lib/shadowmanager/profiles"
+PUPPET_FILE_DIR="/var/lib/virt-factory/profiles"
 PUPPET_SITE_MANIFEST="/etc/puppet/manifests/site.pp"
 PUPPET_FILESERVER_CONF="/etc/puppet/fileserver.conf"
 PUPPET_FILESERVER_ALLOW="*"
