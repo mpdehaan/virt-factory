@@ -15,7 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# "across the nodes I see my shadow.py ..."
+# "across the nodes I see my sh_adow.py ..."
 
 import SimpleXMLRPCServer
 import os
@@ -33,6 +33,8 @@ from codes import *
 
 import config_data
 import logger
+import utils
+
 # FIXME: this should be using the config settings -akl
 logger.logfilepath = "/var/lib/virt-factory/svclog"
 
@@ -49,39 +51,6 @@ from modules import user
 from modules import regtoken
 from modules import puppet
 
-
-# this is kind of handy, so keep it around for now
-# but we really need to fix out server side logging and error
-# reporting so we don't need it
-import string
-import traceback
-def trace_me():
-   x = traceback.extract_stack()
-   bar = string.join(traceback.format_list(x))
-   return bar
-
-
-def daemonize(pidfile=None):
-    """
-    Daemonize this process with the UNIX double-fork trick.
-    Writes the new PID to the provided file name if not None.
-    """
-
-    print pidfile
-    pid = os.fork()
-    if pid > 0:
-       print pid
-       sys.exit(0)
-    os.setsid()
-    os.umask(0)
-    pid = os.fork()
-
-
-    if pid > 0:
-       print "ffff", pid
-       if pidfile is not None:
-          open(pidfile, "w").write(str(pid))
-       sys.exit(0)
 
 
 class XmlRpcInterface:
@@ -150,11 +119,11 @@ class XmlRpcInterface:
                if method not in ["user_login", "token_check", "register", "sign_node_cert" ]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
-           except ShadowManagerException, e:
+           except VirtFactoryException, e:
                self.__log_exc()
                return e.to_datastruct()
            except:
-               self.logger.debug("Not a shadowmanager specific exception")
+               self.logger.debug("Not a virt-factory specific exception")
                self.__log_exc()
                raise
          
@@ -189,13 +158,12 @@ def serve(websvc):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     #server = ShadowXMLRPCServer((socket.gethostname(), 5150))
-     server = ShadowXMLRPCServer(('', 5150))
+     server = VirtFactoryXMLRPCServer(('', 5150))
      server.register_instance(websvc)
      server.serve_forever()
 
 
-class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+class VirtFactoryXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
        self.allow_reuse_address = True
        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)
@@ -217,7 +185,7 @@ def main(argv):
           prov_obj.sync(None, {}) # just for testing
           return
     if "daemon" in sys.argv or "--daemon" in sys.argv:
-       daemonize("/var/run/virt-factory.pid")
+       utils.daemonize("/var/run/vf_server.pid")
        serve(websvc)
     else:
        print "serving...\n"

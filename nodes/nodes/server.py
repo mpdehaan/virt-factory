@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-ShadowManager backend code.
+virt-factory client code.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -27,10 +27,9 @@ from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 
 SERVE_ON = (None,None)
 
-# FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
-# FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
-# FIXME: /opt/shadowmanager/svclog should be /var/log/shadowmanager/svc.log
-# FIXME: /opt/shadowmanager/primary_db should be /var/lib/shadowmanager/primary_db
+# FIXME: this app writes a logfile in /var/log/virt-factory/svclog -- package should use logrotate
+# FIXME: log setting in /var/log/virt-factory/svclog shouldn't be "DEBUG" for production use
+# FIXME: /opt/log/virt-factory/svclog should be /var/log/virt-factory/svc.log
 
 
 from codes import *
@@ -98,11 +97,11 @@ class XmlRpcInterface:
          
            try:
                rc = mh(*params)
-           except ShadowManagerException, e:
+           except VirtFactoryException, e:
                self.__log_exc()
                return e.to_datastruct()
            except:
-               self.logger.debug("Not a shadowmanager specific exception")
+               self.logger.debug("Not a virt-factory specific exception")
                self.__log_exc()
                raise
          
@@ -121,7 +120,7 @@ def serve(websvc,hostname):
      """
      print "I think my hostname is: %s" % hostname
      ctx = initContext(hostname)
-     server = ShadowSSLXMLRPCServer(ctx, (hostname, 2112))
+     server = VirtFactorySSLXMLRPCServer(ctx, (hostname, 2112))
      server.register_instance(websvc)
      server.serve_forever()
 
@@ -153,7 +152,7 @@ class SSLXMLRPCHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
       self.request.close()
 
 
-class ShadowSSLXMLRPCServer(SSL.SSLServer, SimpleXMLRPCServer.SimpleXMLRPCServer):
+class VirtFactorySSLXMLRPCServer(SSL.SSLServer, SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, ssl_context, address, handler=None, handle_error=None):
        self.allow_reuse_address = True
        

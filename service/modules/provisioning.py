@@ -1,5 +1,5 @@
 #!/usr/bin/python
-## ShadowManager backend code.
+## Virt-factory backend code.
 ##
 ## Copyright 2006, Red Hat, Inc
 ## Michael DeHaan <mdehaan@redhat.com>
@@ -60,7 +60,7 @@ Now configuring the provisioning subcomponent using settings from %s\n
 
 MIRROR_EXITED = """
 \nMirror import exited.  Now imported distributions can be added 
-to ShadowManager.  Note any errors above, you may have to 
+to Virt-factory.  Note any errors above, you may have to 
 reconfigure the mirror list in %s if a mirror path was invalid
 or the chosen mirror was down.\n
 """
@@ -79,7 +79,7 @@ NOW_IMPORTING = """
 """
 
 NOW_ADDING = """ 
-\nNow adding distribution to ShadowManager.\n
+\nNow adding distribution to virt-factory.\n
    name:         %s
    kernel:       %s
    initrd:       %s
@@ -87,11 +87,11 @@ NOW_ADDING = """
 """
 
 FINISHED = """
-\nUnless there's an error above somewhere, we're done with ShadowManager 
-imports.  ShadowManager is now set up for provisioning.
+\nUnless there's an error above somewhere, we're done with virt-factory
+imports.  Virt-factory is now set up for provisioning.
      
 Should you want to add different distributions, you can update your mirror list and
-run "shadow import" at a later date with additional rsync mirrors. 
+run "vf_server import" at a later date with additional rsync mirrors. 
 
 Now log in through the Web UI...  You're good to go.\n
 """
@@ -149,7 +149,7 @@ class CobblerTranslatedProfile:
        if from_db.has_key("id") and from_db["id"] < 0:
            return
        
-       shadow_config = config_data.Config().get()
+       vf_config = config_data.Config().get()
 
        new_item = cobbler_api.new_profile()
        new_item.set_name(from_db["name"])
@@ -202,9 +202,9 @@ class CobblerTranslatedProfile:
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
-       ks_meta["repo_line"]  = "repo --name=vf_repo --baseurl http://%s/vf_repo" % shadow_config["this_server"]["address"]
-       ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
-       ks_meta["server_name"] = shadow_config["this_server"]["address"] 
+       ks_meta["repo_line"]  = "repo --name=vf_repo --baseurl http://%s/vf_repo" % vf_config["this_server"]["address"]
+       ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
+       ks_meta["server_name"] = vf_config["this_server"]["address"] 
 
        # Calculate the kickstart tree location from the distro.
        distribution_name = distrib.data["name"]
@@ -217,7 +217,7 @@ class CobblerTranslatedProfile:
        print tree_path
        tree_path = "/".join(tree_path)
        print tree_path
-       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track/ks_mirror" % shadow_config["this_server"]["address"])
+       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track/ks_mirror" % vf_config["this_server"]["address"])
        ks_meta["tree"] = tree_url 
  
        new_item.set_ksmeta(ks_meta)
@@ -259,7 +259,7 @@ class CobblerTranslatedSystem:
            self.logger.debug("this system has no mac, no not cobblerfying")
            return
  
-       shadow_config = config_data.Config().get()
+       vf_config = config_data.Config().get()
 
        # cobbler systems must know their profile.
        # we get a profile by seeing if a deployment references
@@ -316,8 +316,8 @@ class CobblerTranslatedSystem:
            # kickstart_metadata = from_db["kickstart_metadata"]
            # load initial kickstart metadata (which is a string) and get back a hash
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
-       ks_meta["server_param"] = "--server=http://%s:5150" % shadow_config["this_server"]["address"] 
-       ks_meta["server_name"] = shadow_config["this_server"]["address"] 
+       ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
+       ks_meta["server_name"] = vf_config["this_server"]["address"] 
        ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
@@ -351,7 +351,7 @@ class CobblerTranslatedSystem:
 
 #--------------------------------------------------------------------
 
-# FIXME: need another ShadowManager backend object that will need to sync with
+# FIXME: need another virt-factory backend object that will need to sync with
 # /var/lib/cobbler/settings
 
 class Provisioning(web_svc.AuthWebSvc):
@@ -385,7 +385,7 @@ class Provisioning(web_svc.AuthWebSvc):
       machines      = machines.data
       deployments   = deployments.data
       
-      # FIXME: (IMPORTANT) update cobbler config from shadowmanager config each time, in particular,
+      # FIXME: (IMPORTANT) update cobbler config from virt-factory config each time, in particular,
       # the server field might have changed.
       
       try:
@@ -428,7 +428,7 @@ class Provisioning(web_svc.AuthWebSvc):
    def init(self, token, prov_args):
 
         """
-        Bootstrap ShadowManager's distributions list by pointing cobbler at an rsync mirror.
+        Bootstrap virt-factory's distributions list by pointing cobbler at an rsync mirror.
         """
 
 
@@ -452,18 +452,18 @@ class Provisioning(web_svc.AuthWebSvc):
         # directories
         cobbler_api.sync()
         settings = cobbler_api.settings().to_datastruct()
-        shadow_config = self.config
+        vf_config = self.config
 
 
         # FIXME: probably should just except on config read failures
 #        if not config_results.ok():
-#            raise ShadowManagerException(comment="config retrieval failed")
-#        shadow_config = config_results.data
+#            raise VirtFactoryException(comment="config retrieval failed")
+#        vf_config = config_results.data
 
         print NOW_CONFIGURING % config_data.CONFIG_FILE
 
-        settings["server"] = shadow_config["this_server"]["address"]
-        settings["next_server"] = shadow_config["this_server"]["address"]
+        settings["server"] = vf_config["this_server"]["address"]
+        settings["next_server"] = vf_config["this_server"]["address"]
         # FIXME: load other defaults that the user might want to configure in cobbler
 
         print NOW_SAVING
@@ -475,9 +475,9 @@ class Provisioning(web_svc.AuthWebSvc):
         # FIXME
 
         # read the config entry to find out cobbler's mirror locations
-        for mirror_name in shadow_config["mirrors"]:
+        for mirror_name in vf_config["mirrors"]:
 
-           mirror_url = shadow_config["mirrors"][mirror_name]
+           mirror_url = vf_config["mirrors"][mirror_name]
 
            print MIRROR_INFO % (mirror_name, mirror_url)
 
@@ -493,7 +493,7 @@ class Provisioning(web_svc.AuthWebSvc):
 
         cobbler_api.serialize()
 
-        # go through the distribution list in cobbler and make shadowmanager distribution entries
+        # go through the distribution list in cobbler and make virt-factory distribution entries
         cobbler_distros = cobbler_api.distros()
 
         for distro in cobbler_distros:
@@ -520,7 +520,7 @@ class Provisioning(web_svc.AuthWebSvc):
               # distros.  If this becomes an issue, I'd recommend Cobbler templating be used for those parts, rather
               # than having to specify a kickstart file on distro import.  Preferably we keep distro kickstarts
               # very simple and don't use a lot of fancy features for them, though this could get complicated later.
-              # something to watch.  It may be that the shadowmanager config file needs to specify both the
+              # something to watch.  It may be that the virt-factory config file needs to specify both the
               # rsync mirror and the kickstart, though this probably asks a bit too much of the person installing
               # the app.  Another way to do this (similar to what cobbler does on import) is to look at the
               # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known

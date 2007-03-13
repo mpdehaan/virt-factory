@@ -1,5 +1,5 @@
-# ShadowManager kickstart file for FC6+ distros
-# intended to reside in /var/lib/shadowmananger/kick-fc6.ks
+# Virt-factory kickstart file for FC6+ distros
+# intended to reside in /var/lib/virt-factory/kick-fc6.ks
 # and be templated by SM/Cobbler.
 
 #platform=x86, AMD64, or Intel EM64T

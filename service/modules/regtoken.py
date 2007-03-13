@@ -138,7 +138,7 @@ class RegToken(web_svc.AuthWebSvc):
              try:
                  self.profile_obj = profile.Profile()
                  self.profile_obj.get(token, { "id" : u.profile_id})
-             except ShadowManagerException:
+             except VirtFactoryException:
                  raise OrphanedObjectException(comment='profile_id',traceback=traceback.format_exc())
 
          return self.db.simple_add(u.to_datastruct())

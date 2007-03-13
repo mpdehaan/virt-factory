@@ -19,7 +19,7 @@ Each execution of the sm_import tool will do the following:
 	Import the templates files to /var/lib/virt-factory/profiles/$profile-name/templates/*
 	Update the site-wide puppet manifest as necessary
 
-NOTE: this can only be run after the initial "shadow import", because
+NOTE: this can only be run after the initial "vf_server import", because
       distributions are needed in order to import profile profiles. 
 
 Copyright 2007, Red Hat, Inc
@@ -74,7 +74,7 @@ PUPPET_CLASSES_TAG = "puppet_classes"
 
 DISTRIBUTION_ID_TAG = "distribution_id"
 
-class ShadowImporter:
+class VirtFactoryImporter:
    """
    Main class for sm_import tool
    """
@@ -220,7 +220,7 @@ def main():
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error("incorrect number of arguments")    
-    importer = ShadowImporter(args[0], options.module, options.manifest,
+    importer = VirtFactoryImporter(args[0], options.module, options.manifest,
                               options.fileserver_conf, options.fileserver_allow)
     print "extracting..."
     importer.extract()

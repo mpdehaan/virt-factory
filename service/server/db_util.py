@@ -45,7 +45,7 @@ class DbUtil(object):
         self.cursor = self.connection.cursor()
 
     def __init_log(self):
-        # lets see what happens when we c&p the stuff from shadow.py 
+        # lets see what happens when we c&p the stuff from server.py 
         log = logger.Logger()
         self.logger = log.logger
 
@@ -71,7 +71,7 @@ class DbUtil(object):
         try:
             # see if there is an object with this ID.
             module_instance.get(None, { "id" : field_value})
-        except ShadowManagerException:
+        except VirtFactoryException:
             raise OrphanedObjectException(comment=field_name,traceback=traceback.format_exc())
 
 

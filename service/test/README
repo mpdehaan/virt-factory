@@ -1,10 +1,10 @@
 
 
-Test code for shadowmanager backend
+Test code for virt-factory backend
 ----------------------------------
 
 Basic idea:
-	start up shadow.py on a non stock port pointing
+	start up server.py on a non stock port pointing
 	at a non stock db
 	
 	we can test "import" but need a way to test without

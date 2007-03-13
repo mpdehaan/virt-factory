@@ -1,5 +1,6 @@
+#!/usr/bin/python
 """
-ShadowManager backend code.
+Virt-factory backend code.
 
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
@@ -27,23 +28,24 @@ OP_METHOD = "method"
 OP_GET = "get"
 
 # error codes for the web service.
-SUCCESS = ERR_SUCCESS   = 0
-ERR_TOKEN_EXPIRED       = 1
-ERR_TOKEN_INVALID       = 2
-ERR_USER_INVALID        = 3
-ERR_PASSWORD_INVALID    = 4
-ERR_INTERNAL_ERROR      = 5
-ERR_INVALID_ARGUMENTS   = 6
-ERR_NO_SUCH_OBJECT      = 7
-ERR_ORPHANED_OBJECT     = 8
-ERR_SQL                 = 9
-ERR_MISCONFIGURED       = 10
-ERR_UNCAUGHT            = 11 
-ERR_INVALID_METHOD      = 12
-ERR_TASK                = 13
-ERR_REG_TOKEN_INVALID   = 14
-ERR_REG_TOKEN_EXHAUSTED = 15
-ERR_VIRT                = 16
+SUCCESS = ERR_SUCCESS      = 0
+ERR_TOKEN_EXPIRED          = 1
+ERR_TOKEN_INVALID          = 2
+ERR_USER_INVALID           = 3
+ERR_PASSWORD_INVALID       = 4
+ERR_INTERNAL_ERROR         = 5
+ERR_INVALID_ARGUMENTS      = 6
+ERR_NO_SUCH_OBJECT         = 7
+ERR_ORPHANED_OBJECT        = 8
+ERR_SQL                    = 9
+ERR_MISCONFIGURED          = 10
+ERR_UNCAUGHT               = 11 
+ERR_INVALID_METHOD         = 12
+ERR_TASK                   = 13
+ERR_REG_TOKEN_INVALID      = 14
+ERR_REG_TOKEN_EXHAUSTED    = 15
+ERR_PUPPET_NODE_NOT_SIGNED = 16
+ERR_VIRT                   = 17
 
 # architecture field for machines and profiles
 ARCH_X86 = "x86"
@@ -80,18 +82,22 @@ REASON_FORMAT = "format"
 REASON_NOFILE = "no_file"
 
 # operations types for queued actions
-TASK_OPERATION_COBBLER_SYNC = "cobbler_sync"
-TASK_OPERATION_INSTALL_METAL = "install_metal"
-TASK_OPERATION_INSTALL_VIRT = "install_virt"
-TASK_OPERATION_PUPPET_SYNC = "puppet_sync"
+TASK_OPERATION_INSTALL_VIRT = "install_virt"  
+TASK_OPERATION_DELETE_VIRT = "delete_virt"    
+TASK_OPERATION_START_VIRT  = "start_virt"        
+TASK_OPERATION_SHUTDOWN_VIRT = "shutdown_virt" 
+TASK_OPERATION_PAUSE_VIRT = "pause_virt"
+TASK_OPERATION_UNPAUSE_VIRT = "unpause_virt"
+TASK_OPERATION_DESTROY_VIRT = "destroy_virt"
 VALID_TASK_OPERATIONS = [
-   TASK_OPERATION_COBBLER_SYNC,
-   TASK_OPERATION_INSTALL_METAL,
    TASK_OPERATION_INSTALL_VIRT,
-   TASK_OPERATION_PUPPET_SYNC
+   TASK_OPERATION_DELETE_VIRT,
+   TASK_OPERATION_START_VIRT,
+   TASK_OPERATION_SHUTDOWN_VIRT,
+   TASK_OPERATION_DESTROY_VIRT,
+   TASK_OPERATION_PAUSE_VIRT,
+   TASK_OPERATION_UNPAUSE_VIRT
 ]
-
-# FIXME: use one common file for codes.py across all RPMs
 
 # states for queued actions
 TASK_STATE_QUEUED = "queued"
@@ -106,6 +112,8 @@ VALID_TASK_STATES = [
    TASK_STATE_FAILED,
    TASK_STATE_FINISHED
 ]
+
+# FIXME: use values from the nodes version of this file.
 
 DEPLOYMENT_STATE_CREATING = "creating"
 DEPLOYMENT_STATE_STOPPING = "stopping"
@@ -137,8 +145,7 @@ VALID_DEPLOYMENT_STATES = [
    DEPLOYMENT_STATE_RUNNING
 ]
 
-
-class ShadowManagerException(exceptions.Exception):
+class VirtFactoryException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR
 
    def __init__(self, **kwargs):
@@ -149,7 +156,7 @@ class ShadowManagerException(exceptions.Exception):
        self.comment        = self.load(kwargs,"comment")
        self.tb_data = traceback.extract_stack()
        exceptions.Exception.__init__(self)
-
+       
 
    def format(self):
       msg = """
@@ -188,54 +195,54 @@ Stack Trace:
    def to_datastruct(self):
        return (self.error_code, self.__get_additional_data())
 
-class SuccessException(ShadowManagerException):
+class SuccessException(VirtFactoryException):
    """
    Not an error / return success and data to caller.
    """
    error_code = ERR_SUCCESS   
 
-class TokenExpiredException(ShadowManagerException):
+class TokenExpiredException(VirtFactoryException):
    """
    The user token that was passed in has been logged out 
    due to inactivity.  Call user_login again.
    """
    error_code = ERR_TOKEN_EXPIRED
 
-class TokenInvalidException(ShadowManagerException):
+class TokenInvalidException(VirtFactoryException):
    """
    The user token doesn't exist, so this function call isn't 
    permitted.  Call user_login to get a valid token.
    """
    error_code = ERR_TOKEN_INVALID
 
-class RegTokenInvalidException(ShadowManagerException):
+class RegTokenInvalidException(VirtFactoryException):
    """
    The registration token doesn't exist, so this function call isn't 
    permitted. 
    """
    error_code = ERR_REG_TOKEN_INVALID
 
-class RegTokenExhaustedException(ShadowManagerException):
+class RegTokenExhaustedException(VirtFactoryException):
    """
    The registration token that was passed in has been used
    it allowed number of uses.
    """
    error_code = ERR_REG_TOKEN_EXHAUSTED
 
-class UserInvalidException(ShadowManagerException):
+class UserInvalidException(VirtFactoryException):
    """
    Can't log in this user since the user account doesn't 
    exist in the database.
    """
    error_code = ERR_USER_INVALID
 
-class PasswordInvalidException(ShadowManagerException):
+class PasswordInvalidException(VirtFactoryException):
    """
    Wrong password.  Bzzzt.  Try again.
    """
    error_code = ERR_PASSWORD_INVALID
 
-class InternalErrorException(ShadowManagerException):
+class InternalErrorException(VirtFactoryException):
    """
    FIXME: This is a generic error code, and if something is 
    throwing that error, it probably
@@ -243,7 +250,7 @@ class InternalErrorException(ShadowManagerException):
    """
    error_code = ERR_INTERNAL_ERROR
 
-class InvalidArgumentsException(ShadowManagerException):
+class InvalidArgumentsException(VirtFactoryException):
    """
    The arguments passed in to this function failed to pass 
    validation.  See additional_data for the
@@ -251,17 +258,17 @@ class InvalidArgumentsException(ShadowManagerException):
    """
    error_code = ERR_INVALID_ARGUMENTS
 
-class NoSuchObjectException(ShadowManagerException):
+class NoSuchObjectException(VirtFactoryException):
    """
    The id passed in doesn't refer to an object.
    """
    error_code = ERR_NO_SUCH_OBJECT
 
-class InvalidMethodException(ShadowManagerException):
+class InvalidMethodException(VirtFactoryException):
    """The method called does not exist"""
    error_code = ERR_INVALID_METHOD
 
-class UncaughtException(ShadowManagerException):
+class UncaughtException(VirtFactoryException):
    """
    The python code choked.  additional_data contains the 
    stacktrace, and it's ok to give the stacktrace
@@ -270,7 +277,7 @@ class UncaughtException(ShadowManagerException):
    """
    error_code = ERR_UNCAUGHT
 
-class OrphanedObjectException(ShadowManagerException):
+class OrphanedObjectException(VirtFactoryException):
    """
    A delete can't proceed because another object references 
    this one, or an add can't proceed because a
@@ -278,7 +285,7 @@ class OrphanedObjectException(ShadowManagerException):
    """
    error_code = ERR_ORPHANED_OBJECT
 
-class SQLException(ShadowManagerException):
+class SQLException(VirtFactoryException):
    """
    The code died inside a SQL call.  This is probably 
    a sign that the validation prior to making
@@ -287,29 +294,37 @@ class SQLException(ShadowManagerException):
    """
    error_code = ERR_SQL
 
-class TaskException(ShadowManagerException):
+class TaskException(VirtFactoryException):
    """
    Something went wrong with the background task engine
    """
    error_code = ERR_TASK
 
-class MisconfiguredException(ShadowManagerException):
+class MisconfiguredException(VirtFactoryException):
    """
-   The shadowmanager service isn't properly configured and 
+   The virt-factory service isn't properly configured and 
    no calls can be processed until this is corrected on the 
    server side.  The UI/WUI/etc is non-functional and should 
    display a splash screen telling the user to finish their 
-   setup of the shadowmanager service by running "shadow init", edit
-   /var/lib/shadowmanager/settings, and then run "shadow import".
+   setup of the virt-factory service by running "vf_server init", edit
+   /var/lib/virt-factory/settings, and then run "vf_server import".
    """
    error_code = ERR_MISCONFIGURED
 
-
-class VirtException(ShadowManagerException):
+class VirtException(VirtFactoryException):
    """
    Errors from virt provisioning and libvirt
    """
    error_code = ERR_VIRT
+
+
+class PuppetNodeNotSignedException(VirtFactoryException):
+   """
+   The puppet node certificate could not be signed, either
+   because there was no matching certificate requrest or
+   due to another puppetca error.
+   """
+   error_code = ERR_PUPPET_NODE_NOT_SIGNED
 
 def success(data=None,job_id=None):
    """

@@ -41,7 +41,7 @@ class WebSvc(object):
         self.db = db_util.DbUtil()
         
     def __init_log(self):
-        # lets see what happens when we c&p the stuff from shadow.py 
+        # lets see what happens when we c&p the stuff from server.py 
         log = logger.Logger()
         self.logger = log.logger
     

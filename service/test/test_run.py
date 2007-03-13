@@ -11,20 +11,20 @@ import time
 sys.path.append("../")
 from test_modules import user
 
-class Shadow(object):
+class VirtFactor(object):
     def __init__(self, args=None):
         self.args = args
         self.test_modules = [user]
 
     def run(self):
-        bin = "../shadow.py"
+        bin = "../scripts/vf_server.py"
 
         pid = os.fork()
         if not pid:
             # fork twice to avoid zombies
             pid2 = os.fork()
             if not pid2:
-                os.execv("/home/devel/alikins/hg/virt/service/shadow.py", ["shadow.py"])
+                os.execv("/home/devel/alikins/hg/virt/service/scripts/vf_server.py", ["vf_server.py"])
                 # exec -should- never return
                 os.perror(_("execv didn't execv?"))
             else:
@@ -40,7 +40,7 @@ class Shadow(object):
     
 
 def main():
-    s = Shadow()
+    s = VirtFactor()
 #    print s.run()
 #    time.sleep(4)
     print s.runtests()
