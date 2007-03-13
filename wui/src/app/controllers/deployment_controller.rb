@@ -12,9 +12,11 @@ class DeploymentController < AbstractObjectController
        
        # talk to the node daemon of the host to see what the guest's
        # current state is, and update it.
-       obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
-       obj.refresh()
-       
+       if !@params.nil? and !params[:id].nil?
+           obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+           obj.refresh()
+       end
+
        # do the regular get stuff here.
        super
 

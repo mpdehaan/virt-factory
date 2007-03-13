@@ -28,12 +28,18 @@
             <TD>Puppet Class Node Overrides (Optional)</TD>
             <TD><%= f.text_field :puppet_node_diff %></TD>
          </TR>
+         <% if @operation == "edit" %>
          <TR>
-            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
+            <TD>MAC Address</TD>
+            <TD><%= @item.mac_address %></TD>
          </TR>
          <TR>
             <TD>Current State</TD>
             <TD><%= @item.state %> <%= link_to "(reload)", :controller => "deployment", :action=>"edit", :id => @item.id %></TD>
+         </TR>
+         <% end %>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
          </TR>
       </TABLE>
  
