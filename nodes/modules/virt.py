@@ -56,7 +56,7 @@ class Virt(web_svc.WebSvc):
             "virt_pause"    : self.pause,
             "virt_unpause"  : self.unpause,
             "virt_delete"   : self.undefine,
-            "virt_status"   : self.get_status
+            "virt_status"   : self.get_status,
         }
         web_svc.WebSvc.__init__(self)
 
@@ -153,7 +153,7 @@ class Virt(web_svc.WebSvc):
 
     #=======================================================================
 
-    def get_status(self, mac_address)
+    def get_status(self, mac_address):
 
         """
         Return a state suitable for server consumption.  Aka, codes.py values, not XM output.

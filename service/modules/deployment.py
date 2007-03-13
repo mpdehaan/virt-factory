@@ -26,6 +26,7 @@ import regtoken
 import provisioning
 import nodecomm
 
+import socket
 import traceback
 import threading
 import cobbler.api
@@ -205,10 +206,11 @@ class Deployment(web_svc.AuthWebSvc):
          self.cobbler_sync(sync_args)
 
          
-         handle = nodecomm.get_handle(machine_result.data["hostname"])
+         handle = nodecomm.get_handle(socket.gethostname(), machine_result.data["hostname"])
          
+         deployment_dep_args["id"] = results.data
          self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
-         return rc
+         return success() 
 
     def generate_mac_address(self, id):
          # pick an offset into the XenSource range as given by the highest used object id
@@ -340,7 +342,7 @@ class Deployment(web_svc.AuthWebSvc):
          task_obj.add(token, {
             "user_id"       : -1,  # FIXME: obtain from token
             "machine_id"    : args["machine_id"],
-            "deployment_id" : results.data,
+            "deployment_id" : args["id"],
             "action_type"   : task_operation,
             "state"         : TASK_STATE_QUEUED
          })

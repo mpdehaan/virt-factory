@@ -26,6 +26,12 @@ from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
+# FIXME: fromhost should be taken from a settings file or other source
+# not passed in, which could cause problems with systems that have
+# multiple hostnames and an unpredictable return for socket.gethostname
+# especially when mixed in with the puppet cert stuff that may only create
+# one pem file for a specific hostname.
+
 def get_handle(fromhost, target):
     """
     Return a xmlrpc server object for a given hostname.
