@@ -155,6 +155,7 @@ class DbUtil(object):
             return success([])
 
         # build the nested confusingness
+        result_hash = {}
         result_list = []
         for each_result in results:
             result_hash = {}

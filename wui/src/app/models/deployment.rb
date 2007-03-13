@@ -33,5 +33,29 @@ class Deployment < ManagedObject
         self.get_machine().hostname + ": " + self.get_profile().name
     end
 
+    def __virt_call(id, op)
+        ManagedObject.call_server(op, @session, { "id" => id }, id.to_s)
+    end
+
+    def pause
+        __virt_call(self.id, "deployment_pause")
+    end
+
+    def unpause
+        __virt_call(self.id, "deployment_unpause")
+    end
+
+    def destroy
+        __virt_call(self.id, "deployment_shutdown")
+    end
+
+    def start
+        __virt_call(self.id, "deployment_start")
+    end
+
+    def shutdown
+        __virt_call(self.id, "deployment_shutdown")
+    end
+
 end
 

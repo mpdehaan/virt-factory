@@ -81,10 +81,10 @@ REASON_FORMAT = "format"
 REASON_NOFILE = "no_file"
 
 # operations types for queued actions
-TASK_OPERATION_INSTALL_VIRT = "install_virt"     # definitely needed
-TASK_OPERATION_DELETE_VIRT = "delete_virt"       # definitely needed
-TASK_OPERATION_STOP_VIRT   = "stop_virt"         # definitely needed
-TASK_OPERATION_START_VIRT  = "start_virt"        # definitely needed
+TASK_OPERATION_INSTALL_VIRT = "install_virt"  
+TASK_OPERATION_DELETE_VIRT = "delete_virt"    
+TASK_OPERATION_START_VIRT  = "start_virt"        
+TASK_OPERATION_SHUTDOWN_VIRT = "shutdown_virt" 
 TASK_OPERATION_PAUSE_VIRT = "pause_virt"
 TASK_OPERATION_UNPAUSE_VIRT = "unpause_virt"
 TASK_OPERATION_DESTROY_VIRT = "destroy_virt"
@@ -92,7 +92,7 @@ VALID_TASK_OPERATIONS = [
    TASK_OPERATION_INSTALL_VIRT,
    TASK_OPERATION_DELETE_VIRT,
    TASK_OPERATION_START_VIRT,
-   TASK_OPERATION_STOP_VIRT,
+   TASK_OPERATION_SHUTDOWN_VIRT,
    TASK_OPERATION_DESTROY_VIRT,
    TASK_OPERATION_PAUSE_VIRT,
    TASK_OPERATION_UNPAUSE_VIRT

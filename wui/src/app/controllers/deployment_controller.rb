@@ -32,29 +32,34 @@ class DeploymentController < AbstractObjectController
 
    end
 
-    def self.pause(object_class,id,session)
-        MangedObject.call_server("virt_pause", session, { "id" => id }, id.to_s)
-        redirect_to :action=> "edit", :id => id
+    def pause
+        obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+        obj.pause()
+        redirect_to :action=> "edit", :id => @params[:id]
     end
 
-    def self.unpause(object_class,id,session)
-        MangedObject.call_server("virt_unpause", session, { "id" => id }, id.to_s)
-        redirect_to :action=> "edit", :id => id
+    def unpause
+        obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+        obj.unpause()
+        redirect_to :action=> "edit", :id => @params[:id]
     end
 
-    def self.start(object_class,id,session)
-        MangedObject.call_server("virt_start", session, { "id" => id }, id.to_s)
-        redirect_to :action=> "edit", :id => id
+    def start
+        obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+        obj.start()
+        redirect_to :action=> "edit", :id => @params[:id]
     end
 
-    def self.stop(object_class,id,session)
-        MangedObject.call_server("virt_stop", session, { "id" => id }, id.to_s)
-        redirect_to :action=> "edit", :id => id
+    def shutdown
+        obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+        obj.shutdown()
+        redirect_to :action=> "edit", :id => @params[:id]
     end
     
-    def self.destroy(object_class,id,session)
-        MangedObject.call_server("virt_destroy", session, { "id" => id }, id.to_s)
-        redirect_to :action=> "edit", :id => id
+    def destroy
+        obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+        obj.destroy()
+        redirect_to :action=> "edit", :id => @params[:id]
     end
 
 end

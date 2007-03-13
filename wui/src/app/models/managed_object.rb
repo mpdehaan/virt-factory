@@ -200,6 +200,7 @@ class ManagedObject
 
         # the return signature for a backend API method is usually (rc, hash) where hash contains
         # one or more of the following fields.  See explanation in XMLRPCClientException class.
+ 
         (rc, rawdata) = @@server.call(method_name, session[:login], args)
 
         unless rc == ERR_SUCCESS
