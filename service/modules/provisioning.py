@@ -167,7 +167,7 @@ class CobblerTranslatedProfile:
        # intentional.
        # use the same kickstart template for all profiles but template it out based on
        # distro, profile, and system settings. 
-       new_item.set_kickstart("/var/lib/shadowmanager/kick-fc6.ks")
+       new_item.set_kickstart("/var/lib/virt-factory/kick-fc6.ks")
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
@@ -290,6 +290,7 @@ class CobblerTranslatedSystem:
        print "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
        for i in profiles:
            if i["id"] == profile_id:
+               print "MATCHED:", i
                profile_name = i["name"] 
                break
 
@@ -410,7 +411,7 @@ class Provisioning(web_svc.AuthWebSvc):
             CobblerTranslatedSystem(cobbler_api,profiles,p)
          for dp in deployments:
             print "- deployment: %s" % dp
-            CobblerTranslatedSystem(cobbler_api,deployments,dp)
+            CobblerTranslatedSystem(cobbler_api,profiles,dp)
 
          cobbler_api.serialize()
          cobbler_api.sync()
@@ -445,7 +446,6 @@ class Provisioning(web_svc.AuthWebSvc):
             print ENOROOT 
 
 
-        # create /var/lib/cobbler/settings from /var/lib/shadowmanager/settings
         cobbler_api = cobbler.api.BootAPI()
         # since cobbler is running in syncless mode, make sure sync
         # has been run at least once with an empty config to create
@@ -526,7 +526,7 @@ class Provisioning(web_svc.AuthWebSvc):
               # path and try to guess.  It's a bit error prone, but workable for mirrors that have a known
               # directory structure.  See cobbler's action_import.py for that.
 
-              "kickstart" : "/var/lib/shadowmanager/kick-fc6.ks",
+              "kickstart" : "/var/lib/virt-factory/kick-fc6.ks",
               "kickstart_metadata" : ""
            }
            print "cobbler distro add: %s" % add_data

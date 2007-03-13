@@ -30,49 +30,15 @@ CONFIG_FILE = "/var/lib/virt-factory/settings"
 # slurp a bit too much default info but at least it's not pulling in
 # all the FC's.
 
-defaults = {
-    "this_server" : {
-       "address" : "127.0.0.1"
-    }, 
-    "databases" : {
-       "primary" : "/var/lib/virt-factory/primary_db"
-    },
-    "logs" : {
-       "service" : "/var/lib/virt-factory/svclog"
-    },
-    "mirrors" : {
-       "FC-6"   : "rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD"
-    }
-}
-
 class Config(web_svc.AuthWebSvc):
      def __init__(self):
-        self.methods = {"config_list": self.list,
-                        "config_reset": self.reset}
+        self.methods = { "config_list": self.list }
         web_svc.AuthWebSvc.__init__(self)
         config_data_obj = config_data.Config()
         self.config_data = config_data_obj.get()
 
      def list(self, config_args=None):
-
         return success(self.config_data)
-
-     def reset(self, config_args=None):
-
-        self.config_data.reset()
-      
-        print """
-      The configuration values in %s have been reset.
-
-      Next steps:
-         (1) Edit the address field and mirror list in %s
-             Change other settings as desired.
-         (2) Run 'shadow import' to import distributions from your selected mirrors.
-         (3) Test the configuration by logging in using the Web UI.  It should now be ready for use.
-
-      """ % (CONFIG_FILE, CONFIG_FILE)
-
-        return success(0)
 
 
 methods = Config()
