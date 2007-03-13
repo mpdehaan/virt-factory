@@ -37,7 +37,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/nodes/modules/*.py*
 %dir %{python_sitelib}/virt-factory/nodes/yaml
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
-
+%dir /var/log/virt-factory
 
 
 %changelog
