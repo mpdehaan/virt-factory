@@ -230,7 +230,7 @@ def node_comm(machine_hostname, command, *cmd_args):
      print rc
      if rc != 0:
          raise UncaughtException(comment="failed")
-     return rc
+     return (rc, 0)
        
 def install_virt(task):
 
