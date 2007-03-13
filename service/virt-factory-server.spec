@@ -14,6 +14,7 @@ Requires: koan >= 0.2.7
 Requires: python-virtinst
 Requires: puppet-server
 Requires: python-sqlite2
+Requires: m2crypto
 Requires: rhpl
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
@@ -37,6 +38,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_import
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db.sh
+%{_bindir}/vf_nodecomm
 /etc/init.d/vf_server
 %dir /var/lib/virt-factory
 %config(noreplace) /etc/virt-factory/settings
