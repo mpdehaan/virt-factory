@@ -2,7 +2,7 @@
 databases:
     primary: /var/lib/virt-factory/primary_db
 logs:
-    service: /var/lib/virt-factory/svclog
+    service: /var/log/virt-factory/svclog
 mirrors:
     FC-6: 'rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD'
 this_server:
