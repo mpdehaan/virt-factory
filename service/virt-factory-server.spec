@@ -55,6 +55,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/virt-factory
 %dir /usr/share/virt-factory/db_schema
 /usr/share/virt-factory/db_schema/*.sql
+%dir /var/log/virt-factory
 
 
 %changelog
