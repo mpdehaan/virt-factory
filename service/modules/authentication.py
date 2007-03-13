@@ -50,7 +50,7 @@ class Authentication(web_svc.WebSvc):
          
 
          if not os.path.exists("/var/lib/virt-factory/primary_db"):
-             raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
+             raise MisconfiguredException(comment="/var/lib/virt-factory/primary_db doesn't exist")
          
          # the system account cannot be used to obtain a token under any circumstances. 
          # it exists for database referential integrity when logging, or when creating tasks (etc).

@@ -152,7 +152,7 @@ class Machine(web_svc.AuthWebSvc):
             try:
                 self.profile = profile.Profile()
                 self.profile.get( token, { "id" : u.profile_id } )
-            except ShadowManagerException:
+            except VirtFactoryException:
                 raise OrphanedObjectException(comment="profile_id")
 
         # TODO: generate the registration token here and make it actually random and decent.
@@ -228,7 +228,7 @@ class Machine(web_svc.AuthWebSvc):
             try:
                 profile_obj = profile.Profile()
                 profile_obj.get(token, { "id" : u.profile_id })
-            except ShadowManagerException:
+            except VirtFactoryException:
                 raise OrphanedObjectException(comments="no profile found",invalid_fields={"profile_id":REASON_ID})
 
         # TODO: make this work w/ u.to_datastruct() 
@@ -277,7 +277,7 @@ class Machine(web_svc.AuthWebSvc):
         if machine_args.has_key("hostname"):
             hostname = machine_args["hostname"]
         else:
-            # FIXME: this should be a shadowmanager exception if API is exposed remotely
+            # FIXME: this should be a virt-factory exception if API is exposed remotely
             raise ValueError("hostname is required")
 
         result = self.db.nested_list(

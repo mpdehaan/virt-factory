@@ -179,14 +179,14 @@ class Deployment(web_svc.AuthWebSvc):
              machine_obj = machine.Machine()
              machine_result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
              mac = machine_result.data["mac_address"]
-         except ShadowManagerException:
+         except VirtFactoryException:
              raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
 
          try:
              profile_obj = profile.Profile()
              result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"]})
              profilename = result.data["name"]
-         except ShadowManagerException:
+         except VirtFactoryException:
              raise OrphanedObjectException(invalid_fields={'profile_id':REASON_ID})
 
          display_name = mac + " / " + profilename
@@ -232,14 +232,14 @@ class Deployment(web_svc.AuthWebSvc):
              machine_obj = machine.Machine()
              result = machine_obj.get(token, { "id" : deployment_dep_args["machine_id"]})
              mac = result.data["mac_address"]
-         except ShadowManagerException:
+         except VirtFactoryException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          try:
              profile_obj = profile.Profile()
              result = profile_obj.get(token, { "id" : deployment_dep_args["profile_id"] })
              profilename = result.data["name"]
-         except ShadowManagerException:
+         except VirtFactoryException:
              raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
          display_name = mac + "/" + profilename

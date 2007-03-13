@@ -151,7 +151,7 @@ class Profile(web_svc.AuthWebSvc):
              try:
                  self.distribution = distribution.Distribution()
                  self.distribution.get(None, { "id" : u.distribution_id})
-             except ShadowManagerException:
+             except VirtFactoryException:
                  raise OrphanedObjectException(comment='distribution_id',traceback=traceback.format_exc())
          data = u.to_datastruct()
          self.cobbler_sync(data)

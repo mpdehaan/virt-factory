@@ -15,7 +15,7 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# "across the nodes I see my shadow.py ..."
+# "across the nodes I see my sh_adow.py ..."
 
 import SimpleXMLRPCServer
 import os
@@ -150,11 +150,11 @@ class XmlRpcInterface:
                if method not in ["user_login", "token_check", "register", "sign_node_cert" ]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
-           except ShadowManagerException, e:
+           except VirtFactoryException, e:
                self.__log_exc()
                return e.to_datastruct()
            except:
-               self.logger.debug("Not a shadowmanager specific exception")
+               self.logger.debug("Not a virt-factory specific exception")
                self.__log_exc()
                raise
          
@@ -189,13 +189,12 @@ def serve(websvc):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     #server = ShadowXMLRPCServer((socket.gethostname(), 5150))
-     server = ShadowXMLRPCServer(('', 5150))
+     server = VirtFactoryXMLRPCServer(('', 5150))
      server.register_instance(websvc)
      server.serve_forever()
 
 
-class ShadowXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
+class VirtFactoryXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
        self.allow_reuse_address = True
        SimpleXMLRPCServer.SimpleXMLRPCServer.__init__(self, args)

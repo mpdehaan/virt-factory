@@ -144,7 +144,7 @@ VALID_DEPLOYMENT_STATES = [
    DEPLOYMENT_STATE_RUNNING
 ]
 
-class ShadowManagerException(exceptions.Exception):
+class VirtFactoryException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR
 
    def __init__(self, **kwargs):
@@ -194,54 +194,54 @@ Stack Trace:
    def to_datastruct(self):
        return (self.error_code, self.__get_additional_data())
 
-class SuccessException(ShadowManagerException):
+class SuccessException(VirtFactoryException):
    """
    Not an error / return success and data to caller.
    """
    error_code = ERR_SUCCESS   
 
-class TokenExpiredException(ShadowManagerException):
+class TokenExpiredException(VirtFactoryException):
    """
    The user token that was passed in has been logged out 
    due to inactivity.  Call user_login again.
    """
    error_code = ERR_TOKEN_EXPIRED
 
-class TokenInvalidException(ShadowManagerException):
+class TokenInvalidException(VirtFactoryException):
    """
    The user token doesn't exist, so this function call isn't 
    permitted.  Call user_login to get a valid token.
    """
    error_code = ERR_TOKEN_INVALID
 
-class RegTokenInvalidException(ShadowManagerException):
+class RegTokenInvalidException(VirtFactoryException):
    """
    The registration token doesn't exist, so this function call isn't 
    permitted. 
    """
    error_code = ERR_REG_TOKEN_INVALID
 
-class RegTokenExhaustedException(ShadowManagerException):
+class RegTokenExhaustedException(VirtFactoryException):
    """
    The registration token that was passed in has been used
    it allowed number of uses.
    """
    error_code = ERR_REG_TOKEN_EXHAUSTED
 
-class UserInvalidException(ShadowManagerException):
+class UserInvalidException(VirtFactoryException):
    """
    Can't log in this user since the user account doesn't 
    exist in the database.
    """
    error_code = ERR_USER_INVALID
 
-class PasswordInvalidException(ShadowManagerException):
+class PasswordInvalidException(VirtFactoryException):
    """
    Wrong password.  Bzzzt.  Try again.
    """
    error_code = ERR_PASSWORD_INVALID
 
-class InternalErrorException(ShadowManagerException):
+class InternalErrorException(VirtFactoryException):
    """
    FIXME: This is a generic error code, and if something is 
    throwing that error, it probably
@@ -249,7 +249,7 @@ class InternalErrorException(ShadowManagerException):
    """
    error_code = ERR_INTERNAL_ERROR
 
-class InvalidArgumentsException(ShadowManagerException):
+class InvalidArgumentsException(VirtFactoryException):
    """
    The arguments passed in to this function failed to pass 
    validation.  See additional_data for the
@@ -257,17 +257,17 @@ class InvalidArgumentsException(ShadowManagerException):
    """
    error_code = ERR_INVALID_ARGUMENTS
 
-class NoSuchObjectException(ShadowManagerException):
+class NoSuchObjectException(VirtFactoryException):
    """
    The id passed in doesn't refer to an object.
    """
    error_code = ERR_NO_SUCH_OBJECT
 
-class InvalidMethodException(ShadowManagerException):
+class InvalidMethodException(VirtFactoryException):
    """The method called does not exist"""
    error_code = ERR_INVALID_METHOD
 
-class UncaughtException(ShadowManagerException):
+class UncaughtException(VirtFactoryException):
    """
    The python code choked.  additional_data contains the 
    stacktrace, and it's ok to give the stacktrace
@@ -276,7 +276,7 @@ class UncaughtException(ShadowManagerException):
    """
    error_code = ERR_UNCAUGHT
 
-class OrphanedObjectException(ShadowManagerException):
+class OrphanedObjectException(VirtFactoryException):
    """
    A delete can't proceed because another object references 
    this one, or an add can't proceed because a
@@ -284,7 +284,7 @@ class OrphanedObjectException(ShadowManagerException):
    """
    error_code = ERR_ORPHANED_OBJECT
 
-class SQLException(ShadowManagerException):
+class SQLException(VirtFactoryException):
    """
    The code died inside a SQL call.  This is probably 
    a sign that the validation prior to making
@@ -293,25 +293,25 @@ class SQLException(ShadowManagerException):
    """
    error_code = ERR_SQL
 
-class TaskException(ShadowManagerException):
+class TaskException(VirtFactoryException):
    """
    Something went wrong with the background task engine
    """
    error_code = ERR_TASK
 
-class MisconfiguredException(ShadowManagerException):
+class MisconfiguredException(VirtFactoryException):
    """
-   The shadowmanager service isn't properly configured and 
+   The virt-factory service isn't properly configured and 
    no calls can be processed until this is corrected on the 
    server side.  The UI/WUI/etc is non-functional and should 
    display a splash screen telling the user to finish their 
-   setup of the shadowmanager service by running "shadow init", edit
-   /var/lib/shadowmanager/settings, and then run "shadow import".
+   setup of the virt-factory service by running "vf_server init", edit
+   /var/lib/virt-factory/settings, and then run "vf_server import".
    """
    error_code = ERR_MISCONFIGURED
 
 
-class PuppetNodeNotSignedException(ShadowManagerException):
+class PuppetNodeNotSignedException(VirtFactoryException):
    """
    The puppet node certificate could not be signed, either
    because there was no matching certificate requrest or
