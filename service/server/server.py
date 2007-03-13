@@ -33,6 +33,8 @@ from codes import *
 
 import config_data
 import logger
+import utils
+
 # FIXME: this should be using the config settings -akl
 logger.logfilepath = "/var/lib/virt-factory/svclog"
 
@@ -49,39 +51,6 @@ from modules import user
 from modules import regtoken
 from modules import puppet
 
-
-# this is kind of handy, so keep it around for now
-# but we really need to fix out server side logging and error
-# reporting so we don't need it
-import string
-import traceback
-def trace_me():
-   x = traceback.extract_stack()
-   bar = string.join(traceback.format_list(x))
-   return bar
-
-
-def daemonize(pidfile=None):
-    """
-    Daemonize this process with the UNIX double-fork trick.
-    Writes the new PID to the provided file name if not None.
-    """
-
-    print pidfile
-    pid = os.fork()
-    if pid > 0:
-       print pid
-       sys.exit(0)
-    os.setsid()
-    os.umask(0)
-    pid = os.fork()
-
-
-    if pid > 0:
-       print "ffff", pid
-       if pidfile is not None:
-          open(pidfile, "w").write(str(pid))
-       sys.exit(0)
 
 
 class XmlRpcInterface:
@@ -216,7 +185,7 @@ def main(argv):
           prov_obj.sync(None, {}) # just for testing
           return
     if "daemon" in sys.argv or "--daemon" in sys.argv:
-       daemonize("/var/run/virt-factory.pid")
+       utils.daemonize("/var/run/vf_server.pid")
        serve(websvc)
     else:
        print "serving...\n"

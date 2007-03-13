@@ -36,6 +36,7 @@ import subprocess
 from codes import *
 import config_data
 import logger
+import utils
 # FIXME: pull this from the config file -akl
 logger.logfilepath = "/var/lib/virt-factory/taskatron.log" # FIXME
 
@@ -143,7 +144,6 @@ def dotick(hostname,once=False):
 
    task_results2 = task_obj.list(None, {})
    tasks = task_results2.data
-   print "==="
 
    # keep finished tasks in the list for 30 minutes or so
   
@@ -329,6 +329,7 @@ def main(argv):
         print handle.test_add(1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         clean_up_tasks()
+        utils.daemonize("/var/run/vf_taskatron.pid")
         run_forever()
     elif len(sys.argv) == 1:
         print "Running single task in debug mode, since --daemon wasn't specified..."

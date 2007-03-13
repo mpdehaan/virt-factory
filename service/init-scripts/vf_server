@@ -36,6 +36,7 @@ start() {
     create_db_if_needed
 
     /usr/bin/vf_server --daemon
+    /usr/bin/vf_taskatron --daemon
     RETVAL=$?
     echo_success
     echo
@@ -52,6 +53,7 @@ stop() {
         return 1
     fi
     pkill vf_server
+    pkill vf_taskatron
     RETVAL=$?
     rm /var/lock/subsys/vf_server
     echo_success
