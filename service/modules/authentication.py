@@ -49,7 +49,7 @@ class Authentication(web_svc.WebSvc):
          """
          
 
-         if not os.path.exists("/var/lib/shadowmanager/primary_db"):
+         if not os.path.exists("/var/lib/virt-factory/primary_db"):
              raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
          
          # the system account cannot be used to obtain a token under any circumstances. 
@@ -219,8 +219,8 @@ class Authentication(web_svc.WebSvc):
         if token is None:
             return SuccessException()
         
-        if not os.path.exists("/var/lib/shadowmanager/primary_db"):
-            raise MisconfiguredException(comment="/var/lib/shadowmanager/primary_db doesn't exist")
+        if not os.path.exists("/var/lib/virt-factory/primary_db"):
+            raise MisconfiguredException(comment="/var/lib/virt-factory/primary_db doesn't exist")
 
         self.logger.debug("self.tokens: %s" % self.tokens)
         self.logger.debug("token: %s" % type(token))

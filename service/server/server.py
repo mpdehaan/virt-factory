@@ -26,10 +26,7 @@ from pysqlite2 import dbapi2 as sqlite
 
 SERVE_ON = (None,None)
 
-# FIXME: this app writes a logfile in /opt/shadowmanager/svclog -- package should use logrotate
-# FIXME: log setting in /opt/shadowmanager/svclog shouldn't be "DEBUG" for production use
-# FIXME: /opt/shadowmanager/svclog should be /var/log/shadowmanager/svc.log
-# FIXME: /opt/shadowmanager/primary_db should be /var/lib/shadowmanager/primary_db
+# FIXME: logrotate
 
 
 from codes import *
@@ -220,7 +217,7 @@ def main(argv):
           prov_obj.sync(None, {}) # just for testing
           return
     if "daemon" in sys.argv or "--daemon" in sys.argv:
-       daemonize("/var/run/shadow.pid")
+       daemonize("/var/run/virt-factory.pid")
        serve(websvc)
     else:
        print "serving...\n"
