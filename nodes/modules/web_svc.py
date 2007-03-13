@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-## ShadowManager backend code.
+## Virt-factory backend code.
 ##
 ## Copyright 2006, Red Hat, Inc
 ## Adrian Likins <alikins@redhat.com
@@ -34,7 +34,6 @@ class WebSvc(object):
         self.__init_log()
         
     def __init_log(self):
-        # lets see what happens when we c&p the stuff from shadow.py 
         log = logger.Logger()
         self.logger = log.logger
     

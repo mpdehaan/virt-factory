@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 
-# ShadowManager backend code.
+# virt-factory client code.
 #
 # Copyright 2006, Red Hat, Inc
 # Michael DeHaan <mdehaan@redhat.com>
