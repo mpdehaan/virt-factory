@@ -57,5 +57,9 @@ class Deployment < ManagedObject
         __virt_call(self.id, "deployment_shutdown")
     end
 
+    def refresh
+        __virt_call(self.id, "deployment_refresh")
+    end
+
 end
 

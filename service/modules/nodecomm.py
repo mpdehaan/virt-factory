@@ -70,13 +70,20 @@ def main(args):
     hostto   = args[2]
     method   = args[3]
     method_args     = args[4:]
+    print "----------------------------"
+    print "vf_nodecomm"
+    print "from        = ", hostfrom
+    print "to          = ", hostto
     print "method      = ", method
     print "method_args = ", method_args
+    print "----------------------------"
     handle = get_handle(hostfrom, hostto)
     real_args = []
     real_args.append(method)
     real_args.extend(method_args)
-    print handle.call(*real_args)
+    rc = handle.call(*real_args)
+    print rc
+    return rc
 
 if __name__ == "__main__":
     main(sys.argv)

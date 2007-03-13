@@ -9,6 +9,13 @@ class DeploymentController < AbstractObjectController
    end
 
    def edit
+       
+       # talk to the node daemon of the host to see what the guest's
+       # current state is, and update it.
+       obj = ManagedObject.retrieve(Deployment, @session, @params[:id])
+       obj.refresh()
+       
+       # do the regular get stuff here.
        super
 
        # get a list of address to ip mappings

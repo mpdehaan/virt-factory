@@ -159,14 +159,16 @@ class Virt(web_svc.WebSvc):
         Return a state suitable for server consumption.  Aka, codes.py values, not XM output.
         """
 
-        state = self.__get_xm_state(self, mac_address)
+        state = self.__get_xm_state(mac_address)
         if state == "off":
-            return DEPLOYMENT_STATE_STOPPED
-        if state.find("p") != -1:
-            return DEPLOYMENT_STATE_PAUSED
-        if state.find("b") != -1 or state.find("-----") != -1 or state.find("r") != -1:
-            return DEPLOYMENT_STATE_RUNNING
-        return DEPLOYMENT_STATE_UNKNOWN
+            return success("STATE=off")
+        elif state.find("p") != -1:
+            return success("STATE=paused")
+        elif state.find("b") != -1 or state.find("-----") != -1 or state.find("r") != -1:
+            return success("STATE=running")
+        else: 
+            return success("STATE=unknown")
+        return success()
 
     #=======================================================================
 
@@ -188,7 +190,7 @@ class Virt(web_svc.WebSvc):
 
         """  
 
-        cmd_mac = mac_address.replace(":","_").lower()
+        cmd_mac = mac_address.replace(":","_").upper()
         output = self.__run_xm("list", None, True)
         lines = output.split("\n")
         if len(lines) == 1:
@@ -224,7 +226,11 @@ class Virt(web_svc.WebSvc):
             print comment
             raise VirtException(comment=comment)
         else:
-            return self.__run_xm(command, mac_address, False)
+            rc = self.__run_xm(command, mac_address, False)
+            if rc == 0:
+                return success(rc)
+            else:
+                raise VirtException(comment="failed")
 
     #=======================================================================
 
@@ -237,7 +243,7 @@ class Virt(web_svc.WebSvc):
          """       
 
          if mac_address is not None:
-             cmd_mac = mac_address.replace(":","_").lower()
+             cmd_mac = mac_address.replace(":","_").upper()
              xm_command = "%s %s %s" % (XM_BIN, command, cmd_mac)
          else:
              xm_command = "%s %s" % (XM_BIN, command)

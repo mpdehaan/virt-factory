@@ -24,8 +24,8 @@ import web_svc
 import task
 import regtoken
 import provisioning
-import nodecomm
 
+import subprocess
 import socket
 import traceback
 import threading
@@ -123,6 +123,7 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_stop": self.shutdown,
                         "deployment_shutdown": self.shutdown,
                         "deployment_destroy": self.destroy,
+                        "deployment_refresh": self.refresh,
                         "deployment_delete": self.delete,
                         "deployment_list": self.list,
                         "deployment_get": self.get}
@@ -211,9 +212,6 @@ class Deployment(web_svc.AuthWebSvc):
          sync_args = self.get(token, { "id" : results.data }).data
          self.cobbler_sync(sync_args)
 
-         
-         handle = nodecomm.get_handle(socket.gethostname(), machine_result.data["hostname"])
-         
          deployment_dep_args["id"] = results.data
          self.__queue_operation(token, deployment_dep_args, TASK_OPERATION_INSTALL_VIRT) 
          return success() 
@@ -407,6 +405,40 @@ class Deployment(web_svc.AuthWebSvc):
                 "profiles.id"    : "deployments.profile_id" 
             },
         )
+
+
+    def refresh(self, token, args):
+         """
+         Most all node actions are out of band (scheduled) but we need
+         the current state when loading the edit page
+         """
+
+         dargs = self.get(token, { "id" : args["id"] }).data
+
+         print "running refresh code"
+         cmd = [
+            "/usr/bin/vf_nodecomm",
+            socket.gethostname(),
+            dargs["machine"]["hostname"],
+            "virt_status",
+            dargs["mac_address"]
+         ]
+         p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+         data = p1.communicate()[0]
+         lines = data.split("\n")
+         print "output = %s" % data
+         for line in lines:
+             if line.find("STATE=running") != -1:
+                dargs["state"] = "running"
+                return self.edit(token, dargs)
+             elif line.find("STATE=paused") != -1:
+                dargs["state"] = "paused"
+                return self.edit(token, dargs)
+             elif line.find("STATE=off") != -1:
+                dargs["state"] = "off"
+                return self.edit(token, dargs)
+         print "no match"
+         return success()  # FIXME: should this be failure?        
 
         
     def get(self, token, args):

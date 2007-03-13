@@ -103,14 +103,10 @@ def dotick(hostname,once=False):
 
    # run any tasks in the queue.
    for item in tasks:
-       print "---"
-       print "taskatron considering: %s" % item
        item = task_module.TaskData.produce(item)
        op = item.action_type
 
-
-       print "state : %s" % item.state
-       if item.state == TASK_STATE_QUEUED or 1 == 1:
+       if item.state == TASK_STATE_QUEUED:
            print "*** RUNNING"
            task = item
            set_running(task)
@@ -119,8 +115,8 @@ def dotick(hostname,once=False):
                print "operation : %s" % op
                if op == TASK_OPERATION_INSTALL_VIRT:
                    rc = install_virt(task)
-               elif op == TASK_OPERATION_STOP_VIRT:
-                   rc = stop_virt(task)
+               elif op == TASK_OPERATION_SHUTDOWN_VIRT:
+                   rc = shutdown_virt(task)
                elif op == TASK_OPERATION_START_VIRT:
                    rc = start_virt(task)
                elif op == TASK_OPERATION_DELETE_VIRT:  
@@ -135,7 +131,10 @@ def dotick(hostname,once=False):
                    raise TaskException(comment="unknown task type")
                print rc
                print "setting finished"
-               set_finished(task)
+               if rc == 0:
+                   set_finished(task)
+               else:
+                   set_failed(task)
            except: 
                traceback.print_exc()
                print "setting failed"
@@ -150,8 +149,15 @@ def dotick(hostname,once=False):
    if once:
        return
 
+
+   # this is only temporary code to control the task list.
+   # refine later.
+
    for item in tasks:
-       if item["state"] == TASK_STATE_FINISHED and time.time() - now > 30*60:
+
+       # delete failed or finished records in 30 minutes
+
+       if (item["state"] == TASK_STATE_FINISHED or item["state"] == TASK_STATE_FAILED) and time.time() - now > 30*60:
            print "deleting: %s" % item
            task_obj.delete(None, item)
 
@@ -209,40 +215,6 @@ def callback(*args):
     print args
     return
 
-#def get_handle(target):
-#    """
-#    Return a xmlrpc server object for a given hostname.
-#    """
-#    print "****************************** GET HANDLE "
-#    ctx = SSL.Context('sslv23')
-#
-#    fromhost = socket.gethostname()
-#    print "FROM: %s" % fromhost
-#        
-#    # Load CA cert
-#    ctx.load_client_ca("/var/lib/puppet/ssl/ca/ca_crt.pem")
-#
-#    # Load target cert ...
-#    # FIXME: paths
-#    print "loading certs for: %s" % fromhost
-#       
-#    ctx.load_cert(
-#       certfile="/var/lib/puppet/ssl/certs/%s.pem" % fromhost,
-#       keyfile="/var/lib/puppet/ssl/private_keys/%s.pem" % fromhost
-#    )
-#
-#    ctx.set_session_id_ctx('xmlrpcssl')
-#
-#    ctx.set_info_callback(callback)
-#
-#    print "target is: %s" % target
-# 
-#    uri = "https://%s:2112" % target
-#    print "contacting: %s" % uri
-#    rserver = Server(uri, SSL_Transport(ssl_context = ctx))
-#    print rserver
-#    return rserver 
-
 def node_comm(machine_hostname, command, *cmd_args):
      myhost = socket.gethostname() # FIXME
      args = [
@@ -258,7 +230,7 @@ def node_comm(machine_hostname, command, *cmd_args):
      print rc
      if rc != 0:
          raise UncaughtException(comment="failed")
-
+     return rc
        
 def install_virt(task):
 
@@ -266,44 +238,58 @@ def install_virt(task):
     machine_hostname = mdata["hostname"]
     print "hostname target is ... (%s)" % machine_hostname
     print "go go gadget virt install!"
-    return node_comm(machine_hostname, "virt_install", ddata["mac_address"], True)
-
-
-def delete_virt(task):
-
-    (mrec, mdata, drec, ddata) = get_records(task)
-    machine_hostname = mdata["hostname"]
-    return node_comm(machine_hostname, "virt_delete", ddata["mac_address"])
-
-def start_virt(task):
-    (mrec, mdata, drec, ddata) = get_records(task)
-    machine_hostname = mdata["hostname"]
-    return node_comm(machine_hostname, "virt_start", ddata["mac_address"])
-
-def delete_virt(task):
-
-    (mrec, mdata, drec, ddata) = get_records(task)
-    machine_hostname = mdata["hostname"]
-    rc = node_comm(machine_hostname, "virt_stop", ddata["mac_address"])
-    mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+    (rc, data) = node_comm(machine_hostname, "virt_install", ddata["mac_address"], True)
     return rc
 
+
+def delete_virt(task):
+
+    (mrec, mdata, drec, ddata) = get_records(task)
+    machine_hostname = mdata["hostname"]
+    (rc, data) =  node_comm(machine_hostname, "virt_delete", ddata["mac_address"])
+    return rc
+
+def start_virt(task):
+
+    (mrec, mdata, drec, ddata) = get_records(task)
+    machine_hostname = mdata["hostname"]
+    (rc, data) = node_comm(machine_hostname, "virt_start", ddata["mac_address"])
+    return rc
+
+def delete_virt(task):
+
+    (mrec, mdata, drec, ddata) = get_records(task)
+    machine_hostname = mdata["hostname"]
+    (rc, data) = node_comm(machine_hostname, "virt_stop", ddata["mac_address"])
+    if rc == 0:
+        mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+    return rc
 
 def pause_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = node_comm(machine_hostname,"virt_pause",ddata["mac_address"])
-    mrec.set_state(DEPLOYMENT_STATE_PAUSED)
+    (rc, data) = node_comm(machine_hostname,"virt_pause",ddata["mac_address"])
+    if rc == 0:
+        drec.set_state(DEPLOYMENT_STATE_PAUSED)
     return rc
 
+def shutdown_virt(task):
+
+    (mrec, mdata, drec, ddata) = get_records(task)
+    machine_hostname = mdata["hostname"]
+    (rc, data) = node_comm(machine_hostname, "virt_shutdown", ddata["mac_address"])
+    if rc == 0:
+        drec.set_state(DEPLOYMENT_STATE_STOPPED)
+    return rc
 
 def destroy_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = node_comm(machine_hostname, "virt_destroy", ddata["mac_address"])
-    mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+    (rc, data) = node_comm(machine_hostname, "virt_destroy", ddata["mac_address"])
+    if rc == 0:
+        drec.set_state(DEPLOYMENT_STATE_STOPPED)
     return rc
 
 
@@ -311,8 +297,9 @@ def unpause_virt(task):
 
     (mrec, mdata, drec, ddata) = get_records(task)
     machine_hostname = mdata["hostname"]
-    rc = node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
-    mrec.set_state(DEPLOYMENT_STATE_RUNNING)
+    (rc, data) = node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
+    if rc == 0:
+        drec.set_state(DEPLOYMENT_STATE_RUNNING)
     return rc
 
 
