@@ -29,7 +29,7 @@ nukedb:
 	-rm -rf /var/lib/virt-factory/primary_db 
 	
 
-rpm: sdist 
+rpms: sdist 
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
