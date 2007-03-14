@@ -1,11 +1,16 @@
 specs = $(wildcard *.spec)
 
-rpms:	clean $(specs)
+rpms:	clean $(specs) cp-rpm-build
 
 empty: ;
 
 clean:
 	rm -f *.rpm
+	rm -rf rpm-build/
+
+cp-rpm-build:
+	mkdir -p rpm-build
+	cp *.rpm rpm-build/
 
 %.spec: empty
 	rpmbuild --define "_topdir %(pwd)" \
