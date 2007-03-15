@@ -30,7 +30,7 @@ Virt-factory-server is a web service server for use with the virt-factory provis
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+%{__python} setup.py install --root=$RPM_BUILD_ROOT
 
 %files
 %{_bindir}/vf_server
@@ -46,7 +46,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/server
-%{python_sitelib}/virt-factory/*.py*
+#%{python_sitelib}/virt-factory/*.py*
 %{python_sitelib}/virt-factory/server/*.py*
 %dir %{python_sitelib}/virt-factory/server/modules
 %dir %{python_sitelib}/virt-factory/server/modules/*.py*
