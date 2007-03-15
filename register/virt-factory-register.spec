@@ -24,7 +24,7 @@ Virt-factory-register is a command line tool for registering a machine with a vi
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+%{__python} setup.py install --root=$RPM_BUILD_ROOT
 
 %files
 %{_bindir}/vf_register
