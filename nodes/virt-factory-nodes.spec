@@ -23,7 +23,7 @@ Virt-factory-node is a web service server for use with the virt-factory provisio
 
 %install
 test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
-%{__python} setup.py install --optimize=1 --root=$RPM_BUILD_ROOT
+%{__python} setup.py install --root=$RPM_BUILD_ROOT
 
 %files
 %{_bindir}/vf_node_server
@@ -32,7 +32,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /var/lib/virt-factory/node-settings
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/nodes
-%{python_sitelib}/virt-factory/*.py*
+#%{python_sitelib}/virt-factory/*.py*
 %{python_sitelib}/virt-factory/nodes/*.py*
 %dir %{python_sitelib}/virt-factory/nodes/modules
 %dir %{python_sitelib}/virt-factory/nodes/modules/*.py*
