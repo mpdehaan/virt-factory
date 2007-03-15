@@ -37,6 +37,7 @@ from codes import *
 import config_data
 import logger
 import module_loader
+import utils
 
 MODULE_PATH="modules/"
 modules = module_loader.load_modules(MODULE_PATH)
@@ -176,13 +177,9 @@ def main(argv):
     websvc = XmlRpcInterface()
     host = socket.gethostname()
      
-    if len(argv) > 1:
-       print """
-       
-       I'm sorry, I can't do that, Dave.
-       """
-
-       sys.exit(1)
+    if "--daemon" in sys.argv:
+        utils.daemonize("/var/run/vf_node_server.pid")
+        serve(websvc,host)
     else:
         print "serving...\n"
         serve(websvc,host)
