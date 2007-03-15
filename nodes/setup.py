@@ -36,6 +36,7 @@ if __name__ == "__main__":
 			    "%s/nodes/modules" % NAME,
 			    "%s/nodes/yaml" % NAME],
                 data_files = [(settingspath, ["node-settings"]),
+			      (initpath, ["init-scripts/virt-factory-node-server"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
