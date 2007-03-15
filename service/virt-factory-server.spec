@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
 Version: 0.0.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -39,7 +39,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db.sh
 %{_bindir}/vf_nodecomm
-/etc/init.d/vf_server
+/etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
 %config(noreplace) /etc/virt-factory/settings
 # kickstart templaces
@@ -59,6 +59,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Mar 15 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-3
+- rename the init script
+
 * Fri Mar 09 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-2
 - add schema to /usr/share/virt-factory
 - add vf_create_db.sh to create db

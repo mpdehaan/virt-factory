@@ -41,7 +41,7 @@ if __name__ == "__main__":
 			    "%s/server/modules" % NAME,
 			    "%s/server/yaml" % NAME],
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
-			      (initpath, ["init-scripts/vf_server"]),
+			      (initpath, ["init-scripts/virt-factory-server"]),
 			      (etcpath, ["settings"]),
 			      (logpath, []),
 			      (schemapath, ["db/schema/schema.sql", 
