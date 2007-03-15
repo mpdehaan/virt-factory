@@ -318,6 +318,9 @@ def main(argv):
         clean_up_tasks()
         utils.daemonize("/var/run/vf_taskatron.pid")
         run_forever()
+    elif len(sys.argv) > 1 and sys.argv[1].lower() == "--infinity":
+        clean_up_tasks()
+        run_forever()
     elif len(sys.argv) == 1:
         print "Running single task in debug mode, since --daemon wasn't specified..."
         clean_up_tasks()
