@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
 Version: 0.0.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -55,10 +55,21 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/virt-factory
 %dir /usr/share/virt-factory/db_schema
 /usr/share/virt-factory/db_schema/*.sql
+%dir /usr/share/virt-factory/puppet-config
+/etc/puppet/manifests/site.pp
+/usr/share/virt-factory/puppet-config/puppetmaster
+/usr/share/virt-factory/puppet-config/puppetd.conf
 %dir /var/log/virt-factory
 
 
+%post
+/bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
+/bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
+
 %changelog
+* Tue Mar 20 2007 Scott Seago <sseago@redhat.com> - 0.0.1-4
+- add puppet config files
+ 
 * Thu Mar 15 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-3
 - rename the init script
 

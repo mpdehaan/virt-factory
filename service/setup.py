@@ -19,6 +19,8 @@ if __name__ == "__main__":
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
+	puppetpath = "/usr/share/%s/puppet-config/" % NAME
+	manifestpath = "/etc/puppet/manifests/"
         setup(
                 name="%s-server" % NAME,
                 version = VERSION,
@@ -45,7 +47,10 @@ if __name__ == "__main__":
 			      (etcpath, ["settings"]),
 			      (logpath, []),
 			      (schemapath, ["db/schema/schema.sql", 
-					    "db/schema/populate.sql"])],
+					    "db/schema/populate.sql"]),
+			      (puppetpath, ["puppet-config/puppetmaster", 
+					    "puppet-config/puppetd.conf"]),
+			      (manifestpath, ["puppet-config/site.pp"])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )
