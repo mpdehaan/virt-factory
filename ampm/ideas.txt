@@ -1,0 +1,195 @@
+ampm is a commandline tool for managing virtual and real provisioning deplyoments. It
+is an interface to virt-factory. 
+
+Ideally it will enable all the same functionality was the virt-factory web ui. 
+
+It should also provided a high level library interface for programatticaly controlling
+systems under virt-factory's control. 
+
+It should be useable in a virtualized instance, on a container running virtual instances,
+or on a remote system. 
+
+
+For example, on a virtualized instance, it could provide some basic info
+and reporting functionality. Assume the following are issued on a virt
+instance instance1.example.com running on host1.example.com
+
+
+	# where am I running?
+	$ ampm query --container
+	container1.example.com
+
+	$ ampm query --container instance2.example.com
+	container1.example.com
+
+	$ ampm query --container instance44.example.com
+	container5.example.com
+
+
+	# where am I stored?
+	$ ampm query --storage 
+	xvd image on nfs mount nfs://storage1.example.com/images/instance1/
+
+
+	# what am I supposed to be doing
+	$ ampm query --profile
+	dmz-webserver-rhel-5
+
+	$ ampm query --profile proxy5.example.com
+	caching-reverse-proxy-rhel-5
+
+	
+	# what about the other stuff?
+	$ ampm query --instance-tags
+	dmz, webserver, rhel5
+
+	$ ampm query --container-tags
+	dell, dell-2850, 250gig-local-storage, dmz-interface, external-interface, PHX, 
+
+
+It could also allow an administrator to migrate the instance "manually"
+(not entirely sure what the auth mechanism here, but I have some ideas)
+
+	$ ampm migrate container2.example.com
+
+
+Any of the normal xen type stuff could apply:
+
+	$ ampm pause
+
+
+	$ ampm resume
+	(just kidding)
+
+
+
+Some of the thing thats ampm running on a container could do
+
+	# lets say on container1.example.com)
+	# this brings up an interesting point that we don't really have a great human friendly
+	# way of naming and identifying particular instances yet, the wui/db uses the mac address the
+	# instances is created with, but thats kind of icky human wise...)
+
+	$ ampm list instances
+	instance1.example.com:dmz-web-server-rhel5
+	instance2.example.com:dmz-web-server-rhel5
+	proxy1.example.com:caching-reverse-proxy-rhel-5
+	
+
+	$ ampm list instances container2.example.com
+	instance33.example.com:dmz-web-server-rhel5
+	instance34.example.com:dmz-web-server-rhel5
+
+
+	$ ampm list status
+	instance1.example.com:dmz-web-server-rhel5                running
+        instance2.example.com:dmz-web-server-rhel5                running
+        proxy1.example.com:caching-reverse-proxy-rhel5           running
+
+
+	# lets find the other containers that could host instance1
+	$ ampm query find-containers instance1.example.com:dmz-web-server-rhel5
+	container2.example.com
+	container3.example.com
+
+	# lets migrate it it to one of the ones that fit
+	$ ampm migrate instance1.example.com:dmz-web-server-rhel5 container2.example.com
+
+
+	# or, lets just let it figure out the container that fits
+	$ ampm migrate instance1.example.com:dmz-web-server-rhel5
+
+
+	# this machine is tired, and needs a break, lets automagically migrate everything
+	# off to approriate machines
+	$ ampm migrate --all
+
+
+	# lets disable this machine from being a target for migrations or new instances
+	$ ampm container -disable
+
+	# okay, I've had a nice nap, lets be friendly again
+	$ ampm container --enable
+
+
+Lets say you are on the sysadmins laptop, running bare metal, but with auth to control
+all the container and instances in virt-factory
+
+	$ ampm status all
+	container1.example.com                           
+		instance1.example.com:dmz-web-server-rhel5             
+		instance2.example.com:dmz-web-server-rhel5
+		proxy1.example.com:caching-reverse-proxy-rhel5
+
+	container2.example.com:
+		instance33.example.com:dmz-web-server-rhel5
+                instance33.example.com:dmz-web-server-rhel5
+
+
+	container3.example.com                         disabled
+	container4.example.com                         disabled
+	container5.example.com	                       enabled
+
+
+	$ ampm query find-containers instance1.example.com:dmz-web-server-rhel5
+	container2.example.com
+	container5.example.com
+
+	$ ampm migrate instance1.example.com:dmz-web-server-rhel5
+	instance1.example.com:dmz-web-server-rhel5 migrated to container5.example.com
+
+	$ ampm migrate instance2.example.com:dmz-web-server-rhel5 container1.example.com
+
+	
+	$ ampm query --container-tags container3.example.com
+	disabled, dell, dell-2850, 250gig-local-storage, dmz-interface, external-interface, PHX
+
+	$ ampm query status container3.example.com
+	container3.example.com is disabled
+
+	$ ampm container --enable container3.example.com
+
+	
+	# create a new name external name server
+	$ ampm create --profile external-name-server-rhel5 --hostname ns3.example.com 
+	ns3.example.com:external-name-server-rhel5 created on  container3.example.com
+
+
+	# create one more external name server, but lets put this one on container4
+	$ ampm container --enable container4.example.com
+	$ ampm create --profile external-name-server-rhel5 --hostname ns4.example.com --container container4.example.com
+	ns4.example.com:external-name-server-rhel5 created on container4.example.com
+
+
+	
+
+Architecture/Design/implementation
+
+ampm should consist of a few parts. One is a local library that does most of the work. Then a commandline
+tool that uses this library. 
+
+The library is basically a wrapper to the virt-factory web services. So this means it can control anything
+that virt-factory can control (with proper auth of course). 
+
+Think of it as a meta-libvirt.
+
+ampm will use the local ampm module to talk to the virt-factory web services, which will then contact all
+the approriate nodes to perform the task needed. In this sense, ampm is a commandline interface to
+virt-factory, not to any specific local tasks that might happen.
+
+(this arch will probably be a bit slow, but it allows for better authentication, auditing, and tracking).
+
+
+
+ 
+
+
+
+
+	
+
+	
+
+
+
+	 
