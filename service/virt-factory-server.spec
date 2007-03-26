@@ -9,8 +9,8 @@ Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
 Requires: python >= 2.3
-Requires: cobbler >= 0.4.3
-Requires: koan >= 0.2.7
+Requires: cobbler >= 0.4.5
+Requires: koan >= 0.2.8
 Requires: python-virtinst
 Requires: puppet-server
 Requires: python-sqlite2

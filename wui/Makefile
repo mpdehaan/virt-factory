@@ -12,7 +12,7 @@ RPM_FLAGS	=	--define "_topdir	%(pwd)/rpm-build" \
 
 DATADIR		= $(shell rpm --eval "%{_datadir}")
 
-all: rpm
+all: rpms
 
 clean:
 	-rm -f virt-factory*.gz virt-factory*.rpm MANIFEST
