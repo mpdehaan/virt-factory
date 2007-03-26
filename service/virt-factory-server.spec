@@ -39,6 +39,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db.sh
 %{_bindir}/vf_nodecomm
+%{_bindir}/vf_upgrade_db
 /etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
 %config(noreplace) /etc/virt-factory/settings
@@ -52,6 +53,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
+%dir %{python_sitelib}/virt-factory/server/db_upgrade
+%{python_sitelib}/virt-factory/server/db_upgrade/*.py*
 %dir /usr/share/virt-factory
 %dir /usr/share/virt-factory/db_schema
 /usr/share/virt-factory/db_schema/*.sql

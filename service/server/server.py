@@ -50,6 +50,7 @@ from modules import registration
 from modules import user
 from modules import regtoken
 from modules import puppet
+from modules import schema_version
 
 
 
@@ -81,7 +82,8 @@ class XmlRpcInterface:
                  profile, deployment,
                  distribution,config,
                  provisioning, registration,
-                 authentication, task, regtoken, puppet]:
+                 authentication, task, regtoken, puppet,
+                 schema_version, upgrade_log_message]:
            x.register_rpc(self.handlers)
            self.logger.debug("adding %s" % x)
 
