@@ -1,0 +1,11 @@
+[dlutter-fedora]
+name=Additional Fedora packages (lutter)
+baseurl=http://people.redhat.com/dlutter/yum/fc6/
+enabled=0
+gpgcheck=0
+
+[dlutter-source]
+name=Sources for additional test packages (lutter)
+baseurl=http://people.redhat.com/dlutter/yum/SRPMS/
+enabled=0
+gpgcheck=0
