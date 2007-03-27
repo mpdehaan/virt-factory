@@ -4,6 +4,15 @@ BUILD=`pwd`
 SRCDIR="$BUILD/../"
 PKGS="register nodes service wui rubypkgstuff"
 
+if [ ! -f "/usr/bin/createrepo" ]; then
+	echo "you need createrepo installed"
+	exit 1
+fi
+
+if [ ! -f "/usr/bin/reposync" ] ; then
+	echo "you need yum-utils installed (for reposync)"
+	exit 1
+fi
 
 rm -rf rpms
 rm -rf srpms
@@ -16,7 +25,7 @@ do
 	cd ../$i
 	make rpms 
         if [ $? != 0 ]; then
-           echo "kaboom"
+           echo "kaboom building $i"
            exit 1
         fi 
 	mv rpm-build/*.src.rpm $BUILD/srpms
@@ -24,15 +33,15 @@ do
 	mv rpm-build/*.tar.gz $BUILD/tars
 	make clean
         if [ $? != 0 ]; then
-           echo "kaboom"
+           echo "kaboom cleaning up $i"
            exit 1
         fi 
 done
 
 cd $BUILD
 
-reposync --config=./lutter.repo --repoid=dlutter-fedora --tempcache --download_path=./rpms
-reposync --config=./lutter.repo --repoid=dlutter-source --tempcache --download_path=./srpms
+reposync --config=./lutter.repo --repoid=dlutter-fedora  --download_path=./rpms
+reposync --config=./lutter.repo --repoid=dlutter-source  --download_path=./srpms
 mv ./rpms/dlutter-fedora/*.rpm ./rpms/
 rm -rf ./rpms/dlutter-fedora
 rm -rf ./rpms/repodata
