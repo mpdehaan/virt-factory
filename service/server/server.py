@@ -15,8 +15,6 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# "across the nodes I see my sh_adow.py ..."
-
 import SimpleXMLRPCServer
 import os
 import subprocess
@@ -28,7 +26,6 @@ SERVE_ON = (None,None)
 
 # FIXME: logrotate
 
-
 from codes import *
 
 import config_data
@@ -36,7 +33,7 @@ import logger
 import utils
 
 # FIXME: this should be using the config settings -akl
-logger.logfilepath = "/var/lib/virt-factory/svclog"
+logger.logfilepath = "/var/log/virt-factory/svclog"
 
 from modules import task 
 from modules import authentication
