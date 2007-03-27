@@ -108,7 +108,7 @@ CREATE TABLE sessions (
    
 CREATE TABLE schema_versions (
   id                  INTEGER PRIMARY KEY,
-  version             INTEGER UNIQUE,
+  version             INTEGER,
   git_tag             VARCHAR(100),
   install_timestamp   REAL NOT NULL,
   status              VARCHAR(20) NOT NULL,

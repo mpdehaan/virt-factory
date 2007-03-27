@@ -16,6 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from optparse import OptionParser
+import ConfigParser
 from codes import *
 import config_data
 
@@ -23,6 +24,7 @@ import os, sys
 
 from server import logger
 logger.logfilepath = "/var/lib/virt-factory/vf_upgrade_db.log"
+
 import string
 import time
 from pysqlite2 import dbapi2 as sqlite
@@ -31,13 +33,14 @@ from server.modules import schema_version
 from server.modules import upgrade_log_message
 
 SQLITE3 = "/usr/bin/sqlite3"
-
+UPGRADE_DIR = "/usr/share/virt-factory/db_schema/upgrade/"
 class Upgrade(object):
     def __init__(self):
         self.__setup_config()
         self.__init_log()
         self.__setup_db()
-
+        self.__setup_upgrade_config()
+        
     def __setup_config(self):
         config_obj = config_data.Config()
         config_result = config_obj.get()
@@ -53,6 +56,15 @@ class Upgrade(object):
         log = logger.Logger()
         self.logger = log.logger
 
+    def __setup_upgrade_config(self):
+        self.upgrade_config = ConfigParser.ConfigParser()
+        self.upgrade_config.read(UPGRADE_DIR + "upgrades.conf")
+        self.upgrade_sections = self.upgrade_config.sections()
+        self.upgrade_sections.sort()
+        self.versions = {}
+        for section in self.upgrade_sections:
+            self.versions[int(section[8:])] = section
+
     def sqlite_connect(self):
         """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
         
@@ -62,19 +74,53 @@ class Upgrade(object):
         os.chdir(current)
         return conn 
 
-    def start_upgrade(self, version, from_version = None, git_tag = None, notes = None):
+    def get_loaded_schema_version(self):
+        schema_obj = schema_version.SchemaVersion()
+        current_schema = schema_obj.get_current_version(None)
+        if current_schema.data:
+            return current_schema.data["version"]
+        else:
+            return 0
+
+    def get_installed_schema_version(self):
+        return self.versions.keys()[-1]
+
+    def run_upgrades(self):
+        db_version = self.get_loaded_schema_version()
+
+        for version in self.versions.keys():
+            if (version > db_version):
+                print "upgrading to version ", version
+                self.run_single_upgrade(version, self.versions[version])
+
+    def run_single_upgrade(self, version, section):
+
+        self.start_upgrade(version,
+                           self.upgrade_config.get(section, "git_tag"),
+                           self.upgrade_config.get(section, "notes"))
+
+        self.apply_changes(version, self.upgrade_config.get(section, "files").split())
+        
+        self.end_upgrade(version)
+
+
+    def initialize_schema_version(self):
+        if (self.get_loaded_schema_version()):
+            raise ValueError("schema version " + self.get_loaded_schema_version() + " is already loaded.")
+            
+        version = self.get_installed_schema_version()
+        section = self.versions[version]
+        self.start_upgrade(version,
+                           self.upgrade_config.get(section, "git_tag"),
+                           self.upgrade_config.get(section, "notes"))
+        self.end_upgrade(version)
+
+
+    def start_upgrade(self, version, git_tag = None, notes = None):
         """
         Mark the upgrade as begun in the db.
         """
         
-        if (from_version is not None):
-            schema_obj = schema_version.SchemaVersion()
-            current_schema = schema_obj.get_current_version(None)
-            if current_schema.data:
-                if (current_schema.data["version"] != from_version):
-                    raise ValueError("current schema version is not ", from_version)
-            else:
-                raise ValueError("schema version ", from_version, " not found.")
         args = {}
         args["install_timestamp"] = time.ctime()
         args["version"] = version
@@ -84,7 +130,7 @@ class Upgrade(object):
         schema_obj = schema_version.SchemaVersion()
         try:
             existing_schema = schema_obj.get_by_version(None, args)
-            if existing_schema.data:
+            if existing_schema.data and existing_schema.data["status"]==SCHEMA_VERSION_END:
                 raise ValueError("schema version ", version, "already exists")
             else:
                 self.logger.info( "creating new schema version: version=%i" % version)
@@ -98,7 +144,6 @@ class Upgrade(object):
             self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             raise e
 
-        existing_schema = schema_obj.get_by_version(None, args)
 
     def log(self, action, message_type, message = None):
         """
@@ -124,20 +169,19 @@ class Upgrade(object):
             self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             raise e
         
-    def apply_changes(self, sql_script_list):
+    def apply_changes(self, version, sql_script_list):
         """
         Apply schema changes by executing the sql scripts listed in the input file.
         If any scripts result in an error (for sqlite, this is indicated by output
         sent to stdout), log the error output and throw an exception
         """
-        self.log("upgrade-begin", UPGRADE_LOG_MESSAGE_INFO)
-        file = open(sql_script_list, 'r')
-        for line in file.readlines():
+        self.log("upgrade-begin-" + str(version), UPGRADE_LOG_MESSAGE_INFO)
+        for line in sql_script_list:
             sql = line.strip()
             if len(sql) == 0:
                 continue
             self.log(sql + "-begin", UPGRADE_LOG_MESSAGE_INFO)
-            pipe = os.popen(SQLITE3 + " " + self.dbpath + "  < " + sql)
+            pipe = os.popen(SQLITE3 + " " + self.dbpath + "  < " + UPGRADE_DIR + sql)
             error_found = 0
             error_msg = ""
             for line in pipe.readlines():
@@ -150,14 +194,12 @@ class Upgrade(object):
             if closed:
                 exitCode = os.WIFEXITED(closed) and os.WEXITSTATUS(closed) or 0
             if error_found or exitCode is not None:
-                file.close()
                 self.log(sql + "-error", UPGRADE_LOG_MESSAGE_ERROR, error_msg)
                 raise Exception(error_msg)
             else:
                 self.log(sql + "-end", UPGRADE_LOG_MESSAGE_INFO)
 
-        closed = file.close()
-        self.log("upgrade-end", UPGRADE_LOG_MESSAGE_INFO)
+        self.log("upgrade-end-" + str(version), UPGRADE_LOG_MESSAGE_INFO)
             
             
 
@@ -193,35 +235,31 @@ def main(argv):
     """
     Start things up.
     """
-    usage = "usage: %prog [options] new-schema-version file-list"
+    usage = "usage: %prog [options] "
     parser = OptionParser(usage=usage)
-    parser.add_option("-f", "--from-version", dest="from_version",
-                      help="Current version (throws an error if the current version differs from this)",
-                      default=None)
-    parser.add_option("-t", "--git-tag", dest="tag",
-                      help="git tag for the checkin which introduces the upgrade",
-                      default=None)
-    parser.add_option("-n", "--notes", dest="notes",
-                      help="notes regarding this upgrade",
-                      default=None)
-    
+    parser.add_option("-q", "--query",
+                  dest="query", type="choice", choices=["d", "db", "p", "package"], default=None,
+                  help="If specified, query schema version of either the database (d,db) or the installed package (p,package) and exit without attempting an upgrade.")
+    parser.add_option("-i", "--initialize",
+                  dest="initialize", action="store_true", default=False,
+                  help="If specified, initialize the schema version field in the database and exit without attempting an upgrade.")
+
     (options, args) = parser.parse_args()
-    if len(args) != 2:
-        parser.error("incorrect number of arguments")    
-    print "upgrade to version" + args[0]
     upgrade = Upgrade()
-    from_version = options.from_version
-    if from_version is not None:
-        from_version = int(from_version)
+    if (options.query):
+        if (options.query in ["d", "db"]):
+            print upgrade.get_loaded_schema_version()
+        elif  (options.query in ["p", "package"]):
+            print upgrade.get_installed_schema_version()
+    if (options.initialize):
+        upgrade.initialize_schema_version()
+    if (not (options.query or options.initialize)):
+        print "upgrading..."
+        upgrade.run_upgrades()
 
-    #mark the upgrade as starting
-    upgrade.start_upgrade(int(args[0]), from_version, options.tag, options.notes)
 
-    #apply the sql scripts listed in the passed-in file list
-    upgrade.apply_changes(args[1])
+
     
-    #mark the upgrade as done
-    upgrade.end_upgrade(int(args[0]))
 
 if __name__ == "__main__":
     main(sys.argv)

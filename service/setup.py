@@ -3,6 +3,7 @@
 import sys
 from distutils.core import setup, Extension
 import string
+import glob
 
 NAME = "virt-factory"
 VERSION = "0.0.1"
@@ -19,6 +20,7 @@ if __name__ == "__main__":
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
+	upgradepath = schemapath + "upgrade/"
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
 	manifestpath = "/etc/puppet/manifests/"
         setup(
@@ -51,6 +53,8 @@ if __name__ == "__main__":
 			      (logpath, []),
 			      (schemapath, ["db/schema/schema.sql", 
 					    "db/schema/populate.sql"]),
+			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
+					     glob.glob("db/schema/upgrade/*.sql")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
 					    "puppet-config/puppetd.conf"]),
 			      (manifestpath, ["puppet-config/site.pp"])],

@@ -170,7 +170,8 @@ class SchemaVersion(web_svc.AuthWebSvc):
         else:
             raise ValueError("version is required")
             
-        result = self.db.simple_list({}, {"version": "'%s'" % version})
+        result = self.db.simple_list({}, {"version": "'%s'" % version},
+                                     order_by_str="id desc")
         if (len(result.data) > 0):
             return success(result.data[0])
         else:
@@ -182,7 +183,7 @@ class SchemaVersion(web_svc.AuthWebSvc):
         """
 
         result = self.db.simple_list({}, {"status": "'%s'" % SCHEMA_VERSION_END},
-                                     order_by_str="install_timestamp desc")
+                                     order_by_str="id desc")
         if (len(result.data) > 0):
             return success(result.data[0])
         else:
