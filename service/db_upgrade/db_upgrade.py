@@ -106,7 +106,7 @@ class Upgrade(object):
 
     def initialize_schema_version(self):
         if (self.get_loaded_schema_version()):
-            raise ValueError("schema version " + self.get_loaded_schema_version() + " is already loaded.")
+            raise ValueError("schema version " + str(self.get_loaded_schema_version()) + " is already loaded.")
             
         version = self.get_installed_schema_version()
         section = self.versions[version]
