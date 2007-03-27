@@ -172,8 +172,6 @@ class CobblerTranslatedProfile:
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
        
-       new_item.set_virt_name(from_db["name"])
-       
        virt_size = 0
        virt_ram  = 0
        if from_db.has_key("virt_storage_size"):
@@ -487,7 +485,7 @@ class Provisioning(web_svc.AuthWebSvc):
            # to detect rsync failures such as mirrors that are shut down
            # but don't have any files available.
 
-           cobbler_api.import_tree(None,mirror_url,mirror_name)
+           cobbler_api.import_tree(mirror_url,mirror_name)
 
            print MIRROR_EXITED
 
