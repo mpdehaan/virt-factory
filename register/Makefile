@@ -1,4 +1,4 @@
-all: rpm
+all: rpms
 
 clean:
 	-rm -f  MANIFEST
