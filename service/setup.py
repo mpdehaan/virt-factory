@@ -3,6 +3,7 @@
 import sys
 from distutils.core import setup, Extension
 import string
+import glob
 
 NAME = "virt-factory"
 VERSION = "0.0.1"
@@ -19,6 +20,7 @@ if __name__ == "__main__":
         logpath  = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
+	upgradepath = schemapath + "upgrade/"
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
 	manifestpath = "/etc/puppet/manifests/"
         setup(
@@ -33,14 +35,17 @@ if __name__ == "__main__":
 			   "scripts/vf_import",
 			   "scripts/vf_nodecomm",
 			   "scripts/vf_get_puppet_node",
+			   "scripts/vf_upgrade_db",
 			   "db/vf_create_db.sh"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
+			       "%s/server/db_upgrade" % NAME: "db_upgrade/",
 			       "%s/server/yaml" % NAME: "server/yaml/"},
 		packages = ["%s" % NAME,
 			    "%s/server" % NAME,
 			    "%s/server/modules" % NAME,
+			    "%s/server/db_upgrade" % NAME,
 			    "%s/server/yaml" % NAME],
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/virt-factory-server"]),
@@ -48,6 +53,8 @@ if __name__ == "__main__":
 			      (logpath, []),
 			      (schemapath, ["db/schema/schema.sql", 
 					    "db/schema/populate.sql"]),
+			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
+					     glob.glob("db/schema/upgrade/*.sql")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
 					    "puppet-config/puppetd.conf"]),
 			      (manifestpath, ["puppet-config/site.pp"])],

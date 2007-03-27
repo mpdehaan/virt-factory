@@ -24,6 +24,7 @@ import xmlrpclib
 import socket
 import os
 import os.path
+import fileinput
 
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 ERR_ARGUMENTS_INVALID = 8 # ...
@@ -82,6 +83,7 @@ class Register(object):
             fd4.close()
             server = string.split(self.server_url, '/')[2]
             server = string.split(server, ':')[0]
+            self.update_puppet_sysconfig(server)
             puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --onetime"
             os.system(puppetcmd)
             rc2 = self.server.sign_node_cert(self.token, hostname)
@@ -93,6 +95,20 @@ class Register(object):
             print "Failed: ", rc
         return rc
 
+    def update_puppet_sysconfig(self, server):
+        found = 0
+        file = fileinput.input("/etc/sysconfig/puppet",inplace =1)
+        for line in file:
+            line = line.strip()
+            if not 'PUPPET_SERVER' in line:
+                print line 
+            else:
+                found = 1
+                print "PUPPET_SERVER=",server
+        if (not found):
+            file = open("/etc/sysconfig/puppet", 'a')
+            file.write('PUPPET_SERVER=' + server + '\n')
+            file.close();
 
 def showHelp():
     print "register [--help] [--token] [--serverurl=]"

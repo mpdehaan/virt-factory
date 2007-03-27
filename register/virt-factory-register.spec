@@ -4,11 +4,12 @@
 Summary: Registration client for virt-factory
 Name: virt-factory-register
 Version: 0.0.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
 Requires: python >= 2.3
+Requires: puppet
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -34,5 +35,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Tue Mar 27 2007 Scott Seago <sseago@redhat.com> - 0.0.1-2
+- add puppet dependency
+ 
 * Thu Mar 08 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-1
 - initial release

@@ -144,6 +144,19 @@ VALID_DEPLOYMENT_STATES = [
    DEPLOYMENT_STATE_RUNNING
 ]
 
+# schema version status field
+SCHEMA_VERSION_BEGIN = "begin"
+SCHEMA_VERSION_END   = "end"
+VALID_SCHEMA_VERSION_STATUS = [ SCHEMA_VERSION_BEGIN, SCHEMA_VERSION_END ]
+
+# upgrade log message status field
+UPGRADE_LOG_MESSAGE_INFO    = "info"
+UPGRADE_LOG_MESSAGE_WARNING = "warning"
+UPGRADE_LOG_MESSAGE_ERROR   = "error"
+VALID_UPGRADE_LOG_MESSAGE_STATUS = [ UPGRADE_LOG_MESSAGE_INFO,
+                                     UPGRADE_LOG_MESSAGE_WARNING,
+                                     UPGRADE_LOG_MESSAGE_ERROR  ]
+
 class VirtFactoryException(exceptions.Exception):
    error_code = ERR_INTERNAL_ERROR
 

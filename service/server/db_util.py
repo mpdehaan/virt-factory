@@ -103,11 +103,11 @@ class DbUtil(object):
         return return_list
 
     # FIXME: is this right? -akl
-    def simple_list(self, args, where_args={}):
+    def simple_list(self, args, where_args={}, order_by_str = None):
         """
         Shorthand for writing a select * from foo
         """
-        return self.nested_list([], args, where_args)
+        return self.nested_list([], args, where_args, order_by_str=order_by_str)
 
     def nested_get(self, schemas_list, args, where_args={}):
         if not where_args.has_key("id"):  
@@ -116,7 +116,7 @@ class DbUtil(object):
             where_args[id_key] = args["id"]
         return self.nested_list(schemas_list, args, where_args, return_single=True)
 
-    def nested_list(self, schemas_list, args, where_args={}, return_single=False, allow_none=False):
+    def nested_list(self, schemas_list, args, where_args={}, return_single=False, allow_none=False, order_by_str = None):
         """
         Select * from foo, with joins on it's nested tables.
         FIXME: outer join support ???
@@ -134,6 +134,11 @@ class DbUtil(object):
         else:
            where_clause = ""
 
+        if ((order_by_str is not None) and len(order_by_str) > 0) :
+            order_by_clause = "ORDER BY " + order_by_str
+        else:
+            order_by_clause = ""
+
         fields = [] 
         schemas_list.insert(0, self.db_schema)
         for table in schemas_list:
@@ -144,7 +149,7 @@ class DbUtil(object):
         table_names = [ table["table"] for table in schemas_list ]
         table_clause = " FROM " + ",".join(table_names)
 
-        buf = "SELECT " + fields_clause + " " + table_clause + " " + where_clause + " LIMIT ?,?"
+        buf = "SELECT " + fields_clause + " " + table_clause + " " + where_clause + order_by_clause + " LIMIT ?,?"
         self.logger.info( "QUERY: %s" % buf)
         self.logger.info( "OFFSET, LIMIT: %s, %s" % (offset,limit))
         self.cursor.execute(buf, (offset,limit))
