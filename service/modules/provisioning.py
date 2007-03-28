@@ -280,7 +280,11 @@ class CobblerTranslatedSystem:
 
        profile_id = from_db["profile_id"]
 
-       print "this machine has profile_id = %s" % profile_id
+       self.logger.debug("this machine has profile_id = %s" % profile_id)
+       if profile_id < 0:
+           self.logger.debug("not provisionable")
+           return
+
 
        # FIXME: inefficient, again, write some query stuff here.
        # cobbler is going to need the name of the profile.
