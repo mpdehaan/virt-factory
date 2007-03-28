@@ -10,7 +10,7 @@
 # processname: /usr/bin/cobbler_syslogd
 
 # Sanity checks.
-[ -x /usr/bin/vf_server ] || exit 0
+[ -x /usr/bin/vf_node_server ] || exit 0
 
 # Source function library.
 . /etc/rc.d/init.d/functions
