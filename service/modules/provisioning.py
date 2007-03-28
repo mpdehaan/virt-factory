@@ -189,12 +189,12 @@ class CobblerTranslatedProfile:
 
         
        # user will have to create vf_repo manually ATM
-       ks_meta["node_common_packages"] = "koan puppet virt-factory-nodes virt-factory-register" 
+       ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register" 
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
            # FIXME: is this package list right?
-           ks_meta["node_virt_packages"]   = "xen libvirt python-libvirt python-virtinst"  
+           ks_meta["node_virt_packages"]   = "xen\nlibvirt\npython-libvirt\npython-virtinst"  
            ks_meta["node_bare_packages"]   = ""
        ks_meta["extra_post_magic"]     = ""
 

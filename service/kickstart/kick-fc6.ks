@@ -65,7 +65,8 @@ $node_bare_packages
 %post
 /usr/bin/sm_register $server_param $token_param
 /sbin/chkconfig --level 345 puppetd on
-/sbin/chkconfig --level 345 vf-node-daemon on
+/sbin/chkconfig --level 345 virt-factory-node-server-daemon on
+# FIXME: configure node to use vf_repo here
 $kickstart_done
 
 
