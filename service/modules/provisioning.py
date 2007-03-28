@@ -215,7 +215,7 @@ class CobblerTranslatedProfile:
        print tree_path
        tree_path = "/".join(tree_path)
        print tree_path
-       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cobbler_track/ks_mirror" % vf_config["this_server"]["address"])
+       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
        ks_meta["tree"] = tree_url 
  
        new_item.set_ksmeta(ks_meta)
