@@ -26,7 +26,7 @@
              
              <TD> <%= link_to item.name, :controller => "profile", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
-             <TD> <%= item.distribution.name.split("_").slice(-6,6).join("-") if item.distribution %> </TD>
+             <TD> <%= item.distribution.name %> </TD>
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
