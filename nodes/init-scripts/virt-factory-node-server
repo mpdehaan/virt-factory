@@ -77,7 +77,7 @@ case "$1" in
         start
         ;;
     condrestart)
-        if [ -f /var/lock/subsys/vf_server ]; then
+        if [ -f /var/lock/subsys/vf_node_server ]; then
             stop
             start
         fi
