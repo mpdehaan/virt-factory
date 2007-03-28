@@ -89,24 +89,20 @@ class Puppet(web_svc.AuthWebSvc):
         #data["parent"] = foo
         return success(data)
 
-    def sign_node_cert(self, token, nodename, timeout=60):
+    def sign_node_cert(self, token, nodename):
         """
         calls puppetca to sign pending client certificate
         """
-        now = datetime.now()
-        timeout = now+timedelta(seconds=timeout)
         
         # waiting for incoming request
-        found = self.check_for_cert_request(nodename)
-        while ((datetime.now() < timeout) and (not found)):
-            print "sleeping.."
-            time.sleep(2)
-            found = self.check_for_cert_request(nodename)
-
-        if (not found):
-            # don't fail here -- running register for already-signed cert should succeed
-            return success()
-#            raise PuppetNodeNotSignedException(comment="timeout reached: no pending requests for " + nodename)
+        request_found = self.check_for_cert_request(nodename)
+        if (not request_found):
+            signed_name = "/var/lib/puppet/ssl/ca/signed/" + nodename + ".pem"
+            if (os.path.exists(signed_name)):
+                # don't fail here -- running register for already-signed cert should succeed
+                return success()
+            else:
+                raise PuppetNodeNotSignedException(comment="no pending requests for " + nodename)
 
         return_code = os.system(PUPPETCA + " -s " + nodename)
         signal = return_code & 0xFF
