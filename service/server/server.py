@@ -51,6 +51,7 @@ from modules import user
 from modules import regtoken
 from modules import puppet
 from modules import schema_version
+from modules import upgrade_log_message
 
 
 
