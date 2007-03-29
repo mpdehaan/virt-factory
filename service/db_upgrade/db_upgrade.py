@@ -75,17 +75,30 @@ class Upgrade(object):
         return conn 
 
     def get_loaded_schema_version(self):
+        """
+        Returns the latest schema version already applied to the database
+        """
         schema_obj = schema_version.SchemaVersion()
-        current_schema = schema_obj.get_current_version(None)
+        try:
+            current_schema = schema_obj.get_current_version(None)
+        except Exception, e:
+            return 0
+        
         if current_schema.data:
             return current_schema.data["version"]
         else:
             return 0
 
     def get_installed_schema_version(self):
+        """
+        Returns the latest schema version in the installed package
+        """
         return self.versions.keys()[-1]
 
     def run_upgrades(self):
+        """
+        Apply each upgrade with a version number greater than the current schema version.
+        """
         db_version = self.get_loaded_schema_version()
 
         for version in self.versions.keys():
@@ -94,17 +107,31 @@ class Upgrade(object):
                 self.run_single_upgrade(version, self.versions[version])
 
     def run_single_upgrade(self, version, section):
+        """
+        Run the upgrade scripts specified for a single schema version upgrade
+        """
 
-        self.start_upgrade(version,
-                           self.upgrade_config.get(section, "git_tag"),
-                           self.upgrade_config.get(section, "notes"))
+        # Version 1 upgrade doesn't have the metadata tables loaded yet.
+        if (version > 1):
+            self.start_upgrade(version,
+                               self.upgrade_config.get(section, "git_tag"),
+                               self.upgrade_config.get(section, "notes"))
 
         self.apply_changes(version, self.upgrade_config.get(section, "files").split())
         
+        if (version == 1):
+            self.start_upgrade(version,
+                               self.upgrade_config.get(section, "git_tag"),
+                               self.upgrade_config.get(section, "notes"))
+
         self.end_upgrade(version)
 
 
     def initialize_schema_version(self):
+        """
+        Initialize the schema version table with a "completed" schema row for the
+        latest entry in upgrades.conf
+        """
         if (self.get_loaded_schema_version()):
             raise ValueError("schema version " + str(self.get_loaded_schema_version()) + " is already loaded.")
             
@@ -145,29 +172,31 @@ class Upgrade(object):
             raise e
 
 
-    def log(self, action, message_type, message = None):
+    def log(self, action, message_type, message = None, log_to_db = True):
         """
         Log upgrade message in the db
         """
         self.logger.info( "schema upgrade, logging action %s" % action)
         self.logger.info( "schema upgrade, message_type %s" % message_type)
         self.logger.info( "schema upgrade, message %s" % message)
-        args = {}
-        args["action"] = action
-        args["message_type"] = message_type
-        args["message_timestamp"] = time.ctime()
-        if (message is not None):
-            args["message"] = message
+
+        if (log_to_db):
+            args = {}
+            args["action"] = action
+            args["message_type"] = message_type
+            args["message_timestamp"] = time.ctime()
+            if (message is not None):
+                args["message"] = message
             
-        log_obj = upgrade_log_message.UpgradeLogMessage()
-        try:
-            result = log_obj.add(None, args)
-        except Exception, e:
-            (t, v, tb) = sys.exc_info()
-            self.logger.debug("Exception occured: %s" % t )
-            self.logger.debug("Exception value: %s" % v)
-            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-            raise e
+            log_obj = upgrade_log_message.UpgradeLogMessage()
+            try:
+                result = log_obj.add(None, args)
+            except Exception, e:
+                (t, v, tb) = sys.exc_info()
+                self.logger.debug("Exception occured: %s" % t )
+                self.logger.debug("Exception value: %s" % v)
+                self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+                raise e
         
     def apply_changes(self, version, sql_script_list):
         """
@@ -175,12 +204,12 @@ class Upgrade(object):
         If any scripts result in an error (for sqlite, this is indicated by output
         sent to stdout), log the error output and throw an exception
         """
-        self.log("upgrade-begin-" + str(version), UPGRADE_LOG_MESSAGE_INFO)
+        self.log("upgrade-begin-" + str(version), UPGRADE_LOG_MESSAGE_INFO, log_to_db=(version > 1))
         for line in sql_script_list:
             sql = line.strip()
             if len(sql) == 0:
                 continue
-            self.log(sql + "-begin", UPGRADE_LOG_MESSAGE_INFO)
+            self.log(sql + "-begin", UPGRADE_LOG_MESSAGE_INFO, log_to_db=(version > 1))
             pipe = os.popen(SQLITE3 + " " + self.dbpath + "  < " + UPGRADE_DIR + sql)
             error_found = 0
             error_msg = ""
@@ -194,7 +223,7 @@ class Upgrade(object):
             if closed:
                 exitCode = os.WIFEXITED(closed) and os.WEXITSTATUS(closed) or 0
             if error_found or exitCode is not None:
-                self.log(sql + "-error", UPGRADE_LOG_MESSAGE_ERROR, error_msg)
+                self.log(sql + "-error", UPGRADE_LOG_MESSAGE_ERROR, error_msg, log_to_db=(version > 1))
                 raise Exception(error_msg)
             else:
                 self.log(sql + "-end", UPGRADE_LOG_MESSAGE_INFO)
