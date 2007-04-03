@@ -26,7 +26,8 @@ setup_puppet()
 #REMOTE_USER=$USER
 REMOTE_USER="alikins"
 REMOTE_HOST="grimlock.devel.redhat.com"
-REMOTE_PATH="/tmp/html/yum/"
+REMOTE_PATH="/var/www/html/download"
+URL_PATH="/download/"
 
 
 # er, variables...
@@ -55,17 +56,21 @@ if [ "$REBUILD" == "Y" ] ; then
 	echo "Rebuilding everything for kicks"
 	./build-it-all.sh
 fi
-
+ 
+# this syncs the repos to the server, and generates the yum repo.d config files
 if [ "$SYNC_REPOS" == "Y" ] ; then
 	echo "syncing repos"
 	echo "calling sync-it-all.sh with user $REMOTE_USER"
-	./sync-it-all.py --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6"
+	./sync-it-all.py --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH
 
 fi
 
 if [ "$INSTALL_PACKAGES" == "Y" ] ; then
+        echo "configuring yum"
+	cp -av repos.d/* /etc/yum.repos.d/
+
 	echo "installing packages"
-	# install_packages
+        install_packages
 fi
 
 if [ "$SETUP_PUPPET" == "Y" ] ; then
