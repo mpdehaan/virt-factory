@@ -137,15 +137,15 @@ class Deployment(web_svc.AuthWebSvc):
         """
         Associate a machine with an ip/host/mac address
         """
-        print "associating..."
+        self.logger.info("associating...")
         # determine the profile from the token.
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
         regtoken_obj = regtoken.RegToken()
         if token is None:
-            print "token is None???"
+            self.logger.info("token is None???")
         results = regtoken_obj.get_by_token(None, { "token" : token })
-        print "get_by_token"
-        print "results: %s" % results
+        self.logger.info("get_by_token")
+        self.logger.info("results: %s" % results)
         if results.error_code != 0:
             raise InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
@@ -169,7 +169,7 @@ class Deployment(web_svc.AuthWebSvc):
     # for duck typing compatibility w/ machine           
     def new(self, token):
          args = {}
-         print "deployment_new"
+         self.logger.info("deployment_new")
          return self.add(token, args)    
 
     def add(self, token, deployment_dep_args):
@@ -415,7 +415,7 @@ class Deployment(web_svc.AuthWebSvc):
 
          dargs = self.get(token, { "id" : args["id"] }).data
 
-         print "running refresh code"
+         self.logger.info("running refresh code")
          cmd = [
             "/usr/bin/vf_nodecomm",
             socket.gethostname(),
@@ -426,7 +426,7 @@ class Deployment(web_svc.AuthWebSvc):
          p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
          data = p1.communicate()[0]
          lines = data.split("\n")
-         print "output = %s" % data
+         self.logger.info("output = %s" % data)
          for line in lines:
              if line.find("STATE=running") != -1:
                 dargs["state"] = "running"
@@ -437,7 +437,7 @@ class Deployment(web_svc.AuthWebSvc):
              elif line.find("STATE=off") != -1:
                 dargs["state"] = "off"
                 return self.edit(token, dargs)
-         print "no match"
+         self.logger.info("no match")
          return success()  # FIXME: should this be failure?        
 
         

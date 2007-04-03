@@ -110,8 +110,8 @@ class MachineData(baseobj.BaseObject):
 
         if len(invalid_args) > 0:
             
-            print "invalid args"
-            print invalid_args
+            #print "invalid args"
+            #print invalid_args
             raise InvalidArgumentsException(invalid_fields=invalid_args)
  
 #------------------------------------------------------
@@ -148,7 +148,7 @@ class Machine(web_svc.AuthWebSvc):
         """
         u = MachineData.produce(args,OP_ADD)
         if u.profile_id is not None:
-            print "creating an profile.Profile()" 
+            self.logger.info("creating an profile.Profile()")
             try:
                 self.profile = profile.Profile()
                 self.profile.get( token, { "id" : u.profile_id } )
@@ -184,15 +184,15 @@ class Machine(web_svc.AuthWebSvc):
         """
         Associate a machine with an ip/host/mac address
         """
-        print "associating..."
+        self.logger.info("associating...")
         # determine the profile from the token. 
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
         regtoken_obj = regtoken.RegToken()
         if token is None:
-            print "token is None???"
+            self.logger.info("token is None???")
         results = regtoken_obj.get_by_token(None, { "token" : token })
-        print "get_by_token"
-        print "results: %s" % results
+        self.logger.info("get_by_token")
+        self.logger.info("results: %s" % results)
         if results.error_code != 0:
             raise codes.InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
@@ -215,7 +215,7 @@ class Machine(web_svc.AuthWebSvc):
             'netboot_enabled' : 0, # elimiinate PXE install loop
             'memory' : memory
         }
-        print args
+        self.logger.info(str(args))
         return self.edit(token, args)
         
     def edit(self, token, machine_args):

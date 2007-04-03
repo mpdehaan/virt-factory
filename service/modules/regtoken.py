@@ -132,7 +132,7 @@ class RegToken(web_svc.AuthWebSvc):
          args["token"] = self.generate(token)
        
          u = RegTokenData.produce(args,OP_ADD)
-         print u.to_datastruct()
+         self.logger.info(str(u.to_datastruct()))
 
          if u.profile_id is not None:
              try:
@@ -153,7 +153,7 @@ class RegToken(web_svc.AuthWebSvc):
 
     def get_by_token(self, token, args):
          results = self.db.simple_list({}, { "token" : "'%s'" % args["token"]})
-         print "get_by_token", results
+         self.logger.info("get_by_token" + str(results))
          return results
 
     def list(self, token, args):
