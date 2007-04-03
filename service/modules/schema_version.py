@@ -97,7 +97,7 @@ class SchemaVersionData(baseobj.BaseObject):
       
 
         if len(invalid_fields) != 0:
-            print "Invalid fields: ", invalid_fields
+            #print "Invalid fields: ", invalid_fields
             raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 

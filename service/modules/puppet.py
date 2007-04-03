@@ -118,14 +118,6 @@ class Puppet(web_svc.AuthWebSvc):
             if line.strip() == nodename:
                 found = 1
         closed = pipe.close()
-        #if (closed is None):
-        #    print "normal return"
-        #else:
-        #    print "list close: " +closed
-        #if (found):
-        #    print "node " + nodename + " has a waiting request"
-        #else:
-        #    print "no waiting request for " + nodename
         return found
 
 methods = Puppet()
