@@ -6,6 +6,11 @@ import sys
 
 #HOST="et.redhat.com"
 HOST="grimlock.devel.redhat.com"
+try:
+    USERNAME=os.getenv("USER")
+except:
+    USERNAME=None
+    
 DISTRO="fc6"
 RELEASE="devel"
 ARCH="i686"
@@ -44,6 +49,7 @@ def showHelp():
 
 if __name__ == "__main__":
 
+    username=USERNAME
     hostname=HOST
     distro=DISTRO
     release=RELEASE
