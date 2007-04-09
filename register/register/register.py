@@ -84,8 +84,14 @@ class Register(object):
             server = string.split(self.server_url, '/')[2]
             server = string.split(server, ':')[0]
             self.update_puppet_sysconfig(server)
-            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --onetime"
-            os.system(puppetcmd)
+            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --test"
+            print "puppet cmd: ", puppetcmd
+            puppet_in, puppet_out = os.popen4(puppetcmd)
+            for line in puppet_out.readlines():
+                print "puppet: ", line,
+            puppet_in.close()
+            puppet_out.close()
+
             rc2 = self.server.sign_node_cert(self.token, hostname)
             if rc2[0] != 0:
                 print "Failed: ", rc2
