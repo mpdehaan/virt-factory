@@ -3,7 +3,11 @@ databases:
     primary: /var/lib/virt-factory/primary_db
 logs:
     service: /var/log/virt-factory/svclog
+repos:
+    vf_repo: 'http://virt-factory.et.redhat.com/download/repo/fc6/stable/i386/'
+    fc6i386extras: 'http://mirrors.kernel.org/fedora/extras/6/i386/'
+    fc6x86_64extras: 'http://mirrors.kernel.org/fedora/extras/6/x86_64/'
 mirrors:
-    FC-6: 'rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD'
+    FC-6: '/media/dvdiso'
 this_server:
     address: '127.0.0.1'
