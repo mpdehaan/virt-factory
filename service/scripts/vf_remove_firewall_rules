@@ -1,0 +1,9 @@
+#!/bin/bash
+
+/sbin/service iptables start
+
+/sbin/iptables -D INPUT -j virt-factory-input
+/sbin/iptables -F virt-factory-input
+/sbin/iptables -X virt-factory-input
+
+/sbin/service iptables save

@@ -36,6 +36,8 @@ if __name__ == "__main__":
 			   "scripts/vf_nodecomm",
 			   "scripts/vf_get_puppet_node",
 			   "scripts/vf_upgrade_db",
+			   "scripts/vf_config_firewall",
+			   "scripts/vf_remove_firewall_rules",
 			   "db/vf_create_db.sh"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
