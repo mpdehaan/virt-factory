@@ -1,0 +1,27 @@
+#!/bin/bash
+
+/sbin/service iptables start
+
+#user-defined chain for virt-factory
+/sbin/iptables -N virt-factory-input
+# insert before default rh/fedora chain
+/sbin/iptables -I INPUT -j virt-factory-input
+
+
+# virt-factory-wui
+/sbin/iptables -A virt-factory-input -p tcp --dport    80 -j ACCEPT 
+/sbin/iptables -A virt-factory-input -p tcp --dport   443 -j ACCEPT 
+
+# virt-factory-server
+/sbin/iptables -A virt-factory-input -p tcp --dport  5150 -j ACCEPT 
+
+# cobbler syslog
+/sbin/iptables -A virt-factory-input -p tcp --dport 25150 -j ACCEPT 
+
+# puppetmaster
+/sbin/iptables -A virt-factory-input -p tcp --dport  8140 -j ACCEPT 
+
+# ntp
+/sbin/iptables -A virt-factory-input -p udp --dport   123 -j ACCEPT 
+
+/sbin/service iptables save
