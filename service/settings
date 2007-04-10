@@ -11,3 +11,8 @@ mirrors:
     FC-6: '/media/dvdiso'
 this_server:
     address: '127.0.0.1'
+extras_rpms:
+    - cobbler
+    - koan
+    - python-cheetah
+    - yum-utils

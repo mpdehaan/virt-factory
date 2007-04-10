@@ -125,9 +125,13 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedRepo:
    def __init__(self,cobbler_api,name,url):
+       vf_config = config_data.Config().get()
        new_item = cobbler_api.new_repo()
        new_item.set_name(name)
        new_item.set_mirror(url)
+       if name.find("extras") != -1:
+          # don't pull in all of extras
+          new_item.set_rpm_list(vf_config["extras_rpms"])
        cobbler_api.repos().add(new_item)
        cobbler_api.serialize()
 
