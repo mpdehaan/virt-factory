@@ -1,7 +1,7 @@
 #!/usr/bin/python
 ## Virt-factory backend code.
 ##
-## Copyright 2006, Red Hat, Inc
+## Copyright 2006-2007, Red Hat, Inc
 ## Michael DeHaan <mdehaan@redhat.com>
 ## Scott Seago <sseago@redhat.com>
 ## Adrian Likins <alikins@redhat.com>
@@ -121,6 +121,19 @@ def input_string_or_hash(options,delim=","):
         options.pop('',None)
         return (True, options)
 
+#--------------------------------------------------------------------
+
+class CobblerTranslatedRepo:
+   def __init__(self,cobbler_api,name,url):
+       vf_config = config_data.Config().get()
+       new_item = cobbler_api.new_repo()
+       new_item.set_name(name)
+       new_item.set_mirror(url)
+       if name.find("extras") != -1:
+          # don't pull in all of extras
+          new_item.set_rpm_list(vf_config["extras_rpms"])
+       cobbler_api.repos().add(new_item)
+       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -167,7 +180,27 @@ class CobblerTranslatedProfile:
        # intentional.
        # use the same kickstart template for all profiles but template it out based on
        # distro, profile, and system settings. 
+       # --mpd
+
        new_item.set_kickstart("/var/lib/virt-factory/kick-fc6.ks")
+
+       # the repositories that this profile will use vary by architecture.  For now
+       # import only extras/updates and assume the distribution is FC-6.  The repos 
+       # to be imported are defined in the service configuration file and must match
+       # by name... I expect some (minor) pain in this when we support FC6/FC7 simultaneously.
+       # --mpd
+
+       repos = ['vf_repo']
+       if distrib.data["architecture"] == "x86":
+           # not supporting update mirroring at this time in development, but can re-enable later.
+           # namely turned off due to time it takes to sync.
+           # repos.append('fc6i386updates')
+           repos.append('fc6i386extras')
+       if distrib.data["architecture"] == "x86_64":
+           # repos.append('fc6x86_64updates')
+           repos.append('fc6x86_64extras')
+
+       new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
@@ -386,6 +419,8 @@ class Provisioning(web_svc.AuthWebSvc):
       profiles      = profiles.data
       machines      = machines.data
       deployments   = deployments.data
+       
+      vf_config = config_data.Config().get()
       
       # FIXME: (IMPORTANT) update cobbler config from virt-factory config each time, in particular,
       # the server field might have changed.
@@ -393,15 +428,20 @@ class Provisioning(web_svc.AuthWebSvc):
       try:
          cobbler_api = cobbler.api.BootAPI()
          cobbler_api.sync()
+         cobbler_repos    = cobbler_api.repos()   
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
          cobbler_systems  = cobbler_api.systems()
          cobbler_distros.clear()
          cobbler_profiles.clear()
          cobbler_systems.clear()
+         cobbler_repos.clear()
          
          # cobbler can/will could raise exceptions on failure at any point...
          # return code checking is not needed.
+         for r in vf_config["repos"].keys():
+            print "- repository: %s" % r
+            CobblerTranslatedRepo(cobbler_api,r,vf_config["repos"][r])
          for d in distributions:
             print "- distribution: %s" % d
             CobblerTranslatedDistribution(cobbler_api,d)
@@ -414,6 +454,7 @@ class Provisioning(web_svc.AuthWebSvc):
          for dp in deployments:
             print "- deployment: %s" % dp
             CobblerTranslatedSystem(cobbler_api,profiles,dp)
+         
 
          cobbler_api.serialize()
          cobbler_api.sync()
@@ -474,7 +515,11 @@ class Provisioning(web_svc.AuthWebSvc):
 
         print NOW_IMPORTING
 
-        # FIXME
+        # deal with repositories first... as the profiles might reference them.
+        for repo_name in vf_config["repos"].keys():
+           mirror_url = vf_config["repos"][repo_name]
+           CobblerTranslatedRepo(cobbler_api,repo_name,mirror_url)
+        cobbler_api.reposync() 
 
         # read the config entry to find out cobbler's mirror locations
         for mirror_name in vf_config["mirrors"]:
