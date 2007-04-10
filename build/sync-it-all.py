@@ -23,7 +23,7 @@ keepcache=0
 
 DISTRO="fc6"
 RELEASE="devel"
-ARCH="i686"
+ARCH="i386"
 PATH="/var/www/sites/virt-factory.et.redhat.com/download"
 DRYRUN=False
 URLPATH="download/"
@@ -32,12 +32,12 @@ URLPATH="download/"
 def create_repo_d_file(repo, hostname, urlpath, release):
     repo_txt = repo_template % {'repo_name':"test_repo_%s" % repo,
                                 'repo_long_name': "Test Repo for %s" % release,
-                                'base_url': "http://%s/%s/repo/$releasever/%s/$basearch/" % (hostname, urlpath, release),                                
+                                'base_url': "http://%s/%s/repo/fc$releasever/%s/$basearch/" % (hostname, urlpath, release),                                
                                 'enabled': "1"}
     if repo == "srpms":
         repo_text = repo_template % {'repo_name':"test_repo_%s" % repo,
                                      'repo_long_name': "Test Repo for %s" % release,
-                                     'base_url': "http://%s/%s/repo/$releasever/%s/$repo/" % (hostname, urlpath, repo),                                
+                                     'base_url': "http://%s/%s/repo/fc$releasever/%s/$repo/" % (hostname, urlpath, repo),                                
                                      'enabled': "1"}
 
     if not os.access("repos.d", os.W_OK):
@@ -72,7 +72,7 @@ def push(user, host, path, distro, release, arch, urlpath, dryrun):
         if not dryrun:
             os.system(cmd)
 
-    for repo in [arch, "srpms"]:
+    for repo in [arch]:
         create_repo_d_file(repo, hostname, urlpath, release)
 
 def showHelp():

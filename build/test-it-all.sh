@@ -9,7 +9,7 @@ help()
 
 install_packages()
 {
-	yum install virt-factory-server virt-factory-client virt-factory-register virt-factory-wui puppet puppet-server
+	yum install -y virt-factory-server virt-factory-client virt-factory-register virt-factory-wui puppet puppet-server
 }
 
 
@@ -35,6 +35,9 @@ REBUILD=N
 SYNC_REPOS=N
 INSTALL_PACKAGES=Y
 SETUP_PUPPET=Y
+VF_SERVER_IMPORT=N
+VF_IMPORT=Y
+REFRESH_DB=Y
 
 # commandline parsing
 while [ $# -gt 0 ]
@@ -47,6 +50,9 @@ do
 	--install-packages) INSTALL_PACKAGES=Y;;
 	--skip-packages) INSTALL_PACKAGES=N;;
 	--skip-puppet) SETUP_PUPPET=N;;
+	--skip-import) VF_SERVER_IMPORT=N;;
+	--skip-vf-import) VF_IMPORT=N;;
+	--skip-db-refresh) REFRESH_DB=N;;
     esac
     shift
 done
@@ -65,6 +71,12 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
 
 fi
 
+if [ "$REFRESH_DB" == "Y" ] ; then
+    echo "Purging the db"
+    rm -rf /var/lib/virt-factory/primary_db
+    /usr/bin/vf_create_db.sh
+fi
+
 if [ "$INSTALL_PACKAGES" == "Y" ] ; then
         echo "configuring yum"
 	cp -av repos.d/* /etc/yum.repos.d/
@@ -76,5 +88,23 @@ fi
 if [ "$SETUP_PUPPET" == "Y" ] ; then
 	echo "Setting up puppet"
 	setup_puppet
+fi
+
+
+if [ "$VF_SERVER_IMPORT" == "Y" ] ; then
+	echo "Starting vf_server import, this could take a while"
+	/usr/bin/vf_server import
+fi
+
+
+if [ "$VF_IMPORT" == "Y" ] ; then
+    echo "importing profiles"
+    cd profiles/
+    for profile in `cat profile_manifest`
+    do
+      echo "importing $profile"
+      /usr/bin/vf_import $profile
+    done
+    cd ..
 fi
 
