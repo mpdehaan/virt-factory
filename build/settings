@@ -1,0 +1,18 @@
+---
+databases:
+    primary: /var/lib/virt-factory/primary_db
+logs:
+    service: /var/log/virt-factory/svclog
+repos:
+    vf_repo: 'VF_REPO'
+    fc6i386extras: 'http://mirrors.kernel.org/fedora/extras/6/i386/'
+    fc6x86_64extras: 'http://mirrors.kernel.org/fedora/extras/6/x86_64/'
+mirrors:
+    FC-6: 'rsync://rsync.devel.redhat.com/engarchive/released/FC-6/GOLD'
+this_server:
+    address: 'ADDRESS'
+extras_rpms:
+    - cobbler
+    - koan
+    - python-cheetah
+    - yum-utils
