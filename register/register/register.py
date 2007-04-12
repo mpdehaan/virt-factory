@@ -83,8 +83,8 @@ class Register(object):
             fd4 = open("/etc/sysconfig/virt-factory/profile", "w+")
             fd4.write(profile_name)
             fd4.close()
-            server = string.split(self.server_url, '/')[2]
-            server = string.split(server, ':')[0]
+            server = server_url.split('/')[2]
+            server = server.split(':')[0]
             self.update_puppet_sysconfig(server)
             puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --test"
             print "puppet cmd: ", puppetcmd
