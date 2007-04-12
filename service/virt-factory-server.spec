@@ -82,7 +82,7 @@ fi
 
 
 %changelog
-* Thurs Apr 12 2007 Scott Seago <sseago@redhat.com> - 0.0.1-7
+* Thu Apr 12 2007 Scott Seago <sseago@redhat.com> - 0.0.1-7
 - moved db creation from service init script to rpm %post
 - for rpm upgrades, perform schema upgrade
  
