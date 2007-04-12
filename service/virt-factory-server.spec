@@ -74,7 +74,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
 /bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
-if [ $1 -gt 1 ]; then
+if [ -f /var/lib/virt-factory/primary_db ]; then
     /usr/bin/vf_upgrade_db
 else
     /usr/bin/vf_create_db.sh
