@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
 Version: 0.0.1
-Release: 6%{?dist}
+Release: 7%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -74,8 +74,18 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
 /bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
+if [ $1 -gt 1 ]; then
+    /usr/bin/vf_upgrade_db
+else
+    /usr/bin/vf_create_db.sh
+fi
+
 
 %changelog
+* Thurs Apr 12 2007 Scott Seago <sseago@redhat.com> - 0.0.1-7
+- moved db creation from service init script to rpm %post
+- for rpm upgrades, perform schema upgrade
+ 
 * Tue Apr 10 2007 Scott Seago <sseago@redhat.com> - 0.0.1-6
 - add iptables config scripts
  
