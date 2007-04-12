@@ -27,6 +27,7 @@ ARCH="i386"
 PATH="/var/www/sites/virt-factory.et.redhat.com/download"
 DRYRUN=False
 URLPATH="download/"
+LOCALPATH="./"
 
 
 def create_repo_d_file(repo, hostname, urlpath, release):
@@ -47,25 +48,26 @@ def create_repo_d_file(repo, hostname, urlpath, release):
     f.write(repo_txt)
     f.close()
 
-def push(user, host, path, distro, release, arch, urlpath, dryrun):
+def push(localpath, user, host, path, distro, release, arch, urlpath, dryrun):
     if release != "stable" and release != "devel":
         raise RuntimeError, "release must be stable or devel"
      
-    args = {'user':user,
-            'host':host,
-            'path':path,
-            'distro':distro,
-            'release':release,
-            'arch':arch}
+    args = {'user': user,
+            'host': host,
+            'path': path,
+            'localpath' : localpath,
+            'distro': distro,
+            'release': release,
+            'arch': arch}
  
     cmds = [
         """/usr/bin/ssh %(user)s@%(host)s mkdir -p %(path)s/repo/%(distro)s/%(release)s/%(arch)s %(path)s/repo/%(distro)s/%(release)s/srpms""" % args,
-        """/usr/bin/rsync -rav --delete -e ssh rpms/ %(user)s@%(host)s:/%(path)s/repo/%(distro)s/%(release)s/%(arch)s/""" % args,
-        """/usr/bin/rsync -rav --delete -e ssh srpms/  %(user)s@%(host)s:%(path)s/repo/%(distro)s/%(release)s/srpms/""" % args
+        """/usr/bin/rsync -rav --delete -e ssh %(localpath)s/rpms/ %(user)s@%(host)s:/%(path)s/repo/%(distro)s/%(release)s/%(arch)s/""" % args,
+        """/usr/bin/rsync -rav --delete -e ssh %(localpath)s/srpms/  %(user)s@%(host)s:%(path)s/repo/%(distro)s/%(release)s/srpms/""" % args
         ]
     
     if release == "stable":
-        cmds.append("/usr/bin/rsync -rav --delete -e ssh tars/  %(user)s@%(host)s:%(path)s/src/" % args)
+        cmds.append("/usr/bin/rsync -rav --delete -e ssh %(localpath)s/tars/  %(user)s@%(host)s:%(path)s/src/" % args)
 
     for cmd in cmds:
         print cmd
@@ -90,11 +92,13 @@ if __name__ == "__main__":
     path=PATH
     dryrun=DRYRUN
     urlpath=URLPATH
+    localpath=LOCALPATH
     
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hn",[
             "help",
             "hostname=",
+            "localpath=",
             "user=",
             "path=",
             "release=",
@@ -126,6 +130,8 @@ if __name__ == "__main__":
             dryrun=True
         if opt in ["--urlpath"]:
             urlpath=val
+        if opt in ["--localpath"]:
+            localpath=val
 
-    push(username, hostname, path, distro, release, arch, urlpath, dryrun)
+    push(localpath, username, hostname, path, distro, release, arch, urlpath, dryrun)
 
