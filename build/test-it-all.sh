@@ -75,8 +75,8 @@ start_server()
 
 # note, the user you log in as needs perms to write to 
 # REMOTE_PATH 
-REMOTE_USER="alikins"
-REMOTE_HOST="grimlock.devel.redhat.com"
+REMOTE_USER="mdehaan"
+REMOTE_HOST="mdehaan.rdu.redhat.com"
 REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
 
