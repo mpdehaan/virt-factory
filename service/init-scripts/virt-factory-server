@@ -16,15 +16,6 @@
 
 RETVAL=0
 
-create_db_if_needed() {
-    if test -f /var/lib/virt-factory/primary_db ; then
-	return 0
-    fi
-    # create and populate the db
-    /usr/bin/vf_create_db.sh
-}
-
-
 start() {
     echo -n $"Starting virt-factory backend : "
     if test -f /var/lock/subsys/vf_server ; then
@@ -33,8 +24,6 @@ start() {
         return 1
     fi
  
-    create_db_if_needed
-
     /usr/bin/vf_server --daemon
     /usr/bin/vf_taskatron --daemon
     RETVAL=$?
