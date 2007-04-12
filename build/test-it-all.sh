@@ -1,5 +1,31 @@
 #!/bin/bash
 
+
+#REMOTE_USER=$USER
+
+# note, the user you log in as needs perms to write to 
+# REMOTE_PATH 
+REMOTE_USER="alikins"
+REMOTE_HOST="grimlock.devel.redhat.com"
+REMOTE_PATH="/var/www/html/download"
+URL_PATH="/download/"
+DEFAULT_PROFILE="test1"
+
+BUILD_PATH=/tmp/vf-test
+
+# er, variables...
+REBUILD=N
+FRESH_CHCKOUT=N
+SYNC_REPOS=N
+INSTALL_PACKAGES=Y
+SETUP_PUPPET=Y
+VF_SERVER_IMPORT=Y
+VF_IMPORT=Y
+REFRESH_DB=Y
+START_SERVCES=Y
+REGISTER_SYSTEM=Y
+REMOVE_PACKAGES=Y
+
 msg()
 {
     echo 
@@ -7,11 +33,27 @@ msg()
     echo 
 }
 
-
-
 help()
 {
 	echo "no help yet"
+}
+
+
+check_out_code()
+{
+    rm -rf $BUILD_PATH
+    mkdir -p $BUILD_PATH
+    pushd $BUILD_PATH
+    git clone git://et.redhat.com/virt-factory
+    git clone git://et.redhat.com/koan
+    git clone git://et.redhat.com/cobbler
+    popd
+}
+
+remove_all_packages()
+{
+    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes
+    # Need to remove koan/cobbler as well
 }
 
 
@@ -63,33 +105,32 @@ setup_puppet()
 
 }
 
-start_server()
+stop_services()
+{
+    /etc/init.d/puppetmaster stop
+    /etc/init.d/virt-factory-server stop
+    /etc/init.d/virt-factory-wui stop
+    /etc/init.d/virt-factory-nodes stop
+}
+
+start_services()
 {
     /etc/init.d/puppetmaster restart
     /etc/init.d/virt-factory-server restart
     /etc/init.d/virt-factory-wui start
 }
 
+start_client_services()
+{
+    /etc/init.d/puppet start
+    /etc/init.d/virt-factory-nodes start
+}
 
-#REMOTE_USER=$USER
-
-# note, the user you log in as needs perms to write to 
-# REMOTE_PATH 
-REMOTE_USER="alikins"
-REMOTE_HOST="grimlock.devel.redhat.com"
-REMOTE_PATH="/var/www/html/download"
-URL_PATH="/download/"
-
-
-# er, variables...
-REBUILD=N
-SYNC_REPOS=N
-INSTALL_PACKAGES=Y
-SETUP_PUPPET=Y
-VF_SERVER_IMPORT=Y
-VF_IMPORT=Y
-REFRESH_DB=Y
-START_SERVER=Y
+start
+register_system()
+{
+    vf_register --serverurl=http://127.0.0.1:5150 --username admin --password fedora --profilename $1
+}
 
 # commandline parsing
 while [ $# -gt 0 ]
@@ -98,6 +139,7 @@ do
         -h)  help;;
 	-r) REBUILD=Y;;
 	--rebuild) REBUILD=Y;;
+	--checkout) FRESH_CHECKOUT=Y;;
 	--sync-repos) SYNC_REPOS=Y;;
 	--install-packages) INSTALL_PACKAGES=Y;;
 	--skip-packages) INSTALL_PACKAGES=N;;
@@ -105,7 +147,9 @@ do
 	--skip-import) VF_SERVER_IMPORT=N;;
 	--skip-vf-import) VF_IMPORT=N;;
 	--skip-db-refresh) REFRESH_DB=N;;
-	--skip-server-start) START_SERVER=N;;
+	--skip-server-start) START_SERVICES=N;;
+	--skip-register) REGISTER_SYSTEM=N;;
+	--skip-package-remote) REMOVE_PACKAGES=N;;
     esac
     shift
 done
@@ -113,14 +157,38 @@ done
 # FIXME: we should probably clone the git repo's then run the script. The script
 # thats in the repo. 
 
+stop_services
+
+if [ "$REMOVE_PACKAGES" == "Y" ] ; then
+    msg "Removing lots of packages"
+    remove_all_packages
+fi
+
+
 
 if [ "$REBUILD" == "Y" ] ; then
-	msg "Rebuilding everything for kicks"
-	./build-it-all.sh
-	
-	# note, we also need to build cobbler and koan, and 
-	# add them to the repo. Do we want to do this as part of
-	# build-it-all.sh? probably
+    if [ "$FRESH_CHECKOUT" == "Y" ] ; then
+	msg "Checking out code from git"
+	check_out_code
+	# build it all expect us to run it from the source dir, so go
+	# there if we need to
+	pwd
+	pushd $BUILD_PATH/virt-factory/build
+    else
+	# just so we don't have to track were we are
+	pushd `pwd`
+    fi
+    
+    
+    msg "Rebuilding everything for kicks in " 
+
+    $BUILD_PATH/virt-factory/build/build-it-all.sh
+    
+    popd
+
+    # note, we also need to build cobbler and koan, and 
+    # add them to the repo. Do we want to do this as part of
+    # build-it-all.sh? probably
 
 fi
  
@@ -128,14 +196,8 @@ fi
 if [ "$SYNC_REPOS" == "Y" ] ; then
 	msg "syncing repos"
 	msg "calling sync-it-all.sh with user $REMOTE_USER"
-	./sync-it-all.py --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH
+	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH
 
-fi
-
-if [ "$REFRESH_DB" == "Y" ] ; then
-    msg "Purging the db"
-    rm -rf /var/lib/virt-factory/primary_db
-    /usr/bin/vf_create_db.sh
 fi
 
 
@@ -148,6 +210,13 @@ if [ "$INSTALL_PACKAGES" == "Y" ] ; then
     msg "installing server packages from devel repo"
     install_server_packages
 
+fi
+
+
+if [ "$REFRESH_DB" == "Y" ] ; then
+    msg "Purging the db"
+    rm -rf /var/lib/virt-factory/primary_db
+    /usr/bin/vf_create_db.sh
 fi
 
 if [ "$SETUP_PUPPET" == "Y" ] ; then
@@ -188,8 +257,14 @@ if [ "$VF_IMPORT" == "Y" ] ; then
     cd ..
 fi
 
-if [ "$START_SERVER" = "Y" ] ; then
+if [ "$START_SERVICES" == "Y" ] ; then
     msg "restarting services"
-    start_server
+    start_services
+    start_client_services
 fi
 
+
+if [ "$REGISTER_SYSTEM" == "Y" ] ; then
+    msg "Registering system"
+    register_system $DEFAULT_PROFILE
+fi
