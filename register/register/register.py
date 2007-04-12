@@ -25,6 +25,7 @@ import socket
 import os
 import os.path
 import fileinput
+import traceback
 
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 ERR_ARGUMENTS_INVALID = 8 # ...
