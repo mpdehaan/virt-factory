@@ -24,12 +24,17 @@ def findHostByRoute(server_url, proxy_url=None):
 
     hostname = None
     intf = None
+    port = None
     for serverUrl in sl:
         s = socket.socket()
         server = string.split(serverUrl, '/')[2]
-        server = string.split(server, ':')[0]
+        parts = string.split(server, ':')
+        if len(parts) > 1:
+            port = int(parts[1])
+        server = parts[0]
         servertype = string.split(serverUrl, ':')[0]
-        port = st[servertype]
+        if not port:
+            port = st[servertype]
 
         if proxy_url:
             server_port = getProxySetting(proxy_url)
