@@ -11,7 +11,9 @@ REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
 DEFAULT_PROFILE="test1"
 
-BUILD_PATH=/tmp/vf-test
+BUILD_PATH="/tmp/vf-test"
+VF_SERVER_URL="http://172.16.59.218:5150"
+
 
 # er, variables...
 REBUILD=N
@@ -29,7 +31,7 @@ REMOVE_PACKAGES=Y
 msg()
 {
     echo 
-    echo "$1"
+    echo "============ $1 ============"
     echo 
 }
 
@@ -73,6 +75,7 @@ install_client_packages()
 
 
 
+# FIXME: sync this repo
 # create the repo like the one at 
 # http://virt-factory.et.redhat.com/download/repo/fc6/stable/i386/
 # but with the recently built packages and synced to REMOTE_HOST so
@@ -91,7 +94,7 @@ setup_vf_server()
     HN=`hostname`
     # FIXME: were just reposyncing the normal repo to a specific path
     # FIXME: this path shouldn't be hardcoded
-    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc6/devel/i386"
+    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc6/devel/i686"
     cp settings settings.testing
     export HN VF_REPO
     perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" settings.testing
@@ -128,7 +131,7 @@ start_client_services()
 
 register_system()
 {
-    vf_register --serverurl=http://127.0.0.1:5150 --username admin --password fedora --profilename $1
+    vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1
 }
 # commandline parsing
 while [ $# -gt 0 ]
