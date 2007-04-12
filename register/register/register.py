@@ -65,7 +65,8 @@ class Register(object):
         try:
             rc = self.server.register(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
-            print "must specify --profilename"
+            traceback.print_exc()
+            print "error running registration."
             sys.exit(1)
         if rc[0] == 0:
             print "Registration succeeded."

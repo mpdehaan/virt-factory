@@ -126,11 +126,33 @@ start_client_services()
     /etc/init.d/virt-factory-nodes start
 }
 
+<<<<<<< master
 start
 register_system()
 {
     vf_register --serverurl=http://127.0.0.1:5150 --username admin --password fedora --profilename $1
 }
+=======
+#REMOTE_USER=$USER
+
+# note, the user you log in as needs perms to write to 
+# REMOTE_PATH 
+REMOTE_USER="mdehaan"
+REMOTE_HOST="mdehaan.rdu.redhat.com"
+REMOTE_PATH="/var/www/html/download"
+URL_PATH="/download/"
+
+
+# er, variables...
+REBUILD=N
+SYNC_REPOS=N
+INSTALL_PACKAGES=Y
+SETUP_PUPPET=Y
+VF_SERVER_IMPORT=Y
+VF_IMPORT=Y
+REFRESH_DB=Y
+START_SERVER=Y
+>>>>>>> vf
 
 # commandline parsing
 while [ $# -gt 0 ]
