@@ -2,7 +2,7 @@
 
 BUILD=`pwd`
 SRCDIR="$BUILD/../"
-PKGS="register nodes service wui rubypkgstuff"
+VF_PKGS="register nodes service wui rubypkgstuff"
 
 if [ ! -f "/usr/bin/createrepo" ]; then
 	echo "you need createrepo installed"
@@ -19,7 +19,7 @@ rm -rf srpms
 rm -rf tars
 mkdir -p rpms srpms tars
 
-for i in $PKGS
+for i in $VF_PKGS
 do
         # just to make looking though logs a little easier
         echo;echo;echo
@@ -40,6 +40,9 @@ do
            exit 1
         fi 
 done
+
+# FIXME: we probably need to build cobbler/koan as well
+# FIXME: cobbler/koan use different build stuff
 
 # build all the latest profiles
 cd $SRCDIR
