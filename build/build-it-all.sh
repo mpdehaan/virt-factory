@@ -21,6 +21,9 @@ mkdir -p rpms srpms tars
 
 for i in $PKGS
 do
+        # just to make looking though logs a little easier
+        echo;echo;echo
+	echo "======================================"
 	echo "Building $i"
 	cd ../$i
 	make rpms 
@@ -36,6 +39,21 @@ do
            echo "kaboom cleaning up $i"
            exit 1
         fi 
+done
+
+# build all the latest profiles
+cd $SRCDIR
+pwd
+cd profiles
+ls *
+for i in `ls`
+do
+  pwd
+  echo "Building the profile for $i" 
+  pushd $i
+  make
+  cp *.tar.gz $BUILD/profiles/
+  popd
 done
 
 cd $BUILD
