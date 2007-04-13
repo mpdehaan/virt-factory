@@ -24,7 +24,7 @@ SETUP_PUPPET=Y
 VF_SERVER_IMPORT=Y
 VF_IMPORT=Y
 REFRESH_DB=Y
-START_SERVCES=Y
+START_SERVICES=Y
 REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
 CLEANUP_COBBLER=Y
@@ -110,7 +110,7 @@ setup_vf_server()
     HN=`hostname`
     # FIXME: were just reposyncing the normal repo to a specific path
     # FIXME: this path shouldn't be hardcoded
-    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc6/devel/i686"
+    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc6/devel/i386"
     cp settings settings.testing
     export HN VF_REPO
     perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" settings.testing
@@ -285,7 +285,7 @@ fi
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
     cd profiles/
-    for profile in `cat profile_manifest`
+    for profile in `ls`
     do
       msg "importing $profile"
       /usr/bin/vf_import $profile
