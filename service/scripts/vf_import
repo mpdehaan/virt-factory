@@ -99,7 +99,7 @@ class VirtFactoryImporter:
         profile_member = self.tarball.getmember("profile.xml")
         profile_xml = self.tarball.extractfile(profile_member)
         self.profile = parse(profile_xml)
-        self.module_name = self.get_node_text(NAME_TAG)
+        self.module_name = self.get_node_text(NAME_TAG).lower()
         
         for member in self.tarball.getmembers():
             if (re.search(PROFILE_REGEXP, member.name)):
