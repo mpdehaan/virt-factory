@@ -19,30 +19,48 @@ rm -rf srpms
 rm -rf tars
 mkdir -p rpms srpms tars
 
+build_rpm()
+{
+    PKG=$1
+    echo;echo;echo
+    echo "======================================"
+    echo "Building $PKG"
+    echo "======================================"
+    echo
+    cd ../$PKG
+    make rpms 
+    if [ $? != 0 ]; then
+	echo "kaboom building $PKG"
+	exit 1
+    fi 
+    mv rpm-build/*.src.rpm $BUILD/srpms
+    mv rpm-build/*.rpm $BUILD/rpms
+    mv rpm-build/*.tar.gz $BUILD/tars
+    make clean
+    if [ $? != 0 ]; then
+	echo "kaboom cleaning up $PKG"
+	exit 1
+    fi 
+}
+
 for i in $VF_PKGS
 do
-        # just to make looking though logs a little easier
-        echo;echo;echo
-	echo "======================================"
-	echo "Building $i"
-	cd ../$i
-	make rpms 
-        if [ $? != 0 ]; then
-           echo "kaboom building $i"
-           exit 1
-        fi 
-	mv rpm-build/*.src.rpm $BUILD/srpms
-	mv rpm-build/*.rpm $BUILD/rpms
-	mv rpm-build/*.tar.gz $BUILD/tars
-	make clean
-        if [ $? != 0 ]; then
-           echo "kaboom cleaning up $i"
-           exit 1
-        fi 
+  build_rpm $i
 done
 
 # FIXME: we probably need to build cobbler/koan as well
 # FIXME: cobbler/koan use different build stuff
+
+build_profile()
+{
+    PROFILE=$1
+    pwd
+    echo "Building the profile for $PROFILE" 
+    pushd $PROFILE
+    make
+    cp *.tar.gz $BUILD/profiles/
+    popd
+}
 
 # build all the latest profiles
 cd $SRCDIR
@@ -51,13 +69,9 @@ cd profiles
 ls *
 for i in `ls`
 do
-  pwd
-  echo "Building the profile for $i" 
-  pushd $i
-  make
-  cp *.tar.gz $BUILD/profiles/
-  popd
+  build_profile $i
 done
+
 
 cd $BUILD
 
