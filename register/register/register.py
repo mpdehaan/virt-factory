@@ -16,6 +16,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import machine_info
+import logger
+logger.logfilepath = "/var/log/virt-factory-register/vf_register.log"
 
 import getopt
 import string
@@ -39,6 +41,7 @@ class Server(xmlrpclib.ServerProxy):
 class Register(object):
     def __init__(self,url):
         self.server_url = url
+        self.logger = logger.Logger().logger
         self.server = Server(url)
         self.token = None
 
@@ -50,15 +53,15 @@ class Register(object):
     
     def register(self, hostname, ip, mac, profile_name, virtual):
         # should return a machine_id, maybe more
-        print "--------------------"
-        print "Registering..."
-        print "  token=", self.token
-        print "  hostname=", hostname,
-        print "  ip=", ip
-        print "  mac=", mac
-        print "  profile_name=", profile_name
-        print "  virtual=", virtual
-        print "---------------------"
+        self.logger.info("--------------------")
+        self.logger.info("Registering...")
+        self.logger.info("  token=%s" % self.token)
+        self.logger.info("  hostname=%s" % hostname)
+        self.logger.info("  ip=%s" % ip)
+        self.logger.info("  mac=%s" % mac)
+        self.logger.info("  profile_name=%s" % profile_name)
+        self.logger.info("  virtual=%s" % virtual)
+        self.logger.info("---------------------")
         if profile_name is None:
             profile_name = ""
         if mac is None:
@@ -66,11 +69,11 @@ class Register(object):
         try:
             rc = self.server.register(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
-            traceback.print_exc()
-            print "error running registration."
+            self.logger.error("error running registration.")
+            self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             sys.exit(1)
         if rc[0] == 0:
-            print "Registration succeeded."
+            self.logger.info("Registration succeeded.")
             fd1 = open("/etc/sysconfig/virt-factory/token","w+")
             fd1.write(self.token)
             fd1.close()
@@ -87,20 +90,20 @@ class Register(object):
             server = server.split(':')[0]
             self.update_puppet_sysconfig(server)
             puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --test"
-            print "puppet cmd: ", puppetcmd
+            self.logger.info("puppet cmd: %s" % puppetcmd)
             puppet_in, puppet_out = os.popen4(puppetcmd)
             for line in puppet_out.readlines():
-                print "puppet: ", line,
+                self.logger.info("puppet: %s" % line.strip())
             puppet_in.close()
             puppet_out.close()
 
             rc2 = self.server.sign_node_cert(self.token, hostname)
             if rc2[0] != 0:
-                print "Failed: ", rc2
+                self.logger.error("Failed: %s" % rc2)
                 rc = rc2
             
         else:
-            print "Failed: ", rc
+            self.logger.info("Failed: %" % rc)
         return rc
 
     def update_puppet_sysconfig(self, server):
@@ -109,7 +112,7 @@ class Register(object):
         for line in file:
             line = line.strip()
             if not 'PUPPET_SERVER' in line:
-                print line 
+                print line
             else:
                 found = 1
                 print "PUPPET_SERVER=",server
@@ -117,6 +120,34 @@ class Register(object):
             file = open("/etc/sysconfig/puppet", 'a')
             file.write('PUPPET_SERVER=' + server + '\n')
             file.close();
+
+    def register_system(self, regtoken, username, password, profile_name, virtual):
+        if regtoken:
+            self.token = regtoken
+        else:
+            self.login(username, password)
+
+        net_info = machine_info.get_netinfo(self.server_url)
+        self.logger.info(net_info)
+ 
+        try:
+            rc = self.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
+        except socket.error:
+            print "Could not connect to server."
+            return 1
+        if rc[0] == ERR_TOKEN_INVALID:
+            self.logger.info("Bad token!  No registration for you!")
+        elif rc[0] == ERR_ARGUMENTS_INVALID:
+            self.logger.info("Invalid arguments.  Possibly missing --profilename ?")
+        elif rc[0] != 0:
+            self.logger.info("There was an error.  Check the server side logs.")
+        else:
+            # it's all good
+            cmdline = " ".join(sys.argv[1:])
+            fd5 = open("/etc/sysconfig/virt-factory/register","w+")
+            fd5.write(cmdline)
+            fd5.close()
+        return rc[0]
 
 def showHelp():
     print "register [--help] [--token] [--serverurl=]"
@@ -153,7 +184,7 @@ def main(argv):
         sys.exit(1)
 
     for (opt, val) in opts:
-        print "DEBUG: this (%s,%s)" % (opt,val)
+        #print "DEBUG: this (%s,%s)" % (opt,val)
         if opt in ["-h", "--help"]:
             showHelp()
             sys.exit(1)
@@ -166,7 +197,7 @@ def main(argv):
         if opt in ["-s", "--serverurl"]:
             server_url = val
         if opt in ["-i", "--profilename"]:
-            print "read the profile name"
+            #print "read the profile name"
             profile_name = val
         if opt in ["-v", "--virtual"]:
             virtual = True
@@ -184,34 +215,8 @@ def main(argv):
            sys.exit(1)        
 
     reg_obj = Register(server_url)
-    if regtoken:
-        reg_obj.token = regtoken
-    else:
-        reg_obj.login(username, password)
-
-    net_info = machine_info.get_netinfo(server_url)
-    print net_info
- 
-    try:
-        rc = reg_obj.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
-    except socket.error:
-        print "Could not connect to server."
-        sys.exit(1)
-    if rc[0] == ERR_TOKEN_INVALID:
-        print "Bad token!  No registration for you!"
-        sys.exit(rc[0])
-    elif rc[0] == ERR_ARGUMENTS_INVALID:
-        print "Invalid arguments.  Possibly missing --profilename ?"
-        sys.exit(rc[0])
-    elif rc[0] != 0:
-        print "There was an error.  Check the server side logs."
-        sys.exit(rc[0])
- 
-    # it's all good
-    cmdline = " ".join(sys.argv[1:])
-    fd5 = open("/etc/sysconfig/virt-factory/register","w+")
-    fd5.write(cmdline)
-    fd5.close()
+    return_status = reg_obj.register_system(regtoken, username, password, profile_name, virtual)
+    sys.exit(return_status)
 
 
 if __name__ == "__main__":

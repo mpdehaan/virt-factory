@@ -3,6 +3,7 @@
 import sys
 from distutils.core import setup, Extension
 import string
+import glob
 
 NAME = "virt-factory"
 VERSION = "0.0.1"
@@ -16,7 +17,7 @@ if __name__ == "__main__":
         etcpath  = "/etc/%s" % NAME
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
-        logpath  = "/var/log/%s/" % NAME
+        logpath  = "/var/log/%s-register/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
         setup(
                 name="%s-register" % NAME,
@@ -28,7 +29,7 @@ if __name__ == "__main__":
 		scripts = ["scripts/vf_register"],
 		package_dir = {"%s/register" % NAME: "register"},
 		packages = ["%s/register" % NAME],
-#		data_files = [("%s-register.spec" % NAME)],
+		data_files = [(logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )

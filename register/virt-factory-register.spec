@@ -4,7 +4,7 @@
 Summary: Registration client for virt-factory
 Name: virt-factory-register
 Version: 0.0.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -32,9 +32,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/register
 %{python_sitelib}/virt-factory/register/*.py*
+%dir /var/log/virt-factory-register
 
 
 %changelog
+* Fri Apr 13 2007 Scott Seago <sseago@redhat.com> - 0.0.1-3
+- add logfile
+ 
 * Tue Mar 27 2007 Scott Seago <sseago@redhat.com> - 0.0.1-2
 - add puppet dependency
  
