@@ -27,7 +27,7 @@ REFRESH_DB=Y
 START_SERVICES=Y
 REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
-CLEANUP_COBBLER=Y
+CLEANUP_COBBLER=N
 CLEANUP_YUM=Y
 
 msg()
@@ -91,6 +91,13 @@ cleanup_cobbler()
 
 }
 
+cleanup_repo_mirror()
+{
+
+    rm -rf /var/www/cobbler/repo_mirror/*
+}
+ 
+
 # FIXME: sync this repo
 # create the repo like the one at 
 # http://virt-factory.et.redhat.com/download/repo/fc6/stable/i386/
@@ -129,7 +136,7 @@ stop_services()
     /etc/init.d/puppetmaster stop
     /etc/init.d/virt-factory-server stop
     /etc/init.d/virt-factory-wui stop
-    /etc/init.d/virt-factory-nodes stop
+    /etc/init.d/virt-factory-node-server stop
 }
 
 start_services()
@@ -142,7 +149,7 @@ start_services()
 start_client_services()
 {
     /etc/init.d/puppet start
-    /etc/init.d/virt-factory-nodes start
+    /etc/init.d/virt-factory-node-server start
 }
 
 register_system()
@@ -177,6 +184,8 @@ done
 # FIXME: we should probably clone the git repo's then run the script. The script
 # thats in the repo. 
 
+
+# if stuffs not running, this might gripe
 stop_services
 
 
@@ -262,6 +271,11 @@ fi
 
 # do the config tweaking for the local vf_server
 setup_vf_server 
+
+# lets try cleaning up the cobbler repos
+msg "cleanup repo mirror"
+cleanup_repo_mirror
+
 
 # This creates the vf_repo as well, though we probably need to create the sample
 # repo somewhere ($REMOTE_HOST?) and set the settings to sync from there to here,
