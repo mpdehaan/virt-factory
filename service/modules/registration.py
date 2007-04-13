@@ -89,7 +89,7 @@ class Registration(web_svc.AuthWebSvc):
 
         # see if there is an profile id for the token.  this does not work
         # for usernames and passwords.
-        if token is not None and token != "":
+        if token is not None and token != "" and token != "UNSET":
             regtoken_obj = regtoken.RegToken()
             results = regtoken_obj.db.simple_list({}, { "token" : "'%s'" % token })
             if results.error_code != 0 and len(results.data) != 0:
@@ -113,16 +113,17 @@ class Registration(web_svc.AuthWebSvc):
                     profile_id = results.data[0]["profile_id"]
 
 
-        if profile_id != None and profile_name != "":
+        if profile_id is None and profile_name != "":
             # no profile ID found for token, try allow a name lookup if specified
             self.logger.debug("passed in profile name is (%s)" % profile_name)
             profile_obj = profile.Profile()
-            profiles = profile_obj.db.simple_list({}, { "name" : profile_name })
+            profiles = profile_obj.db.simple_list({}, { "name" : "'%s'" % profile_name })
             if profiles.error_code != 0 and len(profiles.data) != 0:
                 self.logger.debug("profile assigned from input, given no assignment by token")
                 profile_id = results.data[0]["id"]
 
         self.logger.debug("calling associate with abstract_id: ", abstract_id)
+        self.logger.debug("profile id is: ", profile_id)
         return abstract_obj.associate(token, abstract_id, hostname, ip_addr, mac_addr, profile_id)
 
 

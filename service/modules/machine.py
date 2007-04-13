@@ -190,18 +190,19 @@ class Machine(web_svc.AuthWebSvc):
         regtoken_obj = regtoken.RegToken()
         if token is None:
             self.logger.info("token is None???")
-        results = regtoken_obj.get_by_token(None, { "token" : token })
-        self.logger.info("get_by_token")
-        self.logger.info("results: %s" % results)
-        if results.error_code != 0:
-            raise codes.InvalidArgumentsException("bad token")
-        # FIXME: check that at least some results are returned.
+        if token != "UNSET":
+            results = regtoken_obj.get_by_token(None, { "token" : token })
+            self.logger.info("get_by_token")
+            self.logger.info("results: %s" % results)
+            if results.error_code != 0:
+                raise codes.InvalidArgumentsException("bad token")
+            # FIXME: check that at least some results are returned.
 
-        if len(results.data) > 0 and results.data[0].has_key("profile_id"):
-            profile_id = results.data[0]["profile_id"]
+            if len(results.data) > 0 and results.data[0].has_key("profile_id"):
+                profile_id = results.data[0]["profile_id"]
 
-        if profile_id is None:
-            profile_id = -1  # the unassigned profile id
+            if profile_id is None:
+                profile_id = -1  # the unassigned profile id
 
         args = {
             'id': machine_id,
