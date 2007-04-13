@@ -69,7 +69,10 @@ class Register(object):
         try:
             rc = self.server.register(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
+            (t, v, tb) = sys.exc_info()
             self.logger.error("error running registration.")
+            self.logger.debug("Exception occured: %s" % t )
+            self.logger.debug("Exception value: %s" % v)
             self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             sys.exit(1)
         if rc[0] == 0:
