@@ -185,8 +185,8 @@ class Machine(web_svc.AuthWebSvc):
         Associate a machine with an ip/host/mac address
         """
         self.logger.info("associating...")
-        # determine the profile from the token. 
-        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
+        if profile_id:
+            self.logger.info("profile_id : %s" % profile_id)
         regtoken_obj = regtoken.RegToken()
         if token is None:
             self.logger.info("token is None???")
@@ -216,7 +216,7 @@ class Machine(web_svc.AuthWebSvc):
             'netboot_enabled' : 0, # elimiinate PXE install loop
             'memory' : memory
         }
-        self.logger.info(str(args))
+        self.logger.info("%s" % str(args))
         return self.edit(token, args)
         
     def edit(self, token, machine_args):
