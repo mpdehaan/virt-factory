@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<appliance-container>
+  <name>Container</name>
+  <version>1</version>
+  <distribution>FC-6-i386</distribution>
+  <virt_storage_size>0</virt_storage_size>
+  <virt_ram>0</virt_ram>
+  <kickstart_metadata></kickstart_metadata>
+  <kernel_options></kernel_options>
+  <valid_targets>is_baremetal</valid_targets>
+  <is_container>1</is_container>
+  <puppet_classes>site_settings class1 class2</puppet_classes>
+</appliance-container>
