@@ -27,6 +27,8 @@ REFRESH_DB=Y
 START_SERVCES=Y
 REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
+CLEANUP_COBBLER=Y
+CLEANUP_YUM=Y
 
 msg()
 {
@@ -47,14 +49,18 @@ check_out_code()
     mkdir -p $BUILD_PATH
     pushd $BUILD_PATH
     git clone git://et.redhat.com/virt-factory
+    echo $?
     git clone git://et.redhat.com/koan
+    echo $?
     git clone git://et.redhat.com/cobbler
+    echo $?
     popd
 }
 
 remove_all_packages()
 {
     yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes
+    echo $?
     # Need to remove koan/cobbler as well
 }
 
@@ -71,9 +77,19 @@ install_server_packages()
 install_client_packages()
 {
     yum install -y virt-factory-nodes virt-factory-register koan puppet
+    echo $?
 }
 
 
+
+
+cleanup_cobbler()
+{
+    # cobbler changes alot, so blow away any cobbler stuff and reimport it
+    CBP="/var/lib/cobbler/"
+    rm -rf $CBP/distros $CBP/repos $CBP/profiles $CBP/systems
+
+}
 
 # FIXME: sync this repo
 # create the repo like the one at 
@@ -132,6 +148,7 @@ start_client_services()
 register_system()
 {
     vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1
+    echo $?
 }
 # commandline parsing
 while [ $# -gt 0 ]
@@ -151,6 +168,8 @@ do
 	--skip-server-start) START_SERVICES=N;;
 	--skip-register) REGISTER_SYSTEM=N;;
 	--skip-package-remote) REMOVE_PACKAGES=N;;
+	--skip-cobbler-cleanup) CLEANUP_COBBLER=N;;
+	--cleanup-yum) CLEANUP_YUM=Y;;
     esac
     shift
 done
@@ -160,12 +179,20 @@ done
 
 stop_services
 
+
+
 if [ "$REMOVE_PACKAGES" == "Y" ] ; then
     msg "Removing lots of packages"
     remove_all_packages
+    # yum is lame, so we have to do this every time
 fi
 
 
+if [ "$CLEANUP_YUM" == "Y" ] ; then
+    msg "Cleaning up the yum caches"
+    yum clean all
+    #yum clean headers
+fi
 
 if [ "$REBUILD" == "Y" ] ; then
     if [ "$FRESH_CHECKOUT" == "Y" ] ; then
@@ -197,6 +224,7 @@ fi
 if [ "$SYNC_REPOS" == "Y" ] ; then
 	msg "syncing repos"
 	msg "calling sync-it-all.sh with user $REMOTE_USER"
+	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH"
 	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH
 
 fi
@@ -214,6 +242,13 @@ if [ "$INSTALL_PACKAGES" == "Y" ] ; then
 fi
 
 
+# purge the cobbler setups
+if [ "$CLEANUP_COBBLER" == "Y" ] ; then
+    msg "Purging the cobbler setup"
+    cleanup_cobbler
+fi
+
+# purge the db
 if [ "$REFRESH_DB" == "Y" ] ; then
     msg "Purging the db"
     rm -rf /var/lib/virt-factory/primary_db
