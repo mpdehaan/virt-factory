@@ -3,7 +3,6 @@
 BUILD=`pwd`
 SRCDIR="$BUILD/../"
 VF_PKGS="register nodes service wui rubypkgstuff"
-VF_PKGS="register"
 COBBLER_PKGS="cobbler koan"
 
 
