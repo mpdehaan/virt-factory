@@ -3,6 +3,8 @@
 BUILD=`pwd`
 SRCDIR="$BUILD/../"
 VF_PKGS="register nodes service wui rubypkgstuff"
+COBBLER_PKGS="cobbler koan"
+
 
 if [ ! -f "/usr/bin/createrepo" ]; then
 	echo "you need createrepo installed"
@@ -22,12 +24,13 @@ mkdir -p rpms srpms tars
 build_rpm()
 {
     PKG=$1
+    BRT=$2
     echo;echo;echo
     echo "======================================"
     echo "Building $PKG"
     echo "======================================"
     echo
-    cd ../$PKG
+    cd $2/$PKG
     make rpms 
     if [ $? != 0 ]; then
 	echo "kaboom building $PKG"
@@ -45,8 +48,10 @@ build_rpm()
 
 for i in $VF_PKGS
 do
-  build_rpm $i
+  build_rpm $i $SRCDIR
 done
+
+
 
 # FIXME: we probably need to build cobbler/koan as well
 # FIXME: cobbler/koan use different build stuff
@@ -70,6 +75,17 @@ ls *
 for i in `ls`
 do
   build_profile $i
+done
+
+# build cobbler and koan
+# we need to have these in a parallel checkout
+CK_SRCDIR="$SRCDIR/../"
+for i in $COBBLER_PKGS
+do
+  if [ -d "$CK_SRCDIR/$i" ] ; then
+      pushd $CK_SRCDIR
+      build_rpm $i $CK_SRCDIR
+  fi
 done
 
 
