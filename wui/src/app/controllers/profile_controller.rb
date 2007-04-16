@@ -11,7 +11,7 @@ class ProfileController < AbstractObjectController
        # fight that when we come to it.
        #+++
        super
-       @distributions = ManagedObject.retrieve_all(Distribution, @session).collect do |dist|
+       @distributions = ManagedObject.retrieve_all(Distribution, get_login).collect do |dist|
            [dist.name, dist.id]
        end
        # the list needs to start off with no selection in the GUI.

@@ -11,7 +11,7 @@ class RegtokenController < AbstractObjectController
        super
 
        @profiles = []
-       ManagedObject.retrieve_all(Profile, @session).each do |profile|
+       ManagedObject.retrieve_all(Profile, get_login).each do |profile|
            @profiles << [profile.name, profile.id]
        end
        @profiles.insert(0,EMPTY_ENTRY)

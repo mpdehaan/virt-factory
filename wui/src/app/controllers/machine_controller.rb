@@ -13,7 +13,7 @@ class MachineController < AbstractObjectController
         # TODO:  ideally, out of the box, we'd ship and install an profile that would be suitable for a stock
         # container.
 
-        ManagedObject.retrieve_all(Profile, @session, true).each do |profile|
+        ManagedObject.retrieve_all(Profile, get_login, true).each do |profile|
             if !profile.nil?
                 @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_VIRT
             end

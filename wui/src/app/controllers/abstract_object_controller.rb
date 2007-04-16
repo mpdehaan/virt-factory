@@ -26,7 +26,7 @@ class AbstractObjectController < ApplicationController
 
     def list
         begin
-            @items = ManagedObject.retrieve_all(object_class, @session)
+            @items = ManagedObject.retrieve_all(object_class, get_login)
         rescue XMLRPCClientException => ex
             @items = []
             set_flash_on_exception(ex)
@@ -40,10 +40,13 @@ class AbstractObjectController < ApplicationController
     #+++
 
     def logout
-        @session[:login] = nil
+        session[:login] = nil
         redirect_to :controller => "login", :action => "index"
     end
 
+    def get_login
+        session[:login]
+    end
     # this page retrieves parameters needed to edit or add the given record.  
     # whether an edit or add is performed in the backend
     # depends on whether there was an id field attached to the submission.  adds do not
@@ -53,20 +56,20 @@ class AbstractObjectController < ApplicationController
 
     def edit
 
-        if @params[:id].nil?
-            @item = object_class.new(@session)
+        if params[:id].nil?
+            @item = object_class.new(get_login)
             @operation = "add"
         else
             begin
                 @operation = "edit"
-                @item = ManagedObject.retrieve(object_class,@session, @params[:id])
+                @item = ManagedObject.retrieve(object_class,get_login, params[:id])
             rescue XMLRPCClientException => ex
-                @item = object_class.new(@session)
+                @item = object_class.new(get_login)
                 set_flash_on_exception(ex)
             end
         end
-        if @params[:item_from_flash] == "1"
-           @item.update_from_hash(@flash[:err_item_hash], @session)
+        if params[:item_from_flash] == "1"
+           @item.update_from_hash(flash[:err_item_hash], get_login)
         end
     end
 
@@ -74,7 +77,7 @@ class AbstractObjectController < ApplicationController
     # should link to the edit controller for each item.
 
     def view
-        @item = ManagedObject.retrieve(object_class,session, @params[:id])
+        @item = ManagedObject.retrieve(object_class,get_login, params[:id])
     end
 
     # edit submit processes all new addition calls and all edit calls.  you can tell whether
@@ -85,15 +88,15 @@ class AbstractObjectController < ApplicationController
 
     def edit_submit
         begin
-            obj = ManagedObject.from_hash(object_class,@params["form"], @session)
+            obj = ManagedObject.from_hash(object_class,params["form"], get_login)
             operation = obj.id.nil? ? "add" : "edit"
             obj.save()
-            @flash[:notice] = "#{object_class::METHOD_PREFIX} #{obj.objname} #{operation} succeeded."
+            flash[:notice] = "#{object_class::METHOD_PREFIX} #{obj.objname} #{operation} succeeded."
             redirect_to :action => 'list'
             return
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
-            @flash[:err_item_hash] = @params["form"]
+            flash[:err_item_hash] = params["form"]
         end
         # what page we redirect depends on whether this was an add or an edit
         if operation == "add"
@@ -107,8 +110,8 @@ class AbstractObjectController < ApplicationController
 
     def delete
         begin
-            ManagedObject.delete(object_class, @params[:id], @session)
-            @flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{@params[:id]}"
+            ManagedObject.delete(object_class, params[:id], get_login)
+            flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{params[:id]}"
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
         end
@@ -124,11 +127,11 @@ class AbstractObjectController < ApplicationController
     # how to explain themselves in friendly user-speak and we can ask them to do that.
     
     def set_flash_on_exception(ex)
-        # populate @flash with a human readable error string suitable by
+        # populate flash with a human readable error string suitable by
         # display in the WUI
-        @flash[:errmsg] = ex.get_human_readable()
+        flash[:errmsg] = ex.get_human_readable()
 
-        @flash[:invalid_fields] = ex.invalid_fields
+        flash[:invalid_fields] = ex.invalid_fields
     end
 
 end
