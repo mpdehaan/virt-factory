@@ -185,23 +185,24 @@ class Machine(web_svc.AuthWebSvc):
         Associate a machine with an ip/host/mac address
         """
         self.logger.info("associating...")
-        # determine the profile from the token. 
-        # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
+        if profile_id:
+            self.logger.info("profile_id : %s" % profile_id)
         regtoken_obj = regtoken.RegToken()
         if token is None:
             self.logger.info("token is None???")
-        results = regtoken_obj.get_by_token(None, { "token" : token })
-        self.logger.info("get_by_token")
-        self.logger.info("results: %s" % results)
-        if results.error_code != 0:
-            raise codes.InvalidArgumentsException("bad token")
-        # FIXME: check that at least some results are returned.
+        if token != "UNSET":
+            results = regtoken_obj.get_by_token(None, { "token" : token })
+            self.logger.info("get_by_token")
+            self.logger.info("results: %s" % results)
+            if results.error_code != 0:
+                raise codes.InvalidArgumentsException("bad token")
+            # FIXME: check that at least some results are returned.
 
-        if len(results.data) > 0 and results.data[0].has_key("profile_id"):
-            profile_id = results.data[0]["profile_id"]
+            if len(results.data) > 0 and results.data[0].has_key("profile_id"):
+                profile_id = results.data[0]["profile_id"]
 
-        if profile_id is None:
-            profile_id = -1  # the unassigned profile id
+            if profile_id is None:
+                profile_id = -1  # the unassigned profile id
 
         args = {
             'id': machine_id,
@@ -215,7 +216,7 @@ class Machine(web_svc.AuthWebSvc):
             'netboot_enabled' : 0, # elimiinate PXE install loop
             'memory' : memory
         }
-        self.logger.info(str(args))
+        self.logger.info("%s" % str(args))
         return self.edit(token, args)
         
     def edit(self, token, machine_args):
