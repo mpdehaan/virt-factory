@@ -34,10 +34,10 @@
     
       <!-- if any fields are invalid, turn them red -->
       <!-- fixme: should also mention reasons later -->
-      <% if @flash[:invalid_fields] %>
+      <% if flash[:invalid_fields] %>
          <SCRIPT LANGUAGE="Javascript">
 
-              <% @flash[:invalid_fields].each do |field, reason| %>
+              <% flash[:invalid_fields].each do |field, reason| %>
                   document.getElementById("form_<%= field.to_s() %>").style.backgroundColor='red';
               <% end %>
          
@@ -45,20 +45,20 @@
       <% end %>
 
       <!-- secondary informational section, if applicable -->
-      <% if @flash[:notice] or @flash[:errmsg] %>
+      <% if flash[:notice] or flash[:errmsg] %>
 
           <div class = "alertbox">
 
-              <% if @flash[:notice] %>
-                  <%= @flash[:notice] %>
+              <% if flash[:notice] %>
+                  <%= flash[:notice] %>
               <% end %>
 
-              <% if @flash[:notice] and @flash[:errmsg] %>
+              <% if flash[:notice] and flash[:errmsg] %>
                   <br/>
               <% end %>
 
-              <% if @flash[:errmsg] %>
-                  <%= @flash[:errmsg] %>
+              <% if flash[:errmsg] %>
+                  <%= flash[:errmsg] %>
               <% end %>
 
           </div>

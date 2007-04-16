@@ -29,7 +29,7 @@ class TaskController < AbstractObjectController
        # NOTE: this is mainly for development purposes, we probably won't allow this directly once released
        # may be good to have the list though.
        super
-       @users = ManagedObject.retrieve_all(User, @session).collect do |entry|
+       @users = ManagedObject.retrieve_all(User, get_login).collect do |entry|
            [ entry.username, entry.id ]
        end
        # FIXME: for consistancy this should be in codes-lookup.rb

@@ -8,12 +8,13 @@ class ManagedObject
     class Boolean
     end
 
-    # I think this means every object is constructed with a reference to the session state.  (Correct?)
-    def initialize(session)
-        @session = session
+    # each object is created with a reference to the login token for
+    # connecting to the xmlrpc server.
+    def initialize(login)
+        @login = login
     end
 
-    attr_reader :session
+    attr_reader :login
 
     # basically each subclass will have a call to set_attrs in it's constructor.  Each attr in the list
     # contains a name of a field and a type value for that field.  Each field will be made an accessor,
@@ -51,7 +52,7 @@ class ManagedObject
                     if !instance_variable_get(attr_symbol)
                         id = instance_variable_get(id_symbol) 
                         if (id >= 0)
-                           object = ManagedObject.retrieve(metadata[:type], self.session, id) 
+                           object = ManagedObject.retrieve(metadata[:type], self.login, id) 
                            instance_variable_set(attr_symbol, object)
                         end
                     end
@@ -73,14 +74,14 @@ class ManagedObject
     def save
         operation = (@id.nil? ||  @id < 0) ? "add" : "edit"
         ManagedObject.call_server("#{self.class::METHOD_PREFIX}_#{operation}", 
-                                       @session, self.to_hash, objname)
+                                       self.login, self.to_hash, objname)
     end
 
     # deleting an object, only the id is a required argument.
 
-    def self.delete(object_class,id,session)
+    def self.delete(object_class,id,login)
         self.call_server("#{object_class::METHOD_PREFIX}_delete", 
-                         session, { "id" => id }, id.to_s)
+                         login, { "id" => id }, id.to_s)
     end
 
     # this is a call usable in the controller to get all of the objects that the backend knows about
@@ -89,10 +90,10 @@ class ManagedObject
     # with really long system lists (i.e. a couple thousand).  Ok to add in later release.
     #+++
 
-    def self.retrieve_all(object_class, session, retrieve_nulls = false)
-        print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list\n"
-        results = self.call_server("#{object_class::METHOD_PREFIX}_list", session, {})
-        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, session) if !hash.nil? and (retrieve_nulls or hash["id"] >= 0) }
+    def self.retrieve_all(object_class, login, retrieve_nulls = false)
+        #print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list\n"
+        results = self.call_server("#{object_class::METHOD_PREFIX}_list", login, {})
+        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, login) if !hash.nil? and (retrieve_nulls or hash["id"] >= 0) }
         results.reject! { |foo| foo.nil? }
         return results
     end
@@ -100,25 +101,25 @@ class ManagedObject
     # retrieves a single object (not a list) that corresponds to a certain id.  Should return
     # null if it isn't there, but it might raise an exception.  Need to check on this.
 
-    def self.retrieve(object_class, session, id)
+    def self.retrieve(object_class, login, id)
         results = self.call_server("#{object_class::METHOD_PREFIX}_get", 
-                                   session, {"id" => id }, id.to_s)
-        ManagedObject.from_hash(object_class,results, session)
+                                   login, {"id" => id }, id.to_s)
+        ManagedObject.from_hash(object_class,results, login)
     end
 
     #updates an existing instance with attributes form a passed-in hash
 
-    def update_from_hash(hash, session)
-        ManagedObject.from_hash(self.class, hash, session, self)
+    def update_from_hash(hash, login)
+        ManagedObject.from_hash(self.class, hash, login, self)
     end
 
     # from_hash vivifies an object (or an object tree) using it's hash representation, recursively doing the right
     # thing as neccessary. 
 
-    def self.from_hash(object_class, hash, session, object_instance = nil)
+    def self.from_hash(object_class, hash, login, object_instance = nil)
 
        # create the instance, we'll fill it's data as we go along
-       object_instance = object_class.new(session) if object_instance.nil?
+       object_instance = object_class.new(login) if object_instance.nil?
 
        # initially create nil values for everything, even if not in passed-in arguments.
        object_class::ATTR_LIST.each do |sym,meta|
@@ -151,7 +152,7 @@ class ManagedObject
                elsif atype.methods.include?("from_hash")
                    # ManagedObjects result in recursive calls...
                    raise RuntimeError.new("No child arguments?") if not value.is_a?(Hash) 
-                   new_item = self.from_hash(atype, value, session)
+                   new_item = self.from_hash(atype, value, login)
                else
                    # we have no idea what to do with this...
                    raise RuntimeError.new("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}")
@@ -196,12 +197,12 @@ class ManagedObject
 
     # this is a wrapper around the XMLRPC calls the various methods make.
 
-    def self.call_server(method_name, session, args, errmsg = "")
+    def self.call_server(method_name, login, args, errmsg = "")
 
         # the return signature for a backend API method is usually (rc, hash) where hash contains
         # one or more of the following fields.  See explanation in XMLRPCClientException class.
  
-        (rc, rawdata) = @@server.call(method_name, session[:login], args)
+        (rc, rawdata) = @@server.call(method_name, login, args)
 
         unless rc == ERR_SUCCESS
             # convert error codes to Ruby exceptions.  We don't use XMLRPC faults because it's harder

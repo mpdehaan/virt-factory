@@ -34,7 +34,7 @@ class Deployment < ManagedObject
     end
 
     def __virt_call(id, op)
-        ManagedObject.call_server(op, @session, { "id" => id }, id.to_s)
+        ManagedObject.call_server(op, session[:login], { "id" => id }, id.to_s)
     end
 
     def pause
