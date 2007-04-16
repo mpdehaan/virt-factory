@@ -3,6 +3,7 @@
 BUILD=`pwd`
 SRCDIR="$BUILD/../"
 VF_PKGS="register nodes service wui rubypkgstuff"
+VF_PKGS="register"
 COBBLER_PKGS="cobbler koan"
 
 
@@ -79,9 +80,14 @@ done
 
 # build cobbler and koan
 # we need to have these in a parallel checkout
+
 CK_SRCDIR="$SRCDIR/../"
+ls $CK_SRCDIR
+ls $CK_SRCDIR/cobbler
+
 for i in $COBBLER_PKGS
 do
+  echo "======= building $i ========"
   if [ -d "$CK_SRCDIR/$i" ] ; then
       pushd $CK_SRCDIR
       build_rpm $i $CK_SRCDIR
