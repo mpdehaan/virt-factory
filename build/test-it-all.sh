@@ -9,7 +9,7 @@ REMOTE_USER="alikins"
 REMOTE_HOST="grimlock.devel.redhat.com"
 REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
-DEFAULT_PROFILE="test1"
+DEFAULT_PROFILE="Test1"
 
 BUILD_PATH="/tmp/vf-test"
 VF_SERVER_URL="http://172.16.59.218:5150"
@@ -154,6 +154,7 @@ start_client_services()
 
 register_system()
 {
+    echo "vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1"
     vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1
     echo $?
 }
