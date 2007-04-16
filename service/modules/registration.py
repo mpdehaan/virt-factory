@@ -120,7 +120,7 @@ class Registration(web_svc.AuthWebSvc):
             profiles = profile_obj.db.simple_list({}, { "name" : "'%s'" % profile_name })
             if profiles.error_code == 0 and len(profiles.data) != 0:
                 self.logger.debug("profile assigned from input, given no assignment by token")
-                profile_id = results.data[0]["id"]
+                profile_id = profiles.data[0]["id"]
 
         self.logger.debug("calling associate with abstract_id: ", abstract_id)
         self.logger.debug("profile id is: ", profile_id)
