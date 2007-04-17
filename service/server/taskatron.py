@@ -143,8 +143,10 @@ class Taskatron:
                         self.set_finished(task)
                     else:
                         self.set_failed(task)
-                except: 
-                    self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+                except Exception, tb: 
+                    self.logger.error("Exception:\n")
+                    #self.logger.error(str(traceback.extract_tb(tb)))
+                    traceback.print_exc() # until logging gets cleaned up
                     self.logger.error("setting failed")
                     self.set_failed(task)
 
