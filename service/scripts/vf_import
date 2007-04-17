@@ -53,6 +53,7 @@ from server import logger
 logger.logfilepath = "/var/lib/virt-factory/vf_import.log"
 from server.modules import distribution
 from server.modules import profile
+from server.modules import provisioning
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
 PUPPET_FILE_DIR="/var/lib/virt-factory/profiles"
@@ -229,6 +230,9 @@ def main():
     importer.update_puppet_manifest()
     print "populating..."
     importer.populate_sm_profile()
+   
+    prov = provisioning.Provisioning()
+    prov.sync(None, None)
 
 if __name__ == "__main__":
     main()

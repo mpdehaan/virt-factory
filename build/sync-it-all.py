@@ -5,7 +5,7 @@ import os
 import sys
 
 #HOST="et.redhat.com"
-HOST="grimlock.devel.redhat.com"
+HOST="mdehaan.rdu.redhat.com"
 try:
     USERNAME=os.getenv("USER")
 except:
