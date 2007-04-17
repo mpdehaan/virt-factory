@@ -17,7 +17,7 @@ VF_SERVER_URL="http://172.16.59.218:5150"
 
 # er, variables...
 REBUILD=N
-FRESH_CHCKOUT=N
+FRESH_CHECKOUT=N
 SYNC_REPOS=N
 INSTALL_PACKAGES=Y
 SETUP_PUPPET=Y
@@ -29,6 +29,15 @@ REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
 CLEANUP_COBBLER=N
 CLEANUP_YUM=Y
+
+
+# you can put conf stuff in test-it-all.conf 
+# so you don't have to worry about checking in config stuff
+
+if [ -f "test-it-all.conf" ] ; then
+    source test-it-all.conf
+fi
+
 
 msg()
 {
@@ -59,16 +68,15 @@ check_out_code()
 
 remove_all_packages()
 {
-    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes
+    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes koan cobbler
     echo $?
-    # Need to remove koan/cobbler as well
 }
 
 
 # packages needed for the virt-factory server itself
 install_server_packages()
 {
-    yum install -y virt-factory-server  virt-factory-wui puppet puppet-server
+    yum install -y virt-factory-server  virt-factory-wui puppet puppet-server cobbler
 }
 
 
@@ -76,7 +84,7 @@ install_server_packages()
 # note, for this test, the machine running this script will install the server and the client code
 install_client_packages()
 {
-    yum install -y virt-factory-nodes virt-factory-register koan puppet
+    yum install -y virt-factory-nodes virt-factory-register koan puppet 
     echo $?
 }
 
