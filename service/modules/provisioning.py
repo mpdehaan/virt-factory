@@ -432,10 +432,10 @@ class Provisioning(web_svc.AuthWebSvc):
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
          cobbler_systems  = cobbler_api.systems()
-         cobbler_distros.clear()
-         cobbler_profiles.clear()
-         cobbler_systems.clear()
-         cobbler_repos.clear()
+         # cobbler_distros.clear()
+         # cobbler_profiles.clear()
+         # cobbler_systems.clear()
+         # cobbler_repos.clear()
          
          # cobbler can/will could raise exceptions on failure at any point...
          # return code checking is not needed.

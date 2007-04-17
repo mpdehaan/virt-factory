@@ -322,8 +322,7 @@ def main(argv):
 
     taskatron = Taskatron()
     if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
-        handle = get_handle(sys.argv[2])
-        print handle.test_add(1,2)
+        print taskatron.node_comm(sys.argv[2],"test_add",1,2)
     elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
         taskatron.clean_up_tasks()
         utils.daemonize("/var/run/vf_taskatron.pid")
