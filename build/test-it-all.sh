@@ -39,6 +39,32 @@ if [ -f "test-it-all.conf" ] ; then
 fi
 
 
+show_config()
+{
+    echo "REMOTE_USER=$REMOTE_USER"
+    echo "REMOTE_HOST=$REMOTE_HOST"
+    echo "REMOTE_PATH=$REMOTE_PATH"
+    echo "URL_PATH=$URL_PATH"
+   
+    echo "DEFAULT_PROFILE=$DEFAULT_PROFILE"
+    echo "BUILD_PATH=$BUILD_PATH"
+    echo "VF_SERVER_URL=$VF_SERVER_URL"
+
+    echo "REBUILD=$REBUILD"
+    echo "FRESH_CHECKOUT=$FRESH_CHECKOUT"
+    echo "SYNC_REPOS=$SYNC_REPOS"
+    echo "INSTALL_PACKAGES=$INSTALL_PACKAGES"
+    echo "SETUP_PUPPET=$SETUP_PUPPET"
+    echo "VF_SERVER_IMPORT=$VF_SERVER_IMPORT"
+    echo "VF_IMPORT=$VF_IMPORT"
+    echo "REFRESH_DB=$REFRESH_DB"
+    echo "START_SERVICES=$START_SERVICES"
+    echo "REGISTER_SYSTEM=$REGISTER_SYSTEM"
+    echo "REMOVE_PACKAGES=$REMOVE_PACKAGES"
+    echo "CLEANUP_COBBLER=$CLEANUP_COBBLER"
+    echo "CLEANUP_YUM=$CLEANUP_YUM"
+}
+
 msg()
 {
     echo 
@@ -152,6 +178,9 @@ start_services()
     /etc/init.d/puppetmaster restart
     /etc/init.d/virt-factory-server restart
     /etc/init.d/virt-factory-wui start
+
+    # we need to restart httpd after installing mongrel
+    /etc/init.d/httpd restart
 }
 
 start_client_services()
@@ -193,6 +222,7 @@ done
 # FIXME: we should probably clone the git repo's then run the script. The script
 # thats in the repo. 
 
+show_config
 
 # if stuffs not running, this might gripe
 stop_services
@@ -269,7 +299,9 @@ fi
 # purge the db
 if [ "$REFRESH_DB" == "Y" ] ; then
     msg "Purging the db"
-    rm -rf /var/lib/virt-factory/primary_db
+    mkdir -p db_backup
+    TIMESTAMP=` date '+%s'`
+    mv /var/lib/virt-factory/primary_db "db_backup/primary_db_$TIMESTAMP"
     /usr/bin/vf_create_db.sh
 fi
 
