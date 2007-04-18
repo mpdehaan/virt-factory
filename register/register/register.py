@@ -106,7 +106,7 @@ class Register(object):
                 rc = rc2
             
         else:
-            self.logger.info("Failed: %" % rc)
+            self.logger.info("Failed: %s" % rc)
         return rc
 
     def update_puppet_sysconfig(self, server):
