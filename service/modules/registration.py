@@ -122,8 +122,8 @@ class Registration(web_svc.AuthWebSvc):
                 self.logger.debug("profile assigned from input, given no assignment by token")
                 profile_id = profiles.data[0]["id"]
 
-        self.logger.debug("calling associate with abstract_id: ", abstract_id)
-        self.logger.debug("profile id is: ", profile_id)
+        self.logger.debug("calling associate with abstract_id: %s", abstract_id)
+        self.logger.debug("profile id is: %s", profile_id)
         return abstract_obj.associate(token, abstract_id, hostname, ip_addr, mac_addr, profile_id)
 
 
