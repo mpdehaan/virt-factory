@@ -125,6 +125,9 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedRepo:
    def __init__(self,cobbler_api,name,url):
+       # FIXME: testing
+       return
+
        vf_config = config_data.Config().get()
        new_item = cobbler_api.new_repo()
        new_item.set_name(name)
@@ -133,7 +136,6 @@ class CobblerTranslatedRepo:
           # don't pull in all of extras
           new_item.set_rpm_list(vf_config["extras_rpms"])
        cobbler_api.repos().add(new_item)
-       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -152,7 +154,6 @@ class CobblerTranslatedDistribution:
        if from_db.has_key("kickstart_metadata"):
            (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
        cobbler_api.distros().add(new_item, with_copy=True)
-       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -200,7 +201,8 @@ class CobblerTranslatedProfile:
            # repos.append('fc6x86_64updates')
            repos.append('fc6x86_64extras')
 
-       new_item.set_repos(repos)
+       # TEMP workaround
+       # new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
@@ -252,9 +254,8 @@ class CobblerTranslatedProfile:
        ks_meta["tree"] = tree_url 
  
        new_item.set_ksmeta(ks_meta)
-      
+       print "ADDING PROFILE: ", new_item.printable()      
        cobbler_api.profiles().add(new_item, with_copy=True)
-       cobbler_api.serialize()
 
 #--------------------------------------------------------------------
 
@@ -267,14 +268,13 @@ def cobbler_remove_system(cobbler_api, from_db):
    try:
        if from_db.has_key("mac_address"):
            cobbler_api.systems().remove(from_db["mac_address"])
-           cobbler_api.serialize()
    except:
        # this exception might be ok...
        traceback.print_exc()
 
 class CobblerTranslatedSystem:
    def __init__(self,cobbler_api,profiles,from_db,is_virtual=False):
-       
+      
        if from_db.has_key("id") and from_db["id"] < 0:
            print "my ID is less than 0"
            return
@@ -381,7 +381,7 @@ class CobblerTranslatedSystem:
 
        
        cobbler_api.systems().add(new_item, with_copy=True)
-       cobbler_api.serialize()
+       print "ADDING SYSTEM ", new_item.printable()
        self.logger.debug("cobbler system serialized")
 
 #--------------------------------------------------------------------
@@ -427,7 +427,7 @@ class Provisioning(web_svc.AuthWebSvc):
       
       try:
          cobbler_api = cobbler.api.BootAPI()
-         cobbler_api.sync()
+         cobbler_api.deserialize()
          cobbler_repos    = cobbler_api.repos()   
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
@@ -457,7 +457,6 @@ class Provisioning(web_svc.AuthWebSvc):
          
 
          cobbler_api.serialize()
-         cobbler_api.sync()
       except:
          traceback.print_exc() # FIXME: really we want to log this
          lock.release()
@@ -516,10 +515,11 @@ class Provisioning(web_svc.AuthWebSvc):
         print NOW_IMPORTING
 
         # deal with repositories first... as the profiles might reference them.
-        for repo_name in vf_config["repos"].keys():
-           mirror_url = vf_config["repos"][repo_name]
-           CobblerTranslatedRepo(cobbler_api,repo_name,mirror_url)
-        cobbler_api.reposync() 
+        #for repo_name in vf_config["repos"].keys():
+        #   mirror_url = vf_config["repos"][repo_name]
+        #   CobblerTranslatedRepo(cobbler_api,repo_name,mirror_url)
+        # FIXME
+        #cobbler_api.reposync() 
 
         # read the config entry to find out cobbler's mirror locations
         for mirror_name in vf_config["mirrors"]:

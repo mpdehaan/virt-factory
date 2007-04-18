@@ -166,8 +166,11 @@ class Machine(web_svc.AuthWebSvc):
 
     def cobbler_sync(self, data):
         cobbler_api = cobbler.api.BootAPI()
+        print "--- HERE WE GO!"
+        for p in cobbler_api.profiles():
+            print "PROFILE: ", p
         profiles = profile.Profile().list(None, {}).data
-        provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data)
+        provisioning.Provisioning().sync(None,None)
  
     def new(self, token):
         """
