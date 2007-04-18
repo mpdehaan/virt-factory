@@ -41,10 +41,14 @@ import re
 import string
 import sys
 import distutils.sysconfig
+import os
 import tarfile
+import tempfile
 import traceback
 import types
 from xml.dom.minidom import parse, parseString
+from urllib import urlretrieve
+
 
 sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
@@ -84,6 +88,7 @@ class VirtFactoryImporter:
        """
        create importer object -- source tarball is passed in
        """
+       tarball = self.handle_network_file(tarball)
        if (not tarfile.is_tarfile(tarball)):
            raise ValueError(tarball + " is not a tarfile")
        self.tarball_path = tarball
@@ -94,9 +99,18 @@ class VirtFactoryImporter:
        log = logger.Logger()
        self.logger = log.logger
 
+   def handle_network_file(self, tarball):
+      try:
+         protocol = tarball[0:tarball.index("://")]
+         (handle, path) = tempfile.mkstemp()
+         os.close(handle)
+         urlretrieve(tarball, path)
+         return path
+      except ValueError:
+         return tarball
+
    def extract(self):
         self.tarball = tarfile.open(self.tarball_path)
-
         profile_member = self.tarball.getmember("profile.xml")
         profile_xml = self.tarball.extractfile(profile_member)
         self.profile = parse(profile_xml)
