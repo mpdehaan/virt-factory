@@ -23,6 +23,7 @@ import provisioning
 import web_svc
 import regtoken
 import deployment
+from server import config_data
 
 import threading
 import traceback
@@ -165,12 +166,9 @@ class Machine(web_svc.AuthWebSvc):
         return result
 
     def cobbler_sync(self, data):
-        cobbler_api = cobbler.api.BootAPI()
-        print "--- HERE WE GO!"
-        for p in cobbler_api.profiles():
-            print "PROFILE: ", p
+        cobbler_api = config_data.Config().cobbler_api
         profiles = profile.Profile().list(None, {}).data
-        provisioning.Provisioning().sync(None,None)
+        provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virtual=True)
  
     def new(self, token):
         """

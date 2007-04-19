@@ -19,6 +19,7 @@ from codes import *
 
 import os
 import yaml
+from cobbler import api as cobbler_api
 
 CONFIG_FILE = "/etc/virt-factory/settings"
 
@@ -31,8 +32,14 @@ class Singleton(object):
 
 
 class Config(Singleton):
+
+    has_read = False
+
     def __init__(self):
-        self.read()
+        if not Config.has_read:
+            self.read()
+            print "***** CONFIG RELOAD *****"
+            Config.has_read = True
 
     def read(self):
         if not os.path.exists(CONFIG_FILE):
@@ -40,6 +47,8 @@ class Config(Singleton):
         config_file = open(CONFIG_FILE)
         data = config_file.read()
         self.ds = yaml.load(data).next()
+        self.cobbler_api = cobbler_api.BootAPI()
+        self.cobbler_api.deserialize()
 
     def get(self):
         return self.ds

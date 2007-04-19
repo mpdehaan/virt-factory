@@ -24,12 +24,12 @@ import web_svc
 import task
 import regtoken
 import provisioning
+from server import config_data
 
 import subprocess
 import socket
 import traceback
 import threading
-import cobbler.api
 
 
 
@@ -162,7 +162,7 @@ class Deployment(web_svc.AuthWebSvc):
          })
 
     def cobbler_sync(self, data):
-         cobbler_api = cobbler.api.BootAPI()
+         cobbler_api = config_data.Config().cobbler_api
          profiles = profile.Profile().list(None, {}).data
          provisioning.CobblerTranslatedSystem(cobbler_api, profiles, data, is_virtual=True)
 

@@ -143,7 +143,7 @@ class Distribution(web_svc.AuthWebSvc):
         return result
 
     def cobbler_sync(self, data):
-         cobbler_api = cobbler.api.BootAPI()
+         cobbler_api = config_data.Config().cobbler_api
          provisioning.CobblerTranslatedDistribution(cobbler_api, data)       
  
     def edit(self, token, dist_args): 

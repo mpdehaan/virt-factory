@@ -160,7 +160,7 @@ class Profile(web_svc.AuthWebSvc):
     def cobbler_sync(self, data):
 
          # make the corresponding cobbler calls.
-         cobbler_api = cobbler.api.BootAPI()
+         cobbler_api = config_data.Config().cobbler_api
          distributions = distribution.Distribution().list(None, {}).data
          provisioning.CobblerTranslatedProfile(cobbler_api ,distributions, data)
 

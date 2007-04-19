@@ -40,7 +40,6 @@ class Config(web_svc.AuthWebSvc):
      def list(self, config_args=None):
         return success(self.config_data)
 
-
 methods = Config()
 register_rpc = methods.register_rpc
 

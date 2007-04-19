@@ -29,7 +29,6 @@
 # don't expect cobbler to validate it or otherwise fix it.
 
 
-import cobbler.api
 
 from server.codes import *
 from server import config_data
@@ -282,7 +281,7 @@ class CobblerTranslatedSystem:
        self.logger = logger.Logger().logger
 
        self.logger.debug("from_db is ...")
-       self.logger.debug(from_db)
+       # self.logger.debug(from_db)
        print "***************"
        print from_db
        if not from_db.has_key("mac_address") or from_db["mac_address"] is None:
@@ -426,8 +425,8 @@ class Provisioning(web_svc.AuthWebSvc):
       # the server field might have changed.
       
       try:
-         cobbler_api = cobbler.api.BootAPI()
-         cobbler_api.deserialize()
+         cobbler_api = config_data.Config().cobbler_api
+         #cobbler_api.deserialize()
          cobbler_repos    = cobbler_api.repos()   
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
@@ -436,24 +435,26 @@ class Provisioning(web_svc.AuthWebSvc):
          # cobbler_profiles.clear()
          # cobbler_systems.clear()
          # cobbler_repos.clear()
-         
+         print "------------------- CHECK PROFILES ---- "
+         for p in cobbler_profiles:
+             print p      
          # cobbler can/will could raise exceptions on failure at any point...
          # return code checking is not needed.
          for r in vf_config["repos"].keys():
-            print "- repository: %s" % r
-            CobblerTranslatedRepo(cobbler_api,r,vf_config["repos"][r])
+             print "- repository: %s" % r
+             CobblerTranslatedRepo(cobbler_api,r,vf_config["repos"][r])
          for d in distributions:
-            print "- distribution: %s" % d
-            CobblerTranslatedDistribution(cobbler_api,d)
+             print "- distribution: %s" % d
+             CobblerTranslatedDistribution(cobbler_api,d)
          for i in profiles:
-            print "- profile: %s" % i
-            CobblerTranslatedProfile(cobbler_api,distributions,i)
+             print "- profile: %s" % i
+             CobblerTranslatedProfile(cobbler_api,distributions,i)
          for p in machines:
-            print "- machine: %s" % p
-            CobblerTranslatedSystem(cobbler_api,profiles,p)
+             print "- machine: %s" % p
+             CobblerTranslatedSystem(cobbler_api,profiles,p)
          for dp in deployments:
-            print "- deployment: %s" % dp
-            CobblerTranslatedSystem(cobbler_api,profiles,dp)
+             print "- deployment: %s" % dp
+             CobblerTranslatedSystem(cobbler_api,profiles,dp)
          
 
          cobbler_api.serialize()
@@ -488,7 +489,7 @@ class Provisioning(web_svc.AuthWebSvc):
             print ENOROOT 
 
 
-        cobbler_api = cobbler.api.BootAPI()
+        cobbler_api = config_data.Config().cobbler_api
         # since cobbler is running in syncless mode, make sure sync
         # has been run at least once with an empty config to create
         # directories
