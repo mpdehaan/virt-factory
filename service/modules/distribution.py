@@ -20,6 +20,7 @@ import baseobj
 import provisioning
 import cobbler
 import web_svc
+from server import config_data
 
 import os
 import traceback
