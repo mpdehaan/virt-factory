@@ -54,7 +54,7 @@ sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
 from server.codes import *
 from server import logger
-logger.logfilepath = "/var/lib/virt-factory/vf_import.log"
+logger.logfilepath = "/var/log/virt-factory/vf_import.log"
 from server.modules import distribution
 from server.modules import profile
 from server.modules import provisioning
