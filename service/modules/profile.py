@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from server.codes import *
+from server import config_data
 
 import baseobj
 import distribution
