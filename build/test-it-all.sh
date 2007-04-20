@@ -6,30 +6,68 @@
 # note, the user you log in as needs perms to write to 
 # REMOTE_PATH 
 REMOTE_USER="mdehaan"
+# This is the machine we rsync the yum repos to, and 
+# setup the repo files to point at
 REMOTE_HOST="mdehaan.rdu.redhat.com"
 REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
+
+# the profile we assign to a system on registration
 DEFAULT_PROFILE="Test1"
 
+# where we checkout the code to, and run the build
 BUILD_PATH="/tmp/vf-test"
+
+# this will be the local machines ip of the interface
+# that the code will be running on
 VF_SERVER="http://172.16.59.215"
-VF_SERVER_URL="$VF_SERVER:5150"
 
 
 # er, variables...
+
+# this does a rebuild of all the packages
 REBUILD=Y
+
+# check out a clean copy from git
 FRESH_CHECKOUT=Y
+
+# run sync-it-all to sync the repo's we build to a remote machine 
 SYNC_REPOS=Y
+
+# do we install new package of all the code we built (we do this with
+# yum from the repos we sync
 INSTALL_PACKAGES=Y
+
+# FIXME: I think this can go away actually...
 SETUP_PUPPET=Y
+
+# run 'vf_server import` to setup cobbler
 VF_SERVER_IMPORT=Y
+
+# run vf_import on the profiles in the repo
 VF_IMPORT=Y
+
+# backup existing db to db_backup/, delete the old one, and recreate a new one
 REFRESH_DB=Y
+
+# startup all the various daemons
 START_SERVICES=Y
+
+# register the local box
 REGISTER_SYSTEM=Y
+
+# remove the old virt-factory related packages
 REMOVE_PACKAGES=Y
+
+# remove any existing cobbler setups
 CLEANUP_COBBLER=Y
+
+# run yum clean all
+# FIXME: this is a workaround to packages not getting
+# versioned properly
 CLEANUP_YUM=Y
+
+# do some basic testing of the wui code
 TEST_WEB_STUFF=Y
 
 # you can put conf stuff in test-it-all.conf 
@@ -68,6 +106,7 @@ show_config()
     echo "REMOVE_PACKAGES=$REMOVE_PACKAGES"
     echo "CLEANUP_COBBLER=$CLEANUP_COBBLER"
     echo "CLEANUP_YUM=$CLEANUP_YUM"
+    echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
 }
 
 msg()
