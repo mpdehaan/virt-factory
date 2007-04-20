@@ -12,7 +12,8 @@ URL_PATH="/download/"
 DEFAULT_PROFILE="Test1"
 
 BUILD_PATH="/tmp/vf-test"
-VF_SERVER_URL="http://172.16.59.218:5150"
+VF_SERVER="http://172.16.59.215"
+VF_SERVER_URL="$VF_SERVER:5150"
 
 
 # er, variables...
@@ -29,7 +30,7 @@ REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
 CLEANUP_COBBLER=N
 CLEANUP_YUM=Y
-
+TEST_WEB_STUFF=Y
 
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
@@ -37,6 +38,10 @@ CLEANUP_YUM=Y
 if [ -f "test-it-all.conf" ] ; then
     source test-it-all.conf
 fi
+
+
+# since we can change VF_SERVER in the config, expand this after that
+VF_SERVER_URL="$VF_SERVER:5150"
 
 
 show_config()
@@ -195,6 +200,29 @@ register_system()
     vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1
     echo $?
 }
+
+
+web_login()
+{
+    echo "logging into login page of $VF_SERVER"
+    curl -s -L -o output  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[username]=admin&form[password]=fedora&submit='Log In'" $VF_SERVER/vf/login/submit
+}
+
+test_web_stuff()
+{
+    msg "Hitting the web site for some basic testing"
+    web_login
+    LIST_OF_URL_PATHS="/vf/profile/list /vf/user/list vf/machine/list"
+    for path in $LIST_OF_URL_PATHS 
+    do
+	echo "testing $VF_SERVER/$path" 
+	RET_CODE=`curl -L -b $COOKIES_FILE -c $COOKIES_FILE -o output_file -w "%{http_code}\n" -s $VF_SERVER/$path`
+	if [ "$RET_CODE" != "200" ] ; then
+	    echo "$VF_SERVER/$path returned an error code of $RET_CODE"
+	fi
+    done
+
+}
 # commandline parsing
 while [ $# -gt 0 ]
 do
@@ -215,6 +243,7 @@ do
 	--skip-package-remote) REMOVE_PACKAGES=N;;
 	--skip-cobbler-cleanup) CLEANUP_COBBLER=N;;
 	--cleanup-yum) CLEANUP_YUM=Y;;
+	--skip-web-test) TEST_WEB_STUFF=N;;
     esac
     shift
 done
@@ -358,4 +387,9 @@ fi
 if [ "$REGISTER_SYSTEM" == "Y" ] ; then
     msg "Registering system"
     register_system $DEFAULT_PROFILE
+fi
+
+if [ "$TEST_WEB_STUFF" == "Y" ] ; then
+    msg "Running some basic tests on the web interface"
+    test_web_stuff
 fi
