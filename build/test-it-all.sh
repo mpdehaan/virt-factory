@@ -212,13 +212,13 @@ test_web_stuff()
 {
     msg "Hitting the web site for some basic testing"
     web_login
-    LIST_OF_URL_PATHS="/vf/profile/list /vf/user/list vf/machine/list"
+    LIST_OF_URL_PATHS="/profile/list /user/list /machine/list /deployment/list /task/list /machine/edit /regtoken/edit /regtoken/list /deployment/list /user/edit /profile/edit/0 /machine/edit/0 /user/edit/1"
     for path in $LIST_OF_URL_PATHS 
     do
-	echo "testing $VF_SERVER/$path" 
-	RET_CODE=`curl -L -b $COOKIES_FILE -c $COOKIES_FILE -o output_file -w "%{http_code}\n" -s $VF_SERVER/$path`
+	echo "testing $VF_SERVER/vf/$path" 
+	RET_CODE=`curl -L -b $COOKIES_FILE -c $COOKIES_FILE -o output_file -w "%{http_code}\n" -s $VF_SERVER/vf/$path`
 	if [ "$RET_CODE" != "200" ] ; then
-	    echo "$VF_SERVER/$path returned an error code of $RET_CODE"
+	    echo "$VF_SERVER/vf/$path returned an error code of $RET_CODE"
 	fi
     done
 
