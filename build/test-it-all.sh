@@ -6,30 +6,69 @@
 # note, the user you log in as needs perms to write to 
 # REMOTE_PATH 
 REMOTE_USER="mdehaan"
+# This is the machine we rsync the yum repos to, and 
+# setup the repo files to point at
 REMOTE_HOST="mdehaan.rdu.redhat.com"
 REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
+
+# the profile we assign to a system on registration
 DEFAULT_PROFILE="Test1"
 
+# where we checkout the code to, and run the build
 BUILD_PATH="/tmp/vf-test"
-VF_SERVER_URL="http://172.16.59.218:5150"
+
+# this will be the local machines ip of the interface
+# that the code will be running on
+VF_SERVER="http://172.16.59.215"
 
 
 # er, variables...
+
+# this does a rebuild of all the packages
 REBUILD=Y
+
+# check out a clean copy from git
 FRESH_CHECKOUT=Y
+
+# run sync-it-all to sync the repo's we build to a remote machine 
 SYNC_REPOS=Y
+
+# do we install new package of all the code we built (we do this with
+# yum from the repos we sync
 INSTALL_PACKAGES=Y
+
+# FIXME: I think this can go away actually...
 SETUP_PUPPET=Y
+
+# run 'vf_server import` to setup cobbler
 VF_SERVER_IMPORT=Y
+
+# run vf_import on the profiles in the repo
 VF_IMPORT=Y
+
+# backup existing db to db_backup/, delete the old one, and recreate a new one
 REFRESH_DB=Y
+
+# startup all the various daemons
 START_SERVICES=Y
+
+# register the local box
 REGISTER_SYSTEM=Y
+
+# remove the old virt-factory related packages
 REMOVE_PACKAGES=Y
+
+# remove any existing cobbler setups
 CLEANUP_COBBLER=Y
+
+# run yum clean all
+# FIXME: this is a workaround to packages not getting
+# versioned properly
 CLEANUP_YUM=Y
 
+# do some basic testing of the wui code
+TEST_WEB_STUFF=Y
 
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
@@ -37,6 +76,10 @@ CLEANUP_YUM=Y
 if [ -f "test-it-all.conf" ] ; then
     source test-it-all.conf
 fi
+
+
+# since we can change VF_SERVER in the config, expand this after that
+VF_SERVER_URL="$VF_SERVER:5150"
 
 
 show_config()
@@ -63,6 +106,7 @@ show_config()
     echo "REMOVE_PACKAGES=$REMOVE_PACKAGES"
     echo "CLEANUP_COBBLER=$CLEANUP_COBBLER"
     echo "CLEANUP_YUM=$CLEANUP_YUM"
+    echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
 }
 
 msg()
@@ -195,6 +239,29 @@ register_system()
     vf_register --serverurl=$VF_SERVER_URL --username admin --password fedora --profilename $1
     echo $?
 }
+
+
+web_login()
+{
+    echo "logging into login page of $VF_SERVER"
+    curl -s -L -o output  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[username]=admin&form[password]=fedora&submit='Log In'" $VF_SERVER/vf/login/submit
+}
+
+test_web_stuff()
+{
+    msg "Hitting the web site for some basic testing"
+    web_login
+    LIST_OF_URL_PATHS="/profile/list /user/list /machine/list /deployment/list /task/list /machine/edit /regtoken/edit /regtoken/list /deployment/list /user/edit /profile/edit/0 /machine/edit/0 /user/edit/1"
+    for path in $LIST_OF_URL_PATHS 
+    do
+	echo "testing $VF_SERVER/vf/$path" 
+	RET_CODE=`curl -L -b $COOKIES_FILE -c $COOKIES_FILE -o output_file -w "%{http_code}\n" -s $VF_SERVER/vf/$path`
+	if [ "$RET_CODE" != "200" ] ; then
+	    echo "$VF_SERVER/vf/$path returned an error code of $RET_CODE"
+	fi
+    done
+
+}
 # commandline parsing
 while [ $# -gt 0 ]
 do
@@ -215,6 +282,7 @@ do
 	--skip-package-remote) REMOVE_PACKAGES=N;;
 	--skip-cobbler-cleanup) CLEANUP_COBBLER=N;;
 	--cleanup-yum) CLEANUP_YUM=Y;;
+	--skip-web-test) TEST_WEB_STUFF=N;;
     esac
     shift
 done
@@ -359,4 +427,9 @@ fi
 if [ "$REGISTER_SYSTEM" == "Y" ] ; then
     msg "Registering system"
     register_system $DEFAULT_PROFILE
+fi
+
+if [ "$TEST_WEB_STUFF" == "Y" ] ; then
+    msg "Running some basic tests on the web interface"
+    test_web_stuff
 fi
