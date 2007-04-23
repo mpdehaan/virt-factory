@@ -407,6 +407,7 @@ fi
 
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
+    mkdir -p profiles
     cd profiles/
     for profile in `ls`
     do
