@@ -16,9 +16,9 @@ VF_SERVER_URL="http://172.16.59.218:5150"
 
 
 # er, variables...
-REBUILD=N
-FRESH_CHECKOUT=N
-SYNC_REPOS=N
+REBUILD=Y
+FRESH_CHECKOUT=Y
+SYNC_REPOS=Y
 INSTALL_PACKAGES=Y
 SETUP_PUPPET=Y
 VF_SERVER_IMPORT=Y
@@ -27,7 +27,7 @@ REFRESH_DB=Y
 START_SERVICES=Y
 REGISTER_SYSTEM=Y
 REMOVE_PACKAGES=Y
-CLEANUP_COBBLER=N
+CLEANUP_COBBLER=Y
 CLEANUP_YUM=Y
 
 
@@ -339,6 +339,7 @@ fi
 
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
+    mkdir -p profiles
     cd profiles/
     for profile in `ls`
     do
