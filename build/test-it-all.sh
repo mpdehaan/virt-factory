@@ -67,8 +67,15 @@ CLEANUP_COBBLER=Y
 # versioned properly
 CLEANUP_YUM=Y
 
+# remove any existing puppet configs/certs/etc
+CLEANUP_PUPPET=Y
+
 # do some basic testing of the wui code
 TEST_WEB_STUFF=Y
+
+
+# try to run nodecomm to see if basic ssl stuff is working
+TEST_NODECOMM=Y
 
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
@@ -106,7 +113,9 @@ show_config()
     echo "REMOVE_PACKAGES=$REMOVE_PACKAGES"
     echo "CLEANUP_COBBLER=$CLEANUP_COBBLER"
     echo "CLEANUP_YUM=$CLEANUP_YUM"
+    echo "CLEANUP_PUPPET=$CLEANUP_PUPPET"
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
+    echo "TEST_NODECOMM=$TEST_NODECOMM"
 }
 
 msg()
@@ -174,7 +183,13 @@ cleanup_repo_mirror()
 
     rm -rf /var/www/cobbler/repo_mirror/*
 }
- 
+
+
+cleanup_puppet()
+{
+    # blow away any puppet configs that might be about
+    rm -rf /var/lib/puppet/*
+} 
 
 # FIXME: sync this repo
 # create the repo like the one at 
@@ -260,7 +275,14 @@ test_web_stuff()
 	    echo "$VF_SERVER/vf/$path returned an error code of $RET_CODE"
 	fi
     done
+}
 
+test_nodecomm()
+{
+    msg "Testing vf_nodecomm to see if basic ssl stuff is working"
+    HN=`hostname`
+    /usr/bin/vf_nodecomm $HN $HN test_add 1 2 
+    echo $?
 }
 # commandline parsing
 while [ $# -gt 0 ]
@@ -281,8 +303,10 @@ do
 	--skip-register) REGISTER_SYSTEM=N;;
 	--skip-package-remote) REMOVE_PACKAGES=N;;
 	--skip-cobbler-cleanup) CLEANUP_COBBLER=N;;
+	--skip-puppet-cleanup) CLEANUP_PUPPET=N;;
 	--cleanup-yum) CLEANUP_YUM=Y;;
 	--skip-web-test) TEST_WEB_STUFF=N;;
+	--skip-nodecomm-test) TEST_NODECOMM=N;;
     esac
     shift
 done
@@ -364,6 +388,11 @@ if [ "$CLEANUP_COBBLER" == "Y" ] ; then
     cleanup_cobbler
 fi
 
+if [ "$CLEANUP_PUPPET" == "Y" ] ; then
+    msg "Cleaning up puppet configs"
+    cleanup_puppet
+fi
+
 # purge the db
 if [ "$REFRESH_DB" == "Y" ] ; then
     msg "Purging the db"
@@ -432,4 +461,9 @@ fi
 if [ "$TEST_WEB_STUFF" == "Y" ] ; then
     msg "Running some basic tests on the web interface"
     test_web_stuff
+fi
+
+if [ "$TEST_NODECOMM" == "Y" ] ; then
+    msg "Running some basic nodecomm tests"
+    test_nodecomm
 fi
