@@ -91,7 +91,7 @@ show_config()
    
     echo "DEFAULT_PROFILE=$DEFAULT_PROFILE"
     echo "BUILD_PATH=$BUILD_PATH"
-    echo "VF_SERVER_URL=$VF_SERVER_URL"
+    echo "VF_SERVER=$VF_SERVER"
 
     echo "REBUILD=$REBUILD"
     echo "FRESH_CHECKOUT=$FRESH_CHECKOUT"
@@ -407,7 +407,6 @@ fi
 
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
-    mkdir -p profiles
     cd profiles/
     for profile in `ls`
     do
