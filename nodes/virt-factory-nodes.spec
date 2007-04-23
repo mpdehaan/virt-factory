@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-nodes
 Version: 0.0.1
-Release: 3%{?dist}
+Release: 4%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
