@@ -36,14 +36,17 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/nodes
 #%{python_sitelib}/virt-factory/*.py*
 %{python_sitelib}/virt-factory/nodes/*.py*
+%{python_sitelib}/virt-factory/nodes/modules/*.py*
 %dir %{python_sitelib}/virt-factory/nodes/modules
-%dir %{python_sitelib}/virt-factory/nodes/modules/*.py*
 %dir %{python_sitelib}/virt-factory/nodes/yaml
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
 %dir /var/log/virt-factory
 
 
 %changelog
+* Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-4
+- remove spurious %dir on module files
+
 * Thu Mar 15 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-3
 - add init script
 
