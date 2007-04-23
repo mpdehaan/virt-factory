@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
 Version: 0.0.1
-Release: 7%{?dist}
+Release: 8%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -53,7 +53,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 #%{python_sitelib}/virt-factory/*.py*
 %{python_sitelib}/virt-factory/server/*.py*
 %dir %{python_sitelib}/virt-factory/server/modules
-%dir %{python_sitelib}/virt-factory/server/modules/*.py*
+%{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
@@ -82,6 +82,9 @@ fi
 
 
 %changelog
+* Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-8
+- remove spurious %dir on module files
+
 * Thu Apr 12 2007 Scott Seago <sseago@redhat.com> - 0.0.1-7
 - moved db creation from service init script to rpm %post
 - for rpm upgrades, perform schema upgrade

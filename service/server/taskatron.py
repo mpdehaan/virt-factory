@@ -38,7 +38,7 @@ import config_data
 import logger
 import utils
 # FIXME: pull this from the config file -akl
-logger.logfilepath = "/var/lib/virt-factory/taskatron.log" # FIXME
+logger.logfilepath = "/var/log/virt-factory/taskatron.log" # FIXME
 
 from modules import task as task_module 
 from modules import authentication
