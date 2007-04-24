@@ -206,7 +206,7 @@ setup_vf_repo_upstream()
 setup_vf_server()
 {
     msg "Setting up the config settings for vf_server"
-    
+ 
     HN=`hostname`
     # FIXME: were just reposyncing the normal repo to a specific path
     # FIXME: this path shouldn't be hardcoded
@@ -285,6 +285,11 @@ test_nodecomm()
     HN=`hostname`
     /usr/bin/vf_nodecomm $HN $HN test_add 1 2 
     echo $?
+    rm /tmp/blippy
+    /usr/bin/vf_nodecomm $HN $HN test_blippy 52.8
+    if ! [ -f /tmp/blippy ]; then
+       echo "test_blippy failed"
+    fi
 }
 # commandline parsing
 while [ $# -gt 0 ]

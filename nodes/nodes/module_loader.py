@@ -18,6 +18,8 @@ def load_modules(module_path=module_file_path, blacklist=None):
 
     mods = {}
 
+    print sys.path
+
     for fn in filenames:
         basename = os.path.basename(fn)
         if basename == "__init__.py":
