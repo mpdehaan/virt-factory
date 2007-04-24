@@ -4,7 +4,7 @@
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-nodes
 Version: 0.0.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -43,6 +43,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-5
+- fix module import problems
+
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-4
 - remove spurious %dir on module files
 
