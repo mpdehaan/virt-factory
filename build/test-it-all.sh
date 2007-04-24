@@ -226,6 +226,7 @@ setup_puppet()
 
 stop_services()
 {
+    /etc/init.d/cobblerd stop
     /etc/init.d/puppetmaster stop
     /etc/init.d/virt-factory-server stop
     /etc/init.d/virt-factory-wui stop
@@ -234,6 +235,7 @@ stop_services()
 
 start_services()
 {
+    /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
     /etc/init.d/virt-factory-server restart
     /etc/init.d/virt-factory-wui start
