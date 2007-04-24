@@ -63,6 +63,7 @@ build_profile()
     echo "Building the profile for $PROFILE" 
     pushd $PROFILE
     make
+    mkdir -p $BUILD/profiles
     cp *.tar.gz $BUILD/profiles/
     popd
 }

@@ -1,4 +1,4 @@
 ---
 logs:
-    service: /var/log/virt-factory/log
+    service: /var/log/virt-factory-nodes/node-log
 

@@ -98,7 +98,7 @@ show_config()
    
     echo "DEFAULT_PROFILE=$DEFAULT_PROFILE"
     echo "BUILD_PATH=$BUILD_PATH"
-    echo "VF_SERVER_URL=$VF_SERVER_URL"
+    echo "VF_SERVER=$VF_SERVER"
 
     echo "REBUILD=$REBUILD"
     echo "FRESH_CHECKOUT=$FRESH_CHECKOUT"
@@ -226,6 +226,7 @@ setup_puppet()
 
 stop_services()
 {
+    /etc/init.d/cobblerd stop
     /etc/init.d/puppetmaster stop
     /etc/init.d/virt-factory-server stop
     /etc/init.d/virt-factory-wui stop
@@ -234,6 +235,7 @@ stop_services()
 
 start_services()
 {
+    /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
     /etc/init.d/virt-factory-server restart
     /etc/init.d/virt-factory-wui start
@@ -436,7 +438,6 @@ fi
 
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
-    mkdir -p profiles
     cd profiles/
     for profile in `ls`
     do

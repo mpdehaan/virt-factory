@@ -30,8 +30,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 %{_bindir}/vf_node_server
 /etc/init.d/virt-factory-node-server
-%dir /var/lib/virt-factory
-%config(noreplace) /var/lib/virt-factory/node-settings
+%config(noreplace) /etc/virt-factory-nodes/node-settings
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/nodes
 #%{python_sitelib}/virt-factory/*.py*
@@ -40,7 +39,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/nodes/modules
 %dir %{python_sitelib}/virt-factory/nodes/yaml
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
-%dir /var/log/virt-factory
+%dir /var/log/virt-factory-nodes
 
 
 %changelog

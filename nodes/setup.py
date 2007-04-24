@@ -17,8 +17,8 @@ if __name__ == "__main__":
         etcpath  = "/etc/%s" % NAME
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
-        logpath  = "/var/log/%s/" % NAME
-	settingspath = "/var/lib/%s/" % NAME
+        logpath  = "/var/log/%s-nodes/" % NAME
+	settingspath = "/etc/%s-nodes/" % NAME
         setup(
                 name="%s-nodes" % NAME,
                 version = VERSION,
