@@ -7,14 +7,14 @@ import sys
 import glob
 
 
-module_path="%s/virt-factory/nodes/" % distutils.sysconfig.get_python_lib()
-sys.path.append(module_path)
+module_file_path="%s/virt-factory/nodes/modules" % distutils.sysconfig.get_python_lib()
+mod_path="%s/virt-factory/nodes/" % distutils.sysconfig.get_python_lib()
+sys.path.insert(0, mod_path)
 
-
-def load_modules(module_path, blacklist=None):
-    filenames = glob.glob("%s/*.py" % module_path)
-    filenames = filenames + glob.glob("%s/*.pyc" % module_path)
-    filesnames = filenames + glob.glob("%s.*.pyo" % module_path)
+def load_modules(module_path=module_file_path, blacklist=None):
+    filenames = glob.glob("%s/*.py" % module_file_path)
+    filenames = filenames + glob.glob("%s/*.pyc" % module_file_path)
+    filesnames = filenames + glob.glob("%s/*.pyo" % module_file_path)
 
     mods = {}
 
@@ -27,9 +27,9 @@ def load_modules(module_path, blacklist=None):
         elif basename[-4:] in [".pyc", ".pyo"]:
             modname = basename[:-4]
 
+        
         try:
-            print "%s/%s" % (module_path, modname)
-            blip =  __import__("%s/%s" % (module_path, modname))
+            blip =  __import__("nodes.modules.%s" % ( modname), globals(), locals(), [modname])
             if not hasattr(blip, "register_rpc"):
                 print "%s/%s module not a proper module" % (module_path, modname) 
                 continue

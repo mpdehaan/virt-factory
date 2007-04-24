@@ -12,7 +12,7 @@ class Test(web_svc.WebSvc):
         web_svc.WebSvc.__init__(self)
 
     def add(self, numb1, numb2):
-        return success((numb1 + numb2))
+        return success(int(numb1) + int(numb2))
 
     def test():
         return "foo"
