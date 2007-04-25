@@ -20,7 +20,7 @@
       <% @items.each do |item| %>
          <TR>
              <TD> <% if item.get_user().username != "system" %>
-                      <%= link_to item.get_user().username, :controller => "user", :action => "edit", :id => userid %>
+                      <%= link_to item.get_user().username, :controller => "user", :action => "edit", :id => item.user_id %>
                   <% else %>
                       system
                   <% end %>
