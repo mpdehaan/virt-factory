@@ -55,6 +55,7 @@ from modules import user
 #from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 #from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
+
 #--------------------------------------------------------------------------
 
 class Taskatron:
@@ -63,6 +64,13 @@ class Taskatron:
         Constructor sets up logging
         """
         self.logger = logger.Logger().logger
+
+    def __log_exc(self):
+        (t, v, tb) = sys.exc_info()
+        self.logger.info("Exception occured: %s" % t )
+        self.logger.info("Exception value: %s" % v)
+        self.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+
 
     def clean_up_tasks(self):
         """
@@ -148,7 +156,8 @@ class Taskatron:
                 except Exception, tb: 
                     self.logger.error("Exception:\n")
                     #self.logger.error(str(traceback.extract_tb(tb)))
-                    traceback.print_exc() # until logging gets cleaned up
+                    #traceback.print_exc() # until logging gets cleaned up
+                    self.__log_exc()
                     self.logger.error("setting failed")
                     self.set_failed(task)
 
@@ -275,7 +284,7 @@ class Taskatron:
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname, "virt_stop", ddata["mac_address"])
         if rc == 0:
-            mrec.set_state(DEPLOYMENT_STATE_STOPPED)
+            mrec.set_state(None, { "id" : mdata["id"] }, DEPLOYMENT_STATE_STOPPED)
         return rc
 
     def pause_virt(self,task):
@@ -284,7 +293,7 @@ class Taskatron:
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname,"virt_pause",ddata["mac_address"])
         if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_PAUSED)
+            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_PAUSED)
         return rc
 
     def shutdown_virt(self,task):
@@ -293,7 +302,7 @@ class Taskatron:
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname, "virt_shutdown", ddata["mac_address"])
         if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_STOPPED)
+            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_STOPPED)
         return rc
 
     def destroy_virt(self,task):
@@ -302,7 +311,7 @@ class Taskatron:
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname, "virt_destroy", ddata["mac_address"])
         if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_STOPPED)
+            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_STOPPED)
         return rc
 
     def test(self, task):
@@ -310,8 +319,6 @@ class Taskatron:
         (mrec, mdata, drec, ddata) = self.get_records(task)
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname, "test_blippy", 52.8)
-        if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_STOPPED)
         return rc
 
     def unpause_virt(self,task):
@@ -320,7 +327,7 @@ class Taskatron:
         machine_hostname = mdata["hostname"]
         (rc, data) = self.node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
         if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_RUNNING)
+            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_RUNNING)
         return rc
 
 #--------------------------------------------------------------------------
