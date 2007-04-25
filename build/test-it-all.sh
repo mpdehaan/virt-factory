@@ -147,7 +147,7 @@ check_out_code()
 
 remove_all_packages()
 {
-    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes koan cobbler
+    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails
     echo $?
 }
 
@@ -386,6 +386,16 @@ fi
 if [ "$INSTALL_PACKAGES" == "Y" ] ; then
     msg "configuring yum"
     cp -av repos.d/* /etc/yum.repos.d/
+
+
+    # I'm not entirely sure why we need this here, but otherwise yum complains
+    # about bogus stuff in the cache, despite having done a clean all just a few
+    # steps above
+    if [ "$CLEANUP_YUM" == "Y" ] ; then
+	msg "Cleaning up the yum caches"
+	yum clean all
+    #yum clean headers
+    fi
     
     msg "installing server packages from devel repo"
     install_server_packages
