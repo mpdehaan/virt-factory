@@ -218,9 +218,11 @@ class Taskatron:
             deployment_record = deployment_obj.get(None, { "id" : did })
             if not deployment_record.ok():
                 raise TaskException(comment="deployment missing")
+            ddata = deployment_record.data
         else:
             deployment_record = None
-        return (machine_obj, machine_record.data, deployment_obj, deployment_record.data)
+            ddata = None
+        return (machine_obj, machine_record.data, deployment_obj, ddata)
 
     def callback(self,*args):
         print args
