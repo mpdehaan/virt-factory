@@ -312,10 +312,6 @@ class Taskatron:
             drec.set_state(DEPLOYMENT_STATE_STOPPED)
         return rc
 
-    def test(self, task):
-
-
-
     def unpause_virt(self,task):
 
         (mrec, mdata, drec, ddata) = self.get_records(task)
@@ -325,37 +321,6 @@ class Taskatron:
             drec.set_state(DEPLOYMENT_STATE_RUNNING)
         return rc
 
-
-#--------------------------------------------------------------------------
-#--------------------------------------------------------------------------
-
-def main(argv):
-    """
-    Start things up.
-    """
-
-    taskatron = Taskatron()
-    if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
-        print taskatron.node_comm(sys.argv[2],"test_add",1,2)
-    elif len(sys.argv) > 1 and sys.argv[1].lower() == "--daemon":
-        taskatron.clean_up_tasks()
-        utils.daemonize("/var/run/vf_taskatron.pid")
-        taskatron.run_forever()
-    elif len(sys.argv) > 1 and sys.argv[1].lower() == "--infinity":
-
-
-
-    def unpause_virt(self,task):
-
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
-        if rc == 0:
-            drec.set_state(DEPLOYMENT_STATE_RUNNING)
-        return rc
-
-
-#--------------------------------------------------------------------------
 #--------------------------------------------------------------------------
 
 def main(argv):
