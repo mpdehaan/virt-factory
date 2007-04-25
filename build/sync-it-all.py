@@ -31,7 +31,7 @@ LOCALPATH="./"
 
 
 def create_repo_d_file(repo, hostname, urlpath, release):
-    repo_txt = repo_template % {'repo_name':"test_repo_%s" % repo,
+    repo_txt = repo_template % {'repo_name':"vf_test_repo" % repo,
                                 'repo_long_name': "Test Repo for %s" % release,
                                 'base_url': "http://%s/%s/repo/fc$releasever/%s/$basearch/" % (hostname, urlpath, release),                                
                                 'enabled': "1"}
@@ -44,7 +44,7 @@ def create_repo_d_file(repo, hostname, urlpath, release):
     if not os.access("repos.d", os.W_OK):
         os.mkdir("repos.d")
         
-    f = open("repos.d/test_repo_%s.repo" % repo, "w+")
+    f = open("repos.d/vf_test.repo", "w+")
     f.write(repo_txt)
     f.close()
 
