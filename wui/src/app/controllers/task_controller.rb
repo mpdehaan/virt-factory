@@ -57,9 +57,9 @@ class TaskController < AbstractObjectController
            [ "Destroy Virt",  TASK_OPERATION_DESTROY_VIRT  ],
            [ "Test",          TASK_OPERATION_TEST          ],
        ]
-       @users.insert(0,EMPTY_ENTRY)
-       @machines.insert(0,EMPTY_ENTRY)
-       @deployments.insert(0,EMPTY_ENTRY)
+       @users.insert(0,EMPTY_ENTRY_NOT_NONE)
+       @machines.insert(0,EMPTY_ENTRY_NOT_NONE)
+       @deployments.insert(0,EMPTY_ENTRY_NOT_NONE)
 
        # FIXME: finish
     end
