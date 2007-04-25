@@ -12,6 +12,7 @@
        -->
 
       <TABLE BORDER=0>
+         
          <TR>
             <TD>User</TD>
             <TD><%= if @operation == "add"
@@ -23,38 +24,62 @@
                     end %>
             </TD>
          </TR>
-         <TR>
-            <TD>State</TD>
-            <%# FIXME: different types of valid states depending on add vs. edit %>
-            <TD><%= f.select :state, @states %></TD>
-         </TR>
+         
          <TR> 
-            <TD>Operation</TD>
+            <TD>Action Type</TD>
             <TD><%= if @operation == "add"
-                       f.select :operation, @operations
+                       f.select :action_type, @action_types
                     else
-                       @item.operation
+                       @item.action_type
                     end
                 %>
             </TD>
          </TR>
+  
          <TR> 
-            <TD>Parameters</TD>
+            <TD>Machine</TD>
             <TD><%= if @operation == "add"
-                       f.text_field :parameters 
+                        f.select :machine_id, @machines
                     else
-                       @item.parameters
-                    end    
+                        @item.machine.hostname
+                    end
+                %>
+            </TD>
+         </TR>   
+
+         <TR>
+            <TD>Deployment</TD>
+            <TD><%= if @operation == "add"
+                        f.select :deployment_id, @deployments
+                    else
+                        @item.deployment.display_name   
+                    end
+                %>
+            </TD>
+         </TR>
+
+         <TR>
+            <TD>State</TD>
+            <TD><%= if @operation == "add"
+                        f.select :state, @states
+                    else
+                        @item.state
+                    end
                  %>
             </TD>
          </TR>
-         <% if @operation == "edit" %>
-         <TR> 
+
+         <TR>
             <TD>Time</TD>
-                 <%= @item.time %>
+            <TD><%= if @operation == "add"
+                        f.text_field :time
+                    else
+                        @item.time
+                    end
+                %>
             </TD>
          </TR>
-         <% end %>
+
          <TR>
             <TD COLSPAN="2"><input type="submit" value="go"></TD>
          </TR>
