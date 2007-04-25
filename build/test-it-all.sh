@@ -258,6 +258,11 @@ register_system()
 }
 
 
+get_fedora_release()
+{
+    FEDORA_RELEASE=`rpm -q --queryformat "%{VERSION}\n" fedora-release`
+}
+
 web_login()
 {
     echo "logging into login page of $VF_SERVER"
@@ -355,15 +360,11 @@ if [ "$REBUILD" == "Y" ] ; then
     fi
     
     
-    msg "Rebuilding everything for kicks in " 
+    msg "Rebuilding everything for kicks in $BUILD_PATH" 
 
     $BUILD_PATH/virt-factory/build/build-it-all.sh
     
     popd
-
-    # note, we also need to build cobbler and koan, and 
-    # add them to the repo. Do we want to do this as part of
-    # build-it-all.sh? probably
 
 fi
  
@@ -371,8 +372,11 @@ fi
 if [ "$SYNC_REPOS" == "Y" ] ; then
 	msg "syncing repos"
 	msg "calling sync-it-all.sh with user $REMOTE_USER"
-	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH"
-	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc6" --urlpath $URL_PATH
+	BUILD_ARCH=`uname -p`
+	get_fedora_release
+	BUILD_RELEASE=$FEDORA_RELEASE
+	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
+	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
 
 fi
 
