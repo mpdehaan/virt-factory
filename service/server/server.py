@@ -93,9 +93,9 @@ class XmlRpcInterface:
        Log an exception.
        """
        (t, v, tb) = sys.exc_info()
-       self.logger.debug("Exception occured: %s" % t )
-       self.logger.debug("Exception value: %s" % v)
-       self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+       self.logger.info("Exception occured: %s" % t )
+       self.logger.info("Exception value: %s" % v)
+       self.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
        
     def _dispatch(self, method, params):
        """
