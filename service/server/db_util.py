@@ -206,8 +206,8 @@ class DbUtil(object):
         buf = "UPDATE " + self.db_schema["table"] + " SET "
         buf = buf + ", ".join([x + "=:" + x for x in edit_keys])
         buf = buf + " WHERE id=:id"
-        self.logger.debug("SQL = %s" % buf)
-        self.logger.debug("ARGS = %s" % args)
+        self.logger.info("SQL = %s" % buf)
+        self.logger.info("ARGS = %s" % args)
         self.cursor.execute(buf, args)
         self.connection.commit()
         return success()  # FIXME: is this what edit should return?
@@ -228,23 +228,23 @@ class DbUtil(object):
         lock.acquire() 
 
         try:
-            self.logger.debug("SQL = %s" % buf)
-            self.logger.debug("ARGS = %s" % args)
+            self.logger.info("SQL = %s" % buf)
+            self.logger.info("ARGS = %s" % args)
             self.cursor.execute(buf, args)
             self.connection.commit()
         except Exception:
             lock.release()
             # temporary...
             (t, v, tb) = sys.exc_info()
-            self.logger.debug("Exception occured: %s" % t )
-            self.logger.debug("Exception value: %s" % v)
-            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+            self.logger.info("Exception occured: %s" % t )
+            self.logger.info("Exception value: %s" % v)
+            self.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
             raise SQLException(traceback=traceback.format_exc())
          
         rowid = self.cursor.lastrowid
         lock.release()
     
-        self.logger.debug("SUCCESS, rowid= %s" % rowid)
+        self.logger.info("SUCCESS, rowid= %s" % rowid)
         return success(rowid)
 
     def simple_delete(self,args):
@@ -255,6 +255,7 @@ class DbUtil(object):
             raise NoSuchObjectException()
 
         buf = "DELETE FROM " + self.db_schema["table"] + " WHERE id=:id" 
+        self.logger.info("DELETING, rowid=%s" % args["id"])
         self.cursor.execute(buf, args)
         self.connection.commit()
         return success()

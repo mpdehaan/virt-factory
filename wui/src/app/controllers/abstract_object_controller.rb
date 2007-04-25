@@ -8,6 +8,7 @@ class AbstractObjectController < ApplicationController
     # this is a variable that is used in making a blank entry in dropdowns for various things.  
     # FIXME: does this belong in this class?  Not sure.
     EMPTY_ENTRY = ["-None-", ""]
+    EMPTY_ENTRY_NOT_NONE = [ "-None-", -1]
 
     # by default, requesting a URL of the form /controller instead of /controller/action will
     # always redirect to the list page for controller.
