@@ -150,11 +150,11 @@ class DbUtil(object):
         table_clause = " FROM " + ",".join(table_names)
 
         buf = "SELECT " + fields_clause + " " + table_clause + " " + where_clause + order_by_clause + " LIMIT ?,?"
-        self.logger.info( "QUERY: %s" % buf)
-        self.logger.info( "OFFSET, LIMIT: %s, %s" % (offset,limit))
+        self.logger.debug( "QUERY: %s" % buf)
+        self.logger.debug( "OFFSET, LIMIT: %s, %s" % (offset,limit))
         self.cursor.execute(buf, (offset,limit))
         results = self.cursor.fetchall()
-        self.logger.info("RESULTS OF QUERY: %s" % results)
+        self.logger.debug("RESULTS OF QUERY: %s" % results)
 
         if results is None:
             return success([])
@@ -180,7 +180,7 @@ class DbUtil(object):
                         result_hash[table][real_field] = result
             result_list.append(result_hash)
                  
-        self.logger.info("SUCCESS, list=%s" % result_list)
+        self.logger.debug("SUCCESS, list=%s" % result_list)
 
         if return_single:
             return success(result_hash)
@@ -206,8 +206,8 @@ class DbUtil(object):
         buf = "UPDATE " + self.db_schema["table"] + " SET "
         buf = buf + ", ".join([x + "=:" + x for x in edit_keys])
         buf = buf + " WHERE id=:id"
-        self.logger.info("SQL = %s" % buf)
-        self.logger.info("ARGS = %s" % args)
+        self.logger.debug("SQL = %s" % buf)
+        self.logger.debug("ARGS = %s" % args)
         self.cursor.execute(buf, args)
         self.connection.commit()
         return success()  # FIXME: is this what edit should return?
@@ -228,8 +228,8 @@ class DbUtil(object):
         lock.acquire() 
 
         try:
-            self.logger.info("SQL = %s" % buf)
-            self.logger.info("ARGS = %s" % args)
+            self.logger.debug("SQL = %s" % buf)
+            self.logger.debug("ARGS = %s" % args)
             self.cursor.execute(buf, args)
             self.connection.commit()
         except Exception:
@@ -244,7 +244,7 @@ class DbUtil(object):
         rowid = self.cursor.lastrowid
         lock.release()
     
-        self.logger.info("SUCCESS, rowid= %s" % rowid)
+        self.logger.debug("SUCCESS, rowid= %s" % rowid)
         return success(rowid)
 
     def simple_delete(self,args):

@@ -32,6 +32,13 @@ class TaskController < AbstractObjectController
        @users = ManagedObject.retrieve_all(User, get_login).collect do |entry|
            [ entry.username, entry.id ]
        end
+       @machines = ManagedObject.retrieve_all(Machine, get_login).collect do |entry|
+           [ entry.hostname, entry.id ]
+       end
+       @deployments = ManagedObject.retrieve_all(Deployment, get_login).collect do |entry|
+           [ entry.display_name, entry.id ]
+       end
+       
        # FIXME: for consistancy this should be in codes-lookup.rb
        @states = [ 
            [ "Queued",   TASK_STATE_QUEUED   ],
@@ -40,13 +47,19 @@ class TaskController < AbstractObjectController
            [ "Failed",   TASK_STATE_FAILED   ],
            [ "Finished", TASK_STATE_FINISHED ]
        ]
-       @operations = [ 
-           [ "Sync Provisioning",            TASK_OPERATION_COBBLER_SYNC  ],
-           [ "Install Baremetal System",     TASK_OPERATION_INSTALL_METAL ],
-           [ "Install Virtualized System",   TASK_OPERATION_INSTALL_VIRT  ],
-           [ "Sync Recipes",                 TASK_OPERATION_PUPPET_SYNC   ]
+       @action_types = [ 
+           [ "Install Virt",  TASK_OPERATION_INSTALL_VIRT  ],
+           [ "Delete Virt",   TASK_OPERATION_DELETE_VIRT   ],
+           [ "Start Virt",    TASK_OPERATION_START_VIRT    ],
+           [ "Shutdown Virt", TASK_OPERATION_SHUTDOWN_VIRT ],
+           [ "Pause Virt",    TASK_OPERATION_PAUSE_VIRT    ],
+           [ "Unpause Virt",  TASK_OPERATION_UNPAUSE_VIRT  ],
+           [ "Destroy Virt",  TASK_OPERATION_DESTROY_VIRT  ],
+           [ "Test",          TASK_OPERATION_TEST          ],
        ]
        @users.insert(0,EMPTY_ENTRY)
+       @machines.insert(0,EMPTY_ENTRY)
+       @deployments.insert(0,EMPTY_ENTRY)
 
        # FIXME: finish
     end
