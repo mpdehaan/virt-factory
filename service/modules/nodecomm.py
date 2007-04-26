@@ -32,6 +32,13 @@ from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 # especially when mixed in with the puppet cert stuff that may only create
 # one pem file for a specific hostname.
 
+
+# workaround for bz #237902
+class VirtFactorySSL_Transport(SSL_Transport):
+    def __init__(self, ssl_context=None, use_datetime=0):
+        self._use_datetime = use_datetime
+        SSL_Transport.__init__(self,ssl_context=ssl_context)
+
 def get_handle(fromhost, target):
     """
     Return a xmlrpc server object for a given hostname.
@@ -61,7 +68,7 @@ def get_handle(fromhost, target):
  
     my_uri = "https://%s:2112" % target
     print "contacting: %s" % my_uri
-    my_rserver = Server(my_uri, SSL_Transport(ssl_context = my_ctx))
+    my_rserver = Server(my_uri, VirtFactorySSL_Transport(ssl_context = my_ctx))
     print my_rserver
     return my_rserver 
 
