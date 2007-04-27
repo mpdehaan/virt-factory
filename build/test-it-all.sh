@@ -211,7 +211,9 @@ setup_vf_server()
     HN=`hostname`
     # FIXME: were just reposyncing the normal repo to a specific path
     # FIXME: this path shouldn't be hardcoded
-    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc6/devel/i386"
+    get_fedora_release
+    ARCH=`uname -p`
+    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc$FEDORA_RELEASE/devel/$ARCH"
     cp settings settings.testing
     export HN VF_REPO
     perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" settings.testing
@@ -297,6 +299,8 @@ test_nodecomm()
        echo "test_blippy failed"
     fi
 }
+
+
 # commandline parsing
 while [ $# -gt 0 ]
 do
@@ -462,13 +466,20 @@ fi
 
 if [ "$VF_IMPORT" == "Y" ] ; then
     msg "importing profiles"
-    cd profiles/
+
+    # import the profiles from the checkout tree
+    PROFILE_DIR="/profiles"
+    if [ "$REBUILD" == "Y" ] ; then
+	PROFILE_DIR="$BUILD_PATH/virt-factory/build/profiles"
+    fi
+
+    pushd $PROFILE_DIR
     for profile in `ls`
     do
       msg "importing $profile"
       /usr/bin/vf_import $profile
     done
-    cd ..
+    popd
 fi
 
 if [ "$START_SERVICES" == "Y" ] ; then
