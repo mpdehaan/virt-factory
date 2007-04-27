@@ -133,6 +133,7 @@ help()
 
 check_out_code()
 {
+    echo "Build path is $BUILD_PATH"
     rm -rf $BUILD_PATH
     mkdir -p $BUILD_PATH
     pushd $BUILD_PATH
@@ -356,7 +357,8 @@ if [ "$REBUILD" == "Y" ] ; then
 	pushd $BUILD_PATH/virt-factory/build
     else
 	# just so we don't have to track were we are
-	pushd `pwd`
+	msg "!!! Skipping checkout"
+        pushd `pwd`
     fi
     
     
@@ -370,14 +372,17 @@ fi
  
 # this syncs the repos to the server, and generates the yum repo.d config files
 if [ "$SYNC_REPOS" == "Y" ] ; then
-	msg "syncing repos"
+	# deal with stale packages -- this may very well be wrong
+        msg "syncing repos"
 	msg "calling sync-it-all.sh with user $REMOTE_USER"
 	BUILD_ARCH=`uname -p`
 	get_fedora_release
 	BUILD_RELEASE=$FEDORA_RELEASE
+        ssh $REMOTE_USER@$REMOTE_HOST rm -rf /var/www/html/download/*
+        
 	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
 	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
-
+        ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/fc6/devel/i686 /var/www/html/download/repo/fc6/devel/i386
 fi
 
 
