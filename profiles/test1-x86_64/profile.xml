@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <appliance-container>
-  <name>Test1-x86_64</name>
+  <name>Test1_x86_64</name>
   <version>1.234</version>
   <distribution>FC-6-xen-x86_64</distribution>
   <virt_storage_size>5</virt_storage_size>
