@@ -77,6 +77,10 @@ TEST_WEB_STUFF=Y
 # try to run nodecomm to see if basic ssl stuff is working
 TEST_NODECOMM=Y
 
+# do we try doing an actual deployment
+TEST_PROFILE_DEPLOY=N
+
+
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
 
@@ -116,6 +120,7 @@ show_config()
     echo "CLEANUP_PUPPET=$CLEANUP_PUPPET"
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
     echo "TEST_NODECOMM=$TEST_NODECOMM"
+    echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
 }
 
 msg()
@@ -287,6 +292,19 @@ test_web_stuff()
     done
 }
 
+
+deploy_a_system()
+{
+
+    # FIXME: this is a bit hardcode at
+    web_login
+    echo curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://grimlock.devel.redhat.com/vf/deployment/edit_submit
+    RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://grimlock.devel.redhat.com/vf/deployment/edit_submit`
+    echo "Provisioming a system returned $RET_CODE"
+
+
+}
+
 test_nodecomm()
 {
     msg "Testing vf_nodecomm to see if basic ssl stuff is working"
@@ -324,6 +342,7 @@ do
 	--cleanup-yum) CLEANUP_YUM=Y;;
 	--skip-web-test) TEST_WEB_STUFF=N;;
 	--skip-nodecomm-test) TEST_NODECOMM=N;;
+	--skip-profile-deploy) TEST_PROFILE_DEPLOY=N;;
     esac
     shift
 done
@@ -502,4 +521,9 @@ fi
 if [ "$TEST_NODECOMM" == "Y" ] ; then
     msg "Running some basic nodecomm tests"
     test_nodecomm
+fi
+
+if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
+    msg "Running a virtual system deployment"
+    deploy_a_system
 fi
