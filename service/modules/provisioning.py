@@ -124,8 +124,6 @@ def input_string_or_hash(options,delim=","):
 
 class CobblerTranslatedRepo:
    def __init__(self,cobbler_api,name,url):
-       # FIXME: testing
-       return
 
        vf_config = config_data.Config().get()
        new_item = cobbler_api.new_repo()
