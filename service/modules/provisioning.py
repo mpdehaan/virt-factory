@@ -198,8 +198,7 @@ class CobblerTranslatedProfile:
            # repos.append('fc6x86_64updates')
            repos.append('fc6x86_64extras')
 
-       # TEMP workaround
-       # new_item.set_repos(repos)
+       new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
