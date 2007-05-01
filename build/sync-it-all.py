@@ -61,7 +61,6 @@ def push(localpath, user, host, path, distro, release, arch, urlpath, dryrun):
             'arch': arch}
  
     cmds = [
-        """/usr/bin/ssh %(user)s@%(host)s rm -rf %(path)s/repo/""" % args,
         """/usr/bin/ssh %(user)s@%(host)s mkdir -p %(path)s/repo/%(distro)s/%(release)s/%(arch)s %(path)s/repo/%(distro)s/%(release)s/srpms""" % args,
         """/usr/bin/rsync -ravv --delete -e ssh %(localpath)s/rpms/ %(user)s@%(host)s:/%(path)s/repo/%(distro)s/%(release)s/%(arch)s/""" % args,
         """/usr/bin/rsync -ravv --delete -e ssh %(localpath)s/srpms/  %(user)s@%(host)s:%(path)s/repo/%(distro)s/%(release)s/srpms/""" % args
