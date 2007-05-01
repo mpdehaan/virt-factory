@@ -231,7 +231,7 @@ class CobblerTranslatedProfile:
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
-       ks_meta["repo_line"]  = "repo --name=vf_repo --baseurl http://%s/cobbler/repo_mirror/vf_repo" % vf_config["this_server"]["address"]
+       ks_meta["repo_line"]  = "repo --name=vf_repo --baseurl http://%s/cobbler/repo_mirror/vf_repo" % vf_config["this_server"]["address"] + "\n$yum_repo_stanza\n"
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
 

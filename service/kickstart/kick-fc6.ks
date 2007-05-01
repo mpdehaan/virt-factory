@@ -68,6 +68,7 @@ $node_bare_packages
 /sbin/chkconfig --level 345 puppetd on
 /sbin/chkconfig --level 345 virt-factory-node-server-daemon on
 # FIXME: configure node to use vf_repo here
+$yum_config_stanza
 $kickstart_done
 
 
