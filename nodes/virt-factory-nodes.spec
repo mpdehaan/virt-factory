@@ -41,8 +41,20 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
 %dir /var/log/virt-factory-nodes
 
+%post
+/sbin/chkconfig --add virt-factory-node-server
+exit 0
+
+%preun
+if [ "$1" = 0 ] ; then
+  /sbin/service virt-factory-node-server stop > /dev/null 2>&1
+  /sbin/chkconfig --del virt-factory-node-server
+fi
 
 %changelog
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-6
+- add chkconfig stuff to scripts
+
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-5
 - fix module import problems
 
