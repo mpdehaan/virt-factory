@@ -22,7 +22,6 @@ lang en_US
 # Use network installation
 url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
-$repo_line
 $yum_repo_stanza
 # Network information
 network --bootproto=dhcp --device=eth0 --onboot=on
@@ -66,9 +65,8 @@ $node_bare_packages
 %post
 /usr/sbin/ntpdate -u $server_name
 /usr/bin/vf_register $server_param $token_param
-/sbin/chkconfig --level 345 puppetd on
-/sbin/chkconfig --level 345 virt-factory-node-server-daemon on
-# FIXME: configure node to use vf_repo here
+/sbin/chkconfig --level 345 puppet on
+/sbin/chkconfig --level 345 virt-factory-node-server on
 $yum_config_stanza
 $kickstart_done
 
