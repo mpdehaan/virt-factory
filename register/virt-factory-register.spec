@@ -3,8 +3,8 @@
 
 Summary: Registration client for virt-factory
 Name: virt-factory-register
-Version: 0.0.1
-Release: 3%{?dist}
+Version: 0.0.2
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -36,6 +36,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
+- bump to 0.0.2
+
 * Fri Apr 13 2007 Scott Seago <sseago@redhat.com> - 0.0.1-3
 - add logfile
  
