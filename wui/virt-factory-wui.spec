@@ -3,7 +3,7 @@
 
 Summary: Virt-Factory front end WUI
 Name: virt-factory-wui
-Version: 0.0.1
+Version: 0.0.2
 Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
@@ -85,6 +85,9 @@ if [ "$1" = 0 ] ; then
   /sbin/chkconfig --del virt-factory-wui
 fi
 %changelog
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
+- bump to 0.0.2
+
 * Thu Mar  1 2007  <sseago@redhat.com> - 0.1-1
 - Initial build.
 
