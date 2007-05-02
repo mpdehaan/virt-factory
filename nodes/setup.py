@@ -5,7 +5,7 @@ from distutils.core import setup, Extension
 import string
 
 NAME = "virt-factory"
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 SHORT_DESC = "%s client server" % NAME
 LONG_DESC = """
 A small pluggabe xml-rpc used by %s to communicate to individual machines
