@@ -3,8 +3,8 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
-Version: 0.0.1
-Release: 8%{?dist}
+Version: 0.0.2
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -90,8 +90,9 @@ fi
 
 
 %changelog
-* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-9
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
 - add chkconfig stuff in scripts
+- bump to 0.0.2
 
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-8
 - remove spurious %dir on module files
