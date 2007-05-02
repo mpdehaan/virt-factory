@@ -3,8 +3,8 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-nodes
-Version: 0.0.1
-Release: 5%{?dist}
+Version: 0.0.2
+Release: 1%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -52,8 +52,9 @@ if [ "$1" = 0 ] ; then
 fi
 
 %changelog
-* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-6
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
 - add chkconfig stuff to scripts
+- rev to 0.0.2
 
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-5
 - fix module import problems
