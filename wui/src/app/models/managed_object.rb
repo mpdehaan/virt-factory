@@ -51,7 +51,7 @@ class ManagedObject
                    
                     if !instance_variable_get(attr_symbol)
                         id = instance_variable_get(id_symbol) 
-                        if (id >= 0)
+                        if (!id.nil? && id >= 0)
                            object = ManagedObject.retrieve(metadata[:type], self.login, id) 
                            instance_variable_set(attr_symbol, object)
                         end

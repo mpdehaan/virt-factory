@@ -5,6 +5,7 @@
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
       <%= f.hidden_field :profile_id if @operation == "edit" %>
+      <%= f.hidden_field :machine_id if @operation == "edit" %>
       <TABLE BORDER=0>
          <TR>
             <TD>Machine</TD>
