@@ -6,7 +6,7 @@ import string
 import glob
 
 NAME = "virt-factory"
-VERSION = "0.0.2"
+VERSION = open("version", "r+").read().split()[0]
 SHORT_DESC = "%s webservicesserver" % NAME
 LONG_DESC = """
 A small pluggabe xml-rpc daemon used by %s to implement various web services hooks

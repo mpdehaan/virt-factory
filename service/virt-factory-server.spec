@@ -3,8 +3,9 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
-Version: 0.0.2
-Release: 1%{?dist}
+Source1: version
+Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
+Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
