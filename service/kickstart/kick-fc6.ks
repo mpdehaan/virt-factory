@@ -22,7 +22,6 @@ lang en_US
 # Use network installation
 url --url=$tree
 # If any cobbler repo definitions were referenced in the kickstart profile, include them here.
-$repo_line
 $yum_repo_stanza
 # Network information
 network --bootproto=dhcp --device=eth0 --onboot=on
