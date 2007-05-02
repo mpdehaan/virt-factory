@@ -16,4 +16,6 @@ extras_rpms:
     - koan
     - python-cheetah
     - yum-utils
+    - puppet
+    - facter
 loglevel: 'INFO'
