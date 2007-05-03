@@ -6,7 +6,7 @@ import string
 import glob
 
 NAME = "virt-factory"
-VERSION = "0.0.2"
+VERSION = open("version", "r+").read().split()[0] 
 SHORT_DESC = "%s registration client" % NAME
 LONG_DESC = """
 A utility to register machines to the %s server
