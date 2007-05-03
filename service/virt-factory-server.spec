@@ -3,8 +3,9 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-server
-Version: 0.0.1
-Release: 8%{?dist}
+Source1: version
+Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
+Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -79,9 +80,21 @@ if [ -f /var/lib/virt-factory/primary_db ]; then
 else
     /usr/bin/vf_create_db.sh
 fi
+/sbin/chkconfig --add virt-factory-server
+exit 0
+
+%preun
+if [ "$1" = 0 ] ; then
+  /sbin/service virt-factory-server stop > /dev/null 2>&1
+  /sbin/chkconfig --del virt-factory-server
+fi
 
 
 %changelog
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
+- add chkconfig stuff in scripts
+- bump to 0.0.2
+
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-8
 - remove spurious %dir on module files
 

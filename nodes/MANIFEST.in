@@ -1,2 +1,3 @@
+include version
 include node-settings
 recursive-include init-scripts *

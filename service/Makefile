@@ -1,3 +1,7 @@
+VERSION		= $(shell echo `awk '{ print $$1 }' version`)
+RELEASE		= $(shell echo `awk '{ print $$2 }' version`)
+NEWRELEASE	= $(shell echo $$(($(RELEASE) + 1)))
+
 all: rpms
 
 clean:
@@ -15,6 +19,12 @@ clean:
 #	python tests/tests.py
 #	-rm -rf /tmp/_cobbler-*
 
+bumprelease:	
+	-echo "$(VERSION) $(NEWRELEASE)" > version
+
+setversion: 
+	-echo "$(VERSION) $(RELEASE)" > version
+
 build: clean
 	python setup.py build -f
 
@@ -29,9 +39,13 @@ nukedb:
 	-rm -rf /var/lib/virt-factory/primary_db 
 	
 
+
+new-rpms: bumprelease rpms
+
 rpms: sdist 
 	mkdir -p rpm-build
 	cp dist/*.gz rpm-build/
+	cp version rpm-build/
 	rpmbuild --define "_topdir %(pwd)/rpm-build" \
 	--define "_builddir %{_topdir}" \
 	--define "_rpmdir %{_topdir}" \

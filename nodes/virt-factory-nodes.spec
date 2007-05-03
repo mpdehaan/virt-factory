@@ -3,8 +3,9 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-nodes
-Version: 0.0.1
-Release: 5%{?dist}
+Source1: version
+Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
+Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -41,8 +42,24 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
 %dir /var/log/virt-factory-nodes
 
+%post
+/sbin/chkconfig --add virt-factory-node-server
+exit 0
+
+%preun
+if [ "$1" = 0 ] ; then
+  /sbin/service virt-factory-node-server stop > /dev/null 2>&1
+  /sbin/chkconfig --del virt-factory-node-server
+fi
 
 %changelog
+* Thu May 2 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-1
+- change rpm spec to use version file
+
+* Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
+- add chkconfig stuff to scripts
+- rev to 0.0.2
+
 * Mon Apr 23 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-5
 - fix module import problems
 

@@ -30,11 +30,13 @@ class Deployment < ManagedObject
     # FIXME: is this the name used for display purposes in the GUI?
     
     def objname()
-        self.get_machine().hostname + ": " + self.get_profile().name
+        machine = self.get_machine()
+        profile = self.get_profile()
+        (machine.nil? ? "no machine" : machine.hostname) + ": " + (profile.nil? ? "no profile" : profile.name)
     end
 
     def __virt_call(id, op)
-        ManagedObject.call_server(op, session[:login], { "id" => id }, id.to_s)
+        ManagedObject.call_server(op, self.login, { "id" => id }, id.to_s)
     end
 
     def pause
