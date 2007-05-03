@@ -3,8 +3,9 @@
 
 Summary: Virt-factory web service server for use with virt-factory
 Name: virt-factory-nodes
-Version: 0.0.2
-Release: 1%{?dist}
+Source1: version
+Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
+Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)%{?dist}
 Source0: %{name}-%{version}.tar.gz
 License: GPL
 Group: Applications/System
@@ -52,6 +53,9 @@ if [ "$1" = 0 ] ; then
 fi
 
 %changelog
+* Thu May 2 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-1
+- change rpm spec to use version file
+
 * Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
 - add chkconfig stuff to scripts
 - rev to 0.0.2
