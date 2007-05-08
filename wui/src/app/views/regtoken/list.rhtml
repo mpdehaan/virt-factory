@@ -1,21 +1,22 @@
       <% @page_title = "View Registration Tokens" %>
-      <%= ApplicationHelper.menubar("machine","list") %>
+      <% @primary = "regtoken" %>
+      <% @secondary = "list" %>
      
       <div id="content-main">
       <% if @items.length > 0 %>
-      <TABLE class='listing'>
-         <TR>
-            <TD>Token</TD>
-            <TD>Profile</TD>
-            <TD>Uses Remaining</TD>
-            <TD>Delete</TD>
-         </TR>
+      <table class='listing'>
+         <thead>
+            <th>Token</th>
+            <th>Profile</th>
+            <th>Uses Remaining</th>
+            <th>Delete</th>
+         </thead>
       <% else %>
             No registration tokens are in the virt-factory database.  Create some using the "Machines/Create Registration Tokens" menu link.
       <% end %>
       
       <% @items.each do |item| %>
-         <TR>
+         <TR class="<%= cycle('odd','even') %>">
              <TD> <%= item.token %>
              <TD> <% if item.profile_id %>
                       <%= link_to item.get_profile().name, :controller => "profile", :action=> "view", :id=> item.profile_id %>

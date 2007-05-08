@@ -1,27 +1,96 @@
+h1.page-title {
+  padding-left: 32px;
+  padding-right: 24px;
+  font-family: "DejaVu LGC Sans Condensed", "Luxi Sans", sans-serif;
+  font-size: x-large;
+  color: #555;
+  width: 45%;
+  float: left;
+}
+
+a, a:link {
+  color:        #4a84c2;
+}
+
+#login-frame {
+  background:           #f5f5f4;
+  width:                400px;
+  -moz-border-radius:   10px;
+  border-radius:        10px;
+  padding:              5% 5% 2% 5%;
+  border:               1px outset #fff;
+  margin:               auto;
+}
+
+#login-frame #logo {
+  margin:               0px 15% 0px 15%;
+}
+
+#login-frame dt {
+  font-weight:          700;
+  float:                left;
+  clear:                left;
+  width:                100px;
+  text-align:           right;
+}
+
+#login-frame dd {
+  padding-top:          0px;
+  margin-bottom:        5px;
+  text-align:           right;
+}
+
+#login-frame dd.caption {
+  font-size:            8pt;
+  margin-bottom:        20px;
+}
+
+#login-frame dl {
+  margin:               20px 15% 0px 15%;
+}
+
+.text-input {
+  border:               1px solid #999;
+  margin-left:          6px;
+  -moz-border-radius:   6px;
+  border-radius:        6px;
+  padding-left:         3px;
+  width:                160px;
+}
+
+input.button-input {
+  color:                #777;
+  background-color:     #ddd;
+  font-weight:          700;
+  margin-top:           10px;
+  border:               1px solid #aaa;
+  -moz-border-radius:   6px;
+  border-radius:        6px;
+}
+
+
+
 /* These styles basically allow the top bar to be flush against the edges of the    
           browser window */
 body { 
   margin-top:   0px; 
   margin-left:  0px; 
   margin-right: 0px;
-  background: white url('img/black-red/content-right-bg.png') repeat-y right;
+  padding-left: .5%;
+  background-color: white; 
+}
+
+body.login {
+  background:   #dce7f3 url('images/bg-image.png') repeat-x top;
+  color:        #999;
+  font-family:  'Bitstream Vera Sans', 'Helvetica', 'Verdana', sans-serif;
 }
 
 /* This is the topmost black bar on the page. It contains the name of the page     
                  and some images for decoration */
 div#topbar { 
-  background-color: black; 
-  background-image: url('img/black-red/topbar-bg.png');
+  padding-top: 12px;
   height: 65px; 
-}
-
-/* This is just a slender red line for decorative effect. It's immediately 
-                      below the topmost black bar. */
-div.topbar-line {  
-  background-color: maroon; 
-  height: 3px;
-  color:white; 
-  font-weight: bold;
 }
 
 /* This is the style that defines the bold page title in the upper left. */
@@ -36,39 +105,49 @@ h1#product-name {
 
 /* This is the area where the product name & blurb are displayed */
 
+
+/* logo is in this class */
 div#page-title {
-  padding-top: 23px;
-  margin: 0px;
+  margin-left: 3%;
+  margin-top: 23px;
   height: 40px;
-  background: url('img/black-red/topbar-graphic.png') repeat-y right;
   color: #fff;
   font-weight: 900;
   font-size: large;
   font-family: sans-serif
+  width: auto;
+  background: url('images/logo-small.png') top left no-repeat;
+}
+
+body.login div#page-title {
+  margin: auto;
+  height: auto;
+  background: none;
 }
 
 span#title-text {
-  margin-left: 8px;
+  visibility: hidden;
 }
 
 span#blurb {
+  width: 200px;
   margin-left: 8px;
-  padding: 0px 0px 0px 0px;
-  clear: both;
-  color: #ccc;
+  padding: 0;
+  color: #aaa;
   font-weight: 700;
   font-size: large;
   font-family: sans-serif
 }
 
 div#content-main {
-  padding-left: 24px;
+  padding-left: 32px;
   padding-right: 24px;
   font-family: sans-serif;
   font-size: small;
   color: #555;
   width: 45%;
   float: left;
+  clear: both;
 }
 
 div#content-main h2 {
@@ -105,22 +184,26 @@ ul.nav,
 .nav ul{
 /*Remove all spacings from the list items*/
 	margin: 0;
-	padding: 0;
+	padding: 0px;
 	cursor: default;
 	list-style-type: none;
 	display: inline;
         margin-bottom: 20px;
 }
 
+ul.nav {
+	padding: 2px 2px;
+}
+
 ul.nav{
 	display: table;
         border-style: none;
-        background-color: #b00;
+        background-color: black;
 }
 ul.nav>li{
 	display: table-cell; 
 	position: relative;
-	padding: 2px 6px;
+	padding: 2px 14px;
 }
 
 ul.nav li>ul{
@@ -145,35 +228,109 @@ ul.nav li:hover>ul{
 
 /*** Menu colors (customizable) ***/
 
+ul.nav, ul.nav li {
+	font-family: "DejaVu LGC Sans Condensed", "Luxi Sans", sans-serif;
+        font-size: .9em;
+}
+
 ul.nav,
 .nav ul,
 .nav ul li a{
-	background-color: #b00;
-	color: #fff;
+	background-color: #729fcf;
+	color: #6a8099;
+	border-bottom: 1px dashed #a9b9cc;
+}
+
+ul.nav {
+	width: 95%;
+	color: white;
+        margin-left: auto;
+        margin-right: auto;
+}
+
+.nav ul, .nav ul li a {
+        background-color: #bed3e9; 
+}
+
+.nav ul li a {
+	padding-top: 6px;
+	padding-bottom: 6px;
 }
 
 
-ul.nav li:hover,
+
 .nav ul li a:hover{
-	background-color: #700;
+	background-color: #648ebc;
 	color: #fff;
         font-weight: 850;
 }
 
+ul.nav li:hover {
+	color: #526c8a;
+}
+
 ul.nav li:active,
 .nav ul li a:active{
-	background-color: #b00;
+	background-color: #92b5da;
 	color: #fff;
 }
 
 
 ul.nav,
 .nav ul{
-	border: 1px solid #b00;
+	border: none;
+}
+
+ul.nav {
+        -moz-border-radius: 4%;
+        border-top: 1px dashed #f5f3ff;
 }
 
 .nav a{
 	text-decoration: none;
 }
 
+table.listing {
+	border-collapse: separate;
+        border-spacing: 0px 0px;
+}
 
+table.listing th, td {
+        font-family: "Luxi Sans", "DejaVu LGC Sans Condensed", sans-serif;
+        border-right: 1px solid #c4d7eb;
+        padding-right:16px;
+        padding-left: 8px; 
+        border-bottom: 1px dashed #d0d0d0;    
+}
+
+table.listing th {
+        height: 1.8em;
+        vertical-align: bottom;
+        text-align: left;
+        font-size: .8em;
+        color: #555;
+        font-weight: 700;    
+}
+
+table.listing td {
+        font-size: .8em;
+	color: #777;
+        font-weight: 100;
+        padding-top: 4px;
+        padding-bottom: 4px;
+}
+
+table.listing tr.odd td {
+	background-color: #f5f3ff;
+}
+
+table.listing .col-last {
+        border-right: none;
+}
+
+h1 {
+       font-family: "DejaVu LGC Sans Condensed", "Luxi Sans", sans-serif;
+       font-weight: 700;
+       font-size: x-large;
+       color: #777;
+}

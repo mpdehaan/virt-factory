@@ -1,26 +1,26 @@
 <%# note, this view only has an "Add" mode, you can't edit a registration token, they can only be deleted %>
 
       <% @page_title = "Create Registration Tokens" %>
-
-      <%= ApplicationHelper.menubar("regtoken","edit") %>
+      <% @primary = "regtoken" %>
+      <% @secondary = "edit" %>
 
       <div id="content-main">
 
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
 
-      <TABLE BORDER=0>
-            <TR>
-                <TD>Profile</TD>
-                <TD><%= f.select :profile_id, @profiles %></TD>
-            </TR>
-            <TR>
-                <TD>Usage Limit (Optional)</TD>
-                <TD><%= f.text_field :uses_remaining %></TD>
-            <TR>
-            <TR> 
+      <table class='details'>
+          <TR>
+              <TD>Profile</TD>
+              <TD><%= f.select :profile_id, @profiles %></TD>
+          </TR>
+          <TR>
+              <TD>Usage Limit (Optional)</TD>
+              <TD><%= f.text_field :uses_remaining %></TD>
+          <TR>
+             <TR> 
                  <TD COLSPAN="2"><input type="submit" value="Create"></TD>
-            </TR>
-         </TR>
+             </TR>
+          </TR>
       </TABLE>
       <% end %>
 

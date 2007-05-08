@@ -1,10 +1,11 @@
 <!-- question: is this in use?  view? -->
 
       <% @page_title = "View Machine" %>
-      <%= ApplicationHelper.menubar("machine","view") %>
+      <% primary = "machine" %>
+      <% secondary = "view" %>
 
       <div id="content-main">
-      <TABLE BORDER=0>
+      <table class='listing'>
          <TR>
             <TD>Virtual Hostname</TD>
             <TD><%= @item.hostname %></TD>

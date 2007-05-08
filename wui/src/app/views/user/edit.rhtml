@@ -1,11 +1,12 @@
       <% @page_title = @operation.capitalize() + " A User" %>
-      <%= ApplicationHelper.menubar("user","edit") %>
+	<% @primary =  "user" %>
+	<% @seconardy = "edit" %> 
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
       <%= f.hidden_field :username if @operation == "edit" %>
-      <TABLE BORDER=0>
+      <table class='details'>
          <TR>
             <TD>Username</TD>
             <TD><%= if @operation == "add"

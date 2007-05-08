@@ -11,7 +11,7 @@
 
   </head>
 
-  <body>
+  <body class="<%= @body_class %>">
       
       <div id="topbar">
 
@@ -19,31 +19,14 @@
           
               <!-- dynamically filled in page title -->
               <span id="title-text">virt-factory</span>
-              <span id="blurb"><%= @page_title %></span>
               </div>
           </div>
+
+      <!-- navbar -->
+      <%= ApplicationHelper.menubar(@primary,@secondary) unless @primary.nil? %>
  
-          <div class="topbar-line">
-
-      </div>
-      
       <!-- fill in main page content -->
-      <%= yield %>
-
-      <br/>
-    
-      <!-- if any fields are invalid, turn them red -->
-      <!-- fixme: should also mention reasons later -->
-      <% if flash[:invalid_fields] %>
-         <SCRIPT LANGUAGE="Javascript">
-
-              <% flash[:invalid_fields].each do |field, reason| %>
-                  document.getElementById("form_<%= field.to_s() %>").style.backgroundColor='red';
-              <% end %>
-         
-         </SCRIPT>
-      <% end %>
-
+      <h1 class="page-title"><%= @page_title %></h1>
       <!-- secondary informational section, if applicable -->
       <% if flash[:notice] or flash[:errmsg] %>
 
@@ -64,8 +47,21 @@
           </div>
 
       <% end %>
+      <%= yield %>
 
-      
+      <br/>
+    
+      <!-- if any fields are invalid, turn them red -->
+      <!-- fixme: should also mention reasons later -->
+      <% if flash[:invalid_fields] %>
+         <SCRIPT LANGUAGE="Javascript">
+
+              <% flash[:invalid_fields].each do |field, reason| %>
+                  document.getElementById("form_<%= field.to_s() %>").style.backgroundColor='red';
+              <% end %>
+         
+         </SCRIPT>
+      <% end %>      
 
   </body>
 

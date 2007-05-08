@@ -1,16 +1,16 @@
       <% @page_title = "View Machines" %>
-      <%= ApplicationHelper.menubar("machine","list") %>
+      <% @primary = "machine" %>
+      <% @secondary = "list" %>
      
       <div id="content-main">
       <% if @items.length > 0 %>
-      <TABLE class='listing'>
-         <TR>
-            <TD>Hostname</TD>
-            <TD>Profile</TD>
-            <TD>Mac Address</TD>
-            <TD></TD>
-            <TD></TD>
-         </TR>
+      <table class='listing'>
+         <thead>
+            <th>Hostname</th>
+            <th>Profile</th>
+            <th>Mac Address</th>
+            <th colspan="2">Actions</th>
+         </thead>
       <% else %>
             No machines are in the virt-factory database.  Use the "Add" link to register some.
       <% end %>
@@ -19,7 +19,7 @@
          <% if item.is_locked == 1 %>
              <TR BGCOLOR="#555555">
          <% else %>
-             <TR>
+             <TR class="<%= cycle('odd','even') %>">
          <% end %>
              
              <TD> <%= item.hostname ? item.hostname : "(Pending)" %> </TD>

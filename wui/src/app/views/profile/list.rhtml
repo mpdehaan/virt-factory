@@ -1,20 +1,21 @@
       <% @page_title = "View Profile Profiles" %>
-      <%= ApplicationHelper.menubar("profile","list") %>
+      <% @primary = "profile" %>
+      <% @secondary = "list" %>
      
       <div id="content-main">
       
       <% if @items.length > 0 %>
-      <TABLE class='listing' CELLSPACING=10 CELLPADDING=10>
-         <TR>
-            <TD>Name</TD>
-            <TD>Version</TD>
-            <TD>Distribution</TD>
-            <TD>Storage</TD>
-            <TD>Memory</TD>
-            <TD>Targets</TD>
-            <TD>Container?</TD>
-            <TD></TD>
-         </TR>
+      <table class='listing'>
+         <thead>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Distribution</th>
+            <th>Storage</th>
+            <th>Memory</th>
+            <th>Targets</th>
+            <th>Container?</th>
+            <th colspan="2">Actions</th>
+         </thead>
       <% else %>
          There are no profile definitions installed into virt-factory.
       <% end %>
@@ -22,7 +23,8 @@
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
       <% @items.each do |item| %>
-         <TR>
+      
+         <TR class="<%= cycle('odd','even') %>">
              
              <TD> <%= link_to item.name, :controller => "profile", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>

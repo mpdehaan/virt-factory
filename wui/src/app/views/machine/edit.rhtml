@@ -1,12 +1,13 @@
       <% @page_title = @operation.capitalize() + " a Machine" %>
-      <%= ApplicationHelper.menubar("machine","edit") %>
+      <% @primary = "machine" %>
+      <% @secondary = "edit" %>
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <% if @operation == "edit" %>
          <%= f.hidden_field :id %>
       <% end %>
-      <TABLE BORDER=0>
+      <table class='details'>
          <% if @operation == "edit" and !@item.hostname.nil? %>
             <TR>
                 <TD>Recorded Hostname</TD>

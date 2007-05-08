@@ -1,11 +1,12 @@
-      <% @page_title = @operation.capitalize() + " An Profile" %>
-      <%= ApplicationHelper.menubar("profile","edit") %>
+      <% @page_title = @operation.capitalize() + " A Profile" %>
+      <% @primary = "profile" %>
+      <% @secondary = "edit" %>
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
       <%= f.hidden_field :id %>
       <%= f.hidden_field :distribution_id if @operation == "edit" %>
-      <TABLE BORDER=0>
+      <table class='details'>
          <TR>
             <TD>Name (string)</TD>
             <TD><%= f.text_field :name %></TD>

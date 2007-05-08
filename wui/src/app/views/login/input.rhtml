@@ -1,18 +1,22 @@
-      <div id="content-main">
-      <form name="form" action="submit">
-      <TABLE BORDER=0>
-         <TR>
-            <TD>Username</TD>
-            <TD><%= text_field("form", "username") %></TD>
-         </TR>
-         <TR> 
-            <TD>Password</TD>
-            <TD><%= text_field("form", "password") %></TD>            
-         </TR>
-         <TR>
-            <TD COLSPAN="2"><input type="submit" value="Log In"></TD>
-         </TR>
-      </TABLE>
-      </form>
-      </div>
+<% @body_class = "login" %>
+<div id="login-frame">
+ 
+<img id="logo" src="<%= ActionController::AbstractRequest.relative_url_root %>/images/logo.png" alt="virt-factory" />
+
+<form name="form" action="submit">
+<dl>
+  <dt>Username:</dt>
+    <dd>
+<%= text_field("form", "username", :class => "text-input") %></dd>
+    <dd class="caption">No Account? <a href="#">Request one.</a></dd>
+  <dt>Password:</dt>
+    <dd>
+<%= text_field("form", "password", :class => "text-input") %></dd>
+    <dd class="caption"><a href="#">Forgot your password?</a></dd>
+    <dd><input class="button-input" type="submit" value="Log In"></dd>
+</dl>
+
+</form>
+
+</div>
 

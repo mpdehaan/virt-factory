@@ -1,24 +1,25 @@
       <% @page_title = "View Task Queue" %>
-      <%= ApplicationHelper.menubar("task","list") %>
+      <% @primary = "task" %>
+      <% @secondary = "list" %>   
      
       <div id="content-main">
       <% if @items.length > 0 %>
-      <TABLE class='listing'>
-         <TR>
-            <TD>User</TD>
-            <TD>Action</TD>
-            <TD>Machine</TD>
-            <TD>Deployment</TD>
-            <TD>State</TD>
+      <table class='listing'>
+         <thead>
+            <th>User</th>
+            <th>Action</th>
+            <th>Machine</th>
+            <th>Deployment</th>
+            <th>State</th>
             <!-- FIXME: UI should convert to localtime -->
-            <TD>Start Time</TD>
-         </TR>
+            <th>Start Time</th>
+         </thead>
       <% else %>
          There are no scheduled tasks at this time.
       <% end %>
 
       <% @items.each do |item| %>
-         <TR>
+         <TR class="<%= cycle('odd','even') %>">
              <TD> <% if item.get_user().username != "system" %>
                       <%= link_to item.get_user().username, :controller => "user", :action => "edit", :id => item.user_id %>
                   <% else %>

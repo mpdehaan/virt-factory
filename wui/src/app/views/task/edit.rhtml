@@ -1,5 +1,6 @@
       <% @page_title = @operation.capitalize() + " A Task" %>
-      <%= ApplicationHelper.menubar("task","edit") %>
+      <% @primary = "task" %>
+      <% @secondary = "edit" %>
 
       <div id="content-main">
       <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
@@ -11,8 +12,7 @@
            requiring join code to be added to the backend.
        -->
 
-      <TABLE BORDER=0>
-         
+      <table class='details'>
          <TR>
             <TD>User</TD>
             <TD><%= if @operation == "add"

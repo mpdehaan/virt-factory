@@ -1,20 +1,20 @@
       <% @page_title = "View Virtual Deployments" %>
-      <%= ApplicationHelper.menubar("deployment","list") %>
+      <% @primary = "deployment" %>
+      <% @secondary = "list" %>
      
       <div id="content-main">
       
       <% if @items.length > 0 %>
-      <TABLE class='listing'>
-         <TR>
-            <TD>Host Machine</TD>
-            <TD>Virtual Hostname</TD>
-            <TD>IP</TD>
-            <TD>Mac Address</TD>
-            <TD>Profile</TD>
-            <TD>State</TD>
-            <TD></TD>
-            <TD></TD>
-         </TR>
+      <table class='listing'>
+         <thead>
+            <th>Host Machine</th>
+            <th>Virtual Hostname</th>
+            <th>IP</th>
+            <th>Mac Address</th>
+            <th>Profile</th>
+            <th>State</th>
+            <th colspan="2">Actions</th>
+         </thead>
       <% else %>
          There are no virtual profiles created or deployed yet.  Use the "Add" link to create one.
       <% end %>
@@ -22,7 +22,7 @@
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>
       <%# FIXME: web svc should return a hash not a list %>
       <% @items.each do |item| %>
-         <TR>
+         <TR class="<%= cycle('odd','even') %>">
              <TD> <%= link_to item.machine.hostname, :controller => "machine", :action=> "edit", :id=> item.machine.id %></TD>
              <TD> <%= item.hostname ? item.hostname : "(Unknown)" %> </TD>
              <TD> <%= item.ip_address ? item.ip_address : "(Unknown)" %> </TD>
