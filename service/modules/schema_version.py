@@ -17,8 +17,6 @@
 from server.codes import *
 
 import baseobj
-import provisioning
-import cobbler
 import web_svc
 
 import os

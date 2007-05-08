@@ -9,5 +9,5 @@
   <kernel_options></kernel_options>
   <valid_targets>is_baremetal</valid_targets>
   <is_container>1</is_container>
-  <puppet_classes>site_settings class1 class2</puppet_classes>
+  <puppet_classes>helloworld1 helloworld2</puppet_classes>
 </appliance-container>

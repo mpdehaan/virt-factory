@@ -32,11 +32,10 @@ class Puppet(web_svc.AuthWebSvc):
                         "sign_node_cert": self.sign_node_cert}
         web_svc.AuthWebSvc.__init__(self)
 
-    def node_info(self, token, puppet_args):
+    def node_info(self, token, nodename):
         """
         Returns parent node and class list for a given puppet node.
         """
-        nodename = puppet_args["nodename"]
         found_node = None
         deployment_obj = deployment.Deployment()
         deployment_list_return = deployment_obj.get_by_hostname(None, {"hostname": nodename})

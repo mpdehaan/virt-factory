@@ -116,7 +116,7 @@ class XmlRpcInterface:
                # register can
                #   take authtokens or regtokens, so they do there own
                # auth check
-               if method not in ["user_login", "token_check", "register", "sign_node_cert" ]:
+               if method not in ["user_login", "token_check", "register", "sign_node_cert" , "puppet_node_info" ]:
                    self.auth.token_check(params[0])
                rc = mh(*params)
            except VirtFactoryException, e:

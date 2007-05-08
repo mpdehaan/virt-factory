@@ -129,7 +129,7 @@ class VirtFactoryImporter:
    def update_puppet_manifest(self):
        # import_str should be simply "import profile_name" once
        # puppet module support is in place
-       import_str = 'import "' + self.module_extraction_dir() + '/manifests/' + self.module_name + '.pp"'
+       import_str = 'import "' + self.module_name + '"'
        
        if not self.search_for_in_file(self.manifest, import_str):
            print "appending ", import_str
@@ -137,15 +137,16 @@ class VirtFactoryImporter:
            manifest_file.write('\n' + import_str + '\n')
            manifest_file.close();
 
-       fileserver_str = '\[' + self.module_name + '\]'
-       if not self.search_for_in_file(self.fileserver_conf, fileserver_str):
-           #fileserver_conf_file = open(self.fileserver_conf)
-           print "creating new fileserver conf entry"
-           fileserver_conf_file = open(self.fileserver_conf, 'a')
-           fileserver_conf_file.write('\n [' + self.module_name + ']\n')
-           fileserver_conf_file.write('  path ' + self.module_extraction_dir() + '/files\n')
-           fileserver_conf_file.write('  allow '+ self.fileserver_allow + '\n')
-           fileserver_conf_file.close();
+       # fileserver hacking shouldn't be required anymore w/ modules
+       #fileserver_str = '\[' + self.module_name + '\]'
+       #if not self.search_for_in_file(self.fileserver_conf, fileserver_str):
+       #    #fileserver_conf_file = open(self.fileserver_conf)
+       #    print "creating new fileserver conf entry"
+       #    fileserver_conf_file = open(self.fileserver_conf, 'a')
+       #    fileserver_conf_file.write('\n [' + self.module_name + ']\n')
+       #    fileserver_conf_file.write('  path ' + self.module_extraction_dir() + '/files\n')
+       #    fileserver_conf_file.write('  allow '+ self.fileserver_allow + '\n')
+       #    fileserver_conf_file.close();
 
    def search_for_in_file(self, filename, search_str):
        file = open(filename)
