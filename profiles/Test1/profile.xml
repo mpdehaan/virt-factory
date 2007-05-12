@@ -9,5 +9,5 @@
   <kernel_options></kernel_options>
   <valid_targets>is_virt</valid_targets>
   <is_container>0</is_container>
-  <puppet_classes>site_settings class1 class2</puppet_classes>
+  <puppet_classes>test11 test12</puppet_classes>
 </appliance-container>
