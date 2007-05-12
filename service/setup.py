@@ -23,6 +23,7 @@ if __name__ == "__main__":
 	upgradepath = schemapath + "upgrade/"
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
 	manifestpath = "/etc/puppet/manifests/"
+	profiletemplatepath = "/usr/share/%s/profile-template/" % NAME
         setup(
                 name="%s-server" % NAME,
                 version = VERSION,
@@ -38,6 +39,7 @@ if __name__ == "__main__":
 			   "scripts/vf_upgrade_db",
 			   "scripts/vf_config_firewall",
 			   "scripts/vf_remove_firewall_rules",
+			   "scripts/vf_gen_profile_stub",
 			   "db/vf_create_db.sh"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
@@ -59,7 +61,11 @@ if __name__ == "__main__":
 					     glob.glob("db/schema/upgrade/*.sql")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
 					    "puppet-config/puppetd.conf"]),
-			      (manifestpath, ["puppet-config/site.pp"])],
+			      (manifestpath, ["puppet-config/site.pp"]),
+			      (profiletemplatepath, ["profile-template/Makefile",
+                                                     "profile-template/profile.xml.in",
+                                                     "profile-template/vf-profile-template.spec",
+                                                     "profile-template/init.pp"])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )

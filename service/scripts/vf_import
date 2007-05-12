@@ -62,10 +62,7 @@ from server.modules import provisioning
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
 PUPPET_FILE_DIR="/var/lib/virt-factory/profiles"
 PUPPET_SITE_MANIFEST="/etc/puppet/manifests/site.pp"
-PUPPET_FILESERVER_CONF="/etc/puppet/fileserver.conf"
-PUPPET_FILESERVER_ALLOW="*"
 
-PROFILE_REGEXP = "profile\.xml$"
 NAME_TAG = "name"
 VERSION_TAG = "version"
 DISTRIBUTION_TAG = "distribution"
@@ -84,48 +81,17 @@ class VirtFactoryImporter:
    Main class for sm_import tool
    """
 
-   def __init__(self, tarball, module_dir, manifest, fileserver_conf, fileserver_allow):
+   def __init__(self, module_name, module_dir, manifest):
        """
        create importer object -- source tarball is passed in
        """
-       tarball = self.handle_network_file(tarball)
-       if (not tarfile.is_tarfile(tarball)):
-           raise ValueError(tarball + " is not a tarfile")
-       self.tarball_path = tarball
+       self.module_name = module_name
        self.module_dir = module_dir
        self.manifest = manifest
-       self.fileserver_conf = fileserver_conf
-       self.fileserver_allow = fileserver_allow
        log = logger.Logger()
        self.logger = log.logger
+       self.profile = parse(self.module_dir + '/' + self.module_name + "/profile.xml")
 
-   def handle_network_file(self, tarball):
-      try:
-         protocol = tarball[0:tarball.index("://")]
-         (handle, path) = tempfile.mkstemp()
-         os.close(handle)
-         urlretrieve(tarball, path)
-         return path
-      except ValueError:
-         return tarball
-
-   def extract(self):
-        self.tarball = tarfile.open(self.tarball_path)
-        profile_member = self.tarball.getmember("profile.xml")
-        profile_xml = self.tarball.extractfile(profile_member)
-        self.profile = parse(profile_xml)
-        self.module_name = self.get_node_text(NAME_TAG).lower()
-        
-        for member in self.tarball.getmembers():
-            if (re.search(PROFILE_REGEXP, member.name)):
-                print "excluding ", member.name
-            else:
-                print "extracting ", member.name
-                self.tarball.extract(member, self.module_extraction_dir())
-
-   def module_extraction_dir(self):
-       return self.module_dir + '/' + self.module_name
-   
    def update_puppet_manifest(self):
        # import_str should be simply "import profile_name" once
        # puppet module support is in place
@@ -137,16 +103,6 @@ class VirtFactoryImporter:
            manifest_file.write('\n' + import_str + '\n')
            manifest_file.close();
 
-       # fileserver hacking shouldn't be required anymore w/ modules
-       #fileserver_str = '\[' + self.module_name + '\]'
-       #if not self.search_for_in_file(self.fileserver_conf, fileserver_str):
-       #    #fileserver_conf_file = open(self.fileserver_conf)
-       #    print "creating new fileserver conf entry"
-       #    fileserver_conf_file = open(self.fileserver_conf, 'a')
-       #    fileserver_conf_file.write('\n [' + self.module_name + ']\n')
-       #    fileserver_conf_file.write('  path ' + self.module_extraction_dir() + '/files\n')
-       #    fileserver_conf_file.write('  allow '+ self.fileserver_allow + '\n')
-       #    fileserver_conf_file.close();
 
    def search_for_in_file(self, filename, search_str):
        file = open(filename)
@@ -220,7 +176,7 @@ def main():
     Start things up.
     """
     
-    usage = "usage: %prog [options] appliance-spec-file"
+    usage = "usage: %prog [options] module-name"
     parser = OptionParser(usage=usage)
     parser.add_option("-d", "--module-dir", dest="module",
                       help="top-level puppet module directory",
@@ -228,20 +184,11 @@ def main():
     parser.add_option("-m", "--site-wide-manifest", dest="manifest",
                       help="puppet site-wide manifest",
                       default=PUPPET_SITE_MANIFEST)
-    parser.add_option("-f", "--fileserver-conf", dest="fileserver_conf",
-                      help="puppet fileserver configuration file",
-                      default=PUPPET_FILESERVER_CONF)
-    parser.add_option("-a", "--fileserver-allow", dest="fileserver_allow",
-                      help="Allowed hosts for puppet fileserver config (default *)",
-                      default=PUPPET_FILESERVER_ALLOW)
     
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.error("incorrect number of arguments")    
-    importer = VirtFactoryImporter(args[0], options.module, options.manifest,
-                              options.fileserver_conf, options.fileserver_allow)
-    print "extracting..."
-    importer.extract()
+    importer = VirtFactoryImporter(args[0], options.module, options.manifest)
     importer.update_puppet_manifest()
     print "populating..."
     importer.populate_sm_profile()

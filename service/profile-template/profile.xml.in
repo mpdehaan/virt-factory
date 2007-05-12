@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<appliance-container>
+  <name>$name</name>
+  <version>$version</version>
+  <distribution>$distribution</distribution>
+  <virt_storage_size>$storage</virt_storage_size>
+  <virt_ram>$ram</virt_ram>
+  <kickstart_metadata>$ksmetadata</kickstart_metadata>
+  <kernel_options>$koptions</kernel_options>
+  <valid_targets>$targets</valid_targets>
+  <is_container>$container</is_container>
+  <puppet_classes>$puppetclasses</puppet_classes>
+</appliance-container>

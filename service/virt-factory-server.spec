@@ -44,6 +44,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_upgrade_db
 %{_bindir}/vf_config_firewall
 %{_bindir}/vf_remove_firewall_rules
+%{_bindir}/vf_gen_profile_stub
 /etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
 %config(noreplace) /etc/virt-factory/settings
@@ -69,6 +70,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /etc/puppet/manifests/site.pp
 /usr/share/virt-factory/puppet-config/puppetmaster
 /usr/share/virt-factory/puppet-config/puppetd.conf
+%dir /usr/share/virt-factory/profile-template
+/etc/puppet/manifests/site.pp
+/usr/share/virt-factory/profile-template/Makefile
+/usr/share/virt-factory/profile-template/profile.xml.in
+/usr/share/virt-factory/profile-template/vf-profile-template.spec
+/usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
 
 
