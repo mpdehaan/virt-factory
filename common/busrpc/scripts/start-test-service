@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pushd . >& /dev/null
+cd ../busrpc/test
+/usr/bin/python test_service.py
+popd

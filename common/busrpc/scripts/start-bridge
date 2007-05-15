@@ -1,0 +1,6 @@
+#!/usr/bin/python
+
+from busrpc.local.bridge import Bridge
+
+bridge = Bridge()
+bridge.run()

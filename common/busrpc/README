@@ -1,0 +1,28 @@
+The busrpc module implements a tiered RPC mechanism: "local" which uses dbus as
+the transport, and "remote" which uses AMQP (specifically QPID) as the
+transport. As of this writing (5/7/07) only the local mechanism is fully
+working. There are a few problems which need to be worked out before AMQP can
+be integrated.
+
+You'll need to have the following packages installed in order to use busrpc:
+
+* python-simplejson
+* dbus-python
+
+You'll also need to symlink busrpc/src to
+/usr/lib/python2.4/site-packages/busrpc or make other arrangements to get
+busrpc to show up on your PYTHONPATH.
+
+Each instance of busrpc (one per machine) needs to have a RPC bridge running.
+There's a bit of config which needs doing and a script to run:
+
+* symlink busrpc/configs/system-local.conf to /etc/dbus-1/system-local.conf
+
+* edit the above file to use your userid.
+  Note: Yes, I know this is a kludgy and borked way to do this. This'll
+        be cleaned up soon.
+
+* Start the bridge by running the busrpc/scripts/start-bridge script
+
+Demo code illustrating how to write servers and clients is in the busrpc/test
+directory.
