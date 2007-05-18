@@ -1,13 +1,6 @@
 from sqlalchemy import *
+from datetime import datetime
 from property import Property
-
-class FKey:
-    def __init__(self):
-        self.user = ForeignKey('users.id', ondelete="cascade")
-        self.profile = ForeignKey('profiles.id', ondelete="cascade")
-        self.distribution = ForeignKey('distributions.id', ondelete="cascade")
-        self.deployment = ForeignKey('deployments.id', ondelete="cascade")
-        self.machine = ForeignKey('machines.id', ondelete="cascade")
 
 tables =\
 (
@@ -34,7 +27,10 @@ tables =\
         Column('id', Integer, Sequence('profileid'), primary_key=True),
         Column('name', String(255), unique=True),
         Column('version', String(255), nullable=False),
-        Column('distribution_id', Integer, FKey().distribution, nullable=False),
+        Column('distribution_id',
+               Integer, 
+               ForeignKey('distributions.id', ondelete="cascade"), 
+               nullable=False),
         Column('virt_storage_size', Integer),
         Column('virt_ram', Integer),
         Column('kickstart_metadata', String(255)),
@@ -56,7 +52,10 @@ tables =\
         Column('list_group', String(255)),
         Column('mac_address', String(255)),
         Column('is_container', Integer),
-        Column('profile_id', Integer, FKey().profile, nullable=False),
+        Column('profile_id',
+               Integer,
+               ForeignKey('profiles.id', ondelete="cascade"), 
+               nullable=False),
         Column('puppet_node_diff', TEXT),
         Column('netboot_enabled', Integer),
         Column('is_locked', Integer)),
@@ -66,8 +65,14 @@ tables =\
         Column('ip_address', String(255)),
         Column('registration_token', String(255)),
         Column('mac_address', String(255)),
-        Column('machine_id', Integer, nullable=False),
-        Column('profile_id', Integer, FKey().profile, nullable=False),
+        Column('machine_id',
+               Integer, 
+               ForeignKey('machines.id', ondelete="cascade"),
+               nullable=False),
+        Column('profile_id',
+               Integer,
+               ForeignKey('profiles.id', ondelete="cascade"),
+               nullable=False),
         Column('state', Integer, nullable=False),
         Column('display_name', String(255), nullable=False),
         Column('puppet_node_diff', TEXT),
@@ -76,35 +81,59 @@ tables =\
     Table('regtokens',
         Column('id', Integer, Sequence('regtokenid'), primary_key=True),
         Column('token', String(255)),
-        Column('profile_id', Integer, FKey().profile),
+        Column('profile_id', Integer, ForeignKey('profiles.id')),
         Column('uses_remaining', Integer)),
     Table('sessions',
         Column('id', Integer, Sequence('ssnid'), primary_key=True),
         Column('session_token', String(255), nullable=False, unique=True),
-        Column('user_id', Integer, FKey().user, nullable=False),
-        Column('session_timestamp', DateTime, nullable=False)),
+        Column('user_id', 
+               Integer, 
+               ForeignKey('users.id', ondelete="cascade"), 
+               nullable=False),
+        Column('session_timestamp',
+               DateTime, 
+               nullable=False,
+               default=datetime.utcnow())),
     Table('schema_versions',
         Column('id', Integer, Sequence('schemaverid'), primary_key=True),
         Column('version', Integer),
         Column('git_tag', String(100)),
-        Column('install_timestamp', DateTime, nullable=False),
+        Column('install_timestamp',
+               DateTime, 
+               nullable=False,
+               default=datetime.utcnow()),
         Column('status', String(20),  nullable=False),
         Column('notes', String(4000))),
     Table('tasks', 
           Column('id', Integer, Sequence('taskid'), primary_key=True),
-          Column('user_id', Integer, FKey().user, nullable=False),
+          Column('user_id',
+                 Integer,
+                 ForeignKey('users.id', ondelete="cascade"), 
+                 nullable=False),
           Column('action_type', Integer, nullable=False),
-          Column('machine_id', Integer, FKey().machine, nullable=False),
-          Column('deployment_id', Integer, FKey().deployment, nullable=False),
+          Column('machine_id',
+                 Integer, 
+                 ForeignKey('machines.id', ondelete="cascade"), 
+                 nullable=False),
+          Column('deployment_id', 
+                 Integer, 
+                 ForeignKey('deployments.id', ondelete="cascade"), 
+                 nullable=False),
           Column('state', Integer, nullable=False),
-          Column('time', DateTime, nullable=False)),
+          Column('time',
+                 DateTime, 
+                 nullable=False,
+                 default=datetime.utcnow())),
     Table('events',
           Column('id', Integer, Sequence('eventid'), primary_key=True),
           Column('time', Integer, nullable=False),
-          Column('user_id', Integer, FKey().user, nullable=False),
-          Column('machine_id', Integer, FKey().machine),
-          Column('deployment_id', Integer, FKey().deployment),
-          Column('profile_id', Integer, FKey().profile),
+          Column('user_id',
+                 Integer, 
+                 ForeignKey('users.id', ondelete="cascade"), 
+                 nullable=False),
+          Column('machine_id', Integer, ForeignKey('machines.id')),
+          Column('deployment_id', Integer, ForeignKey('deployments.id')),
+          Column('profile_id', Integer, ForeignKey('profiles.id')),
           Column('severity', Integer, nullable=False),
           Column('category', String(255), nullable=False),
           Column('action', String(255), nullable=False),
@@ -113,8 +142,17 @@ tables =\
         Column('id', Integer, Sequence('uglogmsgid'), primary_key=True),
         Column('action', String(50)),
         Column('message_type', String(50)),
-        Column('message_timestamp', DateTime),
+        Column('message_timestamp',
+               DateTime,
+               default=datetime.utcnow()),
         Column('message', String(4000)))
+)
+
+table = Property(dict([(t.name, t) for t in tables]), True)
+
+indexes =\
+(
+    Index('username', table.users.c.username, unique=True),
 )
 
 
@@ -142,38 +180,56 @@ class UpgradeLogMessage(object):
     pass
 
 
-table = Property(dict([(t.name, t) for t in tables]), True)
-
 mappers =\
 (
-    mapper(User, table.users),
+    mapper(User, table.users,
+        properties={
+            'sessions' : relation(Session, cascade="delete-orphan", lazy=True),
+            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'events' : relation(Task, cascade="delete-orphan", lazy=True),
+            }),
     mapper(Distribution, table.distributions),
     mapper(Profile, table.profiles,
-           properties=
-               {'distributions' : relation(Distribution, lazy=True)}),
+        properties={
+            'distribution' : relation(Distribution, lazy=True),
+            'machines' : relation(Machine, cascade="delete-orphan", lazy=True),
+            'deployments' : relation(Deployment, cascade="delete-orphan", lazy=True),
+            'regtokens' : relation(RegToken, lazy=True)
+            }),
     mapper(Machine, table.machines,
-           properties=
-               {'profiles' : relation(Profile, lazy=True)}),
+        properties={
+            'profile' : relation(Profile, lazy=True),
+            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'events' : relation(Event, lazy=True),
+            }),
     mapper(Deployment, table.deployments,
-           properties=
-               {'profiles' : relation(Profile, lazy=True)}),
+        properties={
+            'profile' : relation(Profile, lazy=True),
+            'machine' : relation(Machine, lazy=True),
+            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'events' : relation(Event, lazy=True),
+            }),
     mapper(RegToken, table.regtokens,
-           properties=
-               {'profiles' : relation(Profile, lazy=True)}),
+        properties={
+            'profile' : relation(Profile, lazy=True),
+            }),
     mapper(Session, table.sessions,
-           properties=
-               {'users' : relation(User, lazy=True)}),
+        properties={
+            'user' : relation(User, lazy=True),
+            }),
     mapper(SchemaVersion, table.schema_versions),
     mapper(Task, table.tasks,
-           properties=
-               {'users' : relation(User, lazy=True),
-                'machines' : relation(Machine, lazy=True),
-                'deployments' : relation(Deployment, lazy=True)}),
+        properties={
+            'user' : relation(User, lazy=True),
+            'machine' : relation(Machine, lazy=True),
+            'deployment' : relation(Deployment, lazy=True),
+            }),
     mapper(Event, table.events,
-           properties=
-               {'users' : relation(User, lazy=True),
-                'machines' : relation(Machine, lazy=True),
-                'deployments' : relation(Deployment, lazy=True)}),
+        properties={
+            'user' : relation(User, lazy=True),
+            'machine' : relation(Machine, lazy=True),
+            'deployment' : relation(Deployment, lazy=True),
+            }),
     mapper(UpgradeLogMessage, table.upgrade_log_messages),
 )
 
@@ -211,6 +267,16 @@ if __name__ == '__main__':
         user.description = 'test user'
         user.email = 'jortel@redhat.com'
         ssn.save(user)
+        
+        session = Session()
+        session.session_token = 'my token'
+        session.uses_remaining = 1
+        user.sessions.append(session)
+
+        ssn.save(session)
+        ssn.flush()
+        
+        ssn.delete(user)
         ssn.flush()
     finally:
         ssn.close()
