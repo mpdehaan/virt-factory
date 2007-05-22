@@ -6,7 +6,7 @@ tables =\
 (
     Table('users',
           Column('id', Integer, Sequence('userid'), primary_key=True),
-          Column('username', String(255), nullable=False),
+          Column('username', String(255), nullable=False, unique=True),
           Column('password', String(255), nullable=False),
           Column('first', String(255), nullable=False),
           Column('middle', String(255)),
@@ -152,7 +152,7 @@ table = Property(dict([(t.name, t) for t in tables]), True)
 
 indexes =\
 (
-    Index('username', table.users.c.username, unique=True),
+    #Index('username', table.users.c.username, unique=True),
 )
 
 
