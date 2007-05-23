@@ -110,4 +110,33 @@ class BaseObject(object):
         except:
             return False
 
-
+class FieldValidator:
+    def __init__(self, data={}):
+        self.data = data
+        
+    def verify_required(self, keyset):
+        violations = {}
+        for key in keyset:
+            if key not in self.data:
+                violations[key] = REASON_REQUIRED
+        if len(violations) > 0:
+            raise InvalidArgumentsException(invalid_fields=violations)
+        
+    def verify_int(self, keyset):
+        violations = {}
+        for key in keyset:
+            try:
+                int(self.data.get(key, 0))
+            except:
+                violations[key] = REASON_FORMAT
+        if len(violations) > 0:
+            raise InvalidArgumentsException(invalid_fields=violations)
+        
+    def prune(self):
+        for key in self.data.keys():
+            if self.data[key] is None:
+                del self.data[key]
+        return self.data
+        
+        
+        

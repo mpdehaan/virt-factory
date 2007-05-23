@@ -32,6 +32,8 @@ import config_data
 import logger
 import utils
 
+from db import Database
+
 # FIXME: this should be using the config settings -akl
 logger.logfilepath = "/var/log/virt-factory/svclog"
 
@@ -66,9 +68,12 @@ class XmlRpcInterface:
         self.tokens = []
 
         self.logger = logger.Logger().logger
+        
+        Database(self.config['databases']['secondary'])
 
         self.__setup_handlers()
         self.auth = authentication.Authentication()
+        self.auth.cleanup_old_sessions()
        
     def __setup_handlers(self):
         """
@@ -195,6 +200,7 @@ def main(argv):
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.
 #        (and might not be enough for RHEL, but is good for Fedora/Centos)
+
 
 if __name__ == "__main__":
     main(sys.argv)

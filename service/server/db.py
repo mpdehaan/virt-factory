@@ -1,6 +1,8 @@
+import traceback
+import threading
 from sqlalchemy import *
 from datetime import datetime
-from property import Property
+from codes import SQLException
 
 tables =\
 (
@@ -148,11 +150,11 @@ tables =\
         Column('message', String(4000)))
 )
 
-table = Property(dict([(t.name, t) for t in tables]), True)
+table = dict([(t.name, t) for t in tables])
 
 indexes =\
 (
-    #Index('username', table.users.c.username, unique=True),
+    #Index('username', table['users'].c.username, unique=True),
 )
 
 
@@ -182,84 +184,142 @@ class UpgradeLogMessage(object):
 
 mappers =\
 (
-    mapper(User, table.users,
+    mapper(User, table['users'],
         properties={
             'sessions' : relation(Session, cascade="delete-orphan", lazy=True),
             'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
             'events' : relation(Task, cascade="delete-orphan", lazy=True),
             }),
-    mapper(Distribution, table.distributions),
-    mapper(Profile, table.profiles,
+    mapper(Distribution, table['distributions']),
+    mapper(Profile, table['profiles'],
         properties={
             'distribution' : relation(Distribution, lazy=True),
             'machines' : relation(Machine, cascade="delete-orphan", lazy=True),
             'deployments' : relation(Deployment, cascade="delete-orphan", lazy=True),
             'regtokens' : relation(RegToken, lazy=True)
             }),
-    mapper(Machine, table.machines,
+    mapper(Machine, table['machines'],
         properties={
             'profile' : relation(Profile, lazy=True),
             'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
             'events' : relation(Event, lazy=True),
             }),
-    mapper(Deployment, table.deployments,
+    mapper(Deployment, table['deployments'],
         properties={
             'profile' : relation(Profile, lazy=True),
             'machine' : relation(Machine, lazy=True),
             'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
             'events' : relation(Event, lazy=True),
             }),
-    mapper(RegToken, table.regtokens,
+    mapper(RegToken, table['regtokens'],
         properties={
             'profile' : relation(Profile, lazy=True),
             }),
-    mapper(Session, table.sessions,
+    mapper(Session, table['sessions'],
         properties={
             'user' : relation(User, lazy=True),
             }),
-    mapper(SchemaVersion, table.schema_versions),
-    mapper(Task, table.tasks,
-        properties={
-            'user' : relation(User, lazy=True),
-            'machine' : relation(Machine, lazy=True),
-            'deployment' : relation(Deployment, lazy=True),
-            }),
-    mapper(Event, table.events,
+    mapper(SchemaVersion, table['schema_versions']),
+    mapper(Task, table['tasks'],
         properties={
             'user' : relation(User, lazy=True),
             'machine' : relation(Machine, lazy=True),
             'deployment' : relation(Deployment, lazy=True),
             }),
-    mapper(UpgradeLogMessage, table.upgrade_log_messages),
+    mapper(Event, table['events'],
+        properties={
+            'user' : relation(User, lazy=True),
+            'machine' : relation(Machine, lazy=True),
+            'deployment' : relation(Deployment, lazy=True),
+            }),
+    mapper(UpgradeLogMessage, table['upgrade_log_messages']),
 )
 
 
-def connect(url='postgres://jortel:jortel@localhost/virtfactory'):
-    global_connect(url, echo=True)
+class Database:
     
-def open_session():
-    return create_session()
+    primary = None
     
-def create():
-    for t in tables:
-        t.create(checkfirst=True)
+    def __init__(self, url=None):
+        Database.primary = self
+        global_connect(url, echo=True)
+        self.populate()
+        
+    def create(self):
+        for t in tables:
+            t.create(checkfirst=True)
+    
+    def drop(self):
+        mylist = list(tables)
+        mylist.reverse()
+        for t in mylist:
+            t.drop(checkfirst=True)
+            
+    def populate(self):
+        session = open_session()
+        try:
+            for user in session.query(User).select_by(username='admin'):
+                return
+            user = User()
+            user.username = 'admin'
+            user.password = 'admin'
+            user.first = 'System'
+            user.last = 'Administrator'
+            user.description = 'The system administrator'
+            user.email = 'admin@yourdomain.com'
+            session.save(user)
+            session.flush()
+        finally:
+            session.close()
+        
+    def open_session(self):
+        try:
+            return create_session()
+        except:
+            raise SQLException(traceback=traceback.format_exc())
 
-def drop():
-    mylist = list(tables)
-    mylist.reverse()
-    for t in mylist:
-        t.drop(checkfirst=True)
+
+class Facade:
+    def __init__(self, session):
+        self.session = session
+        
+    def __getattr__(self, name):
+        attribute = getattr(self.session, name)
+        if callable(attribute):
+            return Facade.Method(attribute)
+        else:
+            return attribute
+    
+    class Method:
+        def __init__(self, method):
+            self.method = method
+        
+        def __call__(self, *args):
+            try:
+                return self.method(*args)
+            except Exception, e:
+                raise SQLException(
+                           comment = str(e),
+                           traceback=traceback.format_exc())
+        
+
+def open_session():
+    if Database.primary is None:
+        raise SQLException(comment='Primary database not initialized')
+    result = Database.primary.open_session()
+    return Facade(result)
+
 
 
 if __name__ == '__main__':
-    connect()
-    drop()
-    create()
+    database = Database('postgres://jortel:jortel@localhost/virtfactory')
+    database.drop()
+    database.create()
         
     ssn = open_session()
     try:
         user = User()
-        user.username = 'jortel'
+        #user.username = 'jortel'
         user.password = 'mypassword'
         user.first = 'jeff'
         user.middle = 'roy'
@@ -270,7 +330,6 @@ if __name__ == '__main__':
         
         session = Session()
         session.session_token = 'my token'
-        session.uses_remaining = 1
         user.sessions.append(session)
 
         ssn.save(session)
@@ -280,4 +339,4 @@ if __name__ == '__main__':
         ssn.flush()
     finally:
         ssn.close()
-
+        

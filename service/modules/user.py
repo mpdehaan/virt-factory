@@ -17,101 +17,18 @@
 
 
 from server.codes import *
+from server import db
+from baseobj import FieldValidator
 
-import baseobj
 import web_svc
 
 import os
-import base64
 import threading
 import time
 import traceback
 
-class UserData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "username", "password", "first", "middle", "last", "description", "email" ]
-
-    def _produce(klass, user_args,operation=None):
-        """
-        Factory method.  Create a user object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the user object.
-        """ 
-        self = UserData()
-        self.from_datastruct(user_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,user_args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the user as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        user object for interaction with the ORM.  See methods below for examples.
-        """ #"
-        self.id          = self.load(user_args,"id")
-        self.username    = self.load(user_args,"username")
-        self.password    = self.load(user_args,"password")
-        self.first       = self.load(user_args,"first")
-        self.middle      = self.load(user_args,"middle")
-        self.last        = self.load(user_args,"last")
-        self.description = self.load(user_args,"description")
-        self.email       = self.load(user_args,"email")
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-        return {
-            "id"          : self.id,
-            "username"    : self.username,
-            "password"    : self.password,
-            "first"       : self.first,
-            "middle"      : self.middle,
-            "last"        : self.last,
-            "description" : self.description,
-            "email"       : self.email
-        }
-
-    def validate(self,operation):
-        """
-        Cast variables appropriately and raise InvalidArgumentException(["name of bad arg","..."])
-        if there are any problems.  Note that validation is operation specific, for instance
-        there is no ID for an "add" command because the add command generates the ID.
-
-        Note that getting python exception errors during a cast here is technically good enough
-        to prevent GIGO, but really InvalidArgumentsExceptions should be raised.  That's what
-        we want.
-
-        NOTE: API currently gives names of invalid fields but does not list reasons.  
-        i.e. (FALSE, INVALID_ARGUMENTS, ["foo,"bar"].  By making the 3rd argument a hash
-        it could, but these would also need to be codes.  { "foo" : OUT_OF_RANGE, "bar" : ... }
-        Up for consideration, but probably not needed at this point.  Can be added later. 
-        """ #"
-        
-        # FIXME: validation thoughts: (more can be added later)
-        #  check for duplicate usernames (but maybe in "add" instead)
-        #  don't delete the admin user (also maybe in the "delete" method)
-        #  email regex check (tricky, RFC modules only if available, don't do it ourselves)
-        #  certain fields required to *not* be blank in certain cases?
-        #  username is printable
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            self.id = int(self.id)
 
 class User(web_svc.AuthWebSvc):
-
-    edit_fields = [ "first", "middle", "last", "description", "email", "username", "password" ]
-    
-    DB_SCHEMA = {
-        "table"  : "users",
-        "fields" : UserData.FIELDS,
-        "edit"   : edit_fields,
-        "add"    : edit_fields
-    }
-
     def __init__(self):
         self.methods = {"user_add": self.add,
                         "user_edit": self.edit,
@@ -120,127 +37,171 @@ class User(web_svc.AuthWebSvc):
                         "user_get": self.get,}
 
         web_svc.AuthWebSvc.__init__(self)
-        self.db.db_schema = self.DB_SCHEMA
+        self.__lock = threading.Lock()
+
 
     def add(self, token, user_args):
          """
-         Create a user.  user_args should contain all user fields except ID.
+         Create a user.
+         @param user_args: A dictionary of user attributes.
+             - username
+             - password
+             - first
+             - middle (optional)
+             - last
+             - description
+             - email
+         @type user_args: dict
          """
-         u = UserData.produce(user_args,OP_ADD)
-         # u.id = websvc.get_uid()
-         st = """
-         INSERT INTO users (username,password,first,middle,last,description,email)
-         VALUES (:username,:password,:first,:middle,:last,:description,:email)
-         """
-         lock = threading.Lock()
-         lock.acquire()
+         required = ('username','password', 'first', 'last', 'email')
+         optional = ('middle', 'description')
+         FieldValidator(user_args).verify_required(required)
+         session = db.open_session()
+         self.__lock.acquire()
          try:
-             self.db.cursor.execute(st, u.to_datastruct())
-             self.db.connection.commit()
-         except Exception:
-             lock.release()
-             raise SQLException(traceback=traceback.format_exc())
-         rowid = self.db.cursor.lastrowid
-         lock.release()
-         return success(rowid)
+             user = db.User()
+             for key in (required+optional):
+                 setattr(user, key, user_args.get(key, None))
+             session.save(user)
+             session.flush()
+             return success(user.id)
+         finally:
+             self.__lock.release()
+             session.close()
+
 
     def edit(self, token, user_args):
          """
-         Edit a user.  user_args should contain all user fields that need to
-         be changed.
+         Edit a user.
+         @param user_args: A dictionary of user attributes.
+             - id
+             - username (optional)
+             - password (optional)
+             - first (optional)
+             - middle (optional)
+             - last (optional)
+             - description (optional)
+             - email (optional)
+         @type user_args: dict.
+         # FIXME: don't allow delete if only 1 user left
+         # FIXME: consider an undeletable but modifiable admin user
+         # FIXME: password should be stored encrypted.
          """
-         # FIXME: allow the password field to NOT be sent, therefore not
-         #        changing it.  (OR) just always do XMLRPC/HTTPS and use a 
-         #        HTML password field.  Either way.  (We're going to be
-         #        wanting HTTPS anyhow).
-         u = UserData.produce(user_args,OP_EDIT) # force validation
-         st = """
-         UPDATE users
-         SET password=:password,
-         first=:first,
-         middle=:middle,
-         last=:last,
-         description=:description,
-         email=:email
-         WHERE id=:id
-         """
-         ds = u.to_datastruct()
-         self.db.cursor.execute(st, ds)
-         self.db.connection.commit()
-         return success(u.to_datastruct())
+         required = ('id',)
+         optional = ('username','password', 'first', 'middle', 'last', 'email', 'description')
+         FieldValidator(user_args).verify_required(required)
+         session = db.open_session()
+         self.__lock.acquire()
+         try:
+             userid = user_args['id']
+             user = session.get(db.User, userid)
+             if user is None:
+                 raise NoSuchObjectException, userid
+             for key in optional:
+                 current = getattr(user, key)
+                 setattr(user, key, user_args.get(key, current))
+             session.save(user)
+             session.flush()
+             return success(user_args)
+         finally:
+             self.__lock.release()
+             session.close()
 
-     # FIXME: don't allow delete if only 1 user left
-     # FIXME: consider an undeletable but modifiable admin user
 
     def delete(self, token, user_args):
          """
-         Deletes a user.  The user_args must only contain the id field.
+         Deletes a user.
+         @param user_args: A dictionary of user attributes.
+             - id
+         @type user_args: dict
          """
-         u = UserData.produce(user_args,OP_DELETE) # force validation
-         st = """
-         DELETE FROM users WHERE users.id=:id
-         """
-         self.db.cursor.execute(st, { "id" : u.id })
-         self.db.connection.commit()
-         # FIXME: failure based on existance
-         return success()
+         required = ('id',)
+         FieldValidator(user_args).verify_required(required)
+         session = db.open_session()
+         self.__lock.acquire()
+         try:
+             userid = user_args['id']
+             user = session.get(db.User, userid)
+             if user is None:
+                 raise NoSuchObjectException, userid
+             if user.username == 'admin':
+                 return success()
+             session.delete(user)
+             session.flush()
+             return success()
+         finally:
+             self.__lock.release()
+             session.close()
+
 
     def list(self, token, user_args):
          """
-         Return a list of users.  The user_args list is currently *NOT*
-         used.  Ideally we need to include LIMIT information here for
-         GUI pagination when we start worrying about hundreds of systems.
+         Get all users.
+         @param user_args: A dictionary of user attributes.
+             - offset (optional)
+             - limit (optional default=100)
+         @type user_args: dict
+         @return: A list of users.
+         @rtype: dictionary
+             - id
+             - username
+             - first
+             - middle (optional)
+             - last
+             - description (optional)
+             - email
+         # FIXME: implement paging
          """
-         # FIXME: limit query support
-         offset = 0
-         limit  = 100
-         if user_args.has_key("offset"):
-            offset = user_args["offset"]
-         if user_args.has_key("limit"):
-            limit = user_args["limit"]
-         st = """
-         SELECT id,username,password,first,middle,last,description,email FROM users LIMIT ?,?
-         """ 
-         results = self.db.cursor.execute(st, (offset,limit))
-         results = self.db.cursor.fetchall()
-         users = []
-         for x in results:
-             data = {         
-                "id"          : x[0],
-                "username"    : x[1],
-                "password"    : x[2],
-                "first"       : x[3],
-                "middle"      : x[4],
-                "last"        : x[5],
-                "description" : x[6],
-                "email"       : x[7]
-             }
-             users.append(UserData.produce(data).to_datastruct(True))
-         return success(users)
+         optional = ('offset', 'limit')
+         validator = FieldValidator(user_args)
+         validator.verify_int(optional)
+         offset = user_args.get(optional[0], 0)
+         limit = user_args.get(optional[1], 100)
+
+         session = db.open_session()
+         try:
+             result = []
+             query = session.query(db.User)
+             for user in query.select():
+                 data = self.__userdata(user)
+                 result.append(FieldValidator(data).prune())
+             return success(result)
+         finally:
+             session.close()
 
     def get(self, token, user_args):
          """
-         Return a specific user record.  Only the "id" is required in user_args.
+         Get a user by id.
+         @param user_args: A dictionary of user attributes.
+             - id
+         @type user_args: dict
          """
-         u = UserData.produce(user_args,OP_GET) # force validation
-         st = """
-         SELECT id,username,password,first,middle,last,description,email from users where users.id=:id
-         """
-         self.db.cursor.execute(st,{ "id" : u.id })
-         x = self.db.cursor.fetchone()
-         if x is None:
-             raise NoSuchObjectException(comment="user_get")
-         data = {
-                "id"          : x[0],
-                "username"    : x[1],
-                "password"    : x[2],
-                "first"       : x[3],
-                "middle"      : x[4],
-                "last"        : x[5],
-                "description" : x[6],
-                "email"       : x[7]
-         }
-         return success(UserData.produce(data).to_datastruct(True))
+         required = ('id',)
+         validator = FieldValidator(user_args)
+         validator.verify_required(required)
+         session = db.open_session()
+         try:
+             userid = user_args['id']
+             user = session.get(db.User, userid)
+             if user is None:
+                 raise NoSuchObjectException(comment=userid)
+             data = self.__userdata(user)
+             result = FieldValidator(data).prune()
+             return success(result)
+         finally:
+             session.close()
+     
+    def __userdata(self, user):
+        result =\
+            {'id':user.id,
+              'username':user.username,
+              'password':user.password,
+              'first':user.first,
+              'middle':user.middle,
+              'last':user.last,
+              'description':user.description,
+              'email':user.email } 
+        return result
 
  
 methods = User()
