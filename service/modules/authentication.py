@@ -27,7 +27,7 @@ import os
 import threading
 import time
 
-SESSION_LENGTH=30 #*60
+SESSION_LENGTH=30*60
 
 class Authentication(web_svc.WebSvc):
     tokens = []
@@ -84,16 +84,10 @@ class Authentication(web_svc.WebSvc):
         making sure that the admin user exists.
         """
         session = db.open_session()
-        self.__lock.acquire()
         try:
-            # cleanup expired sessions.
-            mark = self.expired_mark()
-            query = session.query(db.Session)
-            for expired in query.select(db.Session.c.session_timestamp < mark):
-                session.delete(expired)
-            session.flush()
+            self.cleanup_old_sessions()
             # make sure the 'admin' user exists.
-            for user in session.query(User).select_by(username='admin'):
+            for user in session.query(db.User).select_by(username='admin'):
                 return
             user = User()
             user.username = 'admin'
@@ -103,6 +97,22 @@ class Authentication(web_svc.WebSvc):
             user.description = 'The system administrator'
             user.email = 'admin@yourdomain.com'
             session.save(user)
+            session.flush()
+        finally:
+            session.close()
+            
+    def cleanup_old_sessions(self):
+        """
+        Delete expired sessions.
+        """
+        session = db.open_session()
+        self.__lock.acquire()
+        try:
+            # cleanup expired sessions.
+            mark = self.expired_mark()
+            query = session.query(db.Session)
+            for expired in query.select(db.Session.c.session_timestamp < mark):
+                session.delete(expired)
             session.flush()
         finally:
             self.__lock.release()
@@ -160,7 +170,7 @@ class Authentication(web_svc.WebSvc):
          urandom.close()
          return token
 
-    
+
     
 methods = Authentication()
 register_rpc = methods.register_rpc

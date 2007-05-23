@@ -69,7 +69,15 @@ class XmlRpcInterface:
 
         self.logger = logger.Logger().logger
         
-        Database(self.config['databases']['secondary'])
+        try:
+            databases = self.config['databases']
+            url = databases['secondary']
+            Database(url)
+        except KeyError:
+            # FIXME: update message after sqlalchemy conversion.
+            comment =\
+                'databases/secondary: temporarily required for sqlalchemy conversion'
+            raise MisconfiguredException(comment=comment)
 
         self.__setup_handlers()
         self.auth = authentication.Authentication()
