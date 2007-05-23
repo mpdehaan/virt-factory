@@ -1,3 +1,12 @@
+## Copyright 2006, Red Hat, Inc
+##
+## This software may be freely redistributed under the terms of the GNU
+## general public license.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; if not, write to the Free Software
+## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 import traceback
 import threading
 from sqlalchemy import *
@@ -237,44 +246,52 @@ mappers =\
 
 
 class Database:
-    
+    """
+    Represents the database and provides database lifecycle and
+    other convienience methods.
+    """
     primary = None
     
     def __init__(self, url=None):
+        """
+        Constructor, sets itself as the primary database.
+        It currently uses the global engine and metadata.  We can change this
+        if we need to have more then one primary database.
+        @param url: a sqlalchemy database url.
+        @type url: string 
+        """
         Database.primary = self
         global_connect(url, echo=True)
-        self.populate()
         
     def create(self):
+        """
+        Create all tables, indexes and constraints that have not
+        yet been created.
+        """
+        # FIXME: create the database here?
         for t in tables:
             t.create(checkfirst=True)
     
     def drop(self):
+        """
+        Drop all tables, indexes and constraints.
+        """
         mylist = list(tables)
         mylist.reverse()
         for t in mylist:
             t.drop(checkfirst=True)
-            
-    def populate(self):
-        session = open_session()
-        try:
-            for user in session.query(User).select_by(username='admin'):
-                return
-            user = User()
-            user.username = 'admin'
-            user.password = 'admin'
-            user.first = 'System'
-            user.last = 'Administrator'
-            user.description = 'The system administrator'
-            user.email = 'admin@yourdomain.com'
-            session.save(user)
-            session.flush()
-        finally:
-            session.close()
         
     def open_session(self):
+        """
+        A convienience method used to create a session.
+        The primary purposes are to wrapper the exception and
+        limit the need for sqlalchemy imports throughout the code.
+        @return: A session wrapped in a L{Facade} that mainly
+            wrappers the sqlalchemy exceptions.
+        @rtype: L{Facade}
+        """
         try:
-            return create_session()
+            return Facade(create_session())
         except:
             raise SQLException(traceback=traceback.format_exc())
 
@@ -303,11 +320,16 @@ class Facade:
                            traceback=traceback.format_exc())
         
 
+
 def open_session():
+    """
+    Convienience method provided simply code.  Most code using this
+    module can simply (import db) and create a session as: db.open_session()
+    and not deal with the Database object.
+    """
     if Database.primary is None:
         raise SQLException(comment='Primary database not initialized')
-    result = Database.primary.open_session()
-    return Facade(result)
+    return Database.primary.open_session()
 
 
 
@@ -319,13 +341,13 @@ if __name__ == '__main__':
     ssn = open_session()
     try:
         user = User()
-        #user.username = 'jortel'
+        user.username = 'jortel'
         user.password = 'mypassword'
-        user.first = 'jeff'
-        user.middle = 'roy'
-        user.last = 'ortel'
-        user.description = 'test user'
-        user.email = 'jortel@redhat.com'
+        user.first = 'Elvis'
+        user.middle = 'Marvin'
+        user.last = 'Prestley'
+        user.description = 'The King.'
+        user.email = 'elvis@redhat.com'
         ssn.save(user)
         
         session = Session()

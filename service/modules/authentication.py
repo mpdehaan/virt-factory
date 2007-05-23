@@ -78,17 +78,31 @@ class Authentication(web_svc.WebSvc):
          return success(data=token)
 
 
-    def cleanup_old_sessions(self):
+    def init_resources(self):
         """
-        Delete any old sessions 
+        Initialize resources which includes deleting expired sessions and
+        making sure that the admin user exists.
         """
         session = db.open_session()
         self.__lock.acquire()
         try:
+            # cleanup expired sessions.
             mark = self.expired_mark()
             query = session.query(db.Session)
             for expired in query.select(db.Session.c.session_timestamp < mark):
                 session.delete(expired)
+            session.flush()
+            # make sure the 'admin' user exists.
+            for user in session.query(User).select_by(username='admin'):
+                return
+            user = User()
+            user.username = 'admin'
+            user.password = 'admin'
+            user.first = 'System'
+            user.last = 'Administrator'
+            user.description = 'The system administrator'
+            user.email = 'admin@yourdomain.com'
+            session.save(user)
             session.flush()
         finally:
             self.__lock.release()

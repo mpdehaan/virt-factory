@@ -73,7 +73,7 @@ class XmlRpcInterface:
 
         self.__setup_handlers()
         self.auth = authentication.Authentication()
-        self.auth.cleanup_old_sessions()
+        self.auth.init_resources()
        
     def __setup_handlers(self):
         """
