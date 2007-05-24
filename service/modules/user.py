@@ -14,8 +14,6 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
-
 from server.codes import *
 from server import db
 from baseobj import FieldValidator
@@ -56,6 +54,7 @@ class User(web_svc.AuthWebSvc):
          required = ('username','password', 'first', 'last', 'email')
          optional = ('middle', 'description')
          FieldValidator(user_args).verify_required(required)
+         FieldValidator(user_args).verify_enum('last', ('jeff', 'scott')) # TODO: REMOVE THIS
          session = db.open_session()
          self.__lock.acquire()
          try:
@@ -163,8 +162,7 @@ class User(web_svc.AuthWebSvc):
              result = []
              query = session.query(db.User)
              for user in query.select():
-                 data = self.__userdata(user)
-                 result.append(FieldValidator(data).prune())
+                 result.append(self.__userdata(user))
              return success(result)
          finally:
              session.close()
@@ -185,9 +183,7 @@ class User(web_svc.AuthWebSvc):
              user = session.get(db.User, userid)
              if user is None:
                  raise NoSuchObjectException(comment=userid)
-             data = self.__userdata(user)
-             result = FieldValidator(data).prune()
-             return success(result)
+             return success(self.__userdata(user))
          finally:
              session.close()
      
@@ -201,7 +197,7 @@ class User(web_svc.AuthWebSvc):
               'last':user.last,
               'description':user.description,
               'email':user.email } 
-        return result
+        return FieldValidator.prune(result)
 
  
 methods = User()

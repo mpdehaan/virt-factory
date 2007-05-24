@@ -268,7 +268,7 @@ class Database:
         Create all tables, indexes and constraints that have not
         yet been created.
         """
-        # FIXME: create the database here?
+        # TODO: create the database here?
         for t in tables:
             t.create(checkfirst=True)
     

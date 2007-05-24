@@ -110,7 +110,18 @@ class BaseObject(object):
         except:
             return False
 
+
+
+#
+# TODO: this file should be renamed after BaseObject is no longer used.
+#
+
+from server.codes import *
+
 class FieldValidator:
+    """
+    The field validator provides simple dictionary validation.
+    """
     def __init__(self, data={}):
         self.data = data
         
@@ -132,11 +143,23 @@ class FieldValidator:
         if len(violations) > 0:
             raise InvalidArgumentsException(invalid_fields=violations)
         
-    def prune(self):
-        for key in self.data.keys():
-            if self.data[key] is None:
-                del self.data[key]
-        return self.data
+    def verify_enum(self, key, values):
+        try:
+            value = self.data[key]
+            if value not in values:
+                raise Exception
+        except:
+            violation = { key:REASON_RANGE }
+            raise InvalidArgumentsException(invalid_fields=(violation,))
+        
+    def prunedata(self, data=None):
+        if data is None: data = self.data
+        for key in data.keys():
+            if data[key] is None:
+                del data[key]
+        return data
+    
+    prune = classmethod(prunedata)
         
         
         

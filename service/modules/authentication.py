@@ -89,7 +89,7 @@ class Authentication(web_svc.WebSvc):
             # make sure the 'admin' user exists.
             for user in session.query(db.User).select_by(username='admin'):
                 return
-            user = User()
+            user = db.User()
             user.username = 'admin'
             user.password = 'admin'
             user.first = 'System'
