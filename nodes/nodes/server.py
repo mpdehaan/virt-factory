@@ -22,6 +22,8 @@ import glob
 
 #socket.setdefaulttimeout(0)
 
+from rhpl.translate import _, N_, textdomain, utf8
+I18N_DOMAIN = "vf_node_server"
 from M2Crypto import SSL
 from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 
@@ -119,7 +121,7 @@ def serve(websvc,hostname):
      Code for starting the XMLRPC service. 
      FIXME:  make this HTTPS (see RRS code) and make accompanying Rails changes..
      """
-     print "I think my hostname is: %s" % hostname
+     print _("I think my hostname is: %s") % hostname
      ctx = initContext(hostname)
      server = VirtFactorySSLXMLRPCServer(ctx, (hostname, 2112))
      server.register_instance(websvc)
@@ -181,11 +183,12 @@ def main(argv):
         utils.daemonize("/var/run/vf_node_server.pid")
         serve(websvc,host)
     else:
-        print "serving...\n"
+        print _("serving...\n")
         serve(websvc,host)
 
 
 if __name__ == "__main__":
+    textdomain(I18N_DOMAIN)
     main(sys.argv)
 
 

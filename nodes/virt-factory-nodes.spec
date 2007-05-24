@@ -11,6 +11,7 @@ License: GPL
 Group: Applications/System
 Requires: python >= 2.3
 Requires: koan >= 0.2.8
+Requires: rhpl
 Requires: m2crypto
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
