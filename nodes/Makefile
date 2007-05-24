@@ -2,6 +2,7 @@ VERSION		= $(shell echo `awk '{ print $$1 }' version`)
 RELEASE		= $(shell echo `awk '{ print $$2 }' version`)
 NEWRELEASE	= $(shell echo $$(($(RELEASE) + 1)))
 
+MESSAGESPOT=po/vf_node_server.pot
 
 all: rpms
 
@@ -18,6 +19,10 @@ clean:
 #	python tests/tests.py
 #	-rm -rf /tmp/_cobbler-*
 
+messages: nodes/*.py 
+	xgettext -k_ -kN_ -o $(MESSAGESPOT) nodes/*.py 
+	 sed -i'~' -e 's/SOME DESCRIPTIVE TITLE/vf_node_server/g' -e 's/YEAR THE PACKAGE'"'"'S COPYRIGHT HOLDER/2007 Red Hat, inc. /g' -e 's/FIRST AUTHOR <EMAIL@ADDRESS>, YEAR/Adrian Likins <alikins@redhat.com>, 2007/g' -e 's/PACKAGE VERSION/virt-factory-node-server $(VERSION)-$(RELEASE)/g' -e 's/PACKAGE/virt-factory-node-server/g' $(MESSAGESPOT)
+
 bumprelease:	
 	-echo "$(VERSION) $(NEWRELEASE)" > version
 
@@ -25,13 +30,13 @@ setversion:
 	-echo "$(VERSION) $(RELEASE)" > version
 
 
-build: clean
+build: clean messages
 	python setup.py build -f
 
 install: build
 	python setup.py install -f
 
-sdist: clean
+sdist: clean messages
 	python setup.py sdist
 
 rpms: sdist

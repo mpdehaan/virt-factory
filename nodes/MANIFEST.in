@@ -1,3 +1,5 @@
 include version
 include node-settings
+recursive-include po *.pot
+recursive-include po *.po
 recursive-include init-scripts *
