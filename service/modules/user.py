@@ -54,7 +54,6 @@ class User(web_svc.AuthWebSvc):
          required = ('username','password', 'first', 'last', 'email')
          optional = ('middle', 'description')
          FieldValidator(user_args).verify_required(required)
-         FieldValidator(user_args).verify_enum('last', ('jeff', 'scott')) # TODO: REMOVE THIS
          session = db.open_session()
          self.__lock.acquire()
          try:
