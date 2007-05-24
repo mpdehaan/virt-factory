@@ -26,14 +26,14 @@ class LoginController < ApplicationControllerUnlocked
       begin 
           (rc, results) = @@server.call("user_login",f_username,f_password)
       rescue Errno::ECONNREFUSED
-          flash[:notice] = "Could not connect to virt-factory server."
+          flash[:notice] = _("Could not connect to virt-factory server.")
           redirect_to :action => "input"
           return
       end
 
       if rc != 0
           # FIXME: look up error codes in string table
-          flash[:notice] = "Login failed (#{ERRORS[rc]})."
+          flash[:notice] = _("Login failed (#{ERRORS[rc]}).")
           # ask the user to input the fields again 
           # (the right error messages will show up on redirect because of flash)
           redirect_to :action => "input"

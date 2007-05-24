@@ -109,6 +109,8 @@ end
 
 class ApplicationController < ActionController::Base
 
+    init_gettext "ump"
+
     before_filter :login_required
     layout "virt-factory-layout"
 
