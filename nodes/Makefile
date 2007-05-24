@@ -2,7 +2,7 @@ VERSION		= $(shell echo `awk '{ print $$1 }' version`)
 RELEASE		= $(shell echo `awk '{ print $$2 }' version`)
 NEWRELEASE	= $(shell echo $$(($(RELEASE) + 1)))
 
-MESSAGESPOT=po/vf_node_server.pot
+MESSAGESPOT=po/messages.pot
 
 all: rpms
 
