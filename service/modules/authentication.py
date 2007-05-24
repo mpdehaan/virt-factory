@@ -17,7 +17,10 @@
 
 
 from server.codes import *
+from server import db
 import web_svc
+
+from datetime import datetime
 
 import base64
 import os
@@ -32,174 +35,88 @@ class Authentication(web_svc.WebSvc):
         self.methods = {"user_login": self.user_login,
                         "token_check": self.token_check}
         web_svc.WebSvc.__init__(self)
+        self.__lock = threading.Lock()
+
 
     def user_login(self, username, password):
          """
          Try to log in user with (user,password) and return a token, or raise
          UserInvalidException or PasswordInvalidException on error.
          """
-
-
          # this method is the exception to the rule and doesn't do object validation.
          # login is the only special method like this in the whole API.  It's also
          # the only method that doesn't take a hash for a parameter, though this
-         # should probably change for consistancy.
-         st = """
-         SELECT id, password FROM users WHERE username=:username
-         """
-         
-
-         if not os.path.exists("/var/lib/virt-factory/primary_db"):
-             raise MisconfiguredException(comment="/var/lib/virt-factory/primary_db doesn't exist")
-         
+         # should probably change for consistancy.    
          # the system account cannot be used to obtain a token under any circumstances. 
          # it exists for database referential integrity when logging, or when creating tasks (etc).
          if username == "system":
              raise UserInvalidException(comment=username)
 
-         self.db.cursor.execute(st, { "username" : username })
-         results = self.db.cursor.fetchone()
-         if results is None:
-             raise UserInvalidException(comment=username)
-         elif results[1] != password:
-             raise PasswordInvalidException(comment=username)
-
-         user_id = results[0]
-         urandom = open("/dev/urandom")
-         token = base64.b64encode(urandom.read(100)) 
-         urandom.close()
-
-         #cleanup old sessions
-         self.__cleanup_old_sessions_by_userid(user_id)
-         
-
-         st = """
-         INSERT INTO sessions (
-                     session_token,
-                     user_id, 
-                     session_timestamp)
-                VALUES (
-                     :session,
-                     :user_id,
-                     :timestamp)
-                     """
-
-         #"
-         lock = threading.Lock()
-         lock.acquire()
+         user = None
+         token = self.next_token()
+         session = db.open_session()
          try:
-             self.db.cursor.execute(st, {"session": token,
-                                         "user_id": user_id,
-                                         "timestamp": time.time()} )
-             self.db.connection.commit()
-         except Exception, e:
-             # FIXME: we also need to check just in case we collide on the
-             # session token. Cause you know, the chances of hitting a collision
-             # in a 100 byte random blob is much higher than me screwing up
-             # any other bugs.
+             query = session.query(db.User)
+             user = query.selectfirst_by(username=username)
+             if user is not None:
+                 ssn = db.Session()
+                 ssn.user_id = user.id
+                 ssn.session_token = token
+                 user.sessions.append(ssn)
+                 session.save(ssn)
+                 session.flush()
+         finally:
+             session.close()
              
-             # FIXME: be more fined grained (IntegrityError only)
-             lock.release()
-             raise SQLException(traceback=traceback.format_exc())
-
-         lock.release()
+         if user is None:
+             raise UserInvalidException(comment=username)
+         if password != user.password:
+             raise PasswordInvalidException(comment=username)
+         
+         self.cleanup_old_sessions()
+         
          return success(data=token)
 
 
-    def _cleanup_old_sessions(self):
+    def init_resources(self):
         """
-        Delete any old sessions 
+        Initialize resources which includes deleting expired sessions and
+        making sure that the admin user exists.
         """
-        
-        st = """
-        DELETE FROM
-               sessions
-        WHERE
-               session_timestamp < :timestamp
-        """
-
-         
-        lock = threading.Lock()
-        lock.acquire()
+        session = db.open_session()
         try:
-            self.db.cursor.execute(st, {"timestamp": (time.time() - SESSION_LENGTH)} )
-            self.db.connection.commit()
-        except:
-            lock.release()
-            raise SQLException(traceback=traceback.format_exc())
-        lock.release()
-
-    def __cleanup_old_sessions_by_userid(self, user_id):
+            self.cleanup_old_sessions()
+            # make sure the 'admin' user exists.
+            for user in session.query(db.User).select_by(username='admin'):
+                return
+            user = db.User()
+            user.username = 'admin'
+            user.password = 'admin'
+            user.first = 'System'
+            user.last = 'Administrator'
+            user.description = 'The system administrator'
+            user.email = 'admin@yourdomain.com'
+            session.save(user)
+            session.flush()
+        finally:
+            session.close()
+            
+    def cleanup_old_sessions(self):
         """
-        Delete any old sessions owned bt this user
+        Delete expired sessions.
         """
-        
-        st = """
-        DELETE FROM
-               sessions
-        WHERE
-               user_id=:user_id and
-               session_timestamp < :timestamp
-        """
-
-         
-        lock = threading.Lock()
-        lock.acquire()
+        session = db.open_session()
+        self.__lock.acquire()
         try:
-            self.db.cursor.execute(st, {"user_id": user_id,
-                                        "timestamp": (time.time() - SESSION_LENGTH)} )
-            self.db.connection.commit()
-        except:
-            lock.release()
-            raise SQLException(traceback=traceback.format_exc())
-        lock.release()
-
-         
-
-
-    def __delete_session(self, session_token):
-        """
-        The session has expired, delete it from the db
-        """
-        st = """
-        DELETE FROM sessions
-        WHERE session_token = :session_token
-        """
-
-        lock = threading.Lock()
-        lock.acquire()
-        try:
-             self.db.cursor.execute(st, {"session_token": session_token} )
-             self.db.connection.commit()
-        except:
-             lock.release()
-             raise SQLException(traceback=traceback.format_exc())
-        lock.release()
-
-
-    def __update_session(self, session_token):
-        """
-        Refresh the session_token in the db on succesful refresh
-        """
-        st = """
-        UPDATE sessions
-        SET session_timestamp=:session_timestamp
-        WHERE session_token=:session_token
-        """
-        #"
-        lock = threading.Lock()
-        lock.acquire()
-
-        
-        self.logger.debug("update_session session_token: %s" % session_token)
-        try:
-             self.db.cursor.execute(st, {"session_token": session_token,
-                                         "session_timestamp": time.time()} )
-             self.db.connection.commit()
-        except:
-             lock.release()
-             raise SQLException(traceback=traceback.format_exc())
-        lock.release()
+            # cleanup expired sessions.
+            mark = self.expired_mark()
+            query = session.query(db.Session)
+            for expired in query.select(db.Session.c.session_timestamp < mark):
+                session.delete(expired)
+            session.flush()
+        finally:
+            self.__lock.release()
+            session.close()
 
 
     def token_check(self, token):
@@ -218,56 +135,44 @@ class Authentication(web_svc.WebSvc):
 
         if token is None:
             return SuccessException()
-        
-        if not os.path.exists("/var/lib/virt-factory/primary_db"):
-            raise MisconfiguredException(comment="/var/lib/virt-factory/primary_db doesn't exist")
 
-        self.logger.debug("self.tokens: %s" % self.tokens)
         self.logger.debug("token: %s" % type(token))
-        now = time.time()
 
-        st = """
-        SELECT session_token, user_id, session_timestamp
-        FROM sessions
-        WHERE session_token = :session_token"""
-
-        lock = threading.Lock()
-        lock.acquire()
-        
+        valid = False
+        session = db.open_session()
+        self.__lock.acquire()
         try:
-            results = self.db.cursor.execute(st, {"session_token": token })
-            # no need to fetch all, since session_token is unique
-            results = self.db.cursor.fetchone()
-        except:
-            lock.release()
-            raise SQLException(traceback=traceback.format_exc())
+            ssn = session.query(db.Session).selectfirst_by(session_token=token)
+            if ssn is not None:
+                if ssn.session_timestamp < self.expired_mark():
+                    session.delete(ssn)
+                else:
+                    valid = True
+                    ssn.session_timestamp = datetime.utcnow()
+                    session.save(ssn)
+                session.flush()
+        finally:
+            self.__lock.release()
+            session.close()
 
-        lock.release()
-
-        if results == None:
+        if not valid:
             raise TokenInvalidException()
-
-        # remove tokens older than 1/2 hour
-        if (now - results[2]) > SESSION_LENGTH:
-            self.__delete_session(results[0])
-            raise TokenExpiredException()
-        if results[0] == token:
-            # update the expiration counter
-            self.__update_session(results[0])
-            return SuccessException()
-            
-        raise TokenInvalidException()
-   
-
-
+        
+        return SuccessException()
     
+    def expired_mark(self):
+        hack = (time.time()-SESSION_LENGTH)
+        return datetime.utcfromtimestamp(hack)
+    
+    def next_token(self):
+         urandom = open("/dev/urandom")
+         token = base64.b64encode(urandom.read(100)) 
+         urandom.close()
+         return token
+
+
     
 methods = Authentication()
-
-# for this module, we want to do some cleaup on
-#startup
-methods._cleanup_old_sessions()
-
 register_rpc = methods.register_rpc
 
 
