@@ -14,94 +14,17 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from server.codes import *
+from server import db
 
 import baseobj
-import machine
-import deployment
-import user
-
-#import distribution
-#import provisioning
 import web_svc
 
-import os
-import threading
-import traceback
-import time
-
-#------------------------------------------------------
-
-class TaskData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "user_id", "action_type", "machine_id", "deployment_id", "state", "time" ] 
-
-    def _produce(klass, profile_args,operation=None):
-        """
-        Factory method.  Create an object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the profile object.
-        """
-
-        self = TaskData()
-        self.from_datastruct(profile_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,args):
-        """
-        Deserialize the object from input
-        """
-        return self.deserialize(args) # ,self.FIELDS)
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-        return self.serialize()
-
-    def validate(self,operation):
-        """
-        Cast variables appropriately and raise InvalidArgumentException
-        where appropriate.
-        """
-        invalid_fields = {}
-        
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_fields["id"] = REASON_FORMAT
- 
-        if operation in [OP_ADD]:
-
-            if self.action_type not in VALID_TASK_OPERATIONS:
-                invalid_fields["operation"] = REASON_RANGE
-        
-        if operation in [OP_ADD, OP_EDIT]:
-
-            if self.state not in VALID_TASK_STATES:
-                invalid_fields["state"] = REASON_RANGE
-
-        if len(invalid_fields) > 0:
-            raise InvalidArgumentsException(invalid_fields=invalid_fields)
-
-
 class Task(web_svc.AuthWebSvc):
-    
-   DB_SCHEMA = {
-       "table" : "tasks",
-       "fields" : TaskData.FIELDS,
-       "add"   : [ "id", "user_id", "action_type", "machine_id", "deployment_id", "state", "time" ],
-       "edit"  : [ "state" ]
-    }
 
-   def __init__(self):
+    def __init__(self):
        """
        Constructor.  Add methods that we want registered.
-       """
-       
+       """       
        self.methods = {
            "task_add"    : self.add,
            "task_edit"   : self.edit,
@@ -110,76 +33,147 @@ class Task(web_svc.AuthWebSvc):
            "task_delete" : self.delete
            }
        web_svc.AuthWebSvc.__init__(self)
-
-       # FIXME: could go in the baseclass...
-       self.db.db_schema = self.DB_SCHEMA
-
-   def add(self, token, args):
-       """
-       Create a profile.  profile_args should contain all fields except ID.
-       """
-       
-       u = TaskData.produce(args,OP_ADD) # force validation
-       data = u.to_datastruct()
-       data["time"] = time.time()
-            
- 
-       # no longer used...
-       # self.db.validate_foreign_key(u.machine_id,    'machine_id',    machine.Machine())
-       # self.db.validate_foreign_key(u.deployment_id, 'deployment_id', deployment.Deployment())
-       
-       # FIXME: same note as above
-       # self.db.validate_foreign_key(u.user_id,       'user_id',       user.User())
-
-       return self.db.simple_add(data)
-
-
-   def edit(self, token, args):
-       """
-       Edit object.  Args should contain all fields that need to be changed.
-       """
-       
-       u = TaskData.produce(args,OP_EDIT) # force validation
-       return self.db.simple_edit(u.to_datastruct())
-
-
-   def delete(self, token, args):
-       """
-       Deletes an object.  args must only contain the id field.
-       """
-       
-       u = TaskData.produce(args,OP_DELETE) # force validation
-       return self.db.simple_delete(u.to_datastruct())
    
 
-   def list(self, token, args):
-       """
-       Return a list of objects.  The args list is currently *NOT*
-       used.  Ideally we need to include LIMIT information here for
-       GUI pagination when we start worrying about hundreds of systems.
-       """
-       
-       return self.db.nested_list(
-              [
-                 user.User.DB_SCHEMA,
-                 machine.Machine.DB_SCHEMA,
-                 deployment.Deployment.DB_SCHEMA
-              ],
-              args, 
-              {
-                 "users.id"       : "tasks.user_id",
-                 "machines.id"    : "tasks.machine_id",
-                 "deployments.id" : "tasks.deployment_id",
-              })
+    def add(self, token, args):
+         """
+         Create a task.
+         @param args: A dictionary of task attributes.
+             - user_id
+             - action_type
+             - machine_id
+             - deployment_id
+             - state
+         @type args: dict
+         """
+         optional = ()
+         required = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
+         validator = FieldValidator(args)
+         validator.verify_required(required)
+         validator.verity_enum('state', VALID_TASK_STATES)
+         validator.verity_enum('action_type', VALID_TASK_STATES)
+         session = db.open_session()
+         try:
+             task = db.Task()
+             for key in (required):
+                 setattr(task, key, args.get(key, None))
+             session.save(task)
+             session.flush()
+             return success(task.id)
+         finally:
+             session.close()
 
 
-   def get(self, token, args):
-       """
-       Return a specific record.  Only the "id" is required in args.
-       """
-       
-       u = TaskData.produce(args, OP_GET) # validate
-       return self.db.simple_get(u.to_datastruct())
+    def edit(self, token, args):
+         """
+         Edit a task.
+         @param args: A dictionary of task attributes.
+             - user_id
+             - action_type
+             - machine_id
+             - deployment_id
+             - state
+         @type args: dict
+         """
+         required = ('id')
+         optional = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
+         validator.verify_required(required)
+         validator.verity_enum('state', VALID_TASK_STATES)
+         validator.verity_enum('action_type', VALID_TASK_STATES)
+         session = db.open_session()
+         try:
+             taskid = args['id']
+             task = session.get(db.Task, taskid)
+             if task is None:
+                 raise NoSuchObjectException(comment=taskid)
+             for key in (optional):
+                 setattr(task, key, args.get(key, None))
+             session.save(task)
+             session.flush()
+             return success()
+         finally:
+             session.close()
+
+
+    def delete(self, token, args):
+         """
+         Deletes a task.
+         @param args: A dictionary of task attributes.
+             - id
+         @type args: dict
+         """
+         required = ('id',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             taskid = args['id']
+             task = session.get(db.Task, taskid)
+             if task is None:
+                 raise NoSuchObjectException(comment=taskid)
+             session.delete(task)
+             session.flush()
+             return success()
+         finally:
+             session.close()
+   
+
+    def list(self, token, args):
+         """
+         Get all tasks.
+         @param args: A dictionary of attributes.
+         @type args: dict
+         @return: A list of tasks.
+         @rtype: dictionary
+             - id
+             - user_id
+             - action_type
+             - machine_id
+             - deployment_id
+             - state
+             - time
+         # FIXME: implement paging
+         """
+         session = db.open_session()
+         try:
+             result = []
+             query = session.query(db.Task)
+             for task in query.select():
+                 result.append(self.__taskdata(task))
+             return success(result)
+         finally:
+             session.close()
+
+
+    def get(self, token, args):
+         """
+         Get a task by id.
+         @param args: A dictionary of task attributes.
+             - id
+         @type args: dict
+         """
+         required = ('id',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             taskid = args['id']
+             task = session.get(db.Task, taskid)
+             if task is None:
+                 raise NoSuchObjectException(comment=task)
+             return success(self.__taskdata(task))
+         finally:
+             session.close()
+
+
+    def __taskdata(self, task):
+        result =\
+            {'id':task.id,
+             'user_id':task.user_id,
+             'action_type':task.action_type,
+             'machine_id':task.machine_id,
+             'deployment_id':task.deployment_id,
+             'state':task.state,
+             'time':task.time}
+        return FieldValidator.prune(result)
  
 methods = Task()
 register_rpc = methods.register_rpc

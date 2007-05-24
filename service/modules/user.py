@@ -94,7 +94,7 @@ class User(web_svc.AuthWebSvc):
              userid = user_args['id']
              user = session.get(db.User, userid)
              if user is None:
-                 raise NoSuchObjectException, userid
+                 raise NoSuchObjectException(comment=userid)
              for key in optional:
                  current = getattr(user, key)
                  setattr(user, key, user_args.get(key, current))
@@ -121,7 +121,7 @@ class User(web_svc.AuthWebSvc):
              userid = user_args['id']
              user = session.get(db.User, userid)
              if user is None:
-                 raise NoSuchObjectException, userid
+                 raise NoSuchObjectException(comment=userid)
              if user.username == 'admin':
                  return success()
              session.delete(user)
@@ -174,8 +174,7 @@ class User(web_svc.AuthWebSvc):
          @type user_args: dict
          """
          required = ('id',)
-         validator = FieldValidator(user_args)
-         validator.verify_required(required)
+         FieldValidator(user_args).verify_required(required)
          session = db.open_session()
          try:
              userid = user_args['id']
