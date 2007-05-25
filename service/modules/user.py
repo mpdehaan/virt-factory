@@ -38,10 +38,10 @@ class User(web_svc.AuthWebSvc):
         self.__lock = threading.Lock()
 
 
-    def add(self, token, user_args):
+    def add(self, token, args):
          """
          Create a user.
-         @param user_args: A dictionary of user attributes.
+         @param args: A dictionary of user attributes.
              - username
              - password
              - first
@@ -49,17 +49,17 @@ class User(web_svc.AuthWebSvc):
              - last
              - description
              - email
-         @type user_args: dict
+         @type args: dict
          """
          required = ('username','password', 'first', 'last', 'email')
          optional = ('middle', 'description')
-         FieldValidator(user_args).verify_required(required)
+         FieldValidator(args).verify_required(required)
          session = db.open_session()
          self.__lock.acquire()
          try:
              user = db.User()
              for key in (required+optional):
-                 setattr(user, key, user_args.get(key, None))
+                 setattr(user, key, args.get(key, None))
              session.save(user)
              session.flush()
              return success(user.id)
@@ -68,10 +68,10 @@ class User(web_svc.AuthWebSvc):
              session.close()
 
 
-    def edit(self, token, user_args):
+    def edit(self, token, args):
          """
          Edit a user.
-         @param user_args: A dictionary of user attributes.
+         @param args: A dictionary of user attributes.
              - id
              - username (optional)
              - password (optional)
@@ -80,45 +80,43 @@ class User(web_svc.AuthWebSvc):
              - last (optional)
              - description (optional)
              - email (optional)
-         @type user_args: dict.
-         # FIXME: don't allow delete if only 1 user left
-         # FIXME: consider an undeletable but modifiable admin user
-         # FIXME: password should be stored encrypted.
+         @type args: dict.
+         # TODO: password should be stored encrypted.
          """
          required = ('id',)
          optional = ('username','password', 'first', 'middle', 'last', 'email', 'description')
-         FieldValidator(user_args).verify_required(required)
+         FieldValidator(args).verify_required(required)
          session = db.open_session()
          self.__lock.acquire()
          try:
-             userid = user_args['id']
+             userid = args['id']
              user = session.get(db.User, userid)
              if user is None:
                  raise NoSuchObjectException(comment=userid)
              for key in optional:
                  current = getattr(user, key)
-                 setattr(user, key, user_args.get(key, current))
+                 setattr(user, key, args.get(key, current))
              session.save(user)
              session.flush()
-             return success(user_args)
+             return success(args)
          finally:
              self.__lock.release()
              session.close()
 
 
-    def delete(self, token, user_args):
+    def delete(self, token, args):
          """
          Deletes a user.
-         @param user_args: A dictionary of user attributes.
+         @param args: A dictionary of user attributes.
              - id
-         @type user_args: dict
+         @type args: dict
          """
          required = ('id',)
-         FieldValidator(user_args).verify_required(required)
+         FieldValidator(args).verify_required(required)
          session = db.open_session()
          self.__lock.acquire()
          try:
-             userid = user_args['id']
+             userid = args['id']
              user = session.get(db.User, userid)
              if user is None:
                  raise NoSuchObjectException(comment=userid)
@@ -132,15 +130,15 @@ class User(web_svc.AuthWebSvc):
              session.close()
 
 
-    def list(self, token, user_args):
+    def list(self, token, args):
          """
          Get all users.
-         @param user_args: A dictionary of user attributes.
+         @param args: A dictionary of user attributes.
              - offset (optional)
              - limit (optional default=100)
-         @type user_args: dict
+         @type args: dict
          @return: A list of users.
-         @rtype: dictionary
+         @rtype: [dict,]
              - id
              - username
              - first
@@ -148,54 +146,42 @@ class User(web_svc.AuthWebSvc):
              - last
              - description (optional)
              - email
-         # FIXME: implement paging
+         # TODO: paging
          """
          optional = ('offset', 'limit')
-         validator = FieldValidator(user_args)
+         validator = FieldValidator(args)
          validator.verify_int(optional)
-         offset = user_args.get(optional[0], 0)
-         limit = user_args.get(optional[1], 100)
+         offset = args.get(optional[0], 0)
+         limit = args.get(optional[1], 100)
 
          session = db.open_session()
          try:
              result = []
              query = session.query(db.User)
              for user in query.select():
-                 result.append(self.__userdata(user))
+                 result.append(user.data())
              return success(result)
          finally:
              session.close()
 
-    def get(self, token, user_args):
+    def get(self, token, args):
          """
          Get a user by id.
-         @param user_args: A dictionary of user attributes.
+         @param args: A dictionary of user attributes.
              - id
-         @type user_args: dict
+         @type args: dict
          """
          required = ('id',)
-         FieldValidator(user_args).verify_required(required)
+         FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             userid = user_args['id']
+             userid = args['id']
              user = session.get(db.User, userid)
              if user is None:
                  raise NoSuchObjectException(comment=userid)
-             return success(self.__userdata(user))
+             return success(user.data())
          finally:
              session.close()
-     
-    def __userdata(self, user):
-        result =\
-            {'id':user.id,
-              'username':user.username,
-              'password':user.password,
-              'first':user.first,
-              'middle':user.middle,
-              'last':user.last,
-              'description':user.description,
-              'email':user.email } 
-        return FieldValidator.prune(result)
 
  
 methods = User()
