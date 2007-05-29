@@ -30,6 +30,7 @@ class DeploymentConfig:
         if name == SERVER_NAME:
             self.server_name = value.replace("\"", "")
         elif name.startswith(INSTANCE_NAME):
+            name = name[len(INSTANCE_NAME) + 1:]
             self.instances[name] = value
         else:
             self.config_values[name] = value

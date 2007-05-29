@@ -1,7 +1,7 @@
 import dbus
 
-import busrpc.local.decorators
-from busrpc.local.services import RPCDispatcher
+import busrpc.decorators
+from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig
 
 class Blang:
@@ -14,11 +14,11 @@ class Blang:
         return simplejson.dumps(self.value)
 
 class Foo:
-
+    
     def __init__(self, config):
-   	pass
+        pass
 
-    @busrpc.local.decorators.memoized
+    @busrpc.decorators.memoized
     def reverse(self, text):
         return text[::-1]
 
@@ -41,9 +41,13 @@ class Bar:
     def dict_test(self, dict):
         print dict
 
-if __name__ == "__main__":
-    config = DeploymentConfig("../../configs/test.conf")
+def start_service(config_path):
+    config = DeploymentConfig(config_path)
     dispatcher = RPCDispatcher(config)
-    dispatcher.run()
+    try:
+        dispatcher.start()
+    except KeyboardInterrupt:
+        dispatcher.stop()
+    print "Exiting..."
 
     
