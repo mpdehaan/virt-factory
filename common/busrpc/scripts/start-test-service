@@ -1,6 +1,5 @@
-#!/bin/bash
+#! /usr/bin/python
 
-pushd . >& /dev/null
-cd ../busrpc/test
-/usr/bin/python test_service.py
-popd
+from busrpc.test.test_service import start_service
+
+start_service("../configs/test.conf")
