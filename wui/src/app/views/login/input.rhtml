@@ -5,14 +5,14 @@
 
 <form name="form" action="submit">
 <dl>
-  <dt>Username:</dt>
+  <dt><%= _("Username:") %></dt>
     <dd>
 <%= text_field("form", "username", :class => "text-input") %></dd>
-    <dd class="caption">No Account? <a href="#">Request one.</a></dd>
-  <dt>Password:</dt>
+    <dd class="caption"><%= _("No Account?") %> <a href="#">Request one.</a></dd>
+  <dt><%= _("Password:") %></dt>
     <dd>
 <%= text_field("form", "password", :class => "text-input") %></dd>
-    <dd class="caption"><a href="#">Forgot your password?</a></dd>
+    <dd class="caption"><a href="#"><%= _("Forgot your password?") %></a></dd>
     <dd><input class="button-input" type="submit" value="Log In"></dd>
 </dl>
 

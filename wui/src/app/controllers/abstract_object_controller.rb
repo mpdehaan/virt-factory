@@ -92,7 +92,7 @@ class AbstractObjectController < ApplicationController
             obj = ManagedObject.from_hash(object_class,params["form"], get_login)
             operation = obj.id.nil? ? "add" : "edit"
             obj.save()
-            flash[:notice] = "#{object_class::METHOD_PREFIX} #{obj.objname} #{operation} succeeded."
+            flash[:notice] = _("#{object_class::METHOD_PREFIX} #{obj.objname} #{operation} succeeded.")
             redirect_to :action => 'list'
             return
         rescue XMLRPCClientException => ex
@@ -112,7 +112,7 @@ class AbstractObjectController < ApplicationController
     def delete
         begin
             ManagedObject.delete(object_class, params[:id], get_login)
-            flash[:notice] = "Deleted #{object_class::METHOD_PREFIX} #{params[:id]}"
+            flash[:notice] = _("Deleted #{object_class::METHOD_PREFIX} #{params[:id]}")
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
         end

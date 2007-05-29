@@ -5,7 +5,7 @@ import distutils.sysconfig
 import os
 import sys
 import glob
-
+from rhpl.translate import _, N_, textdomain, utf8
 
 module_file_path="%s/virt-factory/nodes/modules" % distutils.sysconfig.get_python_lib()
 mod_path="%s/virt-factory/nodes/" % distutils.sysconfig.get_python_lib()
@@ -33,7 +33,8 @@ def load_modules(module_path=module_file_path, blacklist=None):
         try:
             blip =  __import__("nodes.modules.%s" % ( modname), globals(), locals(), [modname])
             if not hasattr(blip, "register_rpc"):
-                print "%s/%s module not a proper module" % (module_path, modname) 
+		errmsg = _("%(module_path)s/%(modname)s module not a proper module")
+                print errmsg % {'module_path': module_path, 'modname':modname} 
                 continue
             mods[modname] = blip
         except ImportError, e:

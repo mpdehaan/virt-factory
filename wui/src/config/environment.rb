@@ -52,4 +52,5 @@ end
 # end
 
 # Include your application configuration below
+require 'gettext/rails'
 ActionController::AbstractRequest.relative_url_root = RELATIVE_URL_ROOT
