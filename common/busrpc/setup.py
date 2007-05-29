@@ -27,7 +27,7 @@ if __name__ == "__main__":
                 license = "GPL",
 		scripts = ["scripts/start-bridge"],
 		package_dir = {"busrpc/": "",
-			       "busrpc/local/": "local/",
+#			       "busrpc/local/": "local/",
 			       "busrpc/remote/": "remote/",},
 		packages = ["busrpc",
 			    "busrpc/local",
