@@ -18,6 +18,7 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
+Requires: python-sqlalchemy
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
