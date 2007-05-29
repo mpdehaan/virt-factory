@@ -127,68 +127,104 @@ class RegToken(web_svc.AuthWebSvc):
 
     def add(self, token, args):
          """
-         Create a registration token.   Only profile_id and uses_remaining are used as input.
+         Create a token.
+         @param args: A dictionary of token attributes.
+             - token
+             - profile_id (optional)
+             - uses_remaining
+         @type args: dict
          """
-         args["token"] = self.generate(token)
-       
-         u = RegTokenData.produce(args,OP_ADD)
-         self.logger.info(str(u.to_datastruct()))
+         required = ('token')
+         optional = ('profile_id', 'uses_remaining')
+         validator = FieldValidator(args)
+         validator.verify_required(required)
+         validator.verify_int('uses_remaining', positive=True)
+         session = db.open_session()
+         try:
+             regtoken = db.RegToken()
+             for key in (required+optional):
+                 setattr(regtoken, key, args.get(key, None))
+             session.save(regtoken)
+             session.flush()
+             return success(regtoken.id)
+         finally:
+             session.close()
 
-         if u.profile_id is not None:
-             try:
-                 self.profile_obj = profile.Profile()
-                 self.profile_obj.get(token, { "id" : u.profile_id})
-             except VirtFactoryException:
-                 raise OrphanedObjectException(comment='profile_id',traceback=traceback.format_exc())
-
-         return self.db.simple_add(u.to_datastruct())
 
     def delete(self, token, args):
          """
-         Delete.  args must only contain the id field.
+         Deletes a token.
+         @param args: A dictionary of user attributes.
+             - id
+         @type args: dict
          """
-
-         u = RegTokenData.produce(args,OP_DELETE) # force validation
-         return self.db.simple_delete(args)
-
+         required = ('id',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             rtid = args['id']
+             rt = session.get(db.RegToken, rtid)
+             if rt is None:
+                 raise NoSuchObjectException(comment=rtid)
+             session.delete(rt)
+             session.flush()
+             return success()
+         finally:
+             session.close()
+             
+             
     def get_by_token(self, token, args):
-         results = self.db.simple_list({}, { "token" : "'%s'" % args["token"]})
-         self.logger.info("get_by_token" + str(results))
-         return results
+         """
+         Get all regtokens by token.
+         @param args: A dictionary of token attributes.
+             - token
+         @type args: dict
+         @return: A list of regtokens.
+         @rtype: [dict,]
+             - id
+             - token
+             - profile_id (optional)
+             - uses_remaining (optional)
+         # TODO: paging.
+         # TODO: nested structures.
+         """
+         required = ('token',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             result = []
+             query = session.query(db.RegToken)
+             for rt in query.select_by(token=args['token']):
+                 result.append(rt.data())
+             return success(result)
+         finally:
+             session.close()
+
 
     def list(self, token, args):
          """
-         Return a list of tokens.  The args list is currently *NOT*
-         used.  Ideally we need to include LIMIT information here for
-         GUI pagination when we start worrying about hundreds of systems.
+         Get all regtokens.
+         @param args: Not used.
+         @type args: dict
+         @return: A list of regtokens.
+         @rtype: [dict,]
+             - id
+             - token
+             - profile_id (optional)
+             - uses_remaining (optional)
+         # TODO: paging.
+         # TODO: nested structures.
          """
+         session = db.open_session()
+         try:
+             result = []
+             query = session.query(db.RegToken)
+             for rt in query.select():
+                 result.append(rt.data())
+             return success(result)
+         finally:
+             session.close()
 
-         # FIXME: make nested lists be able to do outer joins, or else fill
-         # in "EMPTY" database rows for unset profiles and make those undeleteable.
-
-         return self.db.nested_list(
-            [ profile.Profile.DB_SCHEMA ],
-            args,
-            { "profiles.id" : "regtokens.profile_id" }
-         )
-
-    def __decrement_uses_remaining(self, id, uses):
-        """
-        Decrement the uses remaining for a registration token.
-        """
-        st = """
-        UPDATE
-              regtokens
-        SET
-              uses_remaining=:uses
-        WHERE
-              id=:id
-         """
-        
-        self.db.cursor.execute(st, {'uses':(uses-1), 'id':id})
-        self.db.connection.commit()
-
-         
 
     def check(self, regtoken):
         """
@@ -243,39 +279,31 @@ class RegToken(web_svc.AuthWebSvc):
 
     def get(self, token, args):
          """
-         Return a specific record.  Only the "id" is required in args.
+         Get a regtoken by id.
+         @param args: A dictionary of token attributes.
+             - id
+         @type args: dict
+         @return: A list of regtokens.
+         @rtype: [dict,]
+             - id
+             - token
+             - profile_id (optional)
+             - uses_remaining (optional)
+         # TODO: paging.
+         # TODO: nested structures.
          """
-
-         u = RegTokenData.produce(args,OP_GET) # force validation
-
-         st = """
-         SELECT id,token,profile_id,uses_remaining
-         FROM regtokens WHERE id=:id
-         """
-
-         self.db.cursor.execute(st,{ "id" : u.id })
-         x = self.db.cursor.fetchone()
-
-         if x is None:
-             raise NoSuchObjectException(comment="regtoken_get")
-
-         data = {
-                "id"                 : x[0],
-                "token"              : x[1],
-                "profile_id"           : x[2],
-                "uses_remaining"     : x[3]
-         }
-
-         data = ProfileData.produce(data).to_datastruct(True)
-
-         if x[2] is not None:
-             profile_obj = profile.Profile()
-             profile_results = profile_obj.get(None, { "id" : x[2] })
-             if not profile_results.ok():
-                 raise OrphanedObjectException(comment="profile_id")
-             data["profile"] = profile_results.data
-
-         return success(data)
+         required = ('id',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             result = []
+             rtid = args['id']
+             rt = session.get(db.RegToken, rtid)
+             if rt is None:
+                 raise NoSuchObjectException(comment=rtid)
+             return success(rt.data())
+         finally:
+             session.close()
 
 
 

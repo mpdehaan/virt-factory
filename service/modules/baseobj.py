@@ -133,33 +133,34 @@ class FieldValidator:
         if len(violations) > 0:
             raise InvalidArgumentsException(invalid_fields=violations)
         
-    def verify_int(self, keyset):
+    def verify_int(self, keyset, positive=False, strict=False):
         violations = {}
         for key in keyset:
             try:
-                int(self.data.get(key, 0))
+                if strict:
+                    n = int(self.data.get(key, None))
+                else:
+                    n = int(self.data.get(key, 0))
+                if positive:
+                    if n < 0:
+                        violations[key] = REASON_RANGE
             except:
                 violations[key] = REASON_FORMAT
         if len(violations) > 0:
             raise InvalidArgumentsException(invalid_fields=violations)
         
-    def verify_enum(self, key, values):
+    def verify_enum(self, key, values, strict=False):
         try:
-            value = self.data[key]
+            if strict:
+                value = self.data.get(key, None)
+            else:
+                value = self.data.get(key, values[0])
             if value not in values:
                 raise Exception
         except:
             violation = { key:REASON_RANGE }
             raise InvalidArgumentsException(invalid_fields=(violation,))
-        
-    def prunedata(self, data=None):
-        if data is None: data = self.data
-        for key in data.keys():
-            if data[key] is None:
-                del data[key]
-        return data
-    
-    prune = classmethod(prunedata)
+
         
         
         

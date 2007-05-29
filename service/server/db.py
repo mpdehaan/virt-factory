@@ -159,7 +159,11 @@ tables =\
         Column('message', String(4000)))
 )
 
+#
+# provides a static dictionary of tables.
+#
 table = dict([(t.name, t) for t in tables])
+
 
 indexes =\
 (
@@ -167,27 +171,37 @@ indexes =\
 )
 
 
-class User(object):
+class Base(object):
+    def data(self):
+        result = {}
+        for key in ormbindings.get(self.__class__, ()):
+            value = getattr(self, key)
+            if value is not None:
+                result[key] = value
+        return result
+
+
+class User(Base):
     pass
-class Distribution(object):
+class Distribution(Base):
     pass
-class Profile(object):
+class Profile(Base):
     pass
-class Machine(object):
+class Machine(Base):
     pass
-class Deployment(object):
+class Deployment(Base):
     pass
-class RegToken(object):
+class RegToken(Base):
     pass
-class Session(object):
+class Session(Base):
     pass
-class SchemaVersion(object):
+class SchemaVersion(Base):
     pass
-class Task(object):
+class Task(Base):
     pass
-class Event(object):
+class Event(Base):
     pass
-class UpgradeLogMessage(object):
+class UpgradeLogMessage(Base):
     pass
 
 
@@ -243,6 +257,14 @@ mappers =\
             }),
     mapper(UpgradeLogMessage, table['upgrade_log_messages']),
 )
+
+
+#
+# provides a static dictionary of orm classes to mapped
+# table column names.
+#
+ormbindings =\
+    dict([(m.class_,[c.name for c in m.local_table.columns]) for m in mappers ])
 
 
 class Database:
@@ -318,7 +340,6 @@ class Facade:
                 raise SQLException(
                            comment = str(e),
                            traceback=traceback.format_exc())
-        
 
 
 def open_session():
@@ -335,8 +356,8 @@ def open_session():
 
 if __name__ == '__main__':
     database = Database('postgres://jortel:jortel@localhost/virtfactory')
-    database.drop()
-    database.create()
+    #database.drop()
+    #database.create()
         
     ssn = open_session()
     try:
@@ -344,7 +365,6 @@ if __name__ == '__main__':
         user.username = 'jortel'
         user.password = 'mypassword'
         user.first = 'Elvis'
-        user.middle = 'Marvin'
         user.last = 'Prestley'
         user.description = 'The King.'
         user.email = 'elvis@redhat.com'
@@ -356,7 +376,7 @@ if __name__ == '__main__':
 
         ssn.save(session)
         ssn.flush()
-        
+
         ssn.delete(user)
         ssn.flush()
     finally:

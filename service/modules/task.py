@@ -120,10 +120,10 @@ class Task(web_svc.AuthWebSvc):
     def list(self, token, args):
          """
          Get all tasks.
-         @param args: A dictionary of attributes.
+         @param args: A dictionary of task attributes.
          @type args: dict
          @return: A list of tasks.
-         @rtype: dictionary
+         @rtype: [dict,]
              - id
              - user_id
              - action_type
@@ -131,14 +131,15 @@ class Task(web_svc.AuthWebSvc):
              - deployment_id
              - state
              - time
-         # FIXME: implement paging
+         # TODO: paging
+         # TODO: nested structures.
          """
          session = db.open_session()
          try:
              result = []
              query = session.query(db.Task)
              for task in query.select():
-                 result.append(self.__taskdata(task))
+                 result.append(task.data())
              return success(result)
          finally:
              session.close()
@@ -150,6 +151,7 @@ class Task(web_svc.AuthWebSvc):
          @param args: A dictionary of task attributes.
              - id
          @type args: dict
+         # TODO: nested structures.
          """
          required = ('id',)
          FieldValidator(args).verify_required(required)
@@ -158,22 +160,10 @@ class Task(web_svc.AuthWebSvc):
              taskid = args['id']
              task = session.get(db.Task, taskid)
              if task is None:
-                 raise NoSuchObjectException(comment=task)
-             return success(self.__taskdata(task))
+                 raise NoSuchObjectException(comment=taskid)
+             return success(task.data())
          finally:
              session.close()
-
-
-    def __taskdata(self, task):
-        result =\
-            {'id':task.id,
-             'user_id':task.user_id,
-             'action_type':task.action_type,
-             'machine_id':task.machine_id,
-             'deployment_id':task.deployment_id,
-             'state':task.state,
-             'time':task.time}
-        return FieldValidator.prune(result)
  
 methods = Task()
 register_rpc = methods.register_rpc
