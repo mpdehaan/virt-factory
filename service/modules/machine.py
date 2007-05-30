@@ -28,109 +28,7 @@ from server import config_data
 import threading
 import traceback
 
-#------------------------------------------------------
-
-class MachineData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "hostname", "ip_address", "registration_token", "architecture", "processor_speed", "processor_count", "memory",
-               "kernel_options", "kickstart_metadata", "list_group", "mac_address", "is_container",
-               "profile_id", "puppet_node_diff", "netboot_enabled", "is_locked" ]
-
-    def _produce(klass, machine_args,operation=None):
-        """
-        Factory method.  Create a machine object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the machine object.
-        """
-
-        self = MachineData()
-        self.from_datastruct(machine_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,machine_args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the machine as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        machine object for interaction with the ORM.  See methods below for examples.
-        """
-
-        return self.deserialize(machine_args)
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-
-        return self.serialize()
-
-    def validate(self,operation):
-
-        invalid_args = {}
-
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_args["id"] = REASON_FORMAT
-
-        if operation in [OP_ADD, OP_EDIT]:
-
-           # architecture is one of the listed arches
-           if self.architecture and not self.architecture in VALID_ARCHS:
-               invalid_args["architecture"] = REASON_RANGE
-
-           # processor speed is a positive int
-           if self.processor_speed and not type(self.processor_speed) == int and self.processor_speed > 0:
-               invalid_args["processor_speed"] = REASON_FORMAT
-
-           # processor count is a positive int
-           if self.processor_count and not type(self.processor_count) == int and self.processor_count > 0:
-               invalid_args["processor_count"] = REASON_FORMAT
-
-           # memory is a positive int
-           if self.memory and not type(self.memory) == int and self.memory > 0:
-               invalid_args["memory"] = REASON_FORMAT
-
-           # kernel_options is printable or None
-           if self.kernel_options and not self.is_printable(self.kernel_options):
-               invalid_args["kernel_options"] = REASON_FORMAT
-           # kickstart metadata is printable or None
-           if self.kickstart_metadata and not self.is_printable(self.kickstart_metadata):
-               invalid_args["kickstart_metadata"] = REASON_FORMAT
-           # list group is printable or None
-           if self.list_group is not None and not self.is_printable(self.list_group):
-               invalid_args["list_group"] = REASON_FORMAT
-           # puppet_node_diff should probably validate possible puppet classnames
-           if self.puppet_node_diff is not None and not self.is_printable(self.puppet_node_diff):
-               invalid_args["puppet_node_diff"] = REASON_FORMAT
-
-        if len(invalid_args) > 0:
-            
-            #print "invalid args"
-            #print invalid_args
-            raise InvalidArgumentsException(invalid_fields=invalid_args)
- 
-#------------------------------------------------------
-
 class Machine(web_svc.AuthWebSvc):
-
-    add_fields = [ x for x in MachineData.FIELDS ]
-    add_fields.remove("id")
-    edit_fields = [ x for x in MachineData.FIELDS ]
-    edit_fields.remove("id")
-
-    DB_SCHEMA = {
-        "table"  : "machines",
-        "fields" : MachineData.FIELDS,
-        "add"    : add_fields,
-        "edit"   : edit_fields 
-    } 
-
     def __init__(self):
         self.methods = {"machine_add": self.add,
                         "machine_new": self.new,
@@ -140,30 +38,51 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_list": self.list,
                         "machine_get": self.get}
         web_svc.AuthWebSvc.__init__(self)
-        self.db.db_schema = self.DB_SCHEMA
 
 
     def add(self, token, args):
         """
-        Create a machine.  machine_args should contain all fields except ID.
-        """
-        u = MachineData.produce(args,OP_ADD)
-        if u.profile_id is not None:
-            self.logger.info("creating an profile.Profile()")
-            try:
-                self.profile = profile.Profile()
-                self.profile.get( token, { "id" : u.profile_id } )
-            except VirtFactoryException:
-                raise OrphanedObjectException(comment="profile_id")
-
-        # TODO: generate the registration token here and make it actually random and decent.
-        u.registration_token = regtoken.RegToken().generate(token)
-        u.netboot_enabled = 1 # initially, allow PXE, until it registers
-        result = self.db.simple_add(u.to_datastruct())
-        if u.profile_id >= 0:
-            sync_args = self.get(token, { "id" : result.data })
-            self.cobbler_sync(sync_args.data)
-        return result
+        Create a machine.
+        @param args: A dictionary of machine attributes.
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        @type args: dict
+        """    
+        optional =\
+            ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
+             'processor_count','memory', 'kernel_options', 'kickstart_metadata', 
+             'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
+        required = ('profile_id')
+        self.__validate(args, required)
+        session = db.open_session()
+        try:
+            machine = db.Machine()
+            for key in (required+optional):
+                setattr(machine, key, args.get(key, None))
+            # TODO: generate the registration token here and make it actually random and decent.
+            machine.registration_token = regtoken.RegToken().generate(token)
+            machine.netboot_enabled = 1 # initially, allow PXE, until it registers
+            session.save(machine)
+            session.flush()
+            if machine.profile_id >= 0:
+                self.cobbler_sync(data) 
+            return success(machine.id)
+        finally:
+            session.close()
 
     def cobbler_sync(self, data):
         cobbler_api = config_data.Config().cobbler_api
@@ -174,7 +93,6 @@ class Machine(web_svc.AuthWebSvc):
         """
         Allocate a new machine record to be fill in later. Return a machine_id
         """
-
         args = { "profile_id" : -1 }
         return self.add(token, args)
 
@@ -219,101 +137,251 @@ class Machine(web_svc.AuthWebSvc):
         }
         self.logger.info("%s" % str(args))
         return self.edit(token, args)
+
         
-    def edit(self, token, machine_args):
+    def edit(self, token, args):
         """
         Edit a machine.
+        @param args: A dictionary of machine attributes.
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        @type args: dict
         """
-        
-        u = MachineData.produce(machine_args,OP_EDIT) # force validation
-        if u.profile_id is not None:
-            try:
-                profile_obj = profile.Profile()
-                profile_obj.get(token, { "id" : u.profile_id })
-            except VirtFactoryException:
-                raise OrphanedObjectException(comments="no profile found",invalid_fields={"profile_id":REASON_ID})
+        required = ('id')
+        optional =\
+            ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
+             'processor_count','memory', 'kernel_options', 'kickstart_metadata', 'profile_id', 
+             'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
+        self.__validate(args, required)
+        session = db.open_session()
+        try:
+            objectid = args['id']
+            machine = session.get(db.Machine, objectid)
+            if machine is None:
+                 raise NoSuchObjectException(comment=objectid)
+            for key in optional:
+                current = getattr(user, key)
+                setattr(machine, key, args.get(key, current))
+            session.save(machine)
+            session.flush()
+        finally:
+            session.close()
+            
+        if machine.profile_id >= 0:
+            self.cobbler_sync(data)
+            
+        return success()
 
-        # TODO: make this work w/ u.to_datastruct() 
-        result = self.db.simple_edit(machine_args)
-        if u.profile_id >= 0:
-            sync_args = self.get(token, { "id" : machine_args["id"] })
-            self.cobbler_sync(sync_args.data)
-        return result
 
     def delete(self, token, args):
         """
-        Deletes a machine.  The machine_args must only contain the id field.
+        Deletes a machine.
+        @param args: A dictionary of machine attributes.
+            - id
+        @type args: dict
         """
-        
-        u = MachineData.produce(args,OP_DELETE) # force validation
-        
-        deployment_obj = deployment.Deployment()
-        deployments = deployment_obj.db.simple_list({}, {"machine_id" : u.id })
-        if len(deployments.data) > 0:
-            raise OrphanedObjectException(comment="deployment")
-        
-        return self.db.simple_delete(args)
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            objectid = args['id']
+            machine = session.get(db.Machine, objectid)
+            if machine is None:
+                raise NoSuchObjectException(comment=objectid)
+            session.delete(machine)
+            session.flush()
+            return success()
+        finally:
+            session.close()
 
-    def list(self, token, machine_args):
+
+    def list(self, token, args):
         """
-        Return a list of machines.  The machine_args list is currently *NOT*
-        used.  Ideally we need to include LIMIT information here for
-        GUI pagination when we start worrying about hundreds of systems.
+        Get a list of all machines.
+        @param args: A dictionary of machine attributes.
+        @type args: dict
+        @return A list of all machines.
+        @rtype: [dict,]
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        """    
+        session = db.open_session()
+        try:
+            result = []
+            limit = args.get('limit', 10000)
+            offset = args.get('offset', 0)
+            for machine in session.query(db.Machine).select(limit=limit, offset=offset):
+                result.append(machine.data())
+            return success(result)
+        finally:
+            session.close()
+
+
+    def get_by_hostname(self, token, args):
         """
-
-        return self.db.nested_list (
-            [ profile.Profile.DB_SCHEMA ],
-            machine_args,
-            {
-                "machines.profile_id" : "profiles.id"
-            } 
-        )
-
-    def get_by_hostname(self, token, machine_args):
+        Get a machines by hostname.
+        @param args: A dictionary of machine attributes.
+            - hostname
+        @type args: dict
+        @return A list of all machines.
+        @rtype: [dict,]
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        # TODO: nested structures.
         """
-        Return a list of machines for a given hostname. It is
-        possible that there will be more than one result (since the
-        hostname column is not unique).
-        """
+        required = ('hostname',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            hostname = args['hostname']
+            limit = args.get('limit', 10000)
+            offset = args.get('offset', 0)
+            query = session.query(db.Machine)
+            for machine in query.select_by(hostname == hostname, offset=offset, limit=limit):
+                result.append(machine.data())
+            return success(result)
+        finally:
+            session.close()
 
-        if machine_args.has_key("hostname"):
-            hostname = machine_args["hostname"]
-        else:
-            # FIXME: this should be a virt-factory exception if API is exposed remotely
-            raise ValueError("hostname is required")
 
-        result = self.db.nested_list(
-            [profile.Profile.DB_SCHEMA],
-            machine_args,
-            {
-                "hostname": "'%s'" % hostname,
-                "machines.profile_id" : "profiles.id"
-            }
-        )
-        if (result.error_code != ERR_SUCCESS):
-            return result
-        return success(result.data)
-        
     def get_by_regtoken(self, token, args):
         """
-        Internal use only.  Find if any machines have a given regtoken.
+        Get a machines by registration token.
+        @param args: A dictionary of machine attributes.
+            - registration_token
+        @type args: dict
+        @return A list of machines.
+        @rtype: [dict,]
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        # TODO: nested structures.
         """
-        return self.db.nested_list(
-            [profile.Profile.DB_SCHEMA],
-            {},
-            {
-                "registration_token" : "'%s'" % args["registration_token"],
-                "machines.profile_id" : "profiles.id"
-            }
-        )
+        required = ('registration_token',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            regtoken = args['registration_token']
+            offset = args.get('offset', 0)
+            limit = args.get('limit', 10000)
+            query = session.query(db.Machine)
+            for machine in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
+                result.append(machine.data())
+            return success(result)
+        finally:
+            session.close()
 
-    def get(self, token, machine_args):
+
+    def get(self, token, args):
         """
-        Return a specific machine record.  Only the "id" is required in machine_args.
+        Get a machine by id.
+        @param args: A dictionary of machine attributes.
+            - id
+        @type args: dict
+        @return A list of machines.
+        @rtype: dict
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+            - is_locked (optional)
+        # TODO: nested structures.
         """
-        
-        u = MachineData.produce(machine_args,OP_GET) # force validation
-        return self.db.simple_get(u.to_datastruct())
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            objectid = args['id']
+            machine = session.get(db.Machine, objectid)
+            if machine is None:
+                raise NoSuchObjectException(comment=machineid)
+            return success(machine.data())
+        finally:
+            session.close()
+
+            
+    def __validate(self, args, required):
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verify_enum('architecture', VALID_ARCHS)
+        validator.verify_int('processor_speed', 'processor_count', 'memory')
+        validator.verify_printable(
+               'kernel_options', 'kickstart_metadata', 'list_group', 
+               'list_group', 'puppet_node_diff')
+
 
 methods = Machine()
 register_rpc = methods.register_rpc

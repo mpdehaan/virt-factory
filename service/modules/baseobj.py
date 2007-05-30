@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 import string
 import exceptions
+import os
 
 class BaseObject(object):
 
@@ -133,7 +134,7 @@ class FieldValidator:
         if len(violations) > 0:
             raise InvalidArgumentsException(invalid_fields=violations)
         
-    def verify_int(self, keyset, positive=False, strict=False):
+    def verify_int(self, positive=True, strict=False, *keyset):
         violations = {}
         for key in keyset:
             try:
@@ -160,6 +161,30 @@ class FieldValidator:
         except:
             violation = { key:REASON_RANGE }
             raise InvalidArgumentsException(invalid_fields=(violation,))
+        
+    def verify_file(self, *keyset):
+        violations = {}
+        for key in keyset:
+            name = self.data.get(key, None)
+            if name is None: continue    
+            if not os.path.isfile(name):
+                violations[name] = REASON_NOFILE
+        if len(violations) > 0:
+            raise InvalidArgumentsException(invalid_fields=violations)     
+
+    def verify_printable(self, *keyset):
+        violations = {}
+        for key in keyset:
+            s = self.data.get(key, None)
+            if s is None: continue
+            try:
+                for letter in str(s):
+                    if letter not in string.printable:
+                        raise Exception
+            except:
+                violations[stringy] = REASON_FORMAT
+        if len(violations) > 0:
+            raise InvalidArgumentsException(invalid_fields=violations)        
 
         
         

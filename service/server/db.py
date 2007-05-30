@@ -6,6 +6,27 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Notes:
+##################################################
+# - The tables are created with foreign key constraints and indexes.
+#    FK constraints are set for cascading delete when the FK is not-null.
+# - The ORM mappers are setup with bidirectional relationships to mirror
+#    the constraints.  This ensures that the model maintained by the session matches
+#    the current state in the database.
+# - Tables are not auto-loaded because the constraint information is lost.
+# - All sqlalchemy objects are created in static lists to ensure they exist and
+#    are only created once.
+# - The global metadata and engine are configured and used.  This can be
+#    changed in the event that we need more then one context.
+# - The session is wrappered in a dispatcher object.  The purpose of this is to wrapper
+#    the sqlalchemy exceptions in SQLException.  Since the session is the primary source
+#    of exceptions and the most heavily used, having it raise SQLException allows users
+#    to (easily) use a try: finally: block.  Since python <2.5 does not support try:catch:finally,
+#    this should help keep the code clean.
+#
+# TODO: This module needs to be broken up into several modules and
+#             placed in its own package.
 
 import traceback
 import threading
@@ -172,9 +193,13 @@ indexes =\
 
 
 class Base(object):
-    def data(self):
+    def fields(self):
+        return ormbindings.get(self.__class__, ())
+    def data(self, filter=[]):
         result = {}
-        for key in ormbindings.get(self.__class__, ()):
+        for key in self.fields():
+            if key in filter:
+                continue
             value = getattr(self, key)
             if value is not None:
                 result[key] = value
@@ -376,6 +401,9 @@ if __name__ == '__main__':
 
         ssn.save(session)
         ssn.flush()
+        
+        for user in ssn.query(User).select(limit=10, offset=0):
+            print user.last
 
         ssn.delete(user)
         ssn.flush()

@@ -26,83 +26,8 @@ import threading
 import traceback
 import base64
 
-#------------------------------------------------------
-
-class RegTokenData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "token", "profile_id", "uses_remaining"] 
-
-    def _produce(klass, args,operation=None):
-        """
-        Factory method.  Create a profile object from input, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the profile object.
-        """
-
-        self = RegTokenData()
-        self.from_datastruct(args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash. 
-        """
-
-        self.id                 = self.load(args,"id")
-        self.token              = self.load(args,"token")
-        self.profile_id           = self.load(args,"profile_id")
-        self.uses_remaining     = self.load(args,"uses_remaining")
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-
-        return {
-            "id"                 : self.id,
-            "token"              : self.token,
-            "profile_id"           : self.profile_id,
-            "uses_remaining"     : self.uses_remaining,
-        }
-
-    def validate(self,operation):
-        """
-        Cast variables appropriately and raise InvalidArgumentException
-        where appropriate.
-        """
-        invalid_fields = {}
-        
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_fields["id"] = REASON_FORMAT
- 
-        if operation in [OP_ADD, OP_EDIT]:
-            # uses remaining is None (infinite) or a positive integer
-            if not self.uses_remaining is None:
-                if type(self.uses_remaining) != int:
-                    invalid_fields["uses_remaining"] = REASON_FORMAT
-                elif self.uses_remaining <= 0:
-                    invalid_fields["uses_remaining"] = REASON_FORMAT
-
-        if len(invalid_fields) > 0:
-            raise InvalidArgumentsException(invalid_fields=invalid_fields)
-
 
 class RegToken(web_svc.AuthWebSvc):
-
-    DB_SCHEMA = {
-        "table" : "regtokens",
-        "fields" : RegTokenData.FIELDS,
-        "add"   : [ "id", "token", "profile_id", "uses_remaining" ],
-        "edit"  : [ "profile_id", "uses_remaining" ]
-    }
-
     def __init__(self):
         self.methods = {
              "regtoken_add": self.add,
@@ -112,7 +37,6 @@ class RegToken(web_svc.AuthWebSvc):
              "regtoken_list": self.list
         }
         web_svc.AuthWebSvc.__init__(self)
-        self.db.db_schema = self.DB_SCHEMA
 
     def generate(self, token):
          """
@@ -138,7 +62,7 @@ class RegToken(web_svc.AuthWebSvc):
          optional = ('profile_id', 'uses_remaining')
          validator = FieldValidator(args)
          validator.verify_required(required)
-         validator.verify_int('uses_remaining', positive=True)
+         validator.verify_int('uses_remaining')
          session = db.open_session()
          try:
              regtoken = db.RegToken()
@@ -162,10 +86,10 @@ class RegToken(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             rtid = args['id']
-             rt = session.get(db.RegToken, rtid)
+             objectid = args['id']
+             rt = session.get(db.RegToken, objectid)
              if rt is None:
-                 raise NoSuchObjectException(comment=rtid)
+                 raise NoSuchObjectException(comment=objectid)
              session.delete(rt)
              session.flush()
              return success()
@@ -185,7 +109,6 @@ class RegToken(web_svc.AuthWebSvc):
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: paging.
          # TODO: nested structures.
          """
          required = ('token',)
@@ -193,8 +116,10 @@ class RegToken(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              result = []
+             limit = args.get('limit', 10000)
+             offset = args.get('offset', 0)
              query = session.query(db.RegToken)
-             for rt in query.select_by(token=args['token']):
+             for rt in query.select_by(token=args['token'], limit=limit, offset=offset):
                  result.append(rt.data())
              return success(result)
          finally:
@@ -212,14 +137,14 @@ class RegToken(web_svc.AuthWebSvc):
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: paging.
          # TODO: nested structures.
          """
          session = db.open_session()
          try:
              result = []
-             query = session.query(db.RegToken)
-             for rt in query.select():
+             limit = args.get('limit', 10000)
+             offset = args.get('offset', 0)
+             for rt in  session.query(db.RegToken).select(limit=limit, offset=offset):
                  result.append(rt.data())
              return success(result)
          finally:
@@ -284,12 +209,11 @@ class RegToken(web_svc.AuthWebSvc):
              - id
          @type args: dict
          @return: A list of regtokens.
-         @rtype: [dict,]
+         @rtype: dict
              - id
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: paging.
          # TODO: nested structures.
          """
          required = ('id',)
@@ -297,10 +221,10 @@ class RegToken(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              result = []
-             rtid = args['id']
-             rt = session.get(db.RegToken, rtid)
+             objectid = args['id']
+             rt = session.get(db.RegToken, objectid)
              if rt is None:
-                 raise NoSuchObjectException(comment=rtid)
+                 raise NoSuchObjectException(comment=objectid)
              return success(rt.data())
          finally:
              session.close()
