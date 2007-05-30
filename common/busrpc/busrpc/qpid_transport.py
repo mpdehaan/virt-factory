@@ -108,10 +108,10 @@ class QpidTransport(Transport):
 class QpidServerTransport(QpidTransport, ServerTransport):
 
     def __init__(self, service_name, host='localhost', port=5672, user='guest',
-                 password='guest', vhost='development'):        
+                 password='guest', vhost='development', workers=2):        
         self.service_name = service_name
         self.callback = None
-        self.max_workers = 2
+        self.max_workers = workers
         self.is_stopped = False
         self.pending_calls = qpid.queue.Queue()
         self.pending_sends = qpid.queue.Queue()
