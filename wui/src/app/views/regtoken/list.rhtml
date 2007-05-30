@@ -6,13 +6,13 @@
       <% if @items.length > 0 %>
       <table class='listing'>
          <thead>
-            <th>Token</th>
-            <th>Profile</th>
-            <th>Uses Remaining</th>
-            <th>Delete</th>
+            <th><%= _("Token") %></th>
+            <th><%= _("Profile") %></th>
+            <th><%= _("Uses Remaining") %></th>
+            <th><%= _("Delete") %></th>
          </thead>
       <% else %>
-            No registration tokens are in the virt-factory database.  Create some using the "Machines/Create Registration Tokens" menu link.
+            <%= _("No registration tokens are in the virt-factory database.  Create some using the \"Machines/Create Registration Tokens\" menu link.") %>
       <% end %>
       
       <% @items.each do |item| %>
@@ -23,7 +23,7 @@
                   <% else %>
                       Any
                   <% end %> 
-             <TD> <%= item.uses_remaining ? item.uses_remaining : "Infinite" %> </TD>
+             <TD> <%= item.uses_remaining ? item.uses_remaining : _("Infinite") %> </TD>
              <TD> <%= link_to "X", :controller => "regtoken", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>

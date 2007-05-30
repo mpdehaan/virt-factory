@@ -5,43 +5,43 @@
       <div id="content-main">
       <TABLE BORDER=0>
          <TR>
-            <TD>Name</TD>
+            <TD><%= _("Name") %></TD>
             <TD><%= @item.name %></TD>
          </TR>
          <TR> 
-            <TD>Version</TD>
+            <TD><%= _("Version") %></TD>
             <TD><%= @item.version %></TD>
          </TR>
          <TR>
-            <TD>Distribution</TD>
+            <TD><%= _("Distribution") %></TD>
             <TD><%= @item.distribution.name %></TD>
          </TR>
          <TR>
-            <TD>Virtual Storage Size (GB)</TD>
+            <TD><%= _("Virtual Storage Size (GB)") %></TD>
             <TD><%= @item.virt_storage_size %></TD>
          </TR>
          <TR>
-            <TD>Virtual RAM (MB)</TD>
+            <TD><%= _("Virtual RAM (MB)") %></TD>
             <TD><%= @item.virt_ram %></TD>
          </TR>
          <TR>
-            <TD>Kickstart Metadata</TD>
+            <TD><%= _("Kickstart Metadata") %></TD>
             <TD><%= @item.kickstart_metadata %></TD>
          </TR>
          <TR>
-            <TD>Kernel Options</TD>
+            <TD><%= _("Kernel Options") %></TD>
             <TD><%= @item.kernel_options %></TD>
          </TR>
          <TR>
-            <TD>Valid Targets</TD>
+            <TD><%= _("Valid Targets") %></TD>
             <TD><%= VALID_TARGETS[@item.valid_targets] %></TD>
          </TR>
          <TR>
-            <TD>Appliance Container</TD>
-            <TD><%= (@item.is_container == MACHINE_IS_CONTAINER) ? "Yes" : "No" %></TD>
+            <TD><%= _("Appliance Container") %></TD>
+            <TD><%= (@item.is_container == MACHINE_IS_CONTAINER) ? _("Yes") : _("No") %></TD>
          </TR>
          <TR>
-            <TD>Puppet Classes</TD>
+            <TD><%= _("Puppet Classes") %></TD>
             <TD><%= @item.puppet_classes %></TD>
          </TR>
       </TABLE>

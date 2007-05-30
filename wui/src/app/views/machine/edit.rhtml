@@ -10,60 +10,60 @@
       <table class='details'>
          <% if @operation == "edit" and !@item.hostname.nil? %>
             <TR>
-                <TD>Recorded Hostname</TD>
+                <TD><%= _("Recorded Hostname") %></TD>
                 <TD><%= @item.hostname %></TD>
             </TR>
-                <TD>Recorded IP</TD>
+                <TD><%= _("Recorded IP") %></TD>
                 <TD><%= @item.ip_address %></TD>
             </TR>
          <% end %>
          <% if @operation == "edit" and !@item.mac_address.nil? %>
             <TR>
-                <TD>Recorded MAC</TD>
+                <TD><%= _("Recorded MAC") %></TD>
                 <TD><%= @item.mac_address %></TD>
             </TR> 
          <% end %>
          <TR>
-            <TD>Profile</TD>
+            <TD><%= _("Profile") %></TD>
             <TD><%= f.select :profile_id, @profiles %></TD>
          </TR>
          <% if !@item.hostname.nil? %>
              <!-- commented out until provided by registration
              <TR>
-                 <TD>Architecture</TD>
+                 <TD><%= _("Architecture") %></TD>
                  <TD><%= @item.architecture %></TD>
              </TR>
              <TR> 
-                <TD>Procesor Speed</TD>
+                <TD><%= _("Procesor Speed") %></TD>
                 <TD><%= @item.processor_speed %></TD>
              </TR>
              <TR> 
-                <TD>Procesor Count</TD>
+                <TD><%= _("Procesor Count") %></TD>
                 <TD><%= @item.processor_count %></TD>
              </TR>
              <TR> 
-                 <TD>Memory</TD>
+                 <TD><%= _("Memory") %></TD>
                  <TD><%= @item.memory %></TD>
              </TR>
              -->
              <!-- don't display until needed later
              <TR>
-                <TD>Kernel Options</TD>
+                <TD><%= _("Kernel Options") %></TD>
                 <TD><%= @item.kernel_options %></TD>
              </TR>
              <TR>
-                <TD>Kickstart Metadata</TD>
+                <TD><%= _("Kickstart Metadata") %></TD>
                 <TD><%= @item.kickstart_metadata %></TD>
              </TR>
              <TR>
-                <TD>List Group</TD>
+                <TD><%= _("List Group") %></TD>
                 <TD><%= @item.list_group %></TD>
              </TR>
              -->
          <% end %>
          <% if @operation == "add" or (@operation == "edit" and !@item.ip_address.nil?) %>
             <TR>
-                <TD>Mac Address</TD>
+                <TD><%= _("Mac Address") %></TD>
                 <% if @operation == "add" %>
                     <TD><%= f.text_field :mac_address %></TD>
                 <% else %>
@@ -73,9 +73,9 @@
          <% end %>
          <TR>
             <% if @operation == "add" %>
-                 <TD COLSPAN="2"><input type="submit" value="Add"></TD>
+                 <TD COLSPAN="2"><input type="submit" value=<%= _("Add") %>></TD>
             <% else %>
-                 <TD COLSPAN="2"><input type="submit" value="Edit"></TD>
+                 <TD COLSPAN="2"><input type="submit" value=<%= _("Edit") %>></TD>
             <% end %>
          </TR>
       </TABLE>

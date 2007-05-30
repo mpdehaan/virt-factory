@@ -7,41 +7,41 @@
       <div id="content-main">
       <table class='listing'>
          <TR>
-            <TD>Virtual Hostname</TD>
+            <TD><%= _("Virtual Hostname") %></TD>
             <TD><%= @item.hostname %></TD>
          </TR>
          <TR> 
-            <TD>Virtual IP Address</TD>
+            <TD><%= _("Virtual IP Address") %></TD>
             <TD><%= @item.ip_address %></TD>
          </TR>
          <TR>
-            <TD>Virtual MAC Address</TD>
+            <TD><%= _("Virtual MAC Address") %></TD>
             <TD><%= @item.mac_address %></TD>
          </TR>
          <TR>
             <!-- FIXME: is this level of display nesting needed? -->
-            <TD>Host Machine</TD>
+            <TD><%= _("Host Machine") %></TD>
             <TD>
                 <% if @item.machine %>
                     <TABLE BORDER=0>
                        <TR>
-                          <TD>Hostname</TD>
+                          <TD><%= _("Hostname") %></TD>
                           <TD><%= @item.machine.hostname %></TD>
                        </TR>
                        <TR>
-                          <TD>Architecture</TD>
+                          <TD><%= _("Architecture") %></TD>
                           <TD><%= @item.machine.architecture %></TD>
                        </TR>
                        <TR> 
-                          <TD>Procesor Speed</TD>
+                          <TD><%= _("Procesor Speed") %></TD>
                           <TD><%= @item.machine.processor_speed %></TD>
                        </TR>
                        <TR> 
-                          <TD>Procesor Count</TD>
+                          <TD><%= _("Procesor Count") %></TD>
                           <TD><%= @item.machine.processor_count %></TD>
                        </TR>
                        <TR> 
-                          <TD>Memory</TD>
+                          <TD><%= _("Memory") %></TD>
                           <TD><%= @item.machine.memory %></TD>
                        </TR>
                     </TABLE>
@@ -49,28 +49,28 @@
             </TD>
          </TR>
          <TR>
-            <TD>Profile</TD>
+            <TD><%= _("Profile") %></TD>
             <TD>
                 <% if @item.profile %>
                     <TABLE BORDER=0>
                         <TR>
-                            <TD>Name</TD>
+                            <TD><%= _("Name") %></TD>
                             <TD><%= @item.profile.name %></TD>
                         </TR>
                         <TR> 
-                            <TD>Version</TD>
+                            <TD><%= _("Version") %></TD>
                             <TD><%= @item.profile.version %></TD>
                         </TR>
                         <TR> 
-                            <TD>Filename</TD>
+                            <TD><%= _("Filename") %></TD>
                             <TD><%= @item.profile.filename %></TD>
                         </TR>
                         <TR>
-                            <TD>Specfile</TD>
+                            <TD><%= _("Specfile") %></TD>
                             <TD><%= @item.profile.specfile %></TD>
                         </TR>
                         <TR>
-			    <TD>Puppet Classes</TD>
+			    <TD><%= _("Puppet Classes") %></TD>
 			    <TD><%= @item.profile.puppet_classes %></TD>
 			</TR>
                     </TABLE>
@@ -78,11 +78,11 @@
             </TD>
          </TR>
          <TR> 
-            <TD>State</TD>
+            <TD><%= _("State") %></TD>
             <TD><%= @item.state %></TD>
          </TR>
          <TR>
-            <TD>Puppet Class Node Overrides</TD>
+            <TD><%= _("Puppet Class Node Overrides") %></TD>
             <TD><%= @item.puppet_node_diff %></TD>
          </TR>
       </TABLE>

@@ -5,16 +5,16 @@
       <div id="content-main">
       <TABLE BORDER=0>
          <TR>
-             <TD>Token</TD>
+             <TD><%= _("Token") %></TD>
              <TD><%= @item.token %></TD>
          </TR>
          <TR>
-             <TD>Profile</TD>
-             <TD><%= @item.profile ? @item.profile.name : "None" %></TD>
+             <TD><%= _("Profile") %></TD>
+             <TD><%= @item.profile ? @item.profile.name : _("None") %></TD>
          </TR>
          <TR>
-             <TD>Uses Remaining</TD>
-             <TD><%= @item.uses_remaining ? @item.uses_remaining : "Infinite" %></TD>
+             <TD><%= _("Uses Remaining") %></TD>
+             <TD><%= @item.uses_remaining ? @item.uses_remaining : _("Infinite") %></TD>
          </TR>
       </TABLE>
       </div>

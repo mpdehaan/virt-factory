@@ -125,14 +125,14 @@ class ApplicationController < ActionController::Base
         rescue RuntimeError
             # internal server error (500) likely here if connection to web svc was
             # severed by a restart of the web service during development.
-            flash[:notice] = "Internal Server Error"
+            flash[:notice] = _("Internal Server Error")
             redirect_to :controller => "login", :action => "input"
             return false 
         end
         unless rc == ERR_SUCCESS
             # token has timed out, so redirect here and get a new one
             # rather than having to do a lot of duplicate error handling in other places
-            flash[:notice] = "Session timeout (#{ERRORS[rc]})."
+            flash[:notice] = _("Session timeout (#{ERRORS[rc]}).")
             stacktrace = data["stacktrace"]
             flash[:errmsg] = stacktrace if stacktrace
             redirect_to :controller => "login", :action => "input"

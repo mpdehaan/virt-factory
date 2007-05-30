@@ -7,17 +7,17 @@
       <% if @items.length > 0 %>
       <table class='listing'>
          <thead>
-            <th>Name</th>
-            <th>Version</th>
-            <th>Distribution</th>
-            <th>Storage</th>
-            <th>Memory</th>
-            <th>Targets</th>
-            <th>Container?</th>
-            <th colspan="2">Actions</th>
+            <th><%= _("Name") %></th>
+            <th><%= _("Version") %></th>
+            <th><%= _("Distribution") %></th>
+            <th><%= _("Storage") %></th>
+            <th><%= _("Memory") %></th>
+            <th><%= _("Targets") %></th>
+            <th><%= _("Container?") %></th>
+            <th colspan="2"><%= _("Actions") %></th>
          </thead>
       <% else %>
-         There are no profile definitions installed into virt-factory.
+         <%= _("There are no profile definitions installed into virt-factory.") %>
       <% end %>
 
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>

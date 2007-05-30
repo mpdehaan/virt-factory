@@ -48,12 +48,15 @@ class Bridge(object):
             self.registration_lock.release()
         return retval
 
-    def lookup_namespace(self, namespace):
-        return self.do_local_lookup(namespace)
+    def lookup_namespace(self, namespace, host):
+        return self.do_local_lookup(namespace, host=host)
 
-    def do_local_lookup(self, namespace):
+    def do_local_lookup(self, namespace, host=None):
         retval = None
         for server in self.services.keys():
+            if not host == None:
+                if not server.startswith(host):
+                    continue
             namespaces = self.services[server]
             try:
                 namespaces.index(namespace)
@@ -76,7 +79,7 @@ class Bridge(object):
 
 def start_bridge(config_path):
     config = DeploymentConfig(config_path)
-    dispatcher = RPCDispatcher(config, register_with_bridge=False)
+    dispatcher = RPCDispatcher(config, fully_qualify_name=False, register_with_bridge=False)
     try:
         dispatcher.start()
     except KeyboardInterrupt:
