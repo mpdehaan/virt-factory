@@ -32,7 +32,7 @@ import traceback
 import threading
 from sqlalchemy import *
 from datetime import datetime
-from codes import SQLException
+from codes import SQLException, NoSuchObjectException
 
 tables =\
 (
@@ -173,7 +173,7 @@ tables =\
     Table('upgrade_log_messages',
         Column('id', Integer, Sequence('uglogmsgid'), primary_key=True),
         Column('action', String(50)),
-        Column('message_type', String(50)),
+        Column('message_type', String(50), nullable=False),
         Column('message_timestamp',
                DateTime,
                default=datetime.utcnow()),
@@ -195,6 +195,7 @@ indexes =\
 class Base(object):
     def fields(self):
         return ormbindings.get(self.__class__, ())
+    
     def data(self, filter=[]):
         result = {}
         for key in self.fields():
@@ -204,6 +205,36 @@ class Base(object):
             if value is not None:
                 result[key] = value
         return result
+    
+    def update(self, args, filter=('id',)):
+        for key in self.fields():
+            if key in filter: continue
+            if key in args:
+                setattr(self, key, args[key])
+    
+    def __delete(self, session, id):
+            session.delete(self.get(session, id))
+            session.flush()
+                        
+    def __get(self, session, id):
+        result = session.get(self, id)
+        if result is None:
+            comment = '%s(id=%s) not-found' % (self, id)
+            raise NoSuchObjectException(comment=comment)
+        return result
+    
+    def __list(self, session, offset=0, limit=0):
+        result = []        
+        query = session.query(self)
+        if limit > 0:
+            result = query.select(offset=offset, limit=limit)
+        else:
+            result = query.select()
+        return result
+    
+    get = classmethod(__get)
+    delete = classmethod(__delete)
+    list = classmethod(__list)
 
 
 class User(Base):
@@ -315,7 +346,6 @@ class Database:
         Create all tables, indexes and constraints that have not
         yet been created.
         """
-        # TODO: create the database here?
         for t in tables:
             t.create(checkfirst=True)
     
@@ -381,32 +411,41 @@ def open_session():
 
 if __name__ == '__main__':
     database = Database('postgres://jortel:jortel@localhost/virtfactory')
-    #database.drop()
-    #database.create()
+    database.drop()
+    database.create()
         
-    ssn = open_session()
     try:
+        args =\
+            {'username':'jortel', 'password':'mypassword', 
+             'first':'Elvis', 'last':'Prestley', 'description':'a desc', 'email':'king@hell.com'}
+            
+        ssn = open_session()
+            
         user = User()
-        user.username = 'jortel'
-        user.password = 'mypassword'
-        user.first = 'Elvis'
-        user.last = 'Prestley'
-        user.description = 'The King.'
-        user.email = 'elvis@redhat.com'
+        user.update(args)
         ssn.save(user)
+        ssn.flush()
         
+
+        user = User.get(ssn, 1)
         session = Session()
         session.session_token = 'my token'
         user.sessions.append(session)
-
         ssn.save(session)
         ssn.flush()
-        
-        for user in ssn.query(User).select(limit=10, offset=0):
-            print user.last
 
-        ssn.delete(user)
-        ssn.flush()
+        try:
+            fetched = User.get(ssn, 1)
+            print '______fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
+            fetched.update({'middle':'Dog'})
+            ssn.save(fetched)
+            ssn.flush()
+            for fetched in User.list(ssn):
+                print '______(list) fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
+        except Exception, e:
+            print '___failed___%s'  % e.comment
+
+        User.delete(ssn, 1)
     finally:
-        ssn.close()
+        pass
         

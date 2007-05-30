@@ -118,7 +118,7 @@ class SchemaVersion(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
 
         # FIXME: could go in the baseclass...
-        self.db.db_schema = self.DB_SCHEMA
+        #self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, args):
 

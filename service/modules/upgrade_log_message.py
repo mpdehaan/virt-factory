@@ -98,15 +98,6 @@ class UpgradeLogMessageData(baseobj.BaseObject):
 
 
 class UpgradeLogMessage(web_svc.AuthWebSvc):
-
-    DB_SCHEMA = {
-        "table" : "upgrade_log_messages",
-        "fields" : UpgradeLogMessageData.FIELDS,
-        "add"    : [ "action", "message_type", "message_timestamp", "message" ],
-        "edit"   : [ ]
-        }
-
-
     def __init__(self):
         self.methods = {"upgrade_log_message_add"    : self.add,
                         "upgrade_log_message_delete" : self.delete,
@@ -115,45 +106,133 @@ class UpgradeLogMessage(web_svc.AuthWebSvc):
                         "upgrade_log_message_get"    : self.get}
         web_svc.AuthWebSvc.__init__(self)
 
-        # FIXME: could go in the baseclass...
-        self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, args):
+        """
+        Create a message.
+        @param args: A dictionary of message attributes.
+            - action (optional)
+            - message_type
+            - message (optional)
+        @type args: dict
+        """
+        optional = ('action', 'message')
+        required = ('message_type')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        session = db.open_session()
+        try:
+            msg = db.UpgradeLogMessage()
+            for key in (required+optional):
+                setattr(msg, key, args.get(key, None))
+            session.save(msg)
+            session.flush()
+            return success(msg.id)
+        finally:
+            session.close()
 
-        u = UpgradeLogMessageData.produce(args,OP_ADD)
-        result = self.db.simple_add(u.to_datastruct())
-        return result
+    def edit(self, token, args):
+        """
+        Edit a message.
+        @param args: A dictionary of message attributes.
+        @type args: dict
+            - id
+            - action (optional)
+            - message_type (optional)
+            - message (optional)
+        """
+        required = ('id',)
+        validator.verify_required(required)
+        session = db.open_session()
+        try:
+            objectid = args['id']
+            msg = session.get(db.UpgradeLogMessage, objectid)
+            if msg is None:
+                raise NoSuchObjectException(comment=objectid)
+            for key in optional:
+                current = getattr(msg, key)
+                setattr(msg, key, args.get(key, current))
+            session.save(msg)
+            session.flush()
+            return success()
+        finally:
+            session.close()
 
-    def edit(self, token, args): 
-
-        u = UpgradeLogMessageData.produce(args,OP_EDIT)
-        # TODO: make this work w/ u.to_datastruct() 
-        result = self.db.simple_edit(args)
-        return result
 
     def delete(self, token, args):
-
-        u = UpgradeLogMessageData.produce(args,OP_DELETE) # force validation
-        return self.db.simple_delete(u.to_datastruct())
+        """
+        Delete a message.
+        @param args: A dictionary of message attributes.
+        @type args: dict
+            - id
+            - action (optional)
+            - message_type (optional)
+            - message (optional)
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            objectid = args['id']
+            msg = session.get(db.UpgradeLogMessage, objectid)
+            if msg is None:
+                raise NoSuchObjectException(comment=objectid)
+            session.delete(msg)
+            session.flush()
+            return success()
+        finally:
+            session.close()
 
 
     def list(self, token, args):
-        """
-        Return a list of upgrade log messages.  The dist_args list is currently *NOT*
-        used.  Ideally we need to include LIMIT information here for
-        GUI pagination when we start worrying about hundreds of systems.
-        """
-
-        return self.db.simple_list(args)
+         """
+         Get all messages.
+         @param args: A dictionary of message attributes.
+         @type args: dict
+         @return: A list of messages.
+         @rtype: [dict,]  
+            - id
+            - action (optional)
+            - message_type (optional)
+            - message_timestamp
+            - message (optional)
+         """
+         session = db.open_session()
+         try:
+             result = []
+             offset, limit = self.offset_and_limit(args)
+             for msg in session.query(db.UpgradeLogMessage).select(offset=offset, limit=limit):
+                 result.append(msg.date())
+             return success(result)
+         finally:
+             session.close()
 
 
     def get(self, token, args):
-        """
-        Return a specific upgrade log message record.  Only the "id" is required in dist_args.
-        """
-        
-        u = UpgradeLogMessageData.produce(args,OP_GET) # force validation
-        return self.db.simple_get(u.to_datastruct())
+         """
+         Get a message by id.
+         @param args: A dictionary of message attributes.
+             - id
+         @type args: dict
+         @return: A messages.
+         @rtype: dict
+            - id
+            - action (optional)
+            - message_type (optional)
+            - message_timestamp
+            - message (optional)
+         """
+         required = ('id',)
+         FieldValidator(args).verify_required(required)
+         session = db.open_session()
+         try:
+             objectid = args['id']
+             msg = session.get(db.UpgradeLogMessage, objectid)
+             if msg is None:
+                 raise NoSuchObjectException(comment=objectid)
+             return success(msg.data())
+         finally:
+             session.close()
 
 
 methods = UpgradeLogMessage()

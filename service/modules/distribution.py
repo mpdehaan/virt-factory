@@ -15,8 +15,8 @@
 ##
 
 from server.codes import *
+from baseobj import FieldValidator
 
-import baseobj
 import provisioning
 import cobbler
 import web_svc
@@ -53,12 +53,11 @@ class Distribution(web_svc.AuthWebSvc):
         """
         required = ('kernel', 'initrd', 'name', 'architecture')
         optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.__validate(args, required)
+        self.validatelidate(args, required)
         session = db.open_session()
         try:
             distribution = db.Distribution()
-            for key in (required+optional):
-                setattr(distribution, key, args.get(key, None))
+            distribution.update(args)
             session.save(distribution)
             session.flush()
             self.cobbler_sync(distribution.data())
@@ -87,16 +86,11 @@ class Distribution(web_svc.AuthWebSvc):
         """
         required = ('id',)
         optional = ('kernel', 'initrd', 'name', 'architecture', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.__validate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = session.get(db.Distribution, objectid)
-            if distribution is None:
-                raise NoSuchObjectException(comment=objectid)
-            for key in optional:
-                current = getattr(distribution, key)
-                setattr(distribution, key, args.get(key, current))
+            distribution = db.Distribution.get(session, args['id'])
+            distribution.update(args)
             session.save(distribution)
             session.flush()
             self.cobbler_sync(distribution.data())
@@ -116,12 +110,7 @@ class Distribution(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = session.get(db.Distribution, objectid)
-            if distribution is None:
-                raise NoSuchObjectException(comment=objectid)
-            session.delete(distribution)
-            session.flush()
+            db.Distribution.delete(session, args['id'])
             return success()
         finally:
             session.close()
@@ -148,7 +137,7 @@ class Distribution(web_svc.AuthWebSvc):
          try:
              result = []
              offset, limit = self.offset_and_limit(args)
-             for distribution in query(db.Distribution).select(offset=offset, limit=limit):
+             for distribution in db.Distribution.list(session, offset, limit):
                  result.append(distribution.data())
              return success(result)
          finally:
@@ -177,10 +166,7 @@ class Distribution(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = ssn.get(db.Distribution, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
+            distribution = db.Distribution.get(session, args['id'])
             return success(distribution.data())
         finally:
             session.close()
@@ -217,12 +203,12 @@ class Distribution(web_svc.AuthWebSvc):
             session.close()
 
 
-    def __validate(self, args, required):
-        validator = FieldValidator(args)
-        validator.verify_required(required)
-        validator.verify_file('kernel', 'initrd')
-        validator.verify_printable('name', 'kernel_options')
-        validator.verify_enum('architecture', VALID_ARCHS)
+    def validate(self, args, required):
+        vdr = FieldValidator(args)
+        vdr.verify_required(required)
+        vdr.verify_file('kernel', 'initrd')
+        vdr.verify_printable('name', 'kernel_options')
+        vdr.verify_enum('architecture', VALID_ARCHS)
 
 
 methods = Distribution()

@@ -14,8 +14,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from server.codes import *
+from baseobj import FieldValidator
 
-import baseobj
 import profile
 import machine
 import deployment
@@ -37,6 +37,7 @@ class RegToken(web_svc.AuthWebSvc):
              "regtoken_list": self.list
         }
         web_svc.AuthWebSvc.__init__(self)
+
 
     def generate(self, token):
          """
@@ -66,8 +67,7 @@ class RegToken(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              regtoken = db.RegToken()
-             for key in (required+optional):
-                 setattr(regtoken, key, args.get(key, None))
+             regtoken.update(args)
              session.save(regtoken)
              session.flush()
              return success(regtoken.id)
@@ -86,12 +86,7 @@ class RegToken(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             objectid = args['id']
-             rt = session.get(db.RegToken, objectid)
-             if rt is None:
-                 raise NoSuchObjectException(comment=objectid)
-             session.delete(rt)
-             session.flush()
+             db.RegToken.delete(session, args['id'])
              return success()
          finally:
              session.close()
@@ -109,7 +104,6 @@ class RegToken(web_svc.AuthWebSvc):
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: nested structures.
          """
          required = ('token',)
          FieldValidator(args).verify_required(required)
@@ -119,7 +113,7 @@ class RegToken(web_svc.AuthWebSvc):
              offset, limit = self.offset_and_limit(args)
              query = session.query(db.RegToken)
              for rt in query.select_by(token=args['token'], offset=offset, limit=limit):
-                 result.append(rt.data())
+                 result.append(self.expand(rt))
              return success(result)
          finally:
              session.close()
@@ -136,38 +130,31 @@ class RegToken(web_svc.AuthWebSvc):
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: nested structures.
          """
          session = db.open_session()
          try:
              result = []
              offset, limit = self.offset_and_limit(args)
-             for rt in  session.query(db.RegToken).select(offset=offset, limit=limit):
-                 result.append(rt.data())
+             for rt in  db.RegToken.list(session, offset, limit):
+                 result.append(self.expand(rt))
              return success(result)
          finally:
              session.close()
 
 
-    def check(self, regtoken):
+    def check(self, tokenstr):
         """
         Validates a regtoken as being valid. If it fails, raise an
         approriate exception.
         """
-
-        st = """
-        SELECT
-              id, uses_remaining
-        FROM
-              regtokens
-        WHERE
-              token=:regtoken
-        """
-
-        # FIXME: this really should use the db_util stuff to have one less place
-        # to make schema changes.
-        self.db.cursor.execute(st, {'regtoken': regtoken})
-        x = self.db.cursor.fetchone()
+        token = None
+        session = db.open_session()
+        try:
+            token = session.query(db.RegToken).selectfirst_by(token=tokenstr)
+            if token is None:
+                return false
+        finally:
+             session.close()
 
         is_specific_token = False
 
@@ -175,11 +162,11 @@ class RegToken(web_svc.AuthWebSvc):
             
             # no generic regtoken was used, but a new machine or deployment might
             # be using a regtoken by way of kickstart, so those tables must also be checked
-            machine_obj = machine.Machine()
-            machines = machine_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken})
+            machine = machine.Machine()
+            machines = machine.get_by_regtoken(tokenstr, { "registration_token" : tokenstr})
             if len(machines.data) < 0:
-                deployment_obj = deployment.Deployment()
-                deployments = deployment_obj.get_by_regtoken(regtoken, { "registration_token" : regtoken })
+                deployment = deployment.Deployment()
+                deployments = deployment.get_by_regtoken(tokenstr, { "registration_token" : tokenstr })
                 if len(deployments.data) < 0:
                     raise RegTokenInvalidException(comment="regtoken not found in regtoken.check")
                 else:
@@ -188,12 +175,11 @@ class RegToken(web_svc.AuthWebSvc):
                 is_specific_token = True
 
         if not is_specific_token:
-            (id, uses) = x
-            if uses == 0:
+            if token.uses_remaining == 0:
                 raise RegTokenExhaustedException(comment="regtoken max uses reached")
 
-            if uses is not None:
-                self.__decrement_uses_remaining(id, uses)
+            if token.uses_remaining is not None:
+                self.__decrement_uses_remaining(token.id, token.uses_remaining)
 
         # we don't really need to check this, since failure will raise exceptions
         return True
@@ -212,21 +198,22 @@ class RegToken(web_svc.AuthWebSvc):
              - token
              - profile_id (optional)
              - uses_remaining (optional)
-         # TODO: nested structures.
          """
          required = ('id',)
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             result = []
-             objectid = args['id']
-             rt = session.get(db.RegToken, objectid)
-             if rt is None:
-                 raise NoSuchObjectException(comment=objectid)
-             return success(rt.data())
+             rt = db.RegToken.get(session, args['id'])
+             return success(self.expand(rt))
          finally:
              session.close()
 
+
+    def expand(self, regtoken):
+        result = regtoken.data()
+        if regtoken.profile:
+            result['profile'] = regtoken.profile.data()
+        return result
 
 
 methods = RegToken()

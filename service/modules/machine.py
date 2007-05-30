@@ -15,8 +15,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
 from server.codes import *
+from baseobj import FieldValidator
 
-import baseobj
 import profile
 import cobbler
 import provisioning
@@ -67,12 +67,11 @@ class Machine(web_svc.AuthWebSvc):
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 
              'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
         required = ('profile_id')
-        self.__validate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
             machine = db.Machine()
-            for key in (required+optional):
-                setattr(machine, key, args.get(key, None))
+            machine.update(args)
             # TODO: generate the registration token here and make it actually random and decent.
             machine.registration_token = regtoken.RegToken().generate(token)
             machine.netboot_enabled = 1 # initially, allow PXE, until it registers
@@ -167,16 +166,11 @@ class Machine(web_svc.AuthWebSvc):
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 'profile_id', 
              'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
-        self.__validate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            machine = session.get(db.Machine, objectid)
-            if machine is None:
-                 raise NoSuchObjectException(comment=objectid)
-            for key in optional:
-                current = getattr(user, key)
-                setattr(machine, key, args.get(key, current))
+            machine = db.Machine.get(session, args['id'])
+            machine.update(args)
             session.save(machine)
             session.flush()
         finally:
@@ -199,12 +193,7 @@ class Machine(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            machine = session.get(db.Machine, objectid)
-            if machine is None:
-                raise NoSuchObjectException(comment=objectid)
-            session.delete(machine)
-            session.flush()
+            db.Machine.delete(session, args['id'])
             return success()
         finally:
             session.close()
@@ -239,8 +228,8 @@ class Machine(web_svc.AuthWebSvc):
         try:
             result = []
             offset, limit = self.offset_and_limit(args)
-            for machine in session.query(db.Machine).select(offset=offset, limit=limit):
-                result.append(machine.data())
+            for machine in db.Machine.list(session, offset, limit):
+                result.append(self.expand(machine))
             return success(result)
         finally:
             session.close()
@@ -271,7 +260,6 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('hostname',)
         FieldValidator(args).verify_required(required)
@@ -282,7 +270,7 @@ class Machine(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
             for machine in query.select_by(hostname == hostname, offset=offset, limit=limit):
-                result.append(machine.data())
+                result.append(self.expand(machine))
             return success(result)
         finally:
             session.close()
@@ -312,8 +300,6 @@ class Machine(web_svc.AuthWebSvc):
             - profile_id
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
-            - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('registration_token',)
         FieldValidator(args).verify_required(required)
@@ -324,7 +310,7 @@ class Machine(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
             for machine in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
-                result.append(machine.data())
+                result.append(self.expand(machine))
             return success(result)
         finally:
             session.close()
@@ -355,29 +341,31 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            machine = session.get(db.Machine, objectid)
-            if machine is None:
-                raise NoSuchObjectException(comment=machineid)
+            machine = db.Machine.get(session, args['id'])
             return success(machine.data())
         finally:
             session.close()
 
             
-    def __validate(self, args, required):
-        validator = FieldValidator(args)
-        validator.verify_required(required)
-        validator.verify_enum('architecture', VALID_ARCHS)
-        validator.verify_int('processor_speed', 'processor_count', 'memory')
-        validator.verify_printable(
+    def validate(self, args, required):
+        vdr = FieldValidator(args)
+        vdr.verify_required(required)
+        vdr.verify_enum('architecture', VALID_ARCHS)
+        vdr.verify_int('processor_speed', 'processor_count', 'memory')
+        vdr.verify_printable(
                'kernel_options', 'kickstart_metadata', 'list_group', 
                'list_group', 'puppet_node_diff')
+
+
+    def expand(self, machine):
+        result = machine.data()
+        result['profile'] = machine.profile.data()
+        return result
 
 
 methods = Machine()

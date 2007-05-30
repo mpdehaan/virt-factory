@@ -16,8 +16,8 @@
 
 
 from server.codes import *
+from baseobj import FieldValidator
 
-import baseobj
 import profile
 import machine
 import web_svc
@@ -151,8 +151,7 @@ class Deployment(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              deployment = db.Deployment()
-             for key in (required+optional):
-                 setattr(deployment, key, args.get(key, None))
+             deployment.update(args)
              session.save(deployment)
              session.flush()
              self.cobbler_sync(deployment.data())
@@ -220,13 +219,8 @@ class Deployment(web_svc.AuthWebSvc):
 
          session = db.open_session()
          try:
-             objectid = args['id']
-             deployment = session.get(db.Deployment, objectid)
-             if deployment is None:
-                 raise NoSuchObjectException(comment=objectid)
-             for key in optional:
-                 current = getattr(deployment, key)
-                 setattr(deployment, key, args.get(key, current))
+             deployment = db.Deployment.get(session, args['id'])
+             deployment.update(args)
              session.save(deployment)
              session.flush()
              self.cobbler_sync(deployment.data())
@@ -259,10 +253,7 @@ class Deployment(web_svc.AuthWebSvc):
     def set_state(self, token, args, status_code):
         session = db.open_session()
         try:
-            objectid = args['id']
-            deployment = session.get(db.Deployment, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
+            deployment = db.Deployment.get(session, args['id'])
             deployment.state = status_code
             session.save(deployment)
             session.flush()
@@ -318,12 +309,7 @@ class Deployment(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             objectid = args['id']
-             deployment = session.get(db.Deployment, objectid)
-             if deployment is None:
-                 raise NoSuchObjectException(comment=objectid)
-             session.delete(deployment)
-             session.flush()
+             db.Deployment.delete(session, args['id'])
              return success()
          finally:
              session.close()
@@ -352,8 +338,8 @@ class Deployment(web_svc.AuthWebSvc):
         try:
             result = []
             offset, limit = self.offset_and_limit(args)
-            for deployment in session.query(db.Deployment).select(limit=limit, offset=offset):
-                result.append(deployment.data())
+            for deployment in db.Deployment.list(session, offset, limit):
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -394,7 +380,6 @@ class Deployment(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - puppet_node_diff (optional)
             - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('hostname',)
         FieldValidator(args).verify_required(required)
@@ -405,7 +390,7 @@ class Deployment(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
             for deployment in query.select_by(hostname == hostname, offset=offset, limit=limit):
-                result.append(deployment.data())
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -430,7 +415,6 @@ class Deployment(web_svc.AuthWebSvc):
              - netboot_enabled (optional)
              - puppet_node_diff (optional)
              - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('registration_token',)
         FieldValidator(args).verify_required(required)
@@ -441,7 +425,7 @@ class Deployment(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
             for deployment in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
-                result.append(deployment.data())
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -500,20 +484,22 @@ class Deployment(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - puppet_node_diff (optional)
             - is_locked (optional)
-        # TODO: nested structures.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            deployment = session.get(db.Deployment, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
-            return success(deployment.data())
+            deployment = db.Deployment.get(session, args['id'])
+            return success(self.expand(deployment))
         finally:
             session.close()
 
+
+    def expand(self, deployment):
+        result = deployment.data()
+        result['machine'] = deployment.machine.data()
+        result['profile'] = deployment.profile.data()
+        return result
 
 
 methods = Deployment()

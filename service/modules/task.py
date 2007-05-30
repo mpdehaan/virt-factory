@@ -15,8 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from server.codes import *
 from server import db
-
-import baseobj
+from baseobj import FieldValidator
 import web_svc
 
 class Task(web_svc.AuthWebSvc):
@@ -55,8 +54,7 @@ class Task(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              task = db.Task()
-             for key in (required+optional):
-                 setattr(task, key, args.get(key, None))
+             task.update(args)
              session.save(task)
              session.flush()
              return success(task.id)
@@ -82,13 +80,8 @@ class Task(web_svc.AuthWebSvc):
          validator.verity_enum('action_type', VALID_TASK_STATES)
          session = db.open_session()
          try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             for key in optional:
-                 current = getattr(task, key)
-                 setattr(task, key, args.get(key, current))
+             task = db.Task.get(session, args['id'])
+             task.update(args)
              session.save(task)
              session.flush()
              return success()
@@ -107,12 +100,7 @@ class Task(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             session.delete(task)
-             session.flush()
+             db.Task.delete(session, args['id'])
              return success()
          finally:
              session.close()
@@ -132,14 +120,13 @@ class Task(web_svc.AuthWebSvc):
              - deployment_id
              - state
              - time
-         # TODO: nested structures.
          """
          session = db.open_session()
          try:
              result = []
              offset, limit = self.offset_and_limit(args)
-             for task in session.query(db.Task).select(offset=offset, limit=limit):
-                 result.append(task.data())
+             for task in db.Task.list(session, offset, limit):
+                 result.append(self.expand(task))
              return success(result)
          finally:
              session.close()
@@ -151,19 +138,24 @@ class Task(web_svc.AuthWebSvc):
          @param args: A dictionary of task attributes.
              - id
          @type args: dict
-         # TODO: nested structures.
          """
          required = ('id',)
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             return success(task.data())
+             task = db.Task.get(session, args['id'])
+             return success(self.expand(task))
          finally:
              session.close()
+
+
+    def expand(self, task):
+        result = task.data()
+        result['user'] = task.user.data()
+        result['machine'] = task.machine.data()
+        result['deployment'] = task.deployment.data()
+        return result
+        
  
  
 methods = Task()

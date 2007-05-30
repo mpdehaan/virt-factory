@@ -58,8 +58,7 @@ class User(web_svc.AuthWebSvc):
          self.__lock.acquire()
          try:
              user = db.User()
-             for key in (required+optional):
-                 setattr(user, key, args.get(key, None))
+             user.update(args)
              session.save(user)
              session.flush()
              return success(user.id)
@@ -89,20 +88,14 @@ class User(web_svc.AuthWebSvc):
          session = db.open_session()
          self.__lock.acquire()
          try:
-             objectid = args['id']
-             user = session.get(db.User, objectid)
-             if user is None:
-                 raise NoSuchObjectException(comment=objectid)
-             for key in optional:
-                 current = getattr(user, key)
-                 setattr(user, key, args.get(key, current))
+             user = db.User.get(session, args['id'])
+             user.update(args)
              session.save(user)
              session.flush()
-             return success(args)
+             return success()
          finally:
              self.__lock.release()
              session.close()
-
 
     def delete(self, token, args):
          """
@@ -116,14 +109,7 @@ class User(web_svc.AuthWebSvc):
          session = db.open_session()
          self.__lock.acquire()
          try:
-             objectid = args['id']
-             user = session.get(db.User, objectid)
-             if user is None:
-                 raise NoSuchObjectException(comment=objectid)
-             if user.username == 'admin':
-                 return success()
-             session.delete(user)
-             session.flush()
+             db.User.delete(session, args['id'])
              return success()
          finally:
              self.__lock.release()
@@ -149,7 +135,7 @@ class User(web_svc.AuthWebSvc):
          try:
              result = []
              offset, limit = self.offset_and_limit(args)
-             for user in session.query(db.User).select(offset=offset, limit=limit):
+             for user in db.User.list(session, offset, limit):
                  result.append(user.data())
              return success(result)
          finally:
@@ -166,10 +152,7 @@ class User(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             objectid = args['id']
-             user = session.get(db.User, objectid)
-             if user is None:
-                 raise NoSuchObjectException(comment=objectid)
+             user = db.User.get(session, args['id'])
              return success(user.data())
          finally:
              session.close()
