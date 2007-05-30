@@ -116,10 +116,9 @@ class RegToken(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              result = []
-             limit = args.get('limit', 10000)
-             offset = args.get('offset', 0)
+             offset, limit = self.offset_and_limit(args)
              query = session.query(db.RegToken)
-             for rt in query.select_by(token=args['token'], limit=limit, offset=offset):
+             for rt in query.select_by(token=args['token'], offset=offset, limit=limit):
                  result.append(rt.data())
              return success(result)
          finally:
@@ -142,9 +141,8 @@ class RegToken(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              result = []
-             limit = args.get('limit', 10000)
-             offset = args.get('offset', 0)
-             for rt in  session.query(db.RegToken).select(limit=limit, offset=offset):
+             offset, limit = self.offset_and_limit(args)
+             for rt in  session.query(db.RegToken).select(offset=offset, limit=limit):
                  result.append(rt.data())
              return success(result)
          finally:

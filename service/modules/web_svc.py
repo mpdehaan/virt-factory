@@ -48,6 +48,9 @@ class WebSvc(object):
     def register_rpc(self, handlers):
         for meth in self.methods:
             handlers[meth] = self.methods[meth]
+            
+    def offset_and_limit(self, args):
+        return args.get('offset', 0), args.get('limit', 100000)
 
 
 class AuthWebSvc(WebSvc):

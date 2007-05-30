@@ -147,8 +147,7 @@ class Distribution(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              result = []
-             offset = args.get('offset', 0)
-             limit = args.get('limit', 10000)
+             offset, limit = self.offset_and_limit(args)
              for distribution in query(db.Distribution).select(offset=offset, limit=limit):
                  result.append(distribution.data())
              return success(result)
