@@ -6,13 +6,13 @@
       <% if @items.length > 0 %>
       <table class='listing'>
          <thead>
-            <th>Hostname</th>
-            <th>Profile</th>
-            <th>Mac Address</th>
-            <th colspan="2">Actions</th>
+            <th><%= _("Hostname") %></th>
+            <th><%= _("Profile") %></th>
+            <th><%= _("Mac Address") %></th>
+            <th colspan="2"><%= _("Actions") %></th>
          </thead>
       <% else %>
-            No machines are in the virt-factory database.  Use the "Add" link to register some.
+            <%= _("No machines are in the virt-factory database.  Use the \"Add\" link to register some.") %>
       <% end %>
       
       <% @items.each do |item| %>
@@ -22,12 +22,12 @@
              <TR class="<%= cycle('odd','even') %>">
          <% end %>
              
-             <TD> <%= item.hostname ? item.hostname : "(Pending)" %> </TD>
+             <TD> <%= item.hostname ? item.hostname : _("(Pending)") %> </TD>
 
              <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
              <TD> <%= item.mac_address %> </TD>
              <% if item.is_locked == 1 %>
-                <TD COLSPAN="2">(Locked)</TD>
+                <TD COLSPAN="2"><%= _("(Locked)") %></TD>
              <% else %>
                 <TD> <%= link_to "[edit]", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
                 <TD> <%= link_to "[delete]", :controller => "machine", :action=> "delete", :id=> item.id %></TD>
