@@ -3,11 +3,10 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-05-30 15:08-0400\n"
+"POT-Creation-Date: 2007-05-30 16:34-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: app/controllers/application.rb:130
+#: app/controllers/application.rb:128
 msgid "Internal Server Error"
 msgstr ""
 
@@ -219,7 +218,6 @@ msgid "Puppet Class Node Overrides"
 msgstr ""
 
 #: app/views/task/list.rhtml:9 app/views/task/edit.rhtml:17
-#, fuzzy
 msgid "User"
 msgstr "ユーザ名 "
 
@@ -274,7 +272,7 @@ msgstr ""
 #: app/views/regtoken/list.rhtml:15
 msgid ""
 "No registration tokens are in the virt-factory database.  Create some using "
-"the "
+"the \"Machines/Create Registration Tokens\" menu link."
 msgstr ""
 
 #: app/views/regtoken/list.rhtml:26 app/views/regtoken/view.rhtml:17
@@ -361,7 +359,6 @@ msgid ""
 msgstr ""
 
 #: app/views/user/list.rhtml:8 app/views/user/edit.rhtml:11
-#, fuzzy
 msgid "Username"
 msgstr "ユーザ名 "
 
@@ -386,7 +383,6 @@ msgid "Email"
 msgstr ""
 
 #: app/views/user/edit.rhtml:20
-#, fuzzy
 msgid "Password"
 msgstr "    パスワード "
 
