@@ -38,10 +38,9 @@ def get_registered_queue(caller, queue_tag):
     return caller.client.queue(queue_tag)
 
 def publish_message(caller, channel_id=1, exchange_name='',
-                    routing_key_name='',message='',
-                    properties={"content-type":"text/plain"}):
+                    routing_key_name='',message='', props={}):
     channel = caller.channel(channel_id)
-    msg = qpid.content.Content(message, properties=properties)
+    msg = qpid.content.Content(message, properties=props)
     channel.basic_publish(exchange=exchange_name, routing_key=routing_key_name,
                           content=msg)
         

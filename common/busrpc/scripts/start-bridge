@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-from busrpc.local.bridge import Bridge
+from busrpc.bridge import start_bridge
 
-bridge = Bridge()
-bridge.run()
+start_bridge("../configs/bridge.conf")
+
+
