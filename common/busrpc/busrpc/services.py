@@ -1,6 +1,7 @@
 import threading
 import time
 import traceback
+import socket
 
 import busrpc.qpid_transport
 import busrpc.rpc
@@ -26,9 +27,12 @@ def _create_instance(config, full_class_name):
 
 class RPCDispatcher(object):
 
-    def __init__(self, config, register_with_bridge = True):
+    def __init__(self, config, fully_qualify_name=True, register_with_bridge = True):
         self.instances = {}
-        self.name = config.server_name
+        if fully_qualify_name:
+            self.name = socket.gethostname() + '!' + config.server_name
+        else:
+            self.name = config.server_name
         self.transport = busrpc.qpid_transport.QpidServerTransport(self.name)
         self.transport.callback = self.dispatch
         self.register_with_bridge = register_with_bridge
@@ -83,7 +87,11 @@ class RPCDispatcher(object):
             self.instance_method_cache[cache_key] = method
         params = decode_object(encoded_params)
         results = method(*params)
-        return sender, encode_object(results)
+        headers = {}
+        if hasattr(method, '_header_generator'):
+            method._header_generator(headers)
+        return sender, encode_rpc_response(self.name, namespace, called_method,
+                                           encode_object(results), headers)
 
     def add_instance(self, namespace, instance):
         self.instances[namespace] = instance
