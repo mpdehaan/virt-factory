@@ -8,7 +8,7 @@
       <%= f.hidden_field :username if @operation == "edit" %>
       <table class='details'>
          <TR>
-            <TD>Username</TD>
+            <TD><%= _("Username") %></TD>
             <TD><%= if @operation == "add"
 	                f.text_field :username
 	            else
@@ -17,23 +17,23 @@
              </TD>
          </TR>
          <TR> 
-            <TD>Password</TD>
+            <TD><%= _("Password") %></TD>
             <TD><%= f.text_field :password %></TD>
          </TR>
          <TR> 
-            <TD>First name</TD>
+            <TD><%= _("First name") %></TD>
             <TD><%= f.text_field :first %></TD>
          </TR>
          <TR> 
-            <TD>Middle name</TD>
+            <TD><%= _("Middle name") %></TD>
             <TD><%= f.text_field :middle %></TD>
          </TR>
          <TR> 
-            <TD>Last name</TD>
+            <TD><%= _("Last name") %></TD>
             <TD><%= f.text_field :last %></TD>
          </TR>
          <TR> 
-            <TD>Description</TD>
+            <TD><%= _("Description") %></TD>
             <TD><%= f.text_area :description %></TD>
          </TR>
          <TR> 
@@ -41,7 +41,7 @@
             <TD><%= f.text_field :email %></TD>
          </TR>
          <TR>
-            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
+            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ?  _("Edit") : _("Add") %>"></TD>
          </TR>
       </TABLE>
       <% end %>

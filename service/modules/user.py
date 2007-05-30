@@ -89,10 +89,10 @@ class User(web_svc.AuthWebSvc):
          session = db.open_session()
          self.__lock.acquire()
          try:
-             userid = args['id']
-             user = session.get(db.User, userid)
+             objectid = args['id']
+             user = session.get(db.User, objectid)
              if user is None:
-                 raise NoSuchObjectException(comment=userid)
+                 raise NoSuchObjectException(comment=objectid)
              for key in optional:
                  current = getattr(user, key)
                  setattr(user, key, args.get(key, current))
@@ -116,10 +116,10 @@ class User(web_svc.AuthWebSvc):
          session = db.open_session()
          self.__lock.acquire()
          try:
-             userid = args['id']
-             user = session.get(db.User, userid)
+             objectid = args['id']
+             user = session.get(db.User, objectid)
              if user is None:
-                 raise NoSuchObjectException(comment=userid)
+                 raise NoSuchObjectException(comment=objectid)
              if user.username == 'admin':
                  return success()
              session.delete(user)
@@ -134,8 +134,6 @@ class User(web_svc.AuthWebSvc):
          """
          Get all users.
          @param args: A dictionary of user attributes.
-             - offset (optional)
-             - limit (optional default=100)
          @type args: dict
          @return: A list of users.
          @rtype: [dict,]
@@ -146,19 +144,12 @@ class User(web_svc.AuthWebSvc):
              - last
              - description (optional)
              - email
-         # TODO: paging
          """
-         optional = ('offset', 'limit')
-         validator = FieldValidator(args)
-         validator.verify_int(optional)
-         offset = args.get(optional[0], 0)
-         limit = args.get(optional[1], 100)
-
          session = db.open_session()
          try:
              result = []
-             query = session.query(db.User)
-             for user in query.select():
+             offset, limit = self.offset_and_limit(args)
+             for user in session.query(db.User).select(offset=offset, limit=limit):
                  result.append(user.data())
              return success(result)
          finally:
@@ -175,10 +166,10 @@ class User(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             userid = args['id']
-             user = session.get(db.User, userid)
+             objectid = args['id']
+             user = session.get(db.User, objectid)
              if user is None:
-                 raise NoSuchObjectException(comment=userid)
+                 raise NoSuchObjectException(comment=objectid)
              return success(user.data())
          finally:
              session.close()

@@ -37,11 +37,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %config(noreplace) /etc/busrpc/amqp.0-8.xml
 %config(noreplace) /etc/busrpc/test.conf
 %dir %{python_sitelib}/busrpc
-%dir %{python_sitelib}/busrpc/local
-%dir %{python_sitelib}/busrpc/remote
 %{python_sitelib}/busrpc/*.py*
-%{python_sitelib}/busrpc/local/*.py*
-%{python_sitelib}/busrpc/remote/*.py*
 %dir /var/log/busrpc
 
 
@@ -49,6 +45,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %preun
 
 %changelog
+* Tue May 29 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-2
+- code got refactored, update spec
+
 * Thu May 17 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-1
 - inital release
 

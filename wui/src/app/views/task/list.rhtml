@@ -6,16 +6,16 @@
       <% if @items.length > 0 %>
       <table class='listing'>
          <thead>
-            <th>User</th>
-            <th>Action</th>
-            <th>Machine</th>
-            <th>Deployment</th>
-            <th>State</th>
+            <th><%= _("User") %></th>
+            <th><%= _("Action") %></th>
+            <th><%= _("Machine") %></th>
+            <th><%= _("Deployment") %></th>
+            <th><%= _("State") %></th>
             <!-- FIXME: UI should convert to localtime -->
-            <th>Start Time</th>
+            <th><%= _("Start Time") %></th>
          </thead>
       <% else %>
-         There are no scheduled tasks at this time.
+         <%= _("There are no scheduled tasks at this time.") %>
       <% end %>
 
       <% @items.each do |item| %>
@@ -31,7 +31,7 @@
              <TD> <% if item.deployment.nil? %>
                       (N/A)
                   <% else %>
-                      <%= link_to !item.get_deployment().hostname.nil? ? item.get_deployment().hostname : "(Unknown)", :controller => "deployment", :action => "edit", :id => item.deployment_id %> 
+                      <%= link_to !item.get_deployment().hostname.nil? ?  item.get_deployment().hostname : _("(Unknown)"), :controller => "deployment", :action => "edit", :id => item.deployment_id %> 
                   <% end %>
              <TD>
              <TD> <%= item.state %> </TD>

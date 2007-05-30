@@ -10,15 +10,15 @@
 
       <table class='details'>
           <TR>
-              <TD>Profile</TD>
+              <TD><%= _("Profile") %></TD>
               <TD><%= f.select :profile_id, @profiles %></TD>
           </TR>
           <TR>
-              <TD>Usage Limit (Optional)</TD>
+              <TD><%= _("Usage Limit (Optional)") %></TD>
               <TD><%= f.text_field :uses_remaining %></TD>
           <TR>
              <TR> 
-                 <TD COLSPAN="2"><input type="submit" value="Create"></TD>
+                 <TD COLSPAN="2"><input type="submit" value=<%= _("Create") %>></TD>
              </TR>
           </TR>
       </TABLE>

@@ -18,6 +18,9 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
+Requires: python-sqlalchemy
+Requires: python-psycopg2
+Requires: postgresql-server
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -82,11 +85,11 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
 /bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
-if [ -f /var/lib/virt-factory/primary_db ]; then
-    /usr/bin/vf_upgrade_db
-else
-    /usr/bin/vf_create_db.sh
-fi
+#if [ -f /var/lib/virt-factory/primary_db ]; then
+#    /usr/bin/vf_upgrade_db
+#else
+#    /usr/bin/vf_create_db.sh
+#fi
 /sbin/chkconfig --add virt-factory-server
 exit 0
 
@@ -98,6 +101,9 @@ fi
 
 
 %changelog
+* Tue May 29 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-2
+- remove db setup/upgrade stuff from rpms
+
 * Wed May 1 2007 Adrian Likins <alikins@redhat.com> - 0.0.2-1
 - add chkconfig stuff in scripts
 - bump to 0.0.2

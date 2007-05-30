@@ -14,19 +14,19 @@
 
       <table class='details'>
          <TR>
-            <TD>User</TD>
+            <TD><%= _("User") %></TD>
             <TD><%= if @operation == "add"
                         # FIXME: in reality, this should be determined by the token
                         f.select :user_id, @users
                     else
                         user = @item.get_user()
-                        user ? user.username : "None"
+                        user ? user.username : _("None")
                     end %>
             </TD>
          </TR>
          
          <TR> 
-            <TD>Action Type</TD>
+            <TD><%= _("Action Type") %></TD>
             <TD><%= if @operation == "add"
                        f.select :action_type, @action_types
                     else
@@ -37,7 +37,7 @@
          </TR>
   
          <TR> 
-            <TD>Machine</TD>
+            <TD><%= _("Machine") %></TD>
             <TD><%= if @operation == "add"
                         f.select :machine_id, @machines
                     else
@@ -48,7 +48,7 @@
          </TR>   
 
          <TR>
-            <TD>Deployment</TD>
+            <TD><%= _("Deployment") %></TD>
             <TD><%= if @operation == "add"
                         f.select :deployment_id, @deployments
                     else
@@ -59,7 +59,7 @@
          </TR>
 
          <TR>
-            <TD>State</TD>
+            <TD><%= _("State") %></TD>
             <TD><%= if @operation == "add"
                         f.select :state, @states
                     else
@@ -70,7 +70,7 @@
          </TR>
 
          <TR>
-            <TD>Time</TD>
+            <TD><%= _("Time") %></TD>
             <TD><%= if @operation == "add"
                         f.text_field :time
                     else
@@ -81,7 +81,7 @@
          </TR>
 
          <TR>
-            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+            <TD COLSPAN="2"><input type="submit" value=<%= _("go") %>></TD>
          </TR>
       </TABLE>
       <% end %>

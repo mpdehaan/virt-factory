@@ -153,7 +153,9 @@ check_out_code()
 
 remove_all_packages()
 {
-    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails
+    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
+		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
+		  python-psycopg2 postgresql-python python-sqlalchemy
     echo $?
 }
 
@@ -239,6 +241,7 @@ stop_services()
     /etc/init.d/virt-factory-server stop
     /etc/init.d/virt-factory-wui stop
     /etc/init.d/virt-factory-node-server stop
+    /etc/init.d/postgresql stop
 }
 
 start_services()
@@ -246,7 +249,11 @@ start_services()
     /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
     /etc/init.d/virt-factory-server restart
-    /etc/init.d/virt-factory-wui start
+    /etc/init.d/virt-factory-wui restart
+
+    # fresh postgresql requires an initdb first
+    /etc/init.d/postgresql initdb
+    /etc/init.d/postgresql restart
 
     # we need to restart httpd after installing mongrel
     /etc/init.d/httpd restart
@@ -388,7 +395,12 @@ if [ "$REBUILD" == "Y" ] ; then
     msg "Rebuilding everything for kicks in $BUILD_PATH" 
 
     $BUILD_PATH/virt-factory/build/build-it-all.sh
-    
+   
+    if [ $? != 0 ]; then
+        echo "Error building packages"
+        exit 1
+    fi
+ 
     popd
 
 fi

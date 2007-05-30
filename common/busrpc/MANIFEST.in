@@ -1,6 +1,2 @@
 include version
 recursive-include configs *
-include version
-recursive-include configs *
-include version
-recursive-include configs *

@@ -55,7 +55,7 @@ class Task(web_svc.AuthWebSvc):
          session = db.open_session()
          try:
              task = db.Task()
-             for key in (required):
+             for key in (required+optional):
                  setattr(task, key, args.get(key, None))
              session.save(task)
              session.flush()
@@ -82,12 +82,13 @@ class Task(web_svc.AuthWebSvc):
          validator.verity_enum('action_type', VALID_TASK_STATES)
          session = db.open_session()
          try:
-             taskid = args['id']
-             task = session.get(db.Task, taskid)
+             objectid = args['id']
+             task = session.get(db.Task, objectid)
              if task is None:
-                 raise NoSuchObjectException(comment=taskid)
-             for key in (optional):
-                 setattr(task, key, args.get(key, None))
+                 raise NoSuchObjectException(comment=objectid)
+             for key in optional:
+                 current = getattr(task, key)
+                 setattr(task, key, args.get(key, current))
              session.save(task)
              session.flush()
              return success()
@@ -106,10 +107,10 @@ class Task(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             taskid = args['id']
-             task = session.get(db.Task, taskid)
+             objectid = args['id']
+             task = session.get(db.Task, objectid)
              if task is None:
-                 raise NoSuchObjectException(comment=taskid)
+                 raise NoSuchObjectException(comment=objectid)
              session.delete(task)
              session.flush()
              return success()
@@ -131,14 +132,13 @@ class Task(web_svc.AuthWebSvc):
              - deployment_id
              - state
              - time
-         # TODO: paging
          # TODO: nested structures.
          """
          session = db.open_session()
          try:
              result = []
-             query = session.query(db.Task)
-             for task in query.select():
+             offset, limit = self.offset_and_limit(args)
+             for task in session.query(db.Task).select(offset=offset, limit=limit):
                  result.append(task.data())
              return success(result)
          finally:
@@ -157,13 +157,14 @@ class Task(web_svc.AuthWebSvc):
          FieldValidator(args).verify_required(required)
          session = db.open_session()
          try:
-             taskid = args['id']
-             task = session.get(db.Task, taskid)
+             objectid = args['id']
+             task = session.get(db.Task, objectid)
              if task is None:
-                 raise NoSuchObjectException(comment=taskid)
+                 raise NoSuchObjectException(comment=objectid)
              return success(task.data())
          finally:
              session.close()
+ 
  
 methods = Task()
 register_rpc = methods.register_rpc

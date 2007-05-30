@@ -135,7 +135,7 @@ class ManagedObject
                 # determine the names and types of variables the instance should have
                class_attributes = object_class::ATTR_LIST[key.to_sym]
                # if we don't understand this particular variable, we have a serious problem
-               raise RuntimeError.new("class attributes are unknown for #{key}") if class_attributes.nil?
+               raise RuntimeError.new(_("class attributes are unknown for #{key}")) if class_attributes.nil?
              
                # how we vivify the object depends on what type it is
                atype = class_attributes[:type]
@@ -151,11 +151,11 @@ class ManagedObject
                    new_item = value
                elsif atype.methods.include?("from_hash")
                    # ManagedObjects result in recursive calls...
-                   raise RuntimeError.new("No child arguments?") if not value.is_a?(Hash) 
+                   raise RuntimeError.new(_("No child arguments?")) if not value.is_a?(Hash) 
                    new_item = self.from_hash(atype, value, login)
                else
                    # we have no idea what to do with this...
-                   raise RuntimeError.new("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}")
+                   raise RuntimeError.new(_("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}"))
                end
                # this data element was processed fine, so create the item
                # this is roughly equivalent to python's setattr

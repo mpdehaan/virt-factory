@@ -7,7 +7,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-05-24 14:55-0400\n"
+"POT-Creation-Date: 2007-05-30 15:08-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,6 +15,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: app/controllers/application.rb:130
+#, fuzzy
+msgid "Internal Server Error"
+msgstr "Eror interno"
 
 #: app/controllers/login_controller.rb:29
 msgid "Could not connect to virt-factory server."
@@ -24,6 +29,382 @@ msgstr "No pude conectar a virt-factory servidor"
 msgid "event"
 msgstr "acontecimiento"
 
+#: app/models/event.rb:-
+msgid "Event|Time"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|User"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Machine"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Deployment"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Profile"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Severity"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Category"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|Action"
+msgstr ""
+
+#: app/models/event.rb:-
+msgid "Event|User comment"
+msgstr ""
+
+#: app/models/managed_object.rb:154
+msgid "No child arguments?"
+msgstr ""
+
+#: app/views/machine/list.rhtml:9 app/views/deployment/view.rhtml:28
+msgid "Hostname"
+msgstr ""
+
+#: app/views/machine/list.rhtml:10 app/views/machine/edit.rhtml:27
+#: app/views/deployment/list.rhtml:14 app/views/deployment/edit.rhtml:21
+#: app/views/deployment/view.rhtml:52 app/views/regtoken/list.rhtml:10
+#: app/views/regtoken/edit.rhtml:13 app/views/regtoken/view.rhtml:12
+msgid "Profile"
+msgstr ""
+
+#: app/views/machine/list.rhtml:11 app/views/machine/edit.rhtml:66
+#: app/views/deployment/list.rhtml:13
+msgid "Mac Address"
+msgstr ""
+
+#: app/views/machine/list.rhtml:12 app/views/deployment/list.rhtml:16
+#: app/views/profile/list.rhtml:17 app/views/user/list.rhtml:14
+msgid "Actions"
+msgstr ""
+
+#: app/views/machine/list.rhtml:15
+msgid ""
+"No machines are in the virt-factory database.  Use the \"Add\" link to "
+"register some."
+msgstr ""
+"No hay máquinas en la base de datos de la virt-fábrica. Utilice \"agregan"
+"\"acoplamiento para colocar alguno."
+
+#: app/views/machine/list.rhtml:25
+msgid "(Pending)"
+msgstr ""
+
+#: app/views/machine/list.rhtml:30
+msgid "(Locked)"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:13
+msgid "Recorded Hostname"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:16
+msgid "Recorded IP"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:22
+msgid "Recorded MAC"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:33 app/views/deployment/view.rhtml:32
+msgid "Architecture"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:37 app/views/deployment/view.rhtml:36
+msgid "Procesor Speed"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:41 app/views/deployment/view.rhtml:40
+msgid "Procesor Count"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:45 app/views/deployment/view.rhtml:44
+#: app/views/profile/list.rhtml:14
+msgid "Memory"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:51 app/views/profile/view.rhtml:32
+msgid "Kernel Options"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:55 app/views/profile/view.rhtml:28
+msgid "Kickstart Metadata"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:59
+msgid "List Group"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:76 app/views/user/edit.rhtml:44
+msgid "Add"
+msgstr ""
+
+#: app/views/machine/edit.rhtml:78 app/views/user/edit.rhtml:44
+msgid "Edit"
+msgstr ""
+
+#: app/views/deployment/list.rhtml:10 app/views/deployment/view.rhtml:23
+msgid "Host Machine"
+msgstr ""
+
+#: app/views/deployment/list.rhtml:11 app/views/deployment/view.rhtml:10
+msgid "Virtual Hostname"
+msgstr ""
+
+#: app/views/deployment/list.rhtml:12
+msgid "IP"
+msgstr ""
+
+#: app/views/deployment/list.rhtml:15 app/views/deployment/view.rhtml:81
+#: app/views/task/list.rhtml:13 app/views/task/edit.rhtml:62
+msgid "State"
+msgstr ""
+
+#: app/views/deployment/list.rhtml:19
+msgid ""
+"There are no virtual profiles created or deployed yet.  Use the \"Add\" link "
+"to create one."
+msgstr ""
+
+#: app/views/deployment/edit.rhtml:12 app/views/task/list.rhtml:11
+#: app/views/task/edit.rhtml:40
+msgid "Machine"
+msgstr ""
+
+#: app/views/deployment/edit.rhtml:30
+msgid "Puppet Class Node Overrides (Optional)"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:14
+msgid "Virtual IP Address"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:18
+msgid "Virtual MAC Address"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:57 app/views/profile/list.rhtml:10
+#: app/views/profile/view.rhtml:8
+msgid "Name"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:61 app/views/profile/list.rhtml:11
+#: app/views/profile/view.rhtml:12
+msgid "Version"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:65
+msgid "Filename"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:69
+msgid "Specfile"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:73 app/views/profile/view.rhtml:44
+msgid "Puppet Classes"
+msgstr ""
+
+#: app/views/deployment/view.rhtml:85
+msgid "Puppet Class Node Overrides"
+msgstr ""
+
+#: app/views/task/list.rhtml:9 app/views/task/edit.rhtml:17
+#, fuzzy
+msgid "User"
+msgstr "Nombre del usuario"
+
+#: app/views/task/list.rhtml:10
+msgid "Action"
+msgstr ""
+
+#: app/views/task/list.rhtml:12 app/views/task/edit.rhtml:51
+msgid "Deployment"
+msgstr ""
+
+#: app/views/task/list.rhtml:15
+msgid "Start Time"
+msgstr ""
+
+#: app/views/task/list.rhtml:18
+msgid "There are no scheduled tasks at this time."
+msgstr ""
+
+#: app/views/task/list.rhtml:34
+msgid "(Unknown)"
+msgstr ""
+
+#: app/views/task/edit.rhtml:23 app/views/regtoken/view.rhtml:13
+msgid "None"
+msgstr ""
+
+#: app/views/task/edit.rhtml:29
+msgid "Action Type"
+msgstr ""
+
+#: app/views/task/edit.rhtml:73
+msgid "Time"
+msgstr ""
+
+#: app/views/task/edit.rhtml:84
+msgid "go"
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:9 app/views/regtoken/view.rhtml:8
+msgid "Token"
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:11 app/views/regtoken/view.rhtml:16
+msgid "Uses Remaining"
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:12
+msgid "Delete"
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:15
+msgid ""
+"No registration tokens are in the virt-factory database.  Create some using "
+"the "
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:26 app/views/regtoken/view.rhtml:17
+msgid "Infinite"
+msgstr ""
+
+#: app/views/regtoken/edit.rhtml:17
+msgid "Usage Limit (Optional)"
+msgstr ""
+
+#: app/views/regtoken/edit.rhtml:21
+msgid "Create"
+msgstr ""
+
+#: app/views/profile/list.rhtml:12 app/views/profile/edit.rhtml:19
+#: app/views/profile/view.rhtml:16
+msgid "Distribution"
+msgstr ""
+
+#: app/views/profile/list.rhtml:13
+msgid "Storage"
+msgstr ""
+
+#: app/views/profile/list.rhtml:15
+msgid "Targets"
+msgstr ""
+
+#: app/views/profile/list.rhtml:16
+msgid "Container?"
+msgstr ""
+
+#: app/views/profile/list.rhtml:20
+msgid "There are no profile definitions installed into virt-factory."
+msgstr ""
+
+#: app/views/profile/edit.rhtml:11
+msgid "Name (string)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:15
+msgid "Version (string)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:28 app/views/profile/view.rhtml:20
+msgid "Virtual Storage Size (GB)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:32 app/views/profile/view.rhtml:24
+msgid "Virtual RAM (MB)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:36
+msgid "Kickstart Metadata (key=value key=value)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:40
+msgid "Kernel Options (key=value word)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:44 app/views/profile/view.rhtml:36
+msgid "Valid Targets"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:48 app/views/profile/view.rhtml:40
+msgid "Appliance Container"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:52
+msgid "Puppet Classes (space delimited)"
+msgstr ""
+
+#: app/views/profile/view.rhtml:41
+msgid "Yes"
+msgstr ""
+
+#: app/views/profile/view.rhtml:41
+msgid "No"
+msgstr ""
+
+#: app/views/demo/list.rhtml:12
+msgid ""
+"Most of these pages are just database scaffolding.  This will grow more "
+"later."
+msgstr ""
+
+#: app/views/user/list.rhtml:8 app/views/user/edit.rhtml:11
+#, fuzzy
+msgid "Username"
+msgstr "Nombre del usuario"
+
+#: app/views/user/list.rhtml:9
+msgid "First"
+msgstr ""
+
+#: app/views/user/list.rhtml:10
+msgid "Middle"
+msgstr ""
+
+#: app/views/user/list.rhtml:11
+msgid "Last"
+msgstr ""
+
+#: app/views/user/list.rhtml:12 app/views/user/edit.rhtml:36
+msgid "Description"
+msgstr ""
+
+#: app/views/user/list.rhtml:13
+msgid "Email"
+msgstr ""
+
+#: app/views/user/edit.rhtml:20
+#, fuzzy
+msgid "Password"
+msgstr "contraseña"
+
+#: app/views/user/edit.rhtml:24
+msgid "First name"
+msgstr ""
+
+#: app/views/user/edit.rhtml:28
+msgid "Middle name"
+msgstr ""
+
+#: app/views/user/edit.rhtml:32
+msgid "Last name"
+msgstr ""
+
 #: app/views/login/input.rhtml:8
 msgid "Username:"
 msgstr "Nombre del usuario"
@@ -32,6 +413,10 @@ msgstr "Nombre del usuario"
 msgid "No Account?"
 msgstr "¿Ninguna cuenta?"
 
+#: app/views/login/input.rhtml:11
+msgid "Request one."
+msgstr ""
+
 #: app/views/login/input.rhtml:12
 msgid "Password:"
 msgstr "contraseña"
@@ -39,3 +424,7 @@ msgstr "contraseña"
 #: app/views/login/input.rhtml:15
 msgid "Forgot your password?"
 msgstr "Se le olvido su contraseña"
+
+#: app/views/login/input.rhtml:16
+msgid "Log In"
+msgstr ""
