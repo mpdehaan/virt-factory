@@ -14,17 +14,18 @@ class _LocalRPCMethod(object):
                                                                   self.namespace,
                                                                   self.method_name)
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         results = None
+        is_async = kwargs.has_key('rpc_async')
         try:
             results = self.results[args]
         except TypeError:
-            results =  self.make_call(args, False)
+            results =  self.make_call(args, False, async_call=is_async)
         except KeyError:
-            results = self.make_call(args, True)
+            results = self.make_call(args, True, async_call=is_async)
         return results
 
-    def make_call(self, args, cache_encoded_args, cache_return=True):
+    def make_call(self, args, cache_encoded_args, cache_return=True, async_call=False):
         params = None
         if cache_encoded_args:
             try:
@@ -35,12 +36,16 @@ class _LocalRPCMethod(object):
         else:
             params = encode_object(args)
         encoded_call = self.partial_encoded_message + params
-        raw_results = self.transport.send_message_wait(self.server, encoded_call)
-        sender, namespace, method, headers, results = decode_rpc_response(raw_results)
-        if cache_return and headers.has_key('cache_results'):
+        if not async_call:
+            raw_results = self.transport.send_message_wait(self.server, encoded_call)
+            sender, namespace, method, headers, results = decode_rpc_response(raw_results)
+            if cache_return and headers.has_key('cache_results'):
                 self.results[args] =  results
                 results = self.results[args]
-        return results
+            return results
+        else:
+            self.transport.send_message(self.server, encoded_call)
+            return None
         
 
 class RPCProxy(object):

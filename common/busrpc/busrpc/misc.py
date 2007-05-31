@@ -19,7 +19,7 @@ def encode_rpc_response(sender, namespace, called_method, results, headers=None)
                       'method:', called_method, '\n'])
     if not headers == None:
         for key in headers.iterkeys():
-            retval = retval + key + ':' + simplejson.dumps(headers[key]) + '\n'
+            retval = retval + key + ':' + headers[key] + '\n'
         retval = retval + '\n'
     else:
         retval = retval + '\n'
