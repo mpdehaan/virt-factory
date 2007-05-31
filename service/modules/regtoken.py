@@ -14,7 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from server.codes import *
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 
 import profile
 import machine

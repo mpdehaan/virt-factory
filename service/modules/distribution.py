@@ -15,7 +15,7 @@
 ##
 
 from server.codes import *
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 
 import provisioning
 import cobbler
@@ -93,11 +93,12 @@ class Distribution(web_svc.AuthWebSvc):
         """
         required = ('id',)
         optional = ('kernel', 'initrd', 'name', 'architecture', 'kickstart', 'kernel_options', 'kickstart_metadata')
+        filter = ('id', 'options')
         self.validate(args, required)
         session = db.open_session()
         try:
             distribution = db.Distribution.get(session, args['id'])
-            distribution.update(args)
+            distribution.update(args, filter)
             session.save(distribution)
             session.flush()
             self.cobbler_sync(distribution.data())

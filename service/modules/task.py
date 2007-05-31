@@ -15,7 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from server.codes import *
 from server import db
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 import web_svc
 
 class Task(web_svc.AuthWebSvc):
@@ -72,24 +72,21 @@ class Task(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of task attributes.
             - id
-            - user_id  (optional)
-            - action_type (optional)
-            - machine_id  (optional)
-            - deployment_id  (optional)
             - state  (optional)
         @type args: dict
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
-        optional = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
+        optional = ('state')
+        filter = ('id', 'user_id', 'action_type', 'machine_id', 'deployment_id')
         validator.verify_required(required)
         validator.verity_enum('state', VALID_TASK_STATES)
         validator.verity_enum('action_type', VALID_TASK_STATES)
         session = db.open_session()
         try:
             task = db.Task.get(session, args['id'])
-            task.update(args)
+            task.update(args, filter)
             session.save(task)
             session.flush()
             return success()

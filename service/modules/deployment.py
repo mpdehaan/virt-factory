@@ -16,7 +16,7 @@
 
 
 from server.codes import *
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 
 import profile
 import machine
@@ -202,6 +202,7 @@ class Deployment(web_svc.AuthWebSvc):
         optional =\
             ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
              'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
+        filter = ('id', 'profile_id')
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -227,7 +228,7 @@ class Deployment(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
-            deployment.update(args)
+            deployment.update(args, filter)
             session.save(deployment)
             session.flush()
             self.cobbler_sync(deployment.data())

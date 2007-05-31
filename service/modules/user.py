@@ -16,7 +16,7 @@
 
 from server.codes import *
 from server import db
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 
 import web_svc
 

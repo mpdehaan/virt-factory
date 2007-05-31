@@ -15,7 +15,7 @@
 ##
 
 from server.codes import *
-from baseobj import FieldValidator
+from fieldvalidator import FieldValidator
 
 import provisioning
 import cobbler
