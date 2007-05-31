@@ -16,6 +16,7 @@
 
 
 from server.codes import *
+from server import db
 from fieldvalidator import FieldValidator
 
 import profile

@@ -14,6 +14,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 from server.codes import *
+from server import db
 from server import config_data
 from fieldvalidator import FieldValidator
 import distribution
@@ -161,8 +162,6 @@ class Profile(web_svc.AuthWebSvc):
             - puppet_classes (optional)
         @raise SQLException: On database error
         """
-        required = ('id',)
-        FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
             result = []
