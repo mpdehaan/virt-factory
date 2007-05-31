@@ -2,8 +2,12 @@ import time
 import sys
 
 from busrpc.rpc import lookup_service
+import busrpc.qpid_transport
 
-fp = lookup_service("foo")
+transport = busrpc.qpid_transport.QpidTransport()
+transport.connect()
+
+fp = lookup_service("foo", transport, 'bogon.rdu.redhat.com')
 bp = lookup_service("bar", fp.transport)
 if fp == None or bp == None:
     print "Lookup failed :("

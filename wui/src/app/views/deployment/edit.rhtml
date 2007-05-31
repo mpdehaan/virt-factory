@@ -9,7 +9,7 @@
       <%= f.hidden_field :machine_id if @operation == "edit" %>
       <table class='details'>
          <TR>
-            <TD>Machine</TD>
+            <TD><%= _("Machine") %></TD>
             <TD><%= if @operation == "add"
                         f.select :machine_id, @machines
                     else
@@ -18,7 +18,7 @@
             </TD>
          </TR>
          <TR>
-            <TD>Profile</TD>
+            <TD><%= _("Profile") %></TD>
             <TD><%= if @operation == "add"
 	                f.select :profile_id, @profiles
 	            else
@@ -27,21 +27,21 @@
              </TD>
          </TR>
          <TR>
-            <TD>Puppet Class Node Overrides (Optional)</TD>
+            <TD><%= _("Puppet Class Node Overrides (Optional)") =></TD>
             <TD><%= f.text_field :puppet_node_diff %></TD>
          </TR>
          <% if @operation == "edit" %>
          <TR>
-            <TD>MAC Address</TD>
+            <TD><%= _("MAC Address") %></TD>
             <TD><%= @item.mac_address %></TD>
          </TR>
          <TR>
-            <TD>Current State</TD>
+            <TD><%= _("Current State") %></TD>
             <TD><%= @item.state %> <%= link_to "(reload)", :controller => "deployment", :action=>"edit", :id => @item.id %></TD>
          </TR>
          <% end %>
          <TR>
-            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ? "Edit" : "Add" %>"></TD>
+            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ?  _("Edit") : _("Add") %>"></TD>
          </TR>
       </TABLE>
  
@@ -50,7 +50,7 @@
       <!-- FIXME: the right links should be shown based on the current db state -->
 
       <% if @operation == "edit" %>
-      Control actions:
+      <%= _("Control actions:") %>
       <ul>
       <li><%= link_to "start",     :controller => "deployment", :action=> "start", :id => @item.id %></li>
       <li><%= link_to "shutdown",  :controller => "deployment", :action=> "shutdown", :id => @item.id %></li>

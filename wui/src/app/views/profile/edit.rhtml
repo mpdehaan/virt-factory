@@ -8,15 +8,15 @@
       <%= f.hidden_field :distribution_id if @operation == "edit" %>
       <table class='details'>
          <TR>
-            <TD>Name (string)</TD>
+            <TD><%= _("Name (string)") %></TD>
             <TD><%= f.text_field :name %></TD>
          </TR>
          <TR> 
-            <TD>Version (string)</TD>
+            <TD><%= _("Version (string)") %></TD>
             <TD><%= f.text_field :version %></TD>
          </TR>
          <TR>
-            <TD>Distribution</TD>
+            <TD><%= _("Distribution") %></TD>
             <TD><%= if @operation == "add"
 	                f.select :distribution_id, @distributions
 	            else
@@ -25,31 +25,31 @@
              </TD>
          </TR>
          <TR>
-            <TD>Virtual Storage Size (GB)</TD>
+            <TD><%= _("Virtual Storage Size (GB)") %></TD>
             <TD><%= f.text_field :virt_storage_size %></TD>
          </TR>
          <TR>
-            <TD>Virtual RAM (MB)</TD>
+            <TD><%= _("Virtual RAM (MB)") %></TD>
             <TD><%= f.text_field :virt_ram %></TD>
          </TR>
          <TR>
-            <TD>Kickstart Metadata (key=value key=value)</TD>
+            <TD><%= _("Kickstart Metadata (key=value key=value)") %></TD>
             <TD><%= f.text_field :kickstart_metadata %></TD>
          </TR>
          <TR>
-            <TD>Kernel Options (key=value word)</TD>
+            <TD><%= _("Kernel Options (key=value word)") %></TD>
             <TD><%= f.text_field :kernel_options %></TD>
          </TR>
          <TR>
-            <TD>Valid Targets</TD>
+            <TD><%= _("Valid Targets") %></TD>
             <TD><%= f.select :valid_targets, VALID_TARGETS_SELECT %></TD>
          </TR>
          <TR>
-            <TD>Appliance Container</TD>
+            <TD><%= _("Appliance Container") %></TD>
             <TD><%= f.select :is_container, BOOLEAN_INT_SELECT %></TD>
          </TR>
          <TR>
-            <TD>Puppet Classes (space delimited)</TD>
+            <TD><%= _("Puppet Classes (space delimited)") %></TD>
             <TD><%= f.text_field :puppet_classes %></TD>
          </TR>
          <TR>

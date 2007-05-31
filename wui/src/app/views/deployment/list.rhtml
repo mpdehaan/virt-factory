@@ -7,16 +7,16 @@
       <% if @items.length > 0 %>
       <table class='listing'>
          <thead>
-            <th>Host Machine</th>
-            <th>Virtual Hostname</th>
-            <th>IP</th>
-            <th>Mac Address</th>
-            <th>Profile</th>
-            <th>State</th>
-            <th colspan="2">Actions</th>
+            <th><%= _("Host Machine") %></th>
+            <th><%= _("Virtual Hostname") %></th>
+            <th><%= _("IP") %></th>
+            <th><%= _("Mac Address") %></th>
+            <th><%= _("Profile") %></th>
+            <th><%= _("State") %></th>
+            <th colspan="2"><%= _("Actions") %></th>
          </thead>
       <% else %>
-         There are no virtual profiles created or deployed yet.  Use the "Add" link to create one.
+         <%= _("There are no virtual profiles created or deployed yet.  Use the \"Add\" link to create one.") %>
       <% end %>
 
       <%# FIXME: this may be a result of what objects are being sent over from Python. %>

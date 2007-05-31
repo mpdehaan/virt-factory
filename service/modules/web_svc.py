@@ -35,10 +35,6 @@ class WebSvc(object):
         config_result = config_obj.get()
         self.config = config_result
         self.__init_log()
-        self.__init_db()
-
-    def __init_db(self):
-        self.db = db_util.DbUtil()
         
     def __init_log(self):
         # lets see what happens when we c&p the stuff from server.py 
@@ -48,6 +44,9 @@ class WebSvc(object):
     def register_rpc(self, handlers):
         for meth in self.methods:
             handlers[meth] = self.methods[meth]
+            
+    def offset_and_limit(self, args):
+        return args.get('offset', 0), args.get('limit', 100000)
 
 
 class AuthWebSvc(WebSvc):

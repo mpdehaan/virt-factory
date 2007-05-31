@@ -19,7 +19,7 @@ class _LocalRPCMethod(object):
         try:
             results = self.results[args]
         except TypeError:
-            results =  self.make_call(args, True)
+            results =  self.make_call(args, False)
         except KeyError:
             results = self.make_call(args, True)
         return results
@@ -36,10 +36,9 @@ class _LocalRPCMethod(object):
             params = encode_object(args)
         encoded_call = self.partial_encoded_message + params
         raw_results = self.transport.send_message_wait(self.server, encoded_call)
-        results = decode_object(raw_results)
-        if cache_return and type(results).__name__ == "dict":
-            if results.has_key("cache_return"):
-                self.results[args] =  results["call_results"]
+        sender, namespace, method, headers, results = decode_rpc_response(raw_results)
+        if cache_return and headers.has_key('cache_results'):
+                self.results[args] =  results
                 results = self.results[args]
         return results
         
@@ -66,7 +65,7 @@ class RPCProxy(object):
         method = _LocalRPCMethod(attrs['transport'], attrs['service_name'], attrs['namespace'], method_name)
         return method
 
-def lookup_service(name, transport=None):
+def lookup_service(name, transport, host=None):
     if transport == None:
         transport = qpid_transport.QpidTransport()
         transport.connect()
@@ -75,7 +74,7 @@ def lookup_service(name, transport=None):
     if name == "bridge":
         retval = bridge
     else:
-        server = bridge.lookup_namespace(name)
+        server = bridge.lookup_namespace(name, host)
         if not server == None:
             retval = busrpc.rpc.RPCProxy(server, name, transport)
     return retval

@@ -6,12 +6,33 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+# Notes:
+##################################################
+# - The tables are created with foreign key constraints and indexes.
+#    FK constraints are set for cascading delete when the FK is not-null.
+# - The ORM mappers are setup with bidirectional relationships to mirror
+#    the constraints.  This ensures that the model maintained by the session matches
+#    the current state in the database.
+# - Tables are not auto-loaded because the constraint information is lost.
+# - All sqlalchemy objects are created in static lists to ensure they exist and
+#    are only created once.
+# - The global metadata and engine are configured and used.  This can be
+#    changed in the event that we need more then one context.
+# - The session is wrappered in a dispatcher object.  The purpose of this is to wrapper
+#    the sqlalchemy exceptions in SQLException.  Since the session is the primary source
+#    of exceptions and the most heavily used, having it raise SQLException allows users
+#    to (easily) use a try: finally: block.  Since python <2.5 does not support try:catch:finally,
+#    this should help keep the code clean.
+#
+# TODO: This module needs to be broken up into several modules and
+#             placed in its own package.
 
 import traceback
 import threading
 from sqlalchemy import *
 from datetime import datetime
-from codes import SQLException
+from codes import SQLException, NoSuchObjectException
 
 tables =\
 (
@@ -152,7 +173,7 @@ tables =\
     Table('upgrade_log_messages',
         Column('id', Integer, Sequence('uglogmsgid'), primary_key=True),
         Column('action', String(50)),
-        Column('message_type', String(50)),
+        Column('message_type', String(50), nullable=False),
         Column('message_timestamp',
                DateTime,
                default=datetime.utcnow()),
@@ -172,13 +193,48 @@ indexes =\
 
 
 class Base(object):
-    def data(self):
+    def fields(self):
+        return ormbindings.get(self.__class__, ())
+    
+    def data(self, filter=[]):
         result = {}
-        for key in ormbindings.get(self.__class__, ()):
+        for key in self.fields():
+            if key in filter:
+                continue
             value = getattr(self, key)
             if value is not None:
                 result[key] = value
         return result
+    
+    def update(self, args, filter=('id',)):
+        for key in self.fields():
+            if key in filter: continue
+            if key in args:
+                setattr(self, key, args[key])
+    
+    def __delete(self, session, id):
+            session.delete(self.get(session, id))
+            session.flush()
+                        
+    def __get(self, session, id):
+        result = session.get(self, id)
+        if result is None:
+            comment = '%s(id=%s) not-found' % (self, id)
+            raise NoSuchObjectException(comment=comment)
+        return result
+    
+    def __list(self, session, offset=0, limit=0):
+        result = []        
+        query = session.query(self)
+        if limit > 0:
+            result = query.select(offset=offset, limit=limit)
+        else:
+            result = query.select()
+        return result
+    
+    get = classmethod(__get)
+    delete = classmethod(__delete)
+    list = classmethod(__list)
 
 
 class User(Base):
@@ -290,7 +346,6 @@ class Database:
         Create all tables, indexes and constraints that have not
         yet been created.
         """
-        # TODO: create the database here?
         for t in tables:
             t.create(checkfirst=True)
     
@@ -356,29 +411,41 @@ def open_session():
 
 if __name__ == '__main__':
     database = Database('postgres://jortel:jortel@localhost/virtfactory')
-    #database.drop()
-    #database.create()
+    database.drop()
+    database.create()
         
-    ssn = open_session()
     try:
+        args =\
+            {'username':'jortel', 'password':'mypassword', 
+             'first':'Elvis', 'last':'Prestley', 'description':'a desc', 'email':'king@hell.com'}
+            
+        ssn = open_session()
+            
         user = User()
-        user.username = 'jortel'
-        user.password = 'mypassword'
-        user.first = 'Elvis'
-        user.last = 'Prestley'
-        user.description = 'The King.'
-        user.email = 'elvis@redhat.com'
+        user.update(args)
         ssn.save(user)
+        ssn.flush()
         
+
+        user = User.get(ssn, 1)
         session = Session()
         session.session_token = 'my token'
         user.sessions.append(session)
-
         ssn.save(session)
         ssn.flush()
 
-        ssn.delete(user)
-        ssn.flush()
+        try:
+            fetched = User.get(ssn, 1)
+            print '______fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
+            fetched.update({'middle':'Dog'})
+            ssn.save(fetched)
+            ssn.flush()
+            for fetched in User.list(ssn):
+                print '______(list) fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
+        except Exception, e:
+            print '___failed___%s'  % e.comment
+
+        User.delete(ssn, 1)
     finally:
-        ssn.close()
+        pass
         

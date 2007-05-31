@@ -15,116 +15,19 @@
 ##
 
 from server.codes import *
+from fieldvalidator import FieldValidator
 
-import baseobj
 import provisioning
 import cobbler
 import web_svc
 from server import config_data
 
-import os
 import traceback
 import threading
 
 
-#------------------------------------------------------------
-
-class DistributionData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "kernel", "initrd", "options", "kickstart", "name",
-               "architecture", "kernel_options", "kickstart_metadata" ]
-
-    def _produce(klass, dist_args,operation=None):
-        """
-        Factory method.  Create a distribution object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the distribution object.
-        """
-
-        self = DistributionData()
-        self.from_datastruct(dist_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,dist_args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the distribution as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        distribution object for interaction with the ORM.  See methods below for examples.
-        """
-
-        return self.deserialize(dist_args) # ,self.FIELDS)
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-
-        return self.serialize()
-
-    def validate(self,operation):
-
-        invalid_fields = {} 
-
-        if self.id is None:
-            # -1 is for sqlite to say "use your own counter".
-            self.id = -1 
-
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_fields["id"] = REASON_FORMAT
-
-        if operation in [OP_EDIT,OP_ADD]:
-            # TODO
-            # kernel references file on filesystem
-            if not os.path.isfile(self.kernel):
-                invalid_fields["kernel"] = REASON_NOFILE
-
-            # initrd references file on filesystem
-            if not os.path.isfile(self.initrd):
-                invalid_fields["initrd"] = REASON_NOFILE
-
-            if (self.kickstart is not None) and (not os.path.isfile(self.kickstart)):
-                invalid_fields["kickstart"] = REASON_NOFILE
-
-            # name is printable
-            # FIXME: this is lame, replace with regex module stuff later.
-            if (self.kernel_options is not None) and (not self.is_printable(self.kernel_options)):
-                invalid_fields["name"] = REASON_FORMAT
-      
-            # architecture is one of the architecture constants in codes.py
-            if not self.architecture in VALID_ARCHS:
-                invalid_fields["architecture"] = REASON_RANGE   
-
-            # kernel options is printable, space delimited a=b pairs 
-            if (self.kernel_options is not None) and (not self.is_printable(self.kernel_options)):
-                invalid_fields["kernel_options"] = REASON_FORMAT
-
-        # kickstart metadata is composed of space delimited a=b pairs, or None/blank
-
-        if len(invalid_fields) != 0:
-            #print "Invalid fields: ", invalid_fields
-            raise InvalidArgumentsException(invalid_fields=invalid_fields)
-
 
 class Distribution(web_svc.AuthWebSvc):
-
-    DB_SCHEMA = {
-        "table" : "distributions",
-        "fields" : DistributionData.FIELDS,
-        "add"   : [ "kernel", "initrd", "options", "kickstart", "name", "architecture",
-                    "kernel_options", "kickstart_metadata" ],
-        "edit"  : [ "kernel", "initrd", "kickstart", "name", "architecture",
-                    "kernel_options", "kickstart_metadata" ]
-        }
-
-
     def __init__(self):
         self.methods = {"distribution_add"    : self.add,
                         "distribution_delete" : self.delete,
@@ -133,79 +36,203 @@ class Distribution(web_svc.AuthWebSvc):
                         "distribution_get"    : self.get}
         web_svc.AuthWebSvc.__init__(self)
 
-        # FIXME: could go in the baseclass...
-        self.db.db_schema = self.DB_SCHEMA
 
-    def add(self, token, dist_args):
+    def add(self, token, args):
+        """
+        Add a distribution.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution properties.
+        @type args: dict
+            - kernel
+            - initrd
+            - options (optional)
+            - kickstart  (optional)
+            - name
+            - architecture
+            - kernel_options (optional)
+            - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        """
+        required = ('kernel', 'initrd', 'name', 'architecture')
+        optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
+        self.validatelidate(args, required)
+        session = db.open_session()
+        try:
+            distribution = db.Distribution()
+            distribution.update(args)
+            session.save(distribution)
+            session.flush()
+            self.cobbler_sync(distribution.data())
+        finally:
+            session.close()
 
-        u = DistributionData.produce(dist_args,OP_ADD)
-        result = self.db.simple_add(u.to_datastruct())
-        self.cobbler_sync(u.to_datastruct())
-        return result
 
     def cobbler_sync(self, data):
          cobbler_api = config_data.Config().cobbler_api
          provisioning.CobblerTranslatedDistribution(cobbler_api, data)       
  
-    def edit(self, token, dist_args): 
-
-        u = DistributionData.produce(dist_args,OP_EDIT)
-        # TODO: make this work w/ u.to_datastruct() 
-        result = self.db.simple_edit(dist_args)
-        self.cobbler_sync(u.to_datastruct())
-        return result
-
-    def delete(self, token, dist_args):
-
-        st = """
-        SELECT profiles.id FROM profiles, distributions WHERE
-        profiles.distribution_id = :id
+ 
+    def edit(self, token, args):
         """
-
-        u = DistributionData.produce(dist_args, OP_DELETE)
-        self.db.cursor.execute(st, u.to_datastruct())
-        x = self.db.cursor.fetchone()
-        if x is not None:
-            raise OrphanedObjectException(comment="profiles.distribution_id")
-        u = DistributionData.produce(dist_args,OP_DELETE) # force validation
-        
-        return self.db.simple_delete(u.to_datastruct())
-
-
-    def list(self, token, dist_args):
+        Add a distribution.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution properties.
+        @type args: dict
+            - id
+            - kernel  (optional)
+            - initrd  (optional)
+            - kickstart  (optional)
+            - name  (optional)
+            - architecture  (optional)
+            - kernel_options (optional)
+            - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
-        Return a list of distributions.  The dist_args list is currently *NOT*
-        used.  Ideally we need to include LIMIT information here for
-        GUI pagination when we start worrying about hundreds of systems.
-        """
+        required = ('id',)
+        optional = ('kernel', 'initrd', 'name', 'architecture', 'kickstart', 'kernel_options', 'kickstart_metadata')
+        filter = ('id', 'options')
+        self.validate(args, required)
+        session = db.open_session()
+        try:
+            distribution = db.Distribution.get(session, args['id'])
+            distribution.update(args, filter)
+            session.save(distribution)
+            session.flush()
+            self.cobbler_sync(distribution.data())
+            return success()
+        finally:
+            session.close()
 
-        return self.db.simple_list(dist_args)
+
+    def delete(self, token, args):
+        """
+        Deletes a distribution.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+            - id
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            db.Distribution.delete(session, args['id'])
+            return success()
+        finally:
+            session.close()
 
 
-    def get(self, token, dist_args):
+    def list(self, token, args):
         """
-        Return a specific distribution record.  Only the "id" is required in dist_args.
+        Get all distributions.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+        @type args: dict
+            - offset (optional)
+            - limit (optional)
+        @return: A list of distributions.
+        @rtype: [dict,]
+           - id
+           - kernel
+           - initrd
+           - options (optional)
+           - kickstart  (optional)
+           - name
+           - architecture
+           - kernel_options (optional)
+           - kickstart_metadata (optional)
+        @raise SQLException: On database error
         """
-        
-        u = DistributionData.produce(dist_args,OP_GET) # force validation
-        return self.db.simple_get(u.to_datastruct())
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for distribution in db.Distribution.list(session, offset, limit):
+                result.append(distribution.data())
+            return success(result)
+        finally:
+            session.close()
 
-    def get_by_name(self, token, dist_args):
-        """
-        Return a specific distribution record by name. Only the "name" is required
-        in dist_args.
-        """
 
-        if dist_args.has_key("name"):
-            name = dist_args["name"]
-        else:
-            raise ValueError("name is required")
-            
-        result = self.db.simple_list({}, {"name": "'%s'" % name})
-        if (len(result.data) > 0):
-            return success(result.data[0])
-        else:
-            return NoSuchObjectException(comment="get_by_name")
+    def get(self, token, args):
+        """
+        Get all distributions.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+        @type args: dict
+            - id
+        @return: A distribution by id.
+        @rtype: dict
+           - id
+           - kernel
+           - initrd
+           - options (optional)
+           - kickstart  (optional)
+           - name
+           - architecture
+           - kernel_options (optional)
+           - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            distribution = db.Distribution.get(session, args['id'])
+            return success(distribution.data())
+        finally:
+            session.close()
+
+
+    def get_by_name(self, token, args):
+        """
+        Get all distributions.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+        @type args: dict
+            - name
+        @return: A distribution by name.
+        @rtype: dict
+           - id
+           - kernel
+           - initrd
+           - options (optional)
+           - kickstart  (optional)
+           - name
+           - architecture
+           - kernel_options (optional)
+           - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        """
+        required = ('name',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            name = args['name']
+            distribution = ssn.query(db.Distribution).selectfirst_by(name == name)
+            if deployment is None:
+                raise NoSuchObjectException(comment=objectid)
+            return success(distribution.data())
+        finally:
+            session.close()
+
+
+    def validate(self, args, required):
+        vdr = FieldValidator(args)
+        vdr.verify_required(required)
+        vdr.verify_file('kernel', 'initrd')
+        vdr.verify_printable('name', 'kernel_options')
+        vdr.verify_enum('architecture', VALID_ARCHS)
 
 
 methods = Distribution()
