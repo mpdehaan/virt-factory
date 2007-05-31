@@ -43,6 +43,8 @@ class Machine(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Create a machine.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
             - hostname (optional)
             - ip_address (optional)
@@ -61,6 +63,7 @@ class Machine(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - is_locked (optional)
         @type args: dict
+        @raise SQLException: On database error
         """    
         optional =\
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
@@ -141,7 +144,10 @@ class Machine(web_svc.AuthWebSvc):
     def edit(self, token, args):
         """
         Edit a machine.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
+        @type args: dict
             - id
             - hostname (optional)
             - ip_address (optional)
@@ -159,7 +165,8 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
-        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
         optional =\
@@ -173,21 +180,23 @@ class Machine(web_svc.AuthWebSvc):
             machine.update(args)
             session.save(machine)
             session.flush()
+            if machine.profile_id >= 0:
+                self.cobbler_sync(data)
+            return success()
         finally:
             session.close()
-            
-        if machine.profile_id >= 0:
-            self.cobbler_sync(data)
-            
-        return success()
 
 
     def delete(self, token, args):
         """
         Deletes a machine.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
             - id
         @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
@@ -202,8 +211,12 @@ class Machine(web_svc.AuthWebSvc):
     def list(self, token, args):
         """
         Get a list of all machines.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
         @type args: dict
+            - offset (optional)
+            - limit (optional)
         @return A list of all machines.
         @rtype: [dict,]
             - id
@@ -223,6 +236,7 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
+        @raise SQLException: On database error
         """    
         session = db.open_session()
         try:
@@ -238,8 +252,12 @@ class Machine(web_svc.AuthWebSvc):
     def get_by_hostname(self, token, args):
         """
         Get a machines by hostname.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
             - hostname
+            - offset (optional)
+            - limit (optional)
         @type args: dict
         @return A list of all machines.
         @rtype: [dict,]
@@ -260,6 +278,7 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
+        @raise SQLException: On database error
         """
         required = ('hostname',)
         FieldValidator(args).verify_required(required)
@@ -279,8 +298,12 @@ class Machine(web_svc.AuthWebSvc):
     def get_by_regtoken(self, token, args):
         """
         Get a machines by registration token.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
             - registration_token
+            - offset (optional)
+            - limit (optional)
         @type args: dict
         @return A list of machines.
         @rtype: [dict,]
@@ -300,6 +323,7 @@ class Machine(web_svc.AuthWebSvc):
             - profile_id
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
+        @raise SQLException: On database error
         """
         required = ('registration_token',)
         FieldValidator(args).verify_required(required)
@@ -319,10 +343,12 @@ class Machine(web_svc.AuthWebSvc):
     def get(self, token, args):
         """
         Get a machine by id.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of machine attributes.
             - id
         @type args: dict
-        @return A list of machines.
+        @return A machine.
         @rtype: dict
             - id
             - hostname (optional)
@@ -341,6 +367,8 @@ class Machine(web_svc.AuthWebSvc):
             - puppet_node_diff (optional)
             - netboot_enabled (optional)
             - is_locked (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)

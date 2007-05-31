@@ -39,123 +39,145 @@ class User(web_svc.AuthWebSvc):
 
 
     def add(self, token, args):
-         """
-         Create a user.
-         @param args: A dictionary of user attributes.
-             - username
-             - password
-             - first
-             - middle (optional)
-             - last
-             - description
-             - email
-         @type args: dict
-         """
-         required = ('username','password', 'first', 'last', 'email')
-         optional = ('middle', 'description')
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         self.__lock.acquire()
-         try:
-             user = db.User()
-             user.update(args)
-             session.save(user)
-             session.flush()
-             return success(user.id)
-         finally:
-             self.__lock.release()
-             session.close()
+        """
+        Create a user.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of user attributes.
+        @type args: dict
+            - username
+            - password
+            - first
+            - middle (optional)
+            - last
+            - description
+            - email
+        @raise SQLException: On database error
+        """
+        required = ('username','password', 'first', 'last', 'email')
+        optional = ('middle', 'description')
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        self.__lock.acquire()
+        try:
+            user = db.User()
+            user.update(args)
+            session.save(user)
+            session.flush()
+            return success(user.id)
+        finally:
+            self.__lock.release()
+            session.close()
 
 
     def edit(self, token, args):
-         """
-         Edit a user.
-         @param args: A dictionary of user attributes.
-             - id
-             - username (optional)
-             - password (optional)
-             - first (optional)
-             - middle (optional)
-             - last (optional)
-             - description (optional)
-             - email (optional)
-         @type args: dict.
-         # TODO: password should be stored encrypted.
-         """
-         required = ('id',)
-         optional = ('username','password', 'first', 'middle', 'last', 'email', 'description')
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         self.__lock.acquire()
-         try:
-             user = db.User.get(session, args['id'])
-             user.update(args)
-             session.save(user)
-             session.flush()
-             return success()
-         finally:
-             self.__lock.release()
-             session.close()
+        """
+        Edit a user.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of user attributes.
+        @type args: dict.
+            - id
+            - username
+            - password
+            - first
+            - middle (optional)
+            - last
+            - description
+            - email
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        # TODO: password should be stored encrypted.
+        """
+        required = ('id',)
+        optional = ('username','password', 'first', 'middle', 'last', 'email', 'description')
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        self.__lock.acquire()
+        try:
+            user = db.User.get(session, args['id'])
+            user.update(args)
+            session.save(user)
+            session.flush()
+            return success()
+        finally:
+            self.__lock.release()
+            session.close()
 
+    
     def delete(self, token, args):
-         """
-         Deletes a user.
-         @param args: A dictionary of user attributes.
-             - id
-         @type args: dict
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         self.__lock.acquire()
-         try:
-             db.User.delete(session, args['id'])
-             return success()
-         finally:
-             self.__lock.release()
-             session.close()
+        """
+        Deletes a user.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of user attributes.
+            - id
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        self.__lock.acquire()
+        try:
+            db.User.delete(session, args['id'])
+            return success()
+        finally:
+            self.__lock.release()
+            session.close()
 
 
     def list(self, token, args):
-         """
-         Get all users.
-         @param args: A dictionary of user attributes.
-         @type args: dict
-         @return: A list of users.
-         @rtype: [dict,]
-             - id
-             - username
-             - first
-             - middle (optional)
-             - last
-             - description (optional)
-             - email
-         """
-         session = db.open_session()
-         try:
-             result = []
-             offset, limit = self.offset_and_limit(args)
-             for user in db.User.list(session, offset, limit):
-                 result.append(user.data())
-             return success(result)
-         finally:
-             session.close()
+        """
+        Get a list of all users.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of user attributes.
+        @type args: dict
+            - offset (optional)
+            - limit (optional)
+        @return: A list of users.
+        @rtype: [dict,]
+            - id
+            - username
+            - first
+            - middle (optional)
+            - last
+            - description (optional)
+            - email
+        @raise SQLException: On database error
+        """
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for user in db.User.list(session, offset, limit):
+                result.append(user.data())
+            return success(result)
+        finally:
+            session.close()
+
 
     def get(self, token, args):
-         """
-         Get a user by id.
-         @param args: A dictionary of user attributes.
-             - id
-         @type args: dict
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         try:
-             user = db.User.get(session, args['id'])
-             return success(user.data())
-         finally:
-             session.close()
+        """
+        Get a user by id.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of user attributes.
+            - id
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            user = db.User.get(session, args['id'])
+            return success(user.data())
+        finally:
+            session.close()
 
  
 methods = User()

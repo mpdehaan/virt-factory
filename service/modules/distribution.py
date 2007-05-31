@@ -40,6 +40,8 @@ class Distribution(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Add a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution properties.
         @type args: dict
             - kernel
@@ -50,6 +52,7 @@ class Distribution(web_svc.AuthWebSvc):
             - architecture
             - kernel_options (optional)
             - kickstart_metadata (optional)
+        @raise SQLException: On database error
         """
         required = ('kernel', 'initrd', 'name', 'architecture')
         optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
@@ -73,6 +76,8 @@ class Distribution(web_svc.AuthWebSvc):
     def edit(self, token, args):
         """
         Add a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution properties.
         @type args: dict
             - id
@@ -83,6 +88,8 @@ class Distribution(web_svc.AuthWebSvc):
             - architecture  (optional)
             - kernel_options (optional)
             - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         optional = ('kernel', 'initrd', 'name', 'architecture', 'kickstart', 'kernel_options', 'kickstart_metadata')
@@ -102,9 +109,13 @@ class Distribution(web_svc.AuthWebSvc):
     def delete(self, token, args):
         """
         Deletes a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
             - id
         @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
@@ -117,36 +128,43 @@ class Distribution(web_svc.AuthWebSvc):
 
 
     def list(self, token, args):
-         """
-         Get all distributions.
-         @param args: A dictionary of distribution attributes.
-         @type args: dict
-         @return: A list of distributions.
-         @rtype: [dict,]
-            - id
-            - kernel
-            - initrd
-            - options (optional)
-            - kickstart  (optional)
-            - name
-            - architecture
-            - kernel_options (optional)
-            - kickstart_metadata (optional)
-         """
-         session = db.open_session()
-         try:
-             result = []
-             offset, limit = self.offset_and_limit(args)
-             for distribution in db.Distribution.list(session, offset, limit):
-                 result.append(distribution.data())
-             return success(result)
-         finally:
-             session.close()
+        """
+        Get all distributions.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+        @type args: dict
+            - offset (optional)
+            - limit (optional)
+        @return: A list of distributions.
+        @rtype: [dict,]
+           - id
+           - kernel
+           - initrd
+           - options (optional)
+           - kickstart  (optional)
+           - name
+           - architecture
+           - kernel_options (optional)
+           - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        """
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for distribution in db.Distribution.list(session, offset, limit):
+                result.append(distribution.data())
+            return success(result)
+        finally:
+            session.close()
 
 
     def get(self, token, args):
         """
         Get all distributions.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
         @type args: dict
             - id
@@ -161,6 +179,8 @@ class Distribution(web_svc.AuthWebSvc):
            - architecture
            - kernel_options (optional)
            - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
@@ -175,6 +195,8 @@ class Distribution(web_svc.AuthWebSvc):
     def get_by_name(self, token, args):
         """
         Get all distributions.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
         @type args: dict
             - name
@@ -189,6 +211,7 @@ class Distribution(web_svc.AuthWebSvc):
            - architecture
            - kernel_options (optional)
            - kickstart_metadata (optional)
+        @raise SQLException: On database error
         """
         required = ('name',)
         FieldValidator(args).verify_required(required)

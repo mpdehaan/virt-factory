@@ -15,8 +15,8 @@
 ##
 
 from server.codes import *
+from baseobj import FieldValidator
 
-import baseobj
 import provisioning
 import cobbler
 import web_svc
@@ -24,77 +24,6 @@ import web_svc
 import os
 import traceback
 import threading
-
-
-#------------------------------------------------------------
-
-class UpgradeLogMessageData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "action", "message_type", "message_timestamp", "message"]
-
-    def _produce(klass, dist_args,operation=None):
-        """
-        Factory method.  Create a upgrade log message object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the upgrade log message object.
-        """
-
-        self = UpgradeLogMessageData()
-        self.from_datastruct(dist_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,dist_args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the upgrade log message as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        upgrade log message object for interaction with the ORM.  See methods below for examples.
-        """
-
-        return self.deserialize(dist_args)
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-
-        return self.serialize()
-
-    def validate(self,operation):
-
-        invalid_fields = {} 
-
-        if self.id is None:
-            # -1 is for sqlite to say "use your own counter".
-            self.id = -1 
-
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_fields["id"] = REASON_FORMAT
-
-        if operation in [OP_EDIT,OP_ADD]:
-            # version is printable
-            if (self.action is not None) and (not self.is_printable(self.action)):
-                invalid_fields["action"] = REASON_FORMAT
-      
-            # message_type is one of the constants in codes.py
-            if not self.message_type in VALID_UPGRADE_LOG_MESSAGE_STATUS:
-                invalid_fields["message_type"] = REASON_RANGE   
-
-            # message is printable
-            if (self.message is not None) and (not self.is_printable(self.message)):
-                invalid_fields["message"] = REASON_FORMAT
-      
-
-        if len(invalid_fields) != 0:
-            #print "Invalid fields: ", invalid_fields
-            raise InvalidArgumentsException(invalid_fields=invalid_fields)
 
 
 class UpgradeLogMessage(web_svc.AuthWebSvc):
@@ -110,48 +39,54 @@ class UpgradeLogMessage(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Create a message.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of message attributes.
             - action (optional)
             - message_type
             - message (optional)
         @type args: dict
+        @raise SQLException: On database error
         """
         optional = ('action', 'message')
         required = ('message_type')
         validator = FieldValidator(args)
         validator.verify_required(required)
+        validator.verify_enum('message_type', VALID_UPGRADE_LOG_MESSAGE_STATUS)
+        validator.verify_printable('action', 'message')
         session = db.open_session()
         try:
             msg = db.UpgradeLogMessage()
-            for key in (required+optional):
-                setattr(msg, key, args.get(key, None))
+            msg.update(args)
             session.save(msg)
             session.flush()
             return success(msg.id)
         finally:
             session.close()
 
+
     def edit(self, token, args):
         """
         Edit a message.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of message attributes.
         @type args: dict
             - id
             - action (optional)
             - message_type (optional)
             - message (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         validator.verify_required(required)
+        validator.verify_enum('message_type', VALID_UPGRADE_LOG_MESSAGE_STATUS)
+        validator.verify_printable('action', 'message')
         session = db.open_session()
         try:
-            objectid = args['id']
-            msg = session.get(db.UpgradeLogMessage, objectid)
-            if msg is None:
-                raise NoSuchObjectException(comment=objectid)
-            for key in optional:
-                current = getattr(msg, key)
-                setattr(msg, key, args.get(key, current))
+            msg = db.UpgradeLogMessage.get(session, args['id'])
+            msg.update(args)
             session.save(msg)
             session.flush()
             return success()
@@ -162,77 +97,79 @@ class UpgradeLogMessage(web_svc.AuthWebSvc):
     def delete(self, token, args):
         """
         Delete a message.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of message attributes.
         @type args: dict
             - id
-            - action (optional)
-            - message_type (optional)
-            - message (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            msg = session.get(db.UpgradeLogMessage, objectid)
-            if msg is None:
-                raise NoSuchObjectException(comment=objectid)
-            session.delete(msg)
-            session.flush()
+            db.UpgradeLogMessage.delete(session, args['id'])
             return success()
         finally:
             session.close()
 
 
     def list(self, token, args):
-         """
-         Get all messages.
-         @param args: A dictionary of message attributes.
-         @type args: dict
-         @return: A list of messages.
-         @rtype: [dict,]  
-            - id
-            - action (optional)
-            - message_type (optional)
-            - message_timestamp
-            - message (optional)
-         """
-         session = db.open_session()
-         try:
-             result = []
-             offset, limit = self.offset_and_limit(args)
-             for msg in session.query(db.UpgradeLogMessage).select(offset=offset, limit=limit):
-                 result.append(msg.date())
-             return success(result)
-         finally:
-             session.close()
+        """
+        Get all messages.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+        @type args: dict
+           - offset (optional)
+           - limit (optional)
+        @return: A list of messages.
+        @rtype: [dict,]  
+           - id
+           - action (optional)
+           - message_type
+           - message_timestamp
+           - message (optional)
+        @raise SQLException: On database error
+        """
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for msg in db.UpgradeLogMessage.list(session, offset, limit):
+                result.append(msg.data())
+            return success(result)
+        finally:
+            session.close()
 
 
     def get(self, token, args):
-         """
-         Get a message by id.
-         @param args: A dictionary of message attributes.
-             - id
-         @type args: dict
-         @return: A messages.
-         @rtype: dict
+        """
+        Get a message by id.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
             - id
-            - action (optional)
-            - message_type (optional)
-            - message_timestamp
-            - message (optional)
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             msg = session.get(db.UpgradeLogMessage, objectid)
-             if msg is None:
-                 raise NoSuchObjectException(comment=objectid)
-             return success(msg.data())
-         finally:
-             session.close()
+        @type args: dict
+        @return: A message.
+        @rtype: dict
+           - id
+           - action (optional)
+           - message_type
+           - message_timestamp
+           - message (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            msg = db.UpgradeLogMessage.get(session, args['id'])
+            return success(msg.data())
+        finally:
+            session.close()
 
 
 methods = UpgradeLogMessage()

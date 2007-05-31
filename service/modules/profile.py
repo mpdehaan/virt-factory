@@ -39,6 +39,8 @@ class Profile(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Create a profile.
+        @param token: A security token.
+        @type token: string
         @param args: Profile attributes.
         @type args: dict 
             - id,
@@ -52,6 +54,7 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets
             - is_container
             - puppet_classes
+        @raise SQLException: On database error
         """
         optional =\
             ('distribution_id', 'virt_storage_size', 'virt_ram', 'kickstart_metadata',
@@ -75,9 +78,12 @@ class Profile(web_svc.AuthWebSvc):
          distributions = distribution.Distribution().list(None, {}).data
          provisioning.CobblerTranslatedProfile(cobbler_api ,distributions, data)
 
+
     def edit(self, token, args):
         """
         Edit a profile.
+        @param token: A security token.
+        @type token: string
         @param args: profile attributes.
         @type args: dict 
             - id,
@@ -91,6 +97,8 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
         optional =\
@@ -111,9 +119,13 @@ class Profile(web_svc.AuthWebSvc):
     def delete(self, token, args):
         """
         Delete a profile.
+        @param token: A security token.
+        @type token: string
         @param args: The profile id to be deleted.
         @type args: dict 
             - id
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
         FieldValidator(args).verify_required(required)
@@ -128,8 +140,12 @@ class Profile(web_svc.AuthWebSvc):
     def list(self, token, args):
         """
         Get a list of all profiles..
-        @param args: not used.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query properties.
         @type args: dict
+            - offset (optional)
+            - limit (optional)
         @return: A list of profiles.
         @rtype: [dict,]
             - id,
@@ -143,6 +159,7 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
+        @raise SQLException: On database error
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
@@ -160,36 +177,8 @@ class Profile(web_svc.AuthWebSvc):
     def get(self, token, args):
         """
         Get a profile by id.
-        @param args: The profile id.
-        @type args: dict 
-            - id
-        @return: A profile.
-        @rtype: dict
-            - id,
-            - name (optional)
-            - version (optional)
-            - distribution_id (optional)
-            - virt_storage_size (optional)
-            - virt_ram (optional)
-            - kickstart_metadata (optional)
-            - kernel_options (optional)
-            - valid_targets (optional)
-            - is_container (optional)
-            - puppet_classes (optional)          
-        """
-        required = ('id',)
-        FieldValidator(args).verify_required(required)
-        session = db.open_session()
-        try:
-            profile = db.Profile.get(session, args['id'])
-            return success(self.expand(profile))
-        finally:
-            session.close()
-
-
-    def get_by_name(self, token, args):
-        """
-        Get a profile by id.
+        @param token: A security token.
+        @type token: string
         @param args: The profile id.
         @type args: dict 
             - id
@@ -206,6 +195,41 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.  
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            profile = db.Profile.get(session, args['id'])
+            return success(self.expand(profile))
+        finally:
+            session.close()
+
+
+    def get_by_name(self, token, args):
+        """
+        Get a profile by name.
+        @param token: A security token.
+        @type token: string
+        @param args: The profile name.
+        @type args: dict 
+            - name
+        @return: A profile.
+        @rtype: dict
+            - id,
+            - name (optional)
+            - version (optional)
+            - distribution_id (optional)
+            - virt_storage_size (optional)
+            - virt_ram (optional)
+            - kickstart_metadata (optional)
+            - kernel_options (optional)
+            - valid_targets (optional)
+            - is_container (optional)
+            - puppet_classes (optional)
+        @raise SQLException: On database error
         """
         required = ('name',)
         FieldValidator(args).verify_required(required)
