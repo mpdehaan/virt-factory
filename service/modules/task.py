@@ -15,8 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from server.codes import *
 from server import db
-
-import baseobj
+from fieldvalidator import FieldValidator
 import web_svc
 
 class Task(web_svc.AuthWebSvc):
@@ -36,134 +35,150 @@ class Task(web_svc.AuthWebSvc):
    
 
     def add(self, token, args):
-         """
-         Create a task.
-         @param args: A dictionary of task attributes.
-             - user_id
-             - action_type
-             - machine_id
-             - deployment_id
-             - state
-         @type args: dict
-         """
-         optional = ()
-         required = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
-         validator = FieldValidator(args)
-         validator.verify_required(required)
-         validator.verity_enum('state', VALID_TASK_STATES)
-         validator.verity_enum('action_type', VALID_TASK_STATES)
-         session = db.open_session()
-         try:
-             task = db.Task()
-             for key in (required+optional):
-                 setattr(task, key, args.get(key, None))
-             session.save(task)
-             session.flush()
-             return success(task.id)
-         finally:
-             session.close()
+        """
+        Create a task.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+            - user_id
+            - action_type
+            - machine_id
+            - deployment_id
+            - state
+        @type args: dict
+        @raise SQLException: On database error
+        """
+        optional = ()
+        required = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verity_enum('state', VALID_TASK_STATES)
+        validator.verity_enum('action_type', VALID_TASK_STATES)
+        session = db.open_session()
+        try:
+            task = db.Task()
+            task.update(args)
+            session.save(task)
+            session.flush()
+            return success(task.id)
+        finally:
+            session.close()
 
 
     def edit(self, token, args):
-         """
-         Edit a task.
-         @param args: A dictionary of task attributes.
-             - user_id
-             - action_type
-             - machine_id
-             - deployment_id
-             - state
-         @type args: dict
-         """
-         required = ('id')
-         optional = ('user_id', 'action_type', 'machine_id', 'deployment_id', 'state')
-         validator.verify_required(required)
-         validator.verity_enum('state', VALID_TASK_STATES)
-         validator.verity_enum('action_type', VALID_TASK_STATES)
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             for key in optional:
-                 current = getattr(task, key)
-                 setattr(task, key, args.get(key, current))
-             session.save(task)
-             session.flush()
-             return success()
-         finally:
-             session.close()
+        """
+        Edit a task.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+            - id
+            - state  (optional)
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id')
+        optional = ('state')
+        filter = ('id', 'user_id', 'action_type', 'machine_id', 'deployment_id')
+        validator.verify_required(required)
+        validator.verity_enum('state', VALID_TASK_STATES)
+        validator.verity_enum('action_type', VALID_TASK_STATES)
+        session = db.open_session()
+        try:
+            task = db.Task.get(session, args['id'])
+            task.update(args, filter)
+            session.save(task)
+            session.flush()
+            return success()
+        finally:
+            session.close()
 
 
     def delete(self, token, args):
-         """
-         Deletes a task.
-         @param args: A dictionary of task attributes.
-             - id
-         @type args: dict
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             session.delete(task)
-             session.flush()
-             return success()
-         finally:
-             session.close()
+        """
+        Deletes a task.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+            - id
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            db.Task.delete(session, args['id'])
+            return success()
+        finally:
+            session.close()
    
 
     def list(self, token, args):
-         """
-         Get all tasks.
-         @param args: A dictionary of task attributes.
-         @type args: dict
-         @return: A list of tasks.
-         @rtype: [dict,]
-             - id
-             - user_id
-             - action_type
-             - machine_id
-             - deployment_id
-             - state
-             - time
-         # TODO: nested structures.
-         """
-         session = db.open_session()
-         try:
-             result = []
-             offset, limit = self.offset_and_limit(args)
-             for task in session.query(db.Task).select(offset=offset, limit=limit):
-                 result.append(task.data())
-             return success(result)
-         finally:
-             session.close()
+        """
+        Get all tasks.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+        @type args: dict
+           - offset (optional)
+           - limit (optional)
+        @return: A list of tasks.
+        @rtype: [dict,]
+            - id
+            - user_id
+            - action_type
+            - machine_id
+            - deployment_id
+            - state
+        @raise SQLException: On database error
+        """
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for task in db.Task.list(session, offset, limit):
+                result.append(self.expand(task))
+            return success(result)
+        finally:
+            session.close()
 
 
     def get(self, token, args):
-         """
-         Get a task by id.
-         @param args: A dictionary of task attributes.
-             - id
-         @type args: dict
-         # TODO: nested structures.
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             task = session.get(db.Task, objectid)
-             if task is None:
-                 raise NoSuchObjectException(comment=objectid)
-             return success(task.data())
-         finally:
-             session.close()
+        """
+        Get a task by id.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+            - id
+        @type args: dict
+            - id
+            - user_id
+            - action_type
+            - machine_id
+            - deployment_id
+            - state
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            task = db.Task.get(session, args['id'])
+            return success(self.expand(task))
+        finally:
+            session.close()
+
+
+    def expand(self, task):
+        result = task.data()
+        result['user'] = task.user.data()
+        result['machine'] = task.machine.data()
+        result['deployment'] = task.deployment.data()
+        return result
+        
  
  
 methods = Task()

@@ -15,8 +15,8 @@
 ##
 
 from server.codes import *
+from fieldvalidator import FieldValidator
 
-import baseobj
 import provisioning
 import cobbler
 import web_svc
@@ -40,6 +40,8 @@ class Distribution(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Add a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution properties.
         @type args: dict
             - kernel
@@ -50,15 +52,15 @@ class Distribution(web_svc.AuthWebSvc):
             - architecture
             - kernel_options (optional)
             - kickstart_metadata (optional)
+        @raise SQLException: On database error
         """
         required = ('kernel', 'initrd', 'name', 'architecture')
         optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.__validate(args, required)
+        self.validatelidate(args, required)
         session = db.open_session()
         try:
             distribution = db.Distribution()
-            for key in (required+optional):
-                setattr(distribution, key, args.get(key, None))
+            distribution.update(args)
             session.save(distribution)
             session.flush()
             self.cobbler_sync(distribution.data())
@@ -74,6 +76,8 @@ class Distribution(web_svc.AuthWebSvc):
     def edit(self, token, args):
         """
         Add a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution properties.
         @type args: dict
             - id
@@ -84,19 +88,17 @@ class Distribution(web_svc.AuthWebSvc):
             - architecture  (optional)
             - kernel_options (optional)
             - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         optional = ('kernel', 'initrd', 'name', 'architecture', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.__validate(args, required)
+        filter = ('id', 'options')
+        self.validate(args, required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = session.get(db.Distribution, objectid)
-            if distribution is None:
-                raise NoSuchObjectException(comment=objectid)
-            for key in optional:
-                current = getattr(distribution, key)
-                setattr(distribution, key, args.get(key, current))
+            distribution = db.Distribution.get(session, args['id'])
+            distribution.update(args, filter)
             session.save(distribution)
             session.flush()
             self.cobbler_sync(distribution.data())
@@ -108,56 +110,62 @@ class Distribution(web_svc.AuthWebSvc):
     def delete(self, token, args):
         """
         Deletes a distribution.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
             - id
         @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = session.get(db.Distribution, objectid)
-            if distribution is None:
-                raise NoSuchObjectException(comment=objectid)
-            session.delete(distribution)
-            session.flush()
+            db.Distribution.delete(session, args['id'])
             return success()
         finally:
             session.close()
 
 
     def list(self, token, args):
-         """
-         Get all distributions.
-         @param args: A dictionary of distribution attributes.
-         @type args: dict
-         @return: A list of distributions.
-         @rtype: [dict,]
-            - id
-            - kernel
-            - initrd
-            - options (optional)
-            - kickstart  (optional)
-            - name
-            - architecture
-            - kernel_options (optional)
-            - kickstart_metadata (optional)
-         """
-         session = db.open_session()
-         try:
-             result = []
-             offset, limit = self.offset_and_limit(args)
-             for distribution in query(db.Distribution).select(offset=offset, limit=limit):
-                 result.append(distribution.data())
-             return success(result)
-         finally:
-             session.close()
+        """
+        Get all distributions.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of distribution attributes.
+        @type args: dict
+            - offset (optional)
+            - limit (optional)
+        @return: A list of distributions.
+        @rtype: [dict,]
+           - id
+           - kernel
+           - initrd
+           - options (optional)
+           - kickstart  (optional)
+           - name
+           - architecture
+           - kernel_options (optional)
+           - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        """
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for distribution in db.Distribution.list(session, offset, limit):
+                result.append(distribution.data())
+            return success(result)
+        finally:
+            session.close()
 
 
     def get(self, token, args):
         """
         Get all distributions.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
         @type args: dict
             - id
@@ -172,15 +180,14 @@ class Distribution(web_svc.AuthWebSvc):
            - architecture
            - kernel_options (optional)
            - kickstart_metadata (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            distribution = ssn.get(db.Distribution, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
+            distribution = db.Distribution.get(session, args['id'])
             return success(distribution.data())
         finally:
             session.close()
@@ -189,6 +196,8 @@ class Distribution(web_svc.AuthWebSvc):
     def get_by_name(self, token, args):
         """
         Get all distributions.
+        @param token: A security token.
+        @type token: string
         @param args: A dictionary of distribution attributes.
         @type args: dict
             - name
@@ -203,6 +212,7 @@ class Distribution(web_svc.AuthWebSvc):
            - architecture
            - kernel_options (optional)
            - kickstart_metadata (optional)
+        @raise SQLException: On database error
         """
         required = ('name',)
         FieldValidator(args).verify_required(required)
@@ -217,12 +227,12 @@ class Distribution(web_svc.AuthWebSvc):
             session.close()
 
 
-    def __validate(self, args, required):
-        validator = FieldValidator(args)
-        validator.verify_required(required)
-        validator.verify_file('kernel', 'initrd')
-        validator.verify_printable('name', 'kernel_options')
-        validator.verify_enum('architecture', VALID_ARCHS)
+    def validate(self, args, required):
+        vdr = FieldValidator(args)
+        vdr.verify_required(required)
+        vdr.verify_file('kernel', 'initrd')
+        vdr.verify_printable('name', 'kernel_options')
+        vdr.verify_enum('architecture', VALID_ARCHS)
 
 
 methods = Distribution()

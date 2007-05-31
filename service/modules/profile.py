@@ -15,8 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from server.codes import *
 from server import config_data
-
-import baseobj
+from fieldvalidator import FieldValidator
 import distribution
 import cobbler
 import provisioning
@@ -40,6 +39,8 @@ class Profile(web_svc.AuthWebSvc):
     def add(self, token, args):
         """
         Create a profile.
+        @param token: A security token.
+        @type token: string
         @param args: Profile attributes.
         @type args: dict 
             - id,
@@ -53,17 +54,17 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets
             - is_container
             - puppet_classes
+        @raise SQLException: On database error
         """
         optional =\
             ('distribution_id', 'virt_storage_size', 'virt_ram', 'kickstart_metadata',
              'kernel_options', 'puppet_classes')
         required = ('name', 'version', 'valid_targets', 'is_container')
-        self.__validate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
             profile = db.Proflie()
-            for key in (required+optional):
-                setattr(profile, key, args.get(key, None))
+            profile.update(args)
             session.save(profile)
             session.flush()
             self.cobbler_sync(profile.data())
@@ -77,9 +78,12 @@ class Profile(web_svc.AuthWebSvc):
          distributions = distribution.Distribution().list(None, {}).data
          provisioning.CobblerTranslatedProfile(cobbler_api ,distributions, data)
 
+
     def edit(self, token, args):
         """
         Edit a profile.
+        @param token: A security token.
+        @type token: string
         @param args: profile attributes.
         @type args: dict 
             - id,
@@ -93,20 +97,18 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
         optional =\
             ('name', 'version', 'valid_targets', 'is_container', 'distribution_id', 'virt_storage_size', 
              'virt_ram', 'kickstart_metadata', 'kernel_options', 'puppet_classes')
-        self.__validate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
-            profileid = args['id']
-            profile = session.get(db.Profile, profileid)
-            if profile is None:
-                 raise NoSuchObjectException(comment=profileid)
-            for key in optional:
-                setattr(profile, key, args.get(key, None))
+            profile = db.Profile.get(session, args['id'])
+            profile.update(args)
             session.save(profile)
             session.flush()
             return success()
@@ -117,20 +119,19 @@ class Profile(web_svc.AuthWebSvc):
     def delete(self, token, args):
         """
         Delete a profile.
+        @param token: A security token.
+        @type token: string
         @param args: The profile id to be deleted.
         @type args: dict 
             - id
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id')
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            profileid = args['id']
-            profile = session.get(db.Profile, profileid)
-            if profile is None:
-                 raise NoSuchObjectException(comment=profileid)
-            session.delete(profile)
-            session.flush()
+            db.Profile.delete(session, args['id'])
             return success()
         finally:
             session.close()
@@ -139,8 +140,12 @@ class Profile(web_svc.AuthWebSvc):
     def list(self, token, args):
         """
         Get a list of all profiles..
-        @param args: not used.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query properties.
         @type args: dict
+            - offset (optional)
+            - limit (optional)
         @return: A list of profiles.
         @rtype: [dict,]
             - id,
@@ -154,16 +159,16 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
-        # TODO: paging.
-        # TODO: nested structures.  
+        @raise SQLException: On database error
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
             result = []
-            for profile in session.query(db.Profile).select():
-                result.append(profile.data())
+            offset, limit = self.offset_and_limit(args)
+            for profile in db.Profile.list(session, offset, limit):
+                result.append(self.expand(profile))
             return success(result)
         finally:
             session.close()
@@ -172,6 +177,8 @@ class Profile(web_svc.AuthWebSvc):
     def get(self, token, args):
         """
         Get a profile by id.
+        @param token: A security token.
+        @type token: string
         @param args: The profile id.
         @type args: dict 
             - id
@@ -188,27 +195,27 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
-        # TODO: nested structures.            
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.  
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            profileid = args['id']
-            profile = session.get(db.Profile, profileid)
-            if profile is None:
-                 raise NoSuchObjectException(comment=profileid)
-            return success(profile.data())
+            profile = db.Profile.get(session, args['id'])
+            return success(self.expand(profile))
         finally:
             session.close()
 
 
     def get_by_name(self, token, args):
         """
-        Get a profile by id.
-        @param args: The profile id.
+        Get a profile by name.
+        @param token: A security token.
+        @type token: string
+        @param args: The profile name.
         @type args: dict 
-            - id
+            - name
         @return: A profile.
         @rtype: dict
             - id,
@@ -222,7 +229,7 @@ class Profile(web_svc.AuthWebSvc):
             - valid_targets (optional)
             - is_container (optional)
             - puppet_classes (optional)
-        # TODO: nested structures. 
+        @raise SQLException: On database error
         """
         required = ('name',)
         FieldValidator(args).verify_required(required)
@@ -232,17 +239,24 @@ class Profile(web_svc.AuthWebSvc):
             profile = session.query(db.Profile).selectfirst_by(name == name)
             if profile is None:
                  raise NoSuchObjectException(comment=name)
-            return success(profile.data())
+            return success(self.expand(profile))
         finally:
             session.close()
-            
-    def __validate(self, args, required):
-        validator = FieldValidator(args)
-        validator.verify_required(required)
-        validator.verify_printable('name', 'version')
-        validator.verify_int('virt_storage_size', 'virt_ram', 'kernel_options', 'puppet_classes')
-        validator.verify_enum('valid_targets', VALID_TARGETS)
-        validator.verify_enum('is_container', VALID_CONTAINERS)
+
+
+    def validate(self, args, required):
+        vdr = FieldValidator(args)
+        vdr.verify_required(required)
+        vdr.verify_printable('name', 'version')
+        vdr.verify_int('virt_storage_size', 'virt_ram', 'kernel_options', 'puppet_classes')
+        vdr.verify_enum('valid_targets', VALID_TARGETS)
+        vdr.verify_enum('is_container', VALID_CONTAINERS)
+
+
+    def expand(self, profile):
+        result = profile.data()
+        result['distribution'] = profile.distribution.data()
+        return result
 
 
 methods = Profile()

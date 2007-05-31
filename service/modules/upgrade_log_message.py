@@ -15,8 +15,8 @@
 ##
 
 from server.codes import *
+from fieldvalidator import FieldValidator
 
-import baseobj
 import provisioning
 import cobbler
 import web_svc
@@ -26,87 +26,7 @@ import traceback
 import threading
 
 
-#------------------------------------------------------------
-
-class UpgradeLogMessageData(baseobj.BaseObject):
-
-    FIELDS = [ "id", "action", "message_type", "message_timestamp", "message"]
-
-    def _produce(klass, dist_args,operation=None):
-        """
-        Factory method.  Create a upgrade log message object from input data, optionally
-        running it through validation, which will vary depending on what
-        operation is creating the upgrade log message object.
-        """
-
-        self = UpgradeLogMessageData()
-        self.from_datastruct(dist_args)
-        self.validate(operation)
-        return self
-
-    produce = classmethod(_produce)
-
-    def from_datastruct(self,dist_args):
-        """
-        Helper method to fill in the object's internal variables from
-        a hash.  Note that we *don't* want to do this and then call
-        session.save on the upgrade log message as the junk fields like the "-1" would be 
-        propogated.  It's best to use this for validation and build a *second*
-        upgrade log message object for interaction with the ORM.  See methods below for examples.
-        """
-
-        return self.deserialize(dist_args)
-
-    def to_datastruct_internal(self):
-        """
-        Serialize the object for transmission over WS.
-        """
-
-        return self.serialize()
-
-    def validate(self,operation):
-
-        invalid_fields = {} 
-
-        if self.id is None:
-            # -1 is for sqlite to say "use your own counter".
-            self.id = -1 
-
-        if operation in [OP_EDIT,OP_DELETE,OP_GET]:
-            try:
-                self.id = int(self.id)
-            except:
-                invalid_fields["id"] = REASON_FORMAT
-
-        if operation in [OP_EDIT,OP_ADD]:
-            # version is printable
-            if (self.action is not None) and (not self.is_printable(self.action)):
-                invalid_fields["action"] = REASON_FORMAT
-      
-            # message_type is one of the constants in codes.py
-            if not self.message_type in VALID_UPGRADE_LOG_MESSAGE_STATUS:
-                invalid_fields["message_type"] = REASON_RANGE   
-
-            # message is printable
-            if (self.message is not None) and (not self.is_printable(self.message)):
-                invalid_fields["message"] = REASON_FORMAT
-      
-
-        if len(invalid_fields) != 0:
-            #print "Invalid fields: ", invalid_fields
-            raise InvalidArgumentsException(invalid_fields=invalid_fields)
-
-
 class UpgradeLogMessage(web_svc.AuthWebSvc):
-
-    DB_SCHEMA = {
-        "table" : "upgrade_log_messages",
-        "fields" : UpgradeLogMessageData.FIELDS,
-        "add"    : [ "action", "message_type", "message_timestamp", "message" ],
-        "edit"   : [ ]
-        }
-
-
     def __init__(self):
         self.methods = {"upgrade_log_message_add"    : self.add,
                         "upgrade_log_message_delete" : self.delete,
@@ -115,45 +35,141 @@ class UpgradeLogMessage(web_svc.AuthWebSvc):
                         "upgrade_log_message_get"    : self.get}
         web_svc.AuthWebSvc.__init__(self)
 
-        # FIXME: could go in the baseclass...
-        self.db.db_schema = self.DB_SCHEMA
 
     def add(self, token, args):
+        """
+        Create a message.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+            - action (optional)
+            - message_type
+            - message (optional)
+        @type args: dict
+        @raise SQLException: On database error
+        """
+        optional = ('action', 'message')
+        required = ('message_type')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verify_enum('message_type', VALID_UPGRADE_LOG_MESSAGE_STATUS)
+        validator.verify_printable('action', 'message')
+        session = db.open_session()
+        try:
+            msg = db.UpgradeLogMessage()
+            msg.update(args)
+            session.save(msg)
+            session.flush()
+            return success(msg.id)
+        finally:
+            session.close()
 
-        u = UpgradeLogMessageData.produce(args,OP_ADD)
-        result = self.db.simple_add(u.to_datastruct())
-        return result
 
-    def edit(self, token, args): 
+    def edit(self, token, args):
+        """
+        Edit a message.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+        @type args: dict
+            - id
+            - action (optional)
+            - message_type (optional)
+            - message (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        validator.verify_required(required)
+        validator.verify_enum('message_type', VALID_UPGRADE_LOG_MESSAGE_STATUS)
+        validator.verify_printable('action', 'message')
+        session = db.open_session()
+        try:
+            msg = db.UpgradeLogMessage.get(session, args['id'])
+            msg.update(args)
+            session.save(msg)
+            session.flush()
+            return success()
+        finally:
+            session.close()
 
-        u = UpgradeLogMessageData.produce(args,OP_EDIT)
-        # TODO: make this work w/ u.to_datastruct() 
-        result = self.db.simple_edit(args)
-        return result
 
     def delete(self, token, args):
-
-        u = UpgradeLogMessageData.produce(args,OP_DELETE) # force validation
-        return self.db.simple_delete(u.to_datastruct())
+        """
+        Delete a message.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+        @type args: dict
+            - id
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            db.UpgradeLogMessage.delete(session, args['id'])
+            return success()
+        finally:
+            session.close()
 
 
     def list(self, token, args):
         """
-        Return a list of upgrade log messages.  The dist_args list is currently *NOT*
-        used.  Ideally we need to include LIMIT information here for
-        GUI pagination when we start worrying about hundreds of systems.
+        Get all messages.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+        @type args: dict
+           - offset (optional)
+           - limit (optional)
+        @return: A list of messages.
+        @rtype: [dict,]  
+           - id
+           - action (optional)
+           - message_type
+           - message_timestamp
+           - message (optional)
+        @raise SQLException: On database error
         """
-
-        return self.db.simple_list(args)
+        session = db.open_session()
+        try:
+            result = []
+            offset, limit = self.offset_and_limit(args)
+            for msg in db.UpgradeLogMessage.list(session, offset, limit):
+                result.append(msg.data())
+            return success(result)
+        finally:
+            session.close()
 
 
     def get(self, token, args):
         """
-        Return a specific upgrade log message record.  Only the "id" is required in dist_args.
+        Get a message by id.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of message attributes.
+            - id
+        @type args: dict
+        @return: A message.
+        @rtype: dict
+           - id
+           - action (optional)
+           - message_type
+           - message_timestamp
+           - message (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
-        
-        u = UpgradeLogMessageData.produce(args,OP_GET) # force validation
-        return self.db.simple_get(u.to_datastruct())
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            msg = db.UpgradeLogMessage.get(session, args['id'])
+            return success(msg.data())
+        finally:
+            session.close()
 
 
 methods = UpgradeLogMessage()

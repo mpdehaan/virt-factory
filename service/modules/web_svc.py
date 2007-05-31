@@ -35,10 +35,6 @@ class WebSvc(object):
         config_result = config_obj.get()
         self.config = config_result
         self.__init_log()
-        self.__init_db()
-
-    def __init_db(self):
-        self.db = db_util.DbUtil()
         
     def __init_log(self):
         # lets see what happens when we c&p the stuff from server.py 

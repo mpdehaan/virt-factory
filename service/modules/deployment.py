@@ -16,8 +16,8 @@
 
 
 from server.codes import *
+from fieldvalidator import FieldValidator
 
-import baseobj
 import profile
 import machine
 import web_svc
@@ -93,74 +93,76 @@ class Deployment(web_svc.AuthWebSvc):
          return self.add(token, args)    
 
     def add(self, token, args):
-         """
-         Create a deployment.
-         @param args: A dictionary of deployment arguments.
-         @type args: dict
-             - hostname (optional)
-             - ip_address (optional)
-             - registration_token (optional)
-             - mac_address (optional)
-             - machine_id
-             - profile_id
-             - state
-             - display_name
-             - netboot_enabled (optional)
-             - puppet_node_diff (optional)
-             - is_locked (optional)
-         """
-         mac = None
-         profilename = None
-         required = ('machine_id', 'profile_id', 'state', 'display_name')
-         optional =\
-             ('hostname', 'ip_address', 'registration_token', 'mac_address', 'netboot_enabled', 
-              'puppet_node_diff', 'is_locked')
-         validator = FieldValidator(args)
-         validator.verify_required(required)
-         validator.verify_printable('puppet_node_diff')
+        """
+        Create a deployment.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment arguments.
+        @type args: dict
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - mac_address (optional)
+            - machine_id
+            - profile_id
+            - state
+            - display_name
+            - netboot_enabled (optional)
+            - puppet_node_diff (optional)
+            - is_locked (optional)
+        @raise SQLException: On database error
+        """
+        mac = None
+        profilename = None
+        required = ('machine_id', 'profile_id', 'state', 'display_name')
+        optional =\
+            ('hostname', 'ip_address', 'registration_token', 'mac_address', 'netboot_enabled', 
+             'puppet_node_diff', 'is_locked')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verify_printable('puppet_node_diff')
+        
+        # find highest deployment id
+        all_deployments = self.list(token, {})
+
+        try:
+            machine_obj = machine.Machine()
+            machine_result = machine_obj.get(token, { "id" : args["machine_id"]})
+            mac = machine_result.data["mac_address"]
+        except VirtFactoryException:
+            raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
+
+        try:
+            profile_obj = profile.Profile()
+            result = profile_obj.get(token, { "id" : args["profile_id"]})
+            profilename = result.data["name"]
+        except VirtFactoryException:
+            raise OrphanedObjectException(invalid_fields={'profile_id':REASON_ID})
+
+        display_name = mac + " / " + profilename
+        
+        args["display_name"] = display_name
+        args["netboot_enabled"] = 0
+        args["mac_address"] = self.generate_mac_address(all_deployments.data[-1]["id"])
+        args["state"] = DEPLOYMENT_STATE_CREATING
+        args["netboot_enabled"] = 0 # never PXE's
+        args["registration_token"] = regtoken.RegToken().generate(token)
+
+        # cobbler sync must run with a filled in item in the database, so we must commit
+        # prior to running cobbler sync
          
-         # find highest deployment id
-         all_deployments = self.list(token, {})
-
-         try:
-             machine_obj = machine.Machine()
-             machine_result = machine_obj.get(token, { "id" : args["machine_id"]})
-             mac = machine_result.data["mac_address"]
-         except VirtFactoryException:
-             raise OrphanedObjectException(invalid_fields={'machine_id':REASON_ID})
-
-         try:
-             profile_obj = profile.Profile()
-             result = profile_obj.get(token, { "id" : args["profile_id"]})
-             profilename = result.data["name"]
-         except VirtFactoryException:
-             raise OrphanedObjectException(invalid_fields={'profile_id':REASON_ID})
-
-         display_name = mac + " / " + profilename
-
-         args["display_name"] = display_name
-         args["netboot_enabled"] = 0
-         args["mac_address"] = self.generate_mac_address(all_deployments.data[-1]["id"])
-         args["state"] = DEPLOYMENT_STATE_CREATING
-         args["netboot_enabled"] = 0 # never PXE's
-         args["registration_token"] = regtoken.RegToken().generate(token)
-
-         # cobbler sync must run with a filled in item in the database, so we must commit
-         # prior to running cobbler sync
-         
-         session = db.open_session()
-         try:
-             deployment = db.Deployment()
-             for key in (required+optional):
-                 setattr(deployment, key, args.get(key, None))
-             session.save(deployment)
-             session.flush()
-             self.cobbler_sync(deployment.data())
-             args["id"] = results.data
-             self.__queue_operation(token, args, TASK_OPERATION_INSTALL_VIRT) 
-             return success(deployment.id)
-         finally:
-             session.close()
+        session = db.open_session()
+        try:
+            deployment = db.Deployment()
+            deployment.update(args)
+            session.save(deployment)
+            session.flush()
+            self.cobbler_sync(deployment.data())
+            args["id"] = results.data
+            self.__queue_operation(token, args, TASK_OPERATION_INSTALL_VIRT) 
+            return success(deployment.id)
+        finally:
+            session.close()
 
 
     def generate_mac_address(self, id):
@@ -174,74 +176,71 @@ class Deployment(web_svc.AuthWebSvc):
          return ":".join([ "00", "16", "3E", "%02x" % high, "%02x" % mid, "%02x" % low ])
 
     def edit(self, token, args):
-         """
-         Edit a deployment.
-         @param args: A dictionary of deployment arguments.
-         @type args: dict
-             - id
-             - hostname (optional)
-             - ip_address (optional)
-             - registration_token (optional)
-             - mac_address (optional)
-             - machine_id  (optional)
-             - state  (optional)
-             - display_name  (optional)
-             - netboot_enabled (optional)
-             - puppet_node_diff (optional)
-             - is_locked (optional)
-         """
-         mac = None
-         profilename = None
-         required = ('id',)
-         optional =\
-             ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
-              'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
-         validator = FieldValidator(args)
-         validator.verify_required(required)
-         validator.verify_printable('puppet_node_diff')
+        """
+        Edit a deployment.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment arguments.
+        @type args: dict
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - mac_address (optional)
+            - machine_id  (optional)
+            - state  (optional)
+            - display_name  (optional)
+            - netboot_enabled (optional)
+            - puppet_node_diff (optional)
+            - is_locked (optional)
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        mac = None
+        profilename = None
+        required = ('id',)
+        optional =\
+            ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
+             'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
+        filter = ('id', 'profile_id')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verify_printable('puppet_node_diff')
          
-         try:
-             machine_obj = machine.Machine()
-             result = machine_obj.get(token, { "id" : args["machine_id"]})
-             mac = result.data["mac_address"]
-         except VirtFactoryException:
-             raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+        try:
+            machine_obj = machine.Machine()
+            result = machine_obj.get(token, { "id" : args["machine_id"]})
+            mac = result.data["mac_address"]
+        except VirtFactoryException:
+            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-         try:
-             profile_obj = profile.Profile()
-             result = profile_obj.get(token, { "id" : args["profile_id"] })
-             profilename = result.data["name"]
-         except VirtFactoryException:
-             raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+        try:
+            profile_obj = profile.Profile()
+            result = profile_obj.get(token, { "id" : args["profile_id"] })
+            profilename = result.data["name"]
+        except VirtFactoryException:
+            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-         display_name = mac + "/" + profilename
-         args["display_name"] = display_name
-         args["netboot_enabled"] = 0 # never PXE's
+        display_name = mac + "/" + profilename
+        args["display_name"] = display_name
+        args["netboot_enabled"] = 0 # never PXE's
 
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             deployment = session.get(db.Deployment, objectid)
-             if deployment is None:
-                 raise NoSuchObjectException(comment=objectid)
-             for key in optional:
-                 current = getattr(deployment, key)
-                 setattr(deployment, key, args.get(key, current))
-             session.save(deployment)
-             session.flush()
-             self.cobbler_sync(deployment.data())
-             return success()
-         finally:
-             session.close()
+        session = db.open_session()
+        try:
+            deployment = db.Deployment.get(session, args['id'])
+            deployment.update(args, filter)
+            session.save(deployment)
+            session.flush()
+            self.cobbler_sync(deployment.data())
+            return success()
+        finally:
+            session.close()
      
 
     def __set_locked(self, token, args, dep_state=DEPLOYMENT_STATE_PENDING, lock=True):
         session = db.open_session()
         try:
-            objectid = args['id']
-            deployment = session.get(db.Deployment, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
+            deployment = db.Deployment.get(session, args['id'])
             deployment.state = dep_state
             if lock:
                 deployment.is_locked = 1
@@ -259,10 +258,7 @@ class Deployment(web_svc.AuthWebSvc):
     def set_state(self, token, args, status_code):
         session = db.open_session()
         try:
-            objectid = args['id']
-            deployment = session.get(db.Deployment, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
+            deployment = db.Deployment.get(session, args['id'])
             deployment.state = status_code
             session.save(deployment)
             session.flush()
@@ -308,34 +304,37 @@ class Deployment(web_svc.AuthWebSvc):
         return success()
 
     def database_delete(self, token, args):
-         """
-         Deletes a deployment in the database.
-         @param args: A dictionary of deployment attributes.
-             - id
-         @type args: dict
-         """
-         required = ('id',)
-         FieldValidator(args).verify_required(required)
-         session = db.open_session()
-         try:
-             objectid = args['id']
-             deployment = session.get(db.Deployment, objectid)
-             if deployment is None:
-                 raise NoSuchObjectException(comment=objectid)
-             session.delete(deployment)
-             session.flush()
-             return success()
-         finally:
-             session.close()
+        """
+        Deletes a deployment in the database.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment attributes.
+            - id
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            db.Deployment.delete(session, args['id'])
+            return success()
+        finally:
+            session.close()
 
 
     def list(self, token, args):
         """
         Get a list of all deployments.
-        @param args: A dictionary of deployment arguments.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query arguments.
         @type args: dict
+            - offset (optional)
+            - limit (optional)
         @return: A list of deployments.
-        @rtype: dict
+        @rtype: [dict,]
             - id
             - hostname (optional)
             - ip_address (optional)
@@ -347,13 +346,14 @@ class Deployment(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - puppet_node_diff (optional)
             - is_locked (optional)
+        @raise SQLException: On database error
         """
         session = db.open_session()
         try:
             result = []
             offset, limit = self.offset_and_limit(args)
-            for deployment in session.query(db.Deployment).select(limit=limit, offset=offset):
-                result.append(deployment.data())
+            for deployment in db.Deployment.list(session, offset, limit):
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -378,8 +378,12 @@ class Deployment(web_svc.AuthWebSvc):
     def get_by_hostname(self, token, args):
         """
         Get deployments by hostname.
-        @param args: A dictionary of deployment attributes.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query attributes.
             - hostname
+            - offset (optional)
+            - limit (optional)
         @type args: dict
         @return: A list of deployments.
         @rtype: [dict,]
@@ -394,7 +398,7 @@ class Deployment(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - puppet_node_diff (optional)
             - is_locked (optional)
-        # TODO: nested structures.
+        @raise SQLException: On database error
         """
         required = ('hostname',)
         FieldValidator(args).verify_required(required)
@@ -405,7 +409,7 @@ class Deployment(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
             for deployment in query.select_by(hostname == hostname, offset=offset, limit=limit):
-                result.append(deployment.data())
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -414,23 +418,27 @@ class Deployment(web_svc.AuthWebSvc):
     def get_by_regtoken(self, token, args):
         """
         Get deployments by registration token.
-        @param args: A dictionary of deployment attributes.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query attributes.
             - registration_token
+            - offset (optional)
+            - limit (optional)
         @type args: dict
-         @return: A list of deployments.
-         @rtype: [dict,]
-             - hostname (optional)
-             - ip_address (optional)
-             - registration_token (optional)
-             - mac_address (optional)
-             - machine_id
-             - profile_id
-             - state
-             - display_name
-             - netboot_enabled (optional)
-             - puppet_node_diff (optional)
-             - is_locked (optional)
-        # TODO: nested structures.
+        @return: A list of deployments.
+        @rtype: [dict,]
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - mac_address (optional)
+            - machine_id
+            - profile_id
+            - state
+            - display_name
+            - netboot_enabled (optional)
+            - puppet_node_diff (optional)
+            - is_locked (optional)
+        @raise SQLException: On database error
         """
         required = ('registration_token',)
         FieldValidator(args).verify_required(required)
@@ -441,7 +449,7 @@ class Deployment(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
             for deployment in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
-                result.append(deployment.data())
+                result.append(self.expand(deployment))
             return success(result)
         finally:
             session.close()
@@ -484,7 +492,9 @@ class Deployment(web_svc.AuthWebSvc):
     def get(self, token, args):
         """
         Get a deployment by id.
-        @param args: A dictionary of deployment attributes.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of query attributes.
             - id
         @type args: dict
         @return: A deployment.
@@ -500,20 +510,24 @@ class Deployment(web_svc.AuthWebSvc):
             - netboot_enabled (optional)
             - puppet_node_diff (optional)
             - is_locked (optional)
-        # TODO: nested structures.
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
-            objectid = args['id']
-            deployment = session.get(db.Deployment, objectid)
-            if deployment is None:
-                raise NoSuchObjectException(comment=objectid)
-            return success(deployment.data())
+            deployment = db.Deployment.get(session, args['id'])
+            return success(self.expand(deployment))
         finally:
             session.close()
 
+
+    def expand(self, deployment):
+        result = deployment.data()
+        result['machine'] = deployment.machine.data()
+        result['profile'] = deployment.profile.data()
+        return result
 
 
 methods = Deployment()
