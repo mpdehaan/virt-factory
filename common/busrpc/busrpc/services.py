@@ -27,13 +27,14 @@ def _create_instance(config, full_class_name):
 
 class RPCDispatcher(object):
 
-    def __init__(self, config, fully_qualify_name=True, register_with_bridge = True):
+    def __init__(self, config, register_with_bridge = True):
         self.instances = {}
-        if fully_qualify_name:
-            self.name = socket.gethostname() + '!' + config.server_name
+        self.hostname = socket.gethostname()
+        self.name = config.server_name
+        if register_with_bridge:
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name)
         else:
-            self.name = config.server_name
-        self.transport = busrpc.qpid_transport.QpidServerTransport(self.name)
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.name)
         self.transport.callback = self.dispatch
         self.register_with_bridge = register_with_bridge
         self.runner_thread = None
@@ -56,7 +57,7 @@ class RPCDispatcher(object):
     def register(self, namespace):
         if self.register_with_bridge:
             try:
-                self.bridge.register_service(self.name, namespace)
+                self.bridge.register_service(self.hostname, self.name, namespace)
                 return True
             except Exception, e:
                 print e
@@ -66,7 +67,7 @@ class RPCDispatcher(object):
 
     def unregister(self, namespace):
         if self.register_with_bridge:
-            self.bridge.unregister_service(self.name, namespace)
+            self.bridge.unregister_service(self.hostname, self.name, namespace)
         
     def unregister_all(self):
         for namespace in self.instances.keys():

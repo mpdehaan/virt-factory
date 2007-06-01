@@ -22,7 +22,7 @@ for i in range(0, iterations):
     end = time.time()
     total_time = total_time + (end - start)
     start = time.time()
-    bp.add(3, 10)
+    bp.add(3, 10, rpc_async=True)
     end = time.time()
     total_time = total_time + (end - start)
     start = time.time()    

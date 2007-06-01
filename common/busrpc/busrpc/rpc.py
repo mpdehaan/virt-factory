@@ -14,17 +14,18 @@ class _LocalRPCMethod(object):
                                                                   self.namespace,
                                                                   self.method_name)
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         results = None
+        is_async = kwargs.has_key('rpc_async')
         try:
             results = self.results[args]
         except TypeError:
-            results =  self.make_call(args, False)
+            results =  self.make_call(args, False, async_call=is_async)
         except KeyError:
-            results = self.make_call(args, True)
+            results = self.make_call(args, True, async_call=is_async)
         return results
 
-    def make_call(self, args, cache_encoded_args, cache_return=True):
+    def make_call(self, args, cache_encoded_args, cache_return=True, async_call=False):
         params = None
         if cache_encoded_args:
             try:
@@ -35,20 +36,24 @@ class _LocalRPCMethod(object):
         else:
             params = encode_object(args)
         encoded_call = self.partial_encoded_message + params
-        raw_results = self.transport.send_message_wait(self.server, encoded_call)
-        sender, namespace, method, headers, results = decode_rpc_response(raw_results)
-        if cache_return and headers.has_key('cache_results'):
+        if not async_call:
+            raw_results = self.transport.send_message_wait(self.server, encoded_call)
+            sender, namespace, method, headers, results = decode_rpc_response(raw_results)
+            if cache_return and headers.has_key('cache_results'):
                 self.results[args] =  results
                 results = self.results[args]
-        return results
+            return results
+        else:
+            self.transport.send_message(self.server, encoded_call)
+            return None
         
 
 class RPCProxy(object):
 
-    def __init__(self, name, namespace, transport):
+    def __init__(self, name, service, transport):
         attrs = self.__dict__
-        attrs['service_name'] = name
-        attrs['namespace'] = namespace
+        attrs['server_name'] = name
+        attrs['service'] = service
         attrs['transport'] = transport
 
     def __getattr__(self, name):
@@ -62,8 +67,12 @@ class RPCProxy(object):
 
     def _make_method(self, method_name):
         attrs = self.__dict__
-        method = _LocalRPCMethod(attrs['transport'], attrs['service_name'], attrs['namespace'], method_name)
+        method = _LocalRPCMethod(attrs['transport'], attrs['server_name'], attrs['service'], method_name)
         return method
+
+def build_proxy(service_handle, transport):
+    hostname, server, service = service_handle.split('!')
+    return RPCProxy(hostname + "!" + server, service, transport)
 
 def lookup_service(name, transport, host=None):
     if transport == None:
@@ -74,8 +83,8 @@ def lookup_service(name, transport, host=None):
     if name == "bridge":
         retval = bridge
     else:
-        server = bridge.lookup_namespace(name, host)
-        if not server == None:
-            retval = busrpc.rpc.RPCProxy(server, name, transport)
+        service_handle = bridge.lookup_service(name, host)
+        if not service_handle == None:
+            retval = build_proxy(service_handle, transport)
     return retval
     
