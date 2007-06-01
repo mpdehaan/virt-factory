@@ -51,6 +51,9 @@ from modules import provisioning
 from modules import registration
 from modules import user
 
+from rhpl.translate import _, N_, textdomain, utf8
+I18N_DOMAIN = "vf_server"
+
 #from M2Crypto import SSL
 #from M2Crypto.m2xmlrpclib import SSL_Transport, Server
 #from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
@@ -337,6 +340,7 @@ def main(argv):
     Start things up.
     """
 
+    textdomain(I18N_DOMAIN)
     taskatron = Taskatron()
     if len(sys.argv) > 2 and sys.argv[1].lower() == "--test":
         print taskatron.node_comm(sys.argv[2],"test_add",1,2)
@@ -348,14 +352,17 @@ def main(argv):
         taskatron.clean_up_tasks()
         taskatron.run_forever()
     elif len(sys.argv) == 1:
-        print "Running single task in debug mode, since --daemon wasn't specified..."
+        print _("Running single task in debug mode, since --daemon wasn't specified...")
         taskatron.clean_up_tasks()
         taskatron.dotick(socket.gethostname(), True)
     else:
-        print "Usage: "
-        print "vf_taskatron --test server.fqdn"
-        print "vf_taskatron --daemon"
-        print "vf_tasktron  (no args) (just runs through one pass)"
+        useage = _("""Usage:
+vf_taskatron --test server.fqdn
+vf_taskatron --daemon
+vf_tasktron  (no args) (just runs through one pass)
+""")
+        print useage
+            
 
 if __name__ == "__main__":
     main(sys.argv)

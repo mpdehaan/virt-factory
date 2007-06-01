@@ -29,6 +29,8 @@ import os.path
 import fileinput
 import traceback
 
+from rhpl.translate import _, N_, textdomain, utf8
+I18N_DOMAIN = "vf_registerr"
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 ERR_ARGUMENTS_INVALID = 8 # ...
 
@@ -136,7 +138,7 @@ class Register(object):
         try:
             rc = self.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
         except socket.error:
-            print "Could not connect to server."
+            print _("Could not connect to server.")
             return 1
         if rc[0] == ERR_TOKEN_INVALID:
             self.logger.info("Bad token!  No registration for you!")
@@ -182,7 +184,7 @@ def main(argv):
             "virtual"
         ])
     except getopt.error, e:
-        print "Error parsing command list arguments: %s" % e
+        print _("Error parsing command list arguments: %s") % e
         showHelp()
         sys.exit(1)
 
@@ -206,15 +208,15 @@ def main(argv):
             virtual = True
 
     if server_url is None:
-        print "must specify --serverurl, ex: http://foo.example.com:5150"
+        print _("must specify --serverurl, ex: http://foo.example.com:5150")
         sys.exit(1)
     
     if regtoken is None:
         if username is None:
-           print "must specify --token or --username and --password"
+           print _("must specify --token or --username and --password")
            sys.exit(1)
         elif password is None:
-           print "must specify --password"
+           print _("must specify --password")
            sys.exit(1)        
 
     reg_obj = Register(server_url)
@@ -223,6 +225,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    textdomain(I18N_DOMAIN)
     main(sys.argv)
 
 

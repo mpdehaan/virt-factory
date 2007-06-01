@@ -52,6 +52,8 @@ from modules import puppet
 from modules import schema_version
 from modules import upgrade_log_message
 
+from rhpl.translate import _, N_, textdomain, utf8
+I18N_DOMAIN = "vf_server"
 
 
 class XmlRpcInterface:
@@ -211,6 +213,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    textdomain(I18N_DOMAIN)
     main(sys.argv)
 
 
