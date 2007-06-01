@@ -50,10 +50,10 @@ class _LocalRPCMethod(object):
 
 class RPCProxy(object):
 
-    def __init__(self, name, namespace, transport):
+    def __init__(self, name, service, transport):
         attrs = self.__dict__
-        attrs['service_name'] = name
-        attrs['namespace'] = namespace
+        attrs['server_name'] = name
+        attrs['service'] = service
         attrs['transport'] = transport
 
     def __getattr__(self, name):
@@ -67,8 +67,12 @@ class RPCProxy(object):
 
     def _make_method(self, method_name):
         attrs = self.__dict__
-        method = _LocalRPCMethod(attrs['transport'], attrs['service_name'], attrs['namespace'], method_name)
+        method = _LocalRPCMethod(attrs['transport'], attrs['server_name'], attrs['service'], method_name)
         return method
+
+def build_proxy(service_handle, transport):
+    hostname, server, service = service_handle.split('!')
+    return RPCProxy(hostname + "!" + server, service, transport)
 
 def lookup_service(name, transport, host=None):
     if transport == None:
@@ -79,8 +83,8 @@ def lookup_service(name, transport, host=None):
     if name == "bridge":
         retval = bridge
     else:
-        server = bridge.lookup_service(name, host)
-        if not server == None:
-            retval = busrpc.rpc.RPCProxy(server, name, transport)
+        service_handle = bridge.lookup_service(name, host)
+        if not service_handle == None:
+            retval = build_proxy(service_handle, transport)
     return retval
     

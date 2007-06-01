@@ -32,6 +32,18 @@ class Bridge(object):
         else:
             return True
 
+    def list_servers_for_service(self, service):
+        retval = None
+        try:
+            self.registration_lock.acquire()
+            if self.services_has_key(service):
+                host_list = self.services[service]
+                retval = [hostname + "!" + server + "!" + service
+                          for hostname, server in host_list]
+        finally:
+            self.registration_lock.release()
+        return retval
+
     def unregister_service(self, hostname, server, service):
         retval = True
         try:
@@ -79,7 +91,7 @@ class Bridge(object):
                         hostname = host
                         break
         if not hostname == None and not server == None:
-            return hostname + "!" + server
+            return hostname + "!" + server + "!" + service
         else:
             return None
                 
