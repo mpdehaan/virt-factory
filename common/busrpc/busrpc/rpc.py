@@ -79,7 +79,7 @@ def lookup_service(name, transport, host=None):
     if name == "bridge":
         retval = bridge
     else:
-        server = bridge.lookup_namespace(name, host)
+        server = bridge.lookup_service(name, host)
         if not server == None:
             retval = busrpc.rpc.RPCProxy(server, name, transport)
     return retval

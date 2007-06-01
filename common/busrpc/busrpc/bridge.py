@@ -12,15 +12,18 @@ class Bridge(object):
     def __init__(self, config):
         self.registration_lock = threading.RLock()
         self.services = {}
+        self.services_by_host = {}
 
-    def register_service(self, name, namespace):
+    def register_service(self, hostname, server, service):
         try:
             try:
                 self.registration_lock.acquire()
-                key =  name
-                if not self.services.has_key(key):
-                    self.services[key] = []
-                self.services[key].append(namespace)
+                if not self.services.has_key(service):
+                    self.services[service] = []
+                self.services[service].append((hostname, server))
+                if not self.services_by_host.has_key(hostname):
+                    self.services_by_host[hostname] = []
+                self.services_by_host[hostname].append((server, service))
             finally:
                 self.registration_lock.release()
         except Exception, e:
@@ -29,43 +32,57 @@ class Bridge(object):
         else:
             return True
 
-    def unregister_service(self, name, namespace):
+    def unregister_service(self, hostname, server, service):
         retval = True
         try:
             self.registration_lock.acquire()
-            key = name
-            if self.services.has_key(key):
-                namespaces = self.services[key]
-                try:
-                    namespaces.remove(namespace)
-                    if len(namespaces) == 0:
-                        self.services.pop(key)                    
-                except ValueError:
-                    retval = False
-            else:
-                retval = False
+            if self.services.has_key(service):
+                host_list = self.services[service]
+                host_list.remove((hostname, server))
+                if len(host_list) == 0:
+                    self.services.pop(service)
+            if self.services_by_host.has_key(hostname):
+                service_list = self.services_by_host[hostname]
+                service_list.remove((server, service))
+                if len(service_list) == 0:
+                    self.services_by_host.pop(hostname)
         finally:
             self.registration_lock.release()
         return retval
 
-    def lookup_namespace(self, namespace, host):
-        return self.do_local_lookup(namespace, host=host)
+    def lookup_service(self, service, host):
+        try:
+            self.registration_lock.acquire()
+            return self._do_local_lookup(service, host=host)
+        finally:
+            self.registration_lock.release()
 
-    def do_local_lookup(self, namespace, host=None):
-        retval = None
-        for server in self.services.keys():
-            if not host == None:
-                if not server.startswith(host):
-                    continue
-            namespaces = self.services[server]
-            try:
-                namespaces.index(namespace)
-                retval = server
-                break
-            except ValueError:
-                continue
-        return retval
-
+    def _do_local_lookup(self, service, host=None):
+        hostname = None
+        server = None
+        if host == None:
+            if self.services.has_key(service):
+                host_list = self.services[service]
+                # Do round-robin rotation if more than
+                # one is registered
+                if len(host_list) > 1:
+                    hostname, server = host_list.pop()
+                    host_list.insert(0, (hostname, server))
+                else:
+                    hostname, server = host_list[0]
+        else:
+            if self.services_by_host.has_key(host):
+                service_list = self.services_by_host[host]
+                for reg_server, reg_service in service_list:
+                    if reg_service == service:
+                        server = reg_server
+                        hostname = host
+                        break
+        if not hostname == None and not server == None:
+            return hostname + "!" + server
+        else:
+            return None
+                
     def _verify_registration(service_name):
         try:
             self.registration_lock.acquire()
@@ -79,7 +96,7 @@ class Bridge(object):
 
 def start_bridge(config_path):
     config = DeploymentConfig(config_path)
-    dispatcher = RPCDispatcher(config, fully_qualify_name=False, register_with_bridge=False)
+    dispatcher = RPCDispatcher(config, register_with_bridge=False)
     try:
         dispatcher.start()
     except KeyboardInterrupt:
