@@ -34,9 +34,6 @@ import utils
 
 from db import Database
 
-# FIXME: this should be using the config settings -akl
-logger.logfilepath = "/var/log/virt-factory/svclog"
-
 from modules import task 
 from modules import authentication
 from modules import config
