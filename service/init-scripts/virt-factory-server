@@ -23,7 +23,11 @@ start() {
         echo
         return 1
     fi
- 
+    if test -f /var/lib/virt-factory/primary_db ; then
+        sudo -u postgres /usr/bin/vf_upgrade_db
+    else 
+        sudo -u postgres /usr/bin/vf_create_db 
+    fi 
     /usr/bin/vf_server --daemon
     /usr/bin/vf_taskatron --daemon
     RETVAL=$?

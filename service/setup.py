@@ -40,7 +40,7 @@ if __name__ == "__main__":
 			   "scripts/vf_config_firewall",
 			   "scripts/vf_remove_firewall_rules",
 			   "scripts/vf_gen_profile_stub",
-			   "db/vf_create_db.sh"],
+			   "db/vf_create_db"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
