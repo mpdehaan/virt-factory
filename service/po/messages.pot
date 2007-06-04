@@ -8,7 +8,6 @@ msgid ""
 msgstr ""
 "Project-Id-Version: virt-factory-server 0.0.3-3\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-06-04 14:43-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,11 +15,11 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: server/taskatron.py:355
+#: server/taskatron.py:353
 msgid "Running single task in debug mode, since --daemon wasn't specified..."
 msgstr ""
 
-#: server/taskatron.py:359
+#: server/taskatron.py:357
 msgid ""
 "Usage:\n"
 "vf_taskatron --test server.fqdn\n"
