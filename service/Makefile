@@ -38,7 +38,7 @@ build: clean
 install: build messages
 	python setup.py install -f
 
-sdist: clean message
+sdist: clean messages
 	python setup.py sdist
 
 # this is just for testing purposes, dont use this
