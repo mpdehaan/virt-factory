@@ -19,6 +19,7 @@
 import logging
 import config_data
 
+
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
     def __new__(type):
@@ -44,7 +45,7 @@ class Logger(Singleton):
     def __setup_logging(self):
         self.logger = logging.getLogger("svc")
 
-    def __setup_handlers(self):
+    def __setup_handlers(self, logfilepath=""):
         handler = logging.FileHandler(logfilepath, "a")
         self.logger.setLevel(self.loglevel)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
