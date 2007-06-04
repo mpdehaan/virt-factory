@@ -18,7 +18,6 @@ from server.codes import *
 from datetime import *
 import os
 import string
-import time
 import machine
 import deployment
 
