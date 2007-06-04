@@ -18,6 +18,7 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
+Requires: python-migrate
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
