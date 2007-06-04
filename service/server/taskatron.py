@@ -37,8 +37,6 @@ from codes import *
 import config_data
 import logger
 import utils
-# FIXME: pull this from the config file -akl
-logger.logfilepath = "/var/log/virt-factory/taskatron.log" # FIXME
 
 from modules import task as task_module 
 from modules import authentication
@@ -66,7 +64,7 @@ class Taskatron:
         """
         Constructor sets up logging
         """
-        self.logger = logger.Logger().logger
+        self.logger = logger.Logger(logfilepath = "/var/log/virt-factory/taskatron.log").logger
 
     def __log_exc(self):
         (t, v, tb) = sys.exc_info()

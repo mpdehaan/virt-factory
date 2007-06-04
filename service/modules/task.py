@@ -79,14 +79,15 @@ class Task(web_svc.AuthWebSvc):
         """
         required = ('id')
         optional = ('state')
-        filter = ('id', 'user_id', 'action_type', 'machine_id', 'deployment_id')
+        filter_fields = ('id', 'user_id', 'action_type', 'machine_id', 'deployment_id')
+        validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verity_enum('state', VALID_TASK_STATES)
         validator.verity_enum('action_type', VALID_TASK_STATES)
         session = db.open_session()
         try:
             task = db.Task.get(session, args['id'])
-            task.update(args, filter)
+            task.update(args, filter_fields)
             session.save(task)
             session.flush()
             return success()

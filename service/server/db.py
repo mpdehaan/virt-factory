@@ -126,16 +126,6 @@ tables =\
                DateTime, 
                nullable=False,
                default=datetime.utcnow())),
-    Table('schema_versions',
-        Column('id', Integer, Sequence('schemaverid'), primary_key=True),
-        Column('version', Integer),
-        Column('git_tag', String(100)),
-        Column('install_timestamp',
-               DateTime, 
-               nullable=False,
-               default=datetime.utcnow()),
-        Column('status', String(20),  nullable=False),
-        Column('notes', String(4000))),
     Table('tasks', 
           Column('id', Integer, Sequence('taskid'), primary_key=True),
           Column('user_id',
@@ -170,14 +160,6 @@ tables =\
           Column('category', String(255), nullable=False),
           Column('action', String(255), nullable=False),
           Column('user_comment', String(255))),
-    Table('upgrade_log_messages',
-        Column('id', Integer, Sequence('uglogmsgid'), primary_key=True),
-        Column('action', String(50)),
-        Column('message_type', String(50), nullable=False),
-        Column('message_timestamp',
-               DateTime,
-               default=datetime.utcnow()),
-        Column('message', String(4000)))
 )
 
 #
@@ -251,13 +233,9 @@ class RegToken(Base):
     pass
 class Session(Base):
     pass
-class SchemaVersion(Base):
-    pass
 class Task(Base):
     pass
 class Event(Base):
-    pass
-class UpgradeLogMessage(Base):
     pass
 
 
@@ -298,7 +276,6 @@ mappers =\
         properties={
             'user' : relation(User, lazy=True),
             }),
-    mapper(SchemaVersion, table['schema_versions']),
     mapper(Task, table['tasks'],
         properties={
             'user' : relation(User, lazy=True),
@@ -311,7 +288,6 @@ mappers =\
             'machine' : relation(Machine, lazy=True),
             'deployment' : relation(Deployment, lazy=True),
             }),
-    mapper(UpgradeLogMessage, table['upgrade_log_messages']),
 )
 
 

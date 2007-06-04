@@ -20,20 +20,19 @@ import ConfigParser
 from codes import *
 import config_data
 
-import os, sys
+import re, sys
+from subprocess import *
 
 from server import logger
 logger.logfilepath = "/var/lib/virt-factory/vf_upgrade_db.log"
 
+import shutil
 import string
-import time
-from pysqlite2 import dbapi2 as sqlite
 
-from server.modules import schema_version
-from server.modules import upgrade_log_message
-
-SQLITE3 = "/usr/bin/sqlite3"
+MIGRATE = "/usr/bin/migrate"
 UPGRADE_DIR = "/usr/share/virt-factory/db_schema/upgrade/"
+REPOSITORY = "/var/lib/virt-factory/migrate_repository"
+
 class Upgrade(object):
     def __init__(self):
         self.__setup_config()
@@ -47,9 +46,7 @@ class Upgrade(object):
         self.config = config_result
 
     def __setup_db(self):
-        self.dbpath = self.config["databases"]["primary"]
-        self.connection = self.sqlite_connect()
-        self.cursor = self.connection.cursor()
+        self.dbpath = self.config["databases"]["secondary"]
 
     def __init_log(self):
         # lets see what happens when we c&p the stuff from server.py 
@@ -62,32 +59,34 @@ class Upgrade(object):
         self.upgrade_sections = self.upgrade_config.sections()
         self.upgrade_sections.sort()
         self.versions = {}
+        expected_version = 1
         for section in self.upgrade_sections:
-            self.versions[int(section[8:])] = section
+            version = int(section[8:])
+            if (version != expected_version):
+                raise ValueError("error loading upgrades from upgrades.conf. Version " + str(expected_version) + " was not found.")
+            files = self.upgrade_config.get(section, "files").split())
+            numfiles = len(files)
+            for onefile in files:
+                pymatch = re.search('.py$', filename)
+                if (pymatch and (numfiles > 1):
+                    raise ValueError("invalid upgrade files specified for version " + str(version) + "Only one script allowed for python upgrades.")
+                sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
+                if (not (pymatch or sqlmatch):
+                    raise ValueError("invalid upgrade files specified for version " + str(version) + "script " + filename + " must be a python file or a sqlfile in the form upgradename-dbname-(up|down)grade.sql")
 
-    def sqlite_connect(self):
-        """Workaround for \"can't connect to full and/or unicode path\" weirdness"""
-        
-        current = os.getcwd() 
-        os.chdir(os.path.dirname(self.dbpath))
-        conn = sqlite.connect(os.path.basename(self.dbpath), isolation_level=None)
-        os.chdir(current)
-        return conn 
+            self.versions[version] = section
 
     def get_loaded_schema_version(self):
         """
         Returns the latest schema version already applied to the database
         """
-        schema_obj = schema_version.SchemaVersion()
-        try:
-            current_schema = schema_obj.get_current_version(None)
-        except Exception, e:
-            return 0
-        
-        if current_schema.data:
-            return current_schema.data["version"]
-        else:
-            return 0
+        return int(self.migrate_cmd("db_version", [self.dbpath, REPOSITORY]))
+
+    def get_repository_schema_version(self):
+        """
+        Returns the latest schema version committed to the migrate repository
+        """
+        return int(self.migrate_cmd("version", [REPOSITORY]))
 
     def get_installed_schema_version(self):
         """
@@ -99,167 +98,70 @@ class Upgrade(object):
         """
         Apply each upgrade with a version number greater than the current schema version.
         """
+        fs_version = self.get_installed_schema_version()
         db_version = self.get_loaded_schema_version()
+        self.commit_versions(true)
+
+        if (fs_version > db_version):
+            print "upgrading to version ", fs_version
+            output = self.migrate_cmd("upgrade", [self.dbpath, REPOSITORY, version]))
+
+    def commit_versions(self, test_first)
+        fs_version = self.get_installed_schema_version()
+        repo_version = self.get_repository_schema_version()
 
         for version in self.versions.keys():
-            if (version > db_version):
-                print "upgrading to version ", version
-                self.run_single_upgrade(version, self.versions[version])
-
-    def run_single_upgrade(self, version, section):
-        """
-        Run the upgrade scripts specified for a single schema version upgrade
-        """
-
-        # Version 1 upgrade doesn't have the metadata tables loaded yet.
-        if (version > 1):
-            self.start_upgrade(version,
-                               self.upgrade_config.get(section, "git_tag"),
-                               self.upgrade_config.get(section, "notes"))
-
-        self.apply_changes(version, self.upgrade_config.get(section, "files").split())
-        
-        if (version == 1):
-            self.start_upgrade(version,
-                               self.upgrade_config.get(section, "git_tag"),
-                               self.upgrade_config.get(section, "notes"))
-
-        self.end_upgrade(version)
-
+            if (version > repo_version):
+                print "testing/loading version ", version
+                files = self.upgrade_config.get(self.versions[version], "files").split()
+                for upgrade_file in files:
+                    pymatch = re.search('.py$', filename)
+                    sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
+                    
+                    tmpfilename = "/tmp/migrate-" + os.path.basename(filename)
+                    shutil.copy(filename, tmpfilename)
+                    if pymatch:
+                        if test_first:
+                            output = self.migrate_cmd("test", [tmpfilename, REPOSITORY, self.dbpath]))
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, version]))
+                    elif sqlmatch:
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, sqlmatch.group(1), sqlmatch.group(2), version]))
 
     def initialize_schema_version(self):
         """
-        Initialize the schema version table with a "completed" schema row for the
-        latest entry in upgrades.conf
+        Initialize migrate repository and sets the current schema version
+        to the latest referenced in upgrades.conf latest entry in upgrades.conf
         """
-        if (self.get_loaded_schema_version()):
-            raise ValueError("schema version " + str(self.get_loaded_schema_version()) + " is already loaded.")
-            
-        version = self.get_installed_schema_version()
-        section = self.versions[version]
-        self.start_upgrade(version,
-                           self.upgrade_config.get(section, "git_tag"),
-                           self.upgrade_config.get(section, "notes"))
-        self.end_upgrade(version)
 
+        # create a new repository
+        self.migrate_cmd("create", [REPOSITORY, "virt-factory repository"]))
+        # add upgrade scripts to repo
+        self.commit_versions(false)
+        # add the database
+        self.migrate_cmd("version_control", [self.dbpath, REPOSITORY, str(self.get_loaded_schema_version())]))
 
-    def start_upgrade(self, version, git_tag = None, notes = None):
-        """
-        Mark the upgrade as begun in the db.
-        """
-        
-        args = {}
-        args["install_timestamp"] = time.ctime()
-        args["version"] = version
-        args["git_tag"] = git_tag
-        args["notes"] = notes
-        args["status"] = SCHEMA_VERSION_BEGIN
-        schema_obj = schema_version.SchemaVersion()
-        try:
-            existing_schema = schema_obj.get_by_version(None, args)
-            if existing_schema.data and existing_schema.data["status"]==SCHEMA_VERSION_END:
-                raise ValueError("schema version ", version, "already exists")
-            else:
-                self.logger.info( "creating new schema version: version=%i" % version)
-                self.logger.info( "creating new schema version: git tag=%s" % git_tag)
-                self.logger.info( "creating new schema version: notes=%s"   % notes)
-                result = schema_obj.add(None, args)
-        except Exception, e:
-            (t, v, tb) = sys.exc_info()
-            self.logger.debug("Exception occured: %s" % t )
-            self.logger.debug("Exception value: %s" % v)
-            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-            raise e
-
-
-    def log(self, action, message_type, message = None, log_to_db = True):
-        """
-        Log upgrade message in the db
-        """
-        self.logger.info( "schema upgrade, logging action %s" % action)
-        self.logger.info( "schema upgrade, message_type %s" % message_type)
-        self.logger.info( "schema upgrade, message %s" % message)
-
-        if (log_to_db):
-            args = {}
-            args["action"] = action
-            args["message_type"] = message_type
-            args["message_timestamp"] = time.ctime()
-            if (message is not None):
-                args["message"] = message
-            
-            log_obj = upgrade_log_message.UpgradeLogMessage()
-            try:
-                result = log_obj.add(None, args)
-            except Exception, e:
-                (t, v, tb) = sys.exc_info()
-                self.logger.debug("Exception occured: %s" % t )
-                self.logger.debug("Exception value: %s" % v)
-                self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-                raise e
-        
-    def apply_changes(self, version, sql_script_list):
+    def migrate_cmd(self, command, args):
         """
         Apply schema changes by executing the sql scripts listed in the input file.
         If any scripts result in an error (for sqlite, this is indicated by output
         sent to stdout), log the error output and throw an exception
         """
-        self.log("upgrade-begin-" + str(version), UPGRADE_LOG_MESSAGE_INFO, log_to_db=(version > 1))
-        for line in sql_script_list:
-            sql = line.strip()
-            if len(sql) == 0:
-                continue
-            self.log(sql + "-begin", UPGRADE_LOG_MESSAGE_INFO, log_to_db=(version > 1))
-            pipe = os.popen(SQLITE3 + " " + self.dbpath + "  < " + UPGRADE_DIR + sql)
-            error_found = 0
-            error_msg = ""
-            for line in pipe.readlines():
-                if len(line.strip()) > 0:
-                    error_found = 1
-                if (error_found):
-                    error_msg = error_msg + line
-            closed = pipe.close()
-            exitCode = None
-            if closed:
-                exitCode = os.WIFEXITED(closed) and os.WEXITSTATUS(closed) or 0
-            if error_found or exitCode is not None:
-                self.log(sql + "-error", UPGRADE_LOG_MESSAGE_ERROR, error_msg, log_to_db=(version > 1))
-                raise Exception(error_msg)
-            else:
-                self.log(sql + "-end", UPGRADE_LOG_MESSAGE_INFO)
-
-        self.log("upgrade-end-" + str(version), UPGRADE_LOG_MESSAGE_INFO)
-            
-            
-
+        cmdline = [MIGRATE, command] + args
+        self.logger.info("calling " + cmdline.join(' '))
+        
+        pipe = Popen(cmdline, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+        cmd_output = pipe.stdout.read().strip()
+        error_msg = pipe.stderr.read().strip()
+        exitCode = pipe.wait()
+        if (len(error_msg > 0) or exitCode != 0
+            self.logger.error("error in running " + cmdline)
+            self.logger.error(error_msg)
+            raise Exception(error_msg)
+        else:
+            self.logger.info("returned " + cmd_output)
+        print cmd_output
+        return cmd_output
     
-    def end_upgrade(self, version):
-        """
-        Mark the upgrade as ended in the db.
-        """
-
-        args = {}
-        args["version"] = version
-        args["status"] = SCHEMA_VERSION_END
-        schema_obj = schema_version.SchemaVersion()
-        try:
-            existing_schema = schema_obj.get_by_version(None, args)
-            if existing_schema.data:
-                if (existing_schema.data["status"] == SCHEMA_VERSION_BEGIN):
-                    args["id"] = existing_schema.data["id"]
-                    result = schema_obj.edit(None, args)
-                    self.logger.info( "done creating new schema version: version=%i" % version)
-                else:
-                    raise ValueError("schema version ", version, "status must be 'begin'")
-            else:
-                raise ValueError("schema version ", version, "does not exist")
-        except Exception, e:
-            (t, v, tb) = sys.exc_info()
-            self.logger.debug("Exception occured: %s" % t )
-            self.logger.debug("Exception value: %s" % v)
-            self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-            raise e
-
 def main(argv):
     """
     Start things up.
@@ -267,8 +169,8 @@ def main(argv):
     usage = "usage: %prog [options] "
     parser = OptionParser(usage=usage)
     parser.add_option("-q", "--query",
-                  dest="query", type="choice", choices=["d", "db", "p", "package"], default=None,
-                  help="If specified, query schema version of either the database (d,db) or the installed package (p,package) and exit without attempting an upgrade.")
+                  dest="query", type="choice", choices=["d", "db", "r", "repository", "p", "package"], default=None,
+                  help="If specified, query schema version of either the database (d,db),  the migrate repository (r,repository) or the installed package (p,package) and exit without attempting an upgrade.")
     parser.add_option("-i", "--initialize",
                   dest="initialize", action="store_true", default=False,
                   help="If specified, initialize the schema version field in the database and exit without attempting an upgrade.")
@@ -278,6 +180,8 @@ def main(argv):
     if (options.query):
         if (options.query in ["d", "db"]):
             print upgrade.get_loaded_schema_version()
+        elif  (options.query in ["r", "repository"]):
+            print upgrade.get_repository_schema_version()
         elif  (options.query in ["p", "package"]):
             print upgrade.get_installed_schema_version()
     if (options.initialize):
