@@ -368,6 +368,8 @@ class Facade:
             try:
                 return self.method(*args)
             except Exception, e:
+                # FIXME: not sure if loggers work here, until then..
+                traceback.print_exc()
                 raise SQLException(
                            comment = str(e),
                            traceback=traceback.format_exc())
