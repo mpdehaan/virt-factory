@@ -56,7 +56,8 @@ if __name__ == "__main__":
 			      (etcpath, ["settings"]),
 			      (logpath, []),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
-					     glob.glob("db/schema/upgrade/*.sql")),
+					     glob.glob("db/schema/upgrade/*.sql") + 
+					     glob.glob("db/schema/upgrade/*.py")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
 					    "puppet-config/puppetd.conf"]),
 			      (manifestpath, ["puppet-config/site.pp"]),
