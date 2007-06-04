@@ -29,8 +29,10 @@ clean:
 	-rm -f virt-factory*.gz virt-factory*.rpm 
 	-rm -rf virt-factory-wui-* dist build
 
+genlangs:
+	cd src; rake updatepo; rake makemo
 
-tar:    clean
+tar: clean genlangs
 	mkdir -p $(NV)
 	cp -a src conf $(NV)
 	find $(NV) \( -name '*~' -o -name '#*#' \) -print0 | xargs --no-run-if-empty --null rm -vf

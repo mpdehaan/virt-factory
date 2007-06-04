@@ -18,6 +18,7 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
+Requires: python-migrate
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
@@ -64,8 +65,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
 %{python_sitelib}/virt-factory/server/db_upgrade/*.py*
 %dir /usr/share/virt-factory
-%dir /usr/share/virt-factory/db_schema
-/usr/share/virt-factory/db_schema/*.sql
 %dir /usr/share/virt-factory/db_schema/upgrade
 /usr/share/virt-factory/db_schema/upgrade/upgrades.conf
 /usr/share/virt-factory/db_schema/upgrade/*.sql
@@ -81,7 +80,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
 %defattr(2770,postgres,postgres)
-%dir /etc/virt-factory/db
 
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
@@ -97,6 +95,9 @@ fi
 
 
 %changelog
+* Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-3
+- remove old db stuff
+
 * Tue May 29 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-2
 - remove db setup/upgrade stuff from rpms
 

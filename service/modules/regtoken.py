@@ -172,13 +172,13 @@ class RegToken(web_svc.AuthWebSvc):
         try:
             token = session.query(db.RegToken).selectfirst_by(token=tokenstr)
             if token is None:
-                return false
+                return False
         finally:
              session.close()
 
         is_specific_token = False
 
-        if x is None:
+        if token is None:
             
             # no generic regtoken was used, but a new machine or deployment might
             # be using a regtoken by way of kickstart, so those tables must also be checked

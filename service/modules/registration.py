@@ -16,18 +16,12 @@
 from server.codes import *
 
 import authentication
-import baseobj
-import config
 import machine
 import deployment
 import regtoken
 import web_svc
 import profile
 
-import logging
-import os
-import threading
-import time
 import traceback
 
 

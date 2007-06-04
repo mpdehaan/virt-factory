@@ -14,20 +14,15 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 
-from server.codes import *
+from server import codes
 from server import db
 from fieldvalidator import FieldValidator
 
 import profile
-import cobbler
 import provisioning
 import web_svc
 import regtoken
-import deployment
 from server import config_data
-
-import threading
-import traceback
 
 class Machine(web_svc.AuthWebSvc):
     def __init__(self):
@@ -83,7 +78,7 @@ class Machine(web_svc.AuthWebSvc):
             session.flush()
             if machine.profile_id >= 0:
                 self.cobbler_sync(data) 
-            return success(machine.id)
+            return codes.success(machine.id)
         finally:
             session.close()
 
@@ -183,7 +178,7 @@ class Machine(web_svc.AuthWebSvc):
             session.flush()
             if machine.profile_id >= 0:
                 self.cobbler_sync(data)
-            return success()
+            return codes.success()
         finally:
             session.close()
 
@@ -204,7 +199,7 @@ class Machine(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             db.Machine.delete(session, args['id'])
-            return success()
+            return codes.success()
         finally:
             session.close()
 
@@ -245,7 +240,7 @@ class Machine(web_svc.AuthWebSvc):
             offset, limit = self.offset_and_limit(args)
             for machine in db.Machine.list(session, offset, limit):
                 result.append(self.expand(machine))
-            return success(result)
+            return codes.success(result)
         finally:
             session.close()
 
@@ -291,7 +286,7 @@ class Machine(web_svc.AuthWebSvc):
             query = session.query(db.Machine)
             for machine in query.select_by(hostname == hostname, offset=offset, limit=limit):
                 result.append(self.expand(machine))
-            return success(result)
+            return codes.success(result)
         finally:
             session.close()
 
@@ -336,7 +331,7 @@ class Machine(web_svc.AuthWebSvc):
             query = session.query(db.Machine)
             for machine in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
                 result.append(self.expand(machine))
-            return success(result)
+            return codes.success(result)
         finally:
             session.close()
 
@@ -376,7 +371,7 @@ class Machine(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             machine = db.Machine.get(session, args['id'])
-            return success(machine.data())
+            return codes.success(machine.data())
         finally:
             session.close()
 
@@ -384,7 +379,7 @@ class Machine(web_svc.AuthWebSvc):
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
-        vdr.verify_enum('architecture', VALID_ARCHS)
+        vdr.verify_enum('architecture', codes.VALID_ARCHS)
         vdr.verify_int('processor_speed', 'processor_count', 'memory')
         vdr.verify_printable(
                'kernel_options', 'kickstart_metadata', 'list_group', 
