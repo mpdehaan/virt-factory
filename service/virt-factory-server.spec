@@ -42,7 +42,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_taskatron
 %{_bindir}/vf_import
 %{_bindir}/vf_get_puppet_node
-%{_bindir}/vf_create_db.sh
+%{_bindir}/vf_create_db
 %{_bindir}/vf_nodecomm
 %{_bindir}/vf_upgrade_db
 %{_bindir}/vf_config_firewall
@@ -80,16 +80,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/vf-profile-template.spec
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
-
+%defattr(2770,postgres,postgres)
+%dir /etc/virt-factory/db
 
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
 /bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
-#if [ -f /var/lib/virt-factory/primary_db ]; then
-#    /usr/bin/vf_upgrade_db
-#else
-#    /usr/bin/vf_create_db.sh
-#fi
 /sbin/chkconfig --add virt-factory-server
 exit 0
 
