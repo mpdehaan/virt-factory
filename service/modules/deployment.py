@@ -30,7 +30,6 @@ from server import config_data
 import subprocess
 import socket
 import traceback
-import threading
 
 
 class Deployment(web_svc.AuthWebSvc):
