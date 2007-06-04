@@ -12,7 +12,6 @@ clean:
 	-rm -rf *~
 	-rm -rf rpm-build/
 
-
 #manpage:
 #	pod2man --center="cobbler" --release="" cobbler.pod | gzip -c > cobbler.1.gz
 #	pod2html cobbler.pod > cobbler.html
@@ -44,8 +43,6 @@ sdist: clean messages
 # this is just for testing purposes, dont use this
 nukedb:
 	-rm -rf /var/lib/virt-factory/primary_db 
-	
-
 
 new-rpms: bumprelease rpms
 
