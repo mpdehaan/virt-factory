@@ -2,6 +2,12 @@
 
 import subprocess
 import random
+import sys
+import distutils.sysconfig
+
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+from server import db as vfdb
+
 
 ######################################
 # CONFIG SECTION
@@ -9,12 +15,31 @@ import random
 # must be chown postgres, chmod 550
 DATABASE      = "virtfactory"
 PW_FILE       = "/etc/virt-factory/db/dbaccess"  
-#SCHEMA_FILE   = "/var/lib/virt-factory/db_schema/schema.sql"
-#POPULATE_FILE = "/var/lib/virt-factory/db_schema/populate.sql"
+DATABASE      = 'virtfactory'
 
 ######################################
 
-def createdb():
+
+CREATE_SCHEMA_SQL = """
+    CREATE SCHEMA %(DATABASE)s;
+"""
+
+# FIXME: not sure if searchpath is required?
+# FIXME: grant list has to be explicit?
+
+CREATE_USER_SQL = """
+    DELETE ROLE %(username)s;
+    CREATE ROLE %(username)s LOGIN PASSWORD '%(password)s'
+    NOINHERIT
+    VALID UNTIL 'infinity';
+
+    ALTER ROLE %(username)s SET search_path=%(DATABASE)s,public;
+        
+    GRANT usage ON SCHEMA %(DATABASE)s TO %(username)s;
+    GRANT SELECT, UPDATE, INSERT, DELETE ON TABLE users TO %(username)s;
+"""
+
+def mkpasswd():
     dvr = open("/dev/urandom","r")
     r = random.Random(dvr.read(255))
     dvr.close()
@@ -22,15 +47,19 @@ def createdb():
     pwf = open(PW_FILE, "w+")
     pwf.write(password)
     pwf.close()
+    return password
 
-    #sf = open(SCHEMA_FILE, "r")
-    #data = sf.read() % { "password" : password }
-    data = "" # no initial schema, use SQLalchemy 
+def createdb(username,password):
+    data = CREATE_SCHEMA_SQL % {
+         "DATABASE" : DATABASE
+    }
     __runsql(data)
-
-#def populate():
-#    data = open(POPULATE_FILE, "r")
-#    __runsql(data)
+    data = CREATE_USER_SQL % {
+        "username"    : username,
+        "password"    : password,
+        "DATABASE"    : DATABASE
+    }
+    __runsql(data)
 
 def initialize_upgrade_path():
     p = subprocess.Popen("/usr/bin/vf_upgrade_db --initialize", shell=True)
@@ -41,10 +70,86 @@ def __runsql(data):
     p = subprocess.Popen("psql --dbname %s" % (DATABASE), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     (stdout, stderr) = p.communicate(data)
 
+def populatedb():
+    """
+    Create all of the null (default) row entries for various objects, as well as
+    the default username/password account the sysadmin will need to initially log in
+    (this should be changed post-login).
+    """
+
+    pwf = open(PW_FILE)
+    pw = pwf.read()
+    pwf.close()
+ 
+    database = vfdb.Database("postgres://virtfactory:%s@localhost/virtfactory/" % pw)
+    # database.drop() -- don't do this, user might run by accident
+    database.create()
+
+    session = database.open_session()
+    
+    # default user account
+    user = User()
+    user.username    = 'admin'
+    user.password    = 'fedora'
+    user.first       = ''
+    user.last        = ''
+    user.description = 'default admin account'
+    user.email       = 'root@localhost'
+    session.save(user)
+
+    # null user account
+    null_user = User()
+    null_user.id = -1
+    null_user.username = 'system'
+    null_user.password = 'locked' # can't log in, just filler
+    null_user.first = '?'
+    null_user.last  = '?'
+    null_user.description = 'system account'
+    null_user.email = '?'
+    session.save(null_user)
+    
+    # null distribution
+    null_distribution = Distribution()
+    null_distribution.id = -1
+    null_distribution.name = '*Unassigned*'
+    session.save(null_distribution)
+
+    # null profile
+    null_profile = Profile()
+    null_profile.id = -1
+    null_profile.name = '*Unassigned*'
+    null_profile.version = '0.00'
+    null_profile.distribution = null_distribution
+    session.save(null_profile)
+
+    # null machine
+    null_machine = Machine()
+    null_machine.id = -1
+    null_machine.name = '*Unassigned*'
+    null_machine.profile = null_profile
+    session.save(null_machine)
+
+    # null regtoken
+    null_regtoken = Regtoken()
+    null_regtoken.id = -1
+    null_regtoken.profile = null_profile
+    session.save(null_regtoken)
+ 
+    # null deployment
+    null_deployment = Deployment()
+    null_deployment.hostname = null_deployment.display_name = '*Unassigned'
+    null_deployment.profile = null_profile
+    null_deployment.machine = null_machine
+    session.save(null_deployment)
+
+    session.flush() # commit everything to file
+
 if __name__ == "__main__":
-    createdb()
+    if not os.path.exists("/var/lib/virt-factory/primary_db"):
+        pw = mkpasswd()
+        createdb('virtfactory',pw)
+    populatedb()
     initialize_upgrade_path()
-    # populate() -- let sqlalchemy do this
 
 
 
