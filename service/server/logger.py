@@ -45,7 +45,7 @@ class Logger(Singleton):
     def __setup_logging(self):
         self.logger = logging.getLogger("svc")
 
-    def __setup_handlers(self, logfilepath=""):
+    def __setup_handlers(self, logfilepath="/var/log/virt-factory/svclog"):
         handler = logging.FileHandler(logfilepath, "a")
         self.logger.setLevel(self.loglevel)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
