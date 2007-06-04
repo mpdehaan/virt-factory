@@ -17,7 +17,7 @@ from server.codes import *
 
 import baseobj
 from server import config_data
-from server import db_util
+#from server import db_util
 from server import logger
 
 from pysqlite2 import dbapi2 as sqlite

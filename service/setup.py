@@ -55,8 +55,6 @@ if __name__ == "__main__":
 			      (initpath, ["init-scripts/virt-factory-server"]),
 			      (etcpath, ["settings"]),
 			      (logpath, []),
-			      (schemapath, ["db/schema/schema.sql", 
-					    "db/schema/populate.sql"]),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
