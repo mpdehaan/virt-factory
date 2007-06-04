@@ -64,7 +64,7 @@ class Upgrade(object):
             version = int(section[8:])
             if (version != expected_version):
                 raise ValueError("error loading upgrades from upgrades.conf. Version " + str(expected_version) + " was not found.")
-            files = self.upgrade_config.get(section, "files").split())
+            files = self.upgrade_config.get(section, "files").split()
             numfiles = len(files)
             for onefile in files:
                 pymatch = re.search('.py$', filename)
