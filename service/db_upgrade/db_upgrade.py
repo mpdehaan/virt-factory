@@ -68,7 +68,7 @@ class Upgrade(object):
             numfiles = len(files)
             for onefile in files:
                 pymatch = re.search('.py$', filename)
-                if (pymatch and (numfiles > 1):
+                if (pymatch and (numfiles > 1)):
                     raise ValueError("invalid upgrade files specified for version " + str(version) + "Only one script allowed for python upgrades.")
                 sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
                 if (not (pymatch or sqlmatch):
