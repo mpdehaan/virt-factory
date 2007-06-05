@@ -46,7 +46,6 @@ from modules import registration
 from modules import user
 from modules import regtoken
 from modules import puppet
-from modules import schema_version
 from modules import upgrade_log_message
 
 from rhpl.translate import _, N_, textdomain, utf8
@@ -93,7 +92,7 @@ class XmlRpcInterface:
                  distribution,config,
                  provisioning, registration,
                  authentication, task, regtoken, puppet,
-                 schema_version, upgrade_log_message]:
+                 upgrade_log_message]:
            x.register_rpc(self.handlers)
            self.logger.debug("adding %s" % x)
 
