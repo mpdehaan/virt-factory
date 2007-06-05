@@ -34,7 +34,7 @@ setversion:
 build: clean
 	python setup.py build -f
 
-install: build messages
+install: build 
 	python setup.py install -f
 
 sdist: clean messages
