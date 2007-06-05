@@ -46,7 +46,6 @@ from modules import registration
 from modules import user
 from modules import regtoken
 from modules import puppet
-from modules import upgrade_log_message
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_server"
@@ -91,8 +90,7 @@ class XmlRpcInterface:
                  profile, deployment,
                  distribution,config,
                  provisioning, registration,
-                 authentication, task, regtoken, puppet,
-                 upgrade_log_message]:
+                 authentication, task, regtoken, puppet,]:
            x.register_rpc(self.handlers)
            self.logger.debug("adding %s" % x)
 
