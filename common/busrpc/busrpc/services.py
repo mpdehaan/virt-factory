@@ -31,10 +31,14 @@ class RPCDispatcher(object):
         self.instances = {}
         self.hostname = socket.gethostname()
         self.name = config.server_name
+        certdir = config.get_value('busrpc.crypto.certdir')
+        pwd = config.get_value('busrpc.crypto.password')
         if register_with_bridge:
-            self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name)
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name,
+                                                                       certdir=certdir, cryptopassword=pwd)
         else:
-            self.transport = busrpc.qpid_transport.QpidServerTransport(self.name)
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.name, certdir=certdir,
+                                                                       cryptopassword=pwd)
         self.transport.callback = self.dispatch
         self.register_with_bridge = register_with_bridge
         self.runner_thread = None
@@ -75,7 +79,7 @@ class RPCDispatcher(object):
         self.instances.clear()
 
     def dispatch(self, message):
-        sender, namespace, called_method, encoded_params = decode_rpc_message(message)
+        sender, namespace, called_method, encoded_params = decode_rpc_request(message)
         if sender == None or namespace == None:
             return
         cache_key = ''.join([namespace, '.', called_method])

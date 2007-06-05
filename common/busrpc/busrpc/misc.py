@@ -1,7 +1,9 @@
 import simplejson
+import binascii
 
 import busrpc.rpc
 import qpid_transport
+from qpid_util import encrypt, decrypt
 
 def encode_partial_rpc_message(sender, namespace, method):    
     return ''.join(['from:', sender, '\n',
@@ -26,8 +28,14 @@ def encode_rpc_response(sender, namespace, called_method, results, headers=None)
     retval = retval + results
     return retval
 
-def decode_rpc_message(message):
+def decode_rpc_request(message, cert_mgr=None):
     headers, args = message.split('\n\n')
+    if is_secure(headers):
+        if not cert_mgr == None:
+            name, value  = headers.split(':')
+            headers, args = decrypt(value.strip(), args, cert_mgr)
+        else:
+            raise qpid_transport.QpidTransportException('CertManager not found for secure content')
     sender = None
     namespace = None
     method = None
@@ -46,8 +54,13 @@ def decode_rpc_message(message):
     else:
         return None, None, None, None
 
-def decode_rpc_response(message):
+def decode_rpc_response(message, cert_mgr=None):
     all_headers, results = message.split('\n\n')
+    if is_secure(all_headers):
+        if not cert_mgr == None:
+            all_headers, results = decrypt(all_headers['secure-host'], results, cert_mgr)
+        else:
+            raise qpid_transport.QpidTransportException('CertManager not found for secure content')
     sender = None
     namespace = None
     method = None
@@ -66,6 +79,9 @@ def decode_rpc_response(message):
         else:
             headers[name] = value
     return sender, namespace, method, headers, simplejson.loads(results)
+
+def is_secure(raw_headers):
+    return raw_headers.startswith('secure-host:')
 
 def decode_object(obj):
     return simplejson.loads(obj)

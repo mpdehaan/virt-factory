@@ -1,6 +1,10 @@
+from M2Crypto import RSA
+import base64
+
 import qpid.content
 import qpid.queue
 
+from busrpc.crypto import CertManager, CryptoException
 
 def declare_exchange(caller, channel_id=1,exchange_name='',
                      create=False, auto_remove=False,
@@ -47,3 +51,37 @@ def publish_message(caller, channel_id=1, exchange_name='',
 def ack_message(caller, channel_id=1, message=None):
     channel = caller.channel(channel_id)
     channel.basic_ack(message.delivery_tag, True)
+
+def decrypt(host, blob, cert_mgr):
+    if cert_mgr == None:
+        return blob
+    key = None
+    headers = None
+    results = None
+    try:
+        key = cert_mgr.load_pub_key(host)
+        if key == None:
+            raise CryptoException('Missing public key for %s' % host)
+        print 'decoded blob: %s' % (blob)
+        msg = key.public_decrypt(blob, RSA.pkcs1_padding)
+        print 'decrypted msg: %s' % (msg)
+        headers, results = msg.split('\n\n')
+    finally:
+        if not key == None:
+            cert_mgr.release_pub_key(host, key)
+    return headers, results
+
+def encrypt(host, msg, cert_mgr):
+    if cert_mgr == None:
+        return msg
+    key = None
+    msg = None
+    try:
+        key = cert_mgr.load_private_key()
+        if key == None:
+            raise CryptoException('Missing private key')
+        blob = key.private_encrypt(str(msg), RSA.pkcs1_padding)
+        return 'secure-host:' + host + '\n\n' + blob
+    finally:
+        if not key == None:
+            cert_mgr.release_private_key(key)    
