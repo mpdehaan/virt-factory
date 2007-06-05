@@ -69,7 +69,7 @@ class XmlRpcInterface:
         
         try:
             databases = self.config['databases']
-            url = databases['secondary']
+            url = databases['primary']
             Database(url)
         except KeyError:
             # FIXME: update message after sqlalchemy conversion.

@@ -331,6 +331,13 @@ class Database:
         @type url: string 
         """
         Database.primary = self
+        if url is None:
+            raise SQLException(comment="no connection string specified")
+        if url.find("%(password)s") != -1:
+            pwfile = open("/etc/virt-factory/db/dbaccess")
+            read_pw = pwfile.read()
+            pwfile.close()
+            url = url % { "password" : read_pw }
         global_connect(url, echo=True)
         
     def create(self):

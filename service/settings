@@ -1,6 +1,6 @@
 ---
 databases:
-    primary: /var/lib/virt-factory/primary_db
+    primary: "postgres://virtfactory:%(password)s@localhost/virtfactory"
 logs:
     service: /var/log/virt-factory/svclog
 repos:
