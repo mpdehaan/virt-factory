@@ -13,6 +13,7 @@ Requires: ruby >= 1.8.1
 Requires: ruby(abi) = 1.8
 Requires: rubygem(rails) >= 1.2.2
 Requires: rubygem(mongrel) >= 1.0.1
+Requires: ruby-gettext-package
 Requires: httpd >= 2.0
 Requires: virt-factory-server >= 0.0.1
 Requires(post):  /sbin/chkconfig
@@ -20,6 +21,7 @@ Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 BuildRequires: ruby >= 1.8.1
 BuildRequires: ruby-devel
+BuildRequires: ruby-gettext-package
 Provides: virt-factory-wui
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
