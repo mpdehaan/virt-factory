@@ -22,9 +22,9 @@ import config_data
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
-    def __new__(type):
+    def __new__(type, *args, **kwargs):
         if not '_the_instance' in type.__dict__:
-            type._the_instance = object.__new__(type)
+            type._the_instance = object.__new__(type, *args, **kwargs)
         return type._the_instance
 
 # logging is weird, we don't want to setup mutliple handlers
