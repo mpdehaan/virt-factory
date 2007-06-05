@@ -243,29 +243,29 @@ mappers =\
 (
     mapper(User, table['users'],
         properties={
-            'sessions' : relation(Session, cascade="delete-orphan", lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
-            'events' : relation(Task, cascade="delete-orphan", lazy=True),
+            'sessions' : relation(Session, passive_deletes=True, viewonly=True, lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+            'events' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             }),
     mapper(Distribution, table['distributions']),
     mapper(Profile, table['profiles'],
         properties={
             'distribution' : relation(Distribution, lazy=True),
-            'machines' : relation(Machine, cascade="delete-orphan", lazy=True),
-            'deployments' : relation(Deployment, cascade="delete-orphan", lazy=True),
+            'machines' : relation(Machine, passive_deletes=True, viewonly=True, lazy=True),
+            'deployments' : relation(Deployment, passive_deletes=True, viewonly=True, lazy=True),
             'regtokens' : relation(RegToken, lazy=True)
             }),
     mapper(Machine, table['machines'],
         properties={
             'profile' : relation(Profile, lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             'events' : relation(Event, lazy=True),
             }),
     mapper(Deployment, table['deployments'],
         properties={
             'profile' : relation(Profile, lazy=True),
             'machine' : relation(Machine, lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             'events' : relation(Event, lazy=True),
             }),
     mapper(RegToken, table['regtokens'],
@@ -388,6 +388,9 @@ def open_session():
 
 
 if __name__ == '__main__':
+    #
+    # This is test code only.  Do not use this a a reference implementation.
+    #
     database = Database('postgres://jortel:jortel@localhost/virtfactory')
     database.drop()
     database.create()
@@ -404,26 +407,22 @@ if __name__ == '__main__':
         ssn.save(user)
         ssn.flush()
         
-
         user = User.get(ssn, 1)
         session = Session()
-        session.session_token = 'my token'
-        user.sessions.append(session)
+        session.session_token = 'my token-1'
+        session.user = user
+        ssn.save(session)
+        session = Session()
+        session.session_token = 'my token-2'
+        session.user = user
         ssn.save(session)
         ssn.flush()
-
-        try:
-            fetched = User.get(ssn, 1)
-            print '______fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
-            fetched.update({'middle':'Dog'})
-            ssn.save(fetched)
-            ssn.flush()
-            for fetched in User.list(ssn):
-                print '______(list) fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
-        except Exception, e:
-            print '___failed___%s'  % e.comment
+        
+        user = User.get(ssn, 1)
+        for s in user.sessions:
+            print s.session_token
 
         User.delete(ssn, 1)
-    finally:
-        pass
+    except Exception, e:
+        print e.comment
         
