@@ -155,6 +155,7 @@ def populatedb():
  
     # null deployment
     null_deployment = vfdb.Deployment()
+    null_deployment.id = -1
     null_deployment.hostname = null_deployment.display_name = '*Unassigned'
     null_deployment.profile = null_profile
     null_deployment.machine = null_machine
