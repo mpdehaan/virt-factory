@@ -252,7 +252,10 @@ start_services()
     /etc/init.d/virt-factory-wui restart
 
     # fresh postgresql requires an initdb first
-    /etc/init.d/postgresql initdb
+    # though a restart will make this happen automagically if and only if
+    # /var/lib/pgsql does not exist.
+    # if the user installed somewhere else though, the vf_create_db --fixauth
+    # stuff will likely fail.  
     /etc/init.d/postgresql restart
 
     # we need to restart httpd after installing mongrel
