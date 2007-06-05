@@ -68,10 +68,10 @@ class Upgrade(object):
             numfiles = len(files)
             for onefile in files:
                 pymatch = re.search('.py$', filename)
-                if (pymatch and (numfiles > 1):
+                if (pymatch and (numfiles > 1)):
                     raise ValueError("invalid upgrade files specified for version " + str(version) + "Only one script allowed for python upgrades.")
                 sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
-                if (not (pymatch or sqlmatch):
+                if (not (pymatch or sqlmatch)):
                     raise ValueError("invalid upgrade files specified for version " + str(version) + "script " + filename + " must be a python file or a sqlfile in the form upgradename-dbname-(up|down)grade.sql")
 
             self.versions[version] = section
@@ -104,9 +104,9 @@ class Upgrade(object):
 
         if (fs_version > db_version):
             print "upgrading to version ", fs_version
-            output = self.migrate_cmd("upgrade", [self.dbpath, REPOSITORY, version]))
+            output = self.migrate_cmd("upgrade", [self.dbpath, REPOSITORY, version])
 
-    def commit_versions(self, test_first)
+    def commit_versions(self, test_first):
         fs_version = self.get_installed_schema_version()
         repo_version = self.get_repository_schema_version()
 
@@ -122,10 +122,10 @@ class Upgrade(object):
                     shutil.copy(filename, tmpfilename)
                     if pymatch:
                         if test_first:
-                            output = self.migrate_cmd("test", [tmpfilename, REPOSITORY, self.dbpath]))
-                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, version]))
+                            output = self.migrate_cmd("test", [tmpfilename, REPOSITORY, self.dbpath])
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, version])
                     elif sqlmatch:
-                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, sqlmatch.group(1), sqlmatch.group(2), version]))
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, sqlmatch.group(1), sqlmatch.group(2), version])
 
     def initialize_schema_version(self):
         """
@@ -134,11 +134,11 @@ class Upgrade(object):
         """
 
         # create a new repository
-        self.migrate_cmd("create", [REPOSITORY, "virt-factory repository"]))
+        self.migrate_cmd("create", [REPOSITORY, "virt-factory repository"])
         # add upgrade scripts to repo
         self.commit_versions(false)
         # add the database
-        self.migrate_cmd("version_control", [self.dbpath, REPOSITORY, str(self.get_loaded_schema_version())]))
+        self.migrate_cmd("version_control", [self.dbpath, REPOSITORY, str(self.get_loaded_schema_version())])
 
     def migrate_cmd(self, command, args):
         """
@@ -153,7 +153,7 @@ class Upgrade(object):
         cmd_output = pipe.stdout.read().strip()
         error_msg = pipe.stderr.read().strip()
         exitCode = pipe.wait()
-        if (len(error_msg > 0) or exitCode != 0
+        if (len(error_msg > 0) or exitCode != 0):
             self.logger.error("error in running " + cmdline)
             self.logger.error(error_msg)
             raise Exception(error_msg)
