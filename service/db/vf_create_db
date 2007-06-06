@@ -181,12 +181,12 @@ def fix_postgres_auth():
     hba = open(PG_HBA_CONF,"w")
     found = False
     for line in lines:
-        if line.find("md5") != -1 and line.find("local") != -1:
+        if line.find("virtfactory") != -1:
            found = True
         hba.write(line)
         hba.write("\n")
     if not found:
-        hba.write("local   all         all                               md5\n")
+        hba.write("local   all         virtfactory                               md5\n")
     hba.close()
 
     # restart service
