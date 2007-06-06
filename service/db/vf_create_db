@@ -168,6 +168,8 @@ def fix_postgres_auth():
     Enable postgres to use password authentication, which is off
     by default.
     """
+    
+    subprocess.call("/sbin/service postgresql start", shell=True)
 
     # read conf file
     hba = open(PG_HBA_CONF,"r")
@@ -177,13 +179,14 @@ def fix_postgres_auth():
 
     # rewrite conf file
     hba = open(PG_HBA_CONF,"w")
+    found = False
     for line in lines:
-       for x in [ "local", "host" ]: # types of pg connections
-          if line.startswith(x):
-             if line.find("password") == -1:
-                line = line + " password" # add to EOL
-       hba.write(line)
-       hba.write("\n")
+        if line.find("md5") != -1 and line.find("local") != -1:
+           found = True
+        hba.write(line)
+        hba.write("\n")
+    if not found:
+        hba.write("local   all         all                               md5\n")
     hba.close()
 
     # restart service
