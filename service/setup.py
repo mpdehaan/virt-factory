@@ -13,11 +13,12 @@ A small pluggabe xml-rpc daemon used by %s to implement various web services hoo
 """ % NAME
 
 if __name__ == "__main__":
-        manpath  = "share/man/man1/"
-        etcpath  = "/etc/%s" % NAME
-        wwwpath  = "/var/www/%s" % NAME
-        initpath = "/etc/init.d/"
-        logpath  = "/var/log/%s/" % NAME
+        manpath    = "share/man/man1/"
+        etcpath    = "/etc/%s" % NAME
+        etcpathdb  = "/etc/%s/db" % NAME
+        wwwpath    = "/var/www/%s" % NAME
+        initpath   = "/etc/init.d/"
+        logpath    = "/var/log/%s/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
 	upgradepath = schemapath + "upgrade/"
@@ -54,6 +55,7 @@ if __name__ == "__main__":
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/virt-factory-server"]),
 			      (etcpath, ["settings"]),
+			      (etcpathdb, []),
 			      (logpath, []),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 

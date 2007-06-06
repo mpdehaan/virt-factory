@@ -79,6 +79,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
 %defattr(2770,postgres,postgres)
+%dir /etc/virt-factory/db
 
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
