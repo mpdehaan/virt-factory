@@ -17,7 +17,7 @@ from server import db as vfdb
 PG_HBA_CONF   = "/var/lib/pgsql/data/pg_hba.conf"
 DATABASE      = "virtfactory"
 PW_FILE       = "/etc/virt-factory/db/dbaccess"  
-USERNAME      = "virtf2"
+USERNAME      = "virtfactory"
 EXISTS_FILE   = "/etc/virt-factory/db/exists" 
 ######################################
 
