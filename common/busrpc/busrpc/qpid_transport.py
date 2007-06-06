@@ -26,7 +26,7 @@ class QpidTransportException(Exception):
 class QpidTransport(Transport):
 
     def __init__(self, host='localhost', port=5672, user='guest',
-                 password='guest', vhost='development', certdir=None, cryptopassword=None):
+                 password='guest', vhost='development'):
         self.nethostname = socket.gethostname()
         self.cert_mgr = None
         self.host = host
@@ -43,14 +43,10 @@ class QpidTransport(Transport):
         self.connected = False
         self.queue_name = None
         self.incoming_queue = None
-        self.certdir = certdir
-        self.cryptopassword = cryptopassword
-        if not self.certdir == None and not self.cryptopassword == None:
-            self._setup_certs()
 
     def clone(self):
         retval = QpidTransport(self.host, self.port, self.user,
-                               self.password, self.vhost, certdir=self.certdir, cryptopassword=self.cryptopassword)
+                               self.password, self.vhost)
         retval.connect()
         return retval
 
@@ -86,7 +82,6 @@ class QpidTransport(Transport):
                                        vhost=self.vhost)                    
 
     def send_message(self, to, message):
-        message = qpid_util.encrypt(self.nethostname, message, self.cert_mgr)
         properties = {"Content-Type":"text/plain", "Reply-To": self.queue_name}
         qpid_util.publish_message(self, exchange_name=self.exchange_name,
                                   routing_key_name=to, message=message,
@@ -127,8 +122,7 @@ class QpidServerTransport(QpidTransport, ServerTransport):
         self.is_stopped = False
         self.pending_calls = qpid.queue.Queue()
         self.pending_sends = qpid.queue.Queue()
-        QpidTransport.__init__(self, host, port, user, password, vhost, certdir=certdir,
-                               cryptopassword=cryptopassword)
+        QpidTransport.__init__(self, host, port, user, password, vhost)
 
     def start(self):
         if not self.connected:
@@ -161,13 +155,6 @@ class QpidServerTransport(QpidTransport, ServerTransport):
     def _dispatch(self):
         while not self.is_stopped:
             call_body = self.pending_calls.get()
-            parts = call_body.split('\n\n')
-            if len(parts) > 0:
-                if parts[0].startswith('secure-host:'):
-                    print 'Detecting secure message'
-                    name, value = parts[0].split(':')
-                    call_body = qpid_util.decrypt(value, parts[1], self.cert_mgr)
-                    print 'Decrypted message: %s' % (call_body)
             addr, reply = self.callback(call_body)
             if addr == None or reply == None:
                 return

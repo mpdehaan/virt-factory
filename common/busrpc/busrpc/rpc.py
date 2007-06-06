@@ -1,18 +1,23 @@
+import socket
+
 import busrpc.qpid_transport as qpid_transport
 from busrpc.misc import *
 
 class _LocalRPCMethod(object):
 
-    def __init__(self, transport, server, namespace, method_name):
+    def __init__(self, transport, server, namespace, method_name, hostname, cert_mgr=None):
         self.transport = transport
         self.server = server
         self.namespace = namespace
         self.method_name = method_name
+        self.hostname = hostname
+        self.cert_mgr = cert_mgr
         self.results = {}
         self.params = {}
         self.partial_encoded_message = encode_partial_rpc_message(self.transport.queue_name,
                                                                   self.namespace,
-                                                                  self.method_name)
+                                                                  self.method_name,
+                                                                  self.hostname)
 
     def __call__(self, *args, **kwargs):
         results = None
@@ -36,9 +41,12 @@ class _LocalRPCMethod(object):
         else:
             params = encode_object(args)
         encoded_call = self.partial_encoded_message + params
+        print 'Encoded call: %s' % encoded_call
+        if not self.cert_mgr == None:
+            encoded_call = self.cert_mgr.encrypt_message(self.hostname, encoded_call)
         if not async_call:
             raw_results = self.transport.send_message_wait(self.server, encoded_call)
-            sender, namespace, method, headers, results = decode_rpc_response(raw_results)
+            sender, namespace, method, headers, results = decode_rpc_response(raw_results, cert_mgr=self.cert_mgr)
             if cache_return and headers.has_key('cache_results'):
                 self.results[args] =  results
                 results = self.results[args]
@@ -50,11 +58,13 @@ class _LocalRPCMethod(object):
 
 class RPCProxy(object):
 
-    def __init__(self, name, service, transport):
+    def __init__(self, name, service, transport, cert_mgr=None):
         attrs = self.__dict__
         attrs['server_name'] = name
         attrs['service'] = service
         attrs['transport'] = transport
+        attrs['hostname'] = socket.gethostname()
+        attrs['cert_mgr'] = cert_mgr
 
     def __getattr__(self, name):
         retval = None
@@ -67,24 +77,25 @@ class RPCProxy(object):
 
     def _make_method(self, method_name):
         attrs = self.__dict__
-        method = _LocalRPCMethod(attrs['transport'], attrs['server_name'], attrs['service'], method_name)
+        method = _LocalRPCMethod(attrs['transport'], attrs['server_name'], attrs['service'], method_name,
+                                 attrs['hostname'], cert_mgr=attrs['cert_mgr'])
         return method
 
-def build_proxy(service_handle, transport):
+def build_proxy(service_handle, transport, cert_mgr=None):
     hostname, server, service = service_handle.split('!')
-    return RPCProxy(hostname + "!" + server, service, transport)
+    return RPCProxy(hostname + "!" + server, service, transport, cert_mgr=cert_mgr)
 
-def lookup_service(name, transport, host=None):
+def lookup_service(name, transport, cert_mgr=None, host=None):
     if transport == None:
         transport = qpid_transport.QpidTransport()
         transport.connect()
-    bridge = busrpc.rpc.RPCProxy("busrpc.Bridge", "bridge", transport)
+    bridge = busrpc.rpc.RPCProxy("busrpc.Bridge", "bridge", transport, cert_mgr=cert_mgr)
     retval = None
     if name == "bridge":
         retval = bridge
     else:
         service_handle = bridge.lookup_service(name, host)
         if not service_handle == None:
-            retval = build_proxy(service_handle, transport)
+            retval = build_proxy(service_handle, transport, cert_mgr=cert_mgr)
     return retval
     
