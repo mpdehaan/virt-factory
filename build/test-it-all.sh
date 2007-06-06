@@ -431,7 +431,7 @@ if [ "$REFRESH_DB" == "Y" ] ; then
     mkdir -p db_backup
     TIMESTAMP=` date '+%s'`
     mv /var/lib/psql "db_backup/"
-    rm -rf /var/lib/psql
+    rm -rf /var/lib/pgsql
     rm -rf /etc/virt-factory/db
 fi
 
