@@ -54,7 +54,6 @@ sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
 from server.codes import *
 from server import logger
-logger.logfilepath = "/var/log/virt-factory/vf_import.log"
 from server.modules import distribution
 from server.modules import profile
 from server.modules import provisioning
@@ -88,7 +87,7 @@ class VirtFactoryImporter:
        self.module_name = module_name
        self.module_dir = module_dir
        self.manifest = manifest
-       log = logger.Logger()
+       log = logger.Logger("/var/log/virt-factory/vf_import.log")
        self.logger = log.logger
        self.profile = parse(self.module_dir + '/' + self.module_name + "/profile.xml")
 

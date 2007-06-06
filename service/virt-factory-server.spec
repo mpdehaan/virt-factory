@@ -51,6 +51,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_gen_profile_stub
 /etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
+%dir %attr(755,postgres,postgres) /var/lib/virt-factory/db
 %config(noreplace) /etc/virt-factory/settings
 # kickstart templaces
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
@@ -78,6 +79,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/vf-profile-template.spec
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
+%dir %attr(755,postgres,postgres) /var/log/virt-factory/db
 %defattr(2770,postgres,postgres)
 %dir /etc/virt-factory/db
 

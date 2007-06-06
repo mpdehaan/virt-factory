@@ -20,18 +20,18 @@ import ConfigParser
 from codes import *
 import config_data
 
-import re, sys
+import os, re, sys
 from subprocess import *
 
 from server import logger
-logger.logfilepath = "/var/lib/virt-factory/vf_upgrade_db.log"
+from server import db as vfdb
 
 import shutil
 import string
 
 MIGRATE = "/usr/bin/migrate"
 UPGRADE_DIR = "/usr/share/virt-factory/db_schema/upgrade/"
-REPOSITORY = "/var/lib/virt-factory/migrate_repository"
+REPOSITORY = "/var/lib/virt-factory/db/migrate_repository"
 
 class Upgrade(object):
     def __init__(self):
@@ -46,11 +46,11 @@ class Upgrade(object):
         self.config = config_result
 
     def __setup_db(self):
-        self.dbpath = self.config["databases"]["secondary"]
+        self.dbpath = vfdb.interpolate_url_password(self.config["databases"]["primary"])
 
     def __init_log(self):
         # lets see what happens when we c&p the stuff from server.py 
-        log = logger.Logger()
+        log = logger.Logger("/var/log/virt-factory/db/vf_upgrade_db.log")
         self.logger = log.logger
 
     def __setup_upgrade_config(self):
@@ -67,12 +67,12 @@ class Upgrade(object):
             files = self.upgrade_config.get(section, "files").split()
             numfiles = len(files)
             for onefile in files:
-                pymatch = re.search('.py$', filename)
+                pymatch = re.search('.py$', onefile)
                 if (pymatch and (numfiles > 1)):
                     raise ValueError("invalid upgrade files specified for version " + str(version) + "Only one script allowed for python upgrades.")
-                sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
+                sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', onefile)
                 if (not (pymatch or sqlmatch)):
-                    raise ValueError("invalid upgrade files specified for version " + str(version) + "script " + filename + " must be a python file or a sqlfile in the form upgradename-dbname-(up|down)grade.sql")
+                    raise ValueError("invalid upgrade files specified for version " + str(version) + "script " + onefile + " must be a python file or a sqlfile in the form upgradename-dbname-(up|down)grade.sql")
 
             self.versions[version] = section
 
@@ -100,11 +100,11 @@ class Upgrade(object):
         """
         fs_version = self.get_installed_schema_version()
         db_version = self.get_loaded_schema_version()
-        self.commit_versions(true)
+        self.commit_versions(True)
 
         if (fs_version > db_version):
             print "upgrading to version ", fs_version
-            output = self.migrate_cmd("upgrade", [self.dbpath, REPOSITORY, version])
+            output = self.migrate_cmd("upgrade", [self.dbpath, REPOSITORY, str(version)])
 
     def commit_versions(self, test_first):
         fs_version = self.get_installed_schema_version()
@@ -115,17 +115,17 @@ class Upgrade(object):
                 print "testing/loading version ", version
                 files = self.upgrade_config.get(self.versions[version], "files").split()
                 for upgrade_file in files:
-                    pymatch = re.search('.py$', filename)
-                    sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', filename)
+                    pymatch = re.search('.py$', upgrade_file)
+                    sqlmatch = re.search('-(\w+)-((up|down)grade).sql$', upgrade_file)
                     
-                    tmpfilename = "/tmp/migrate-" + os.path.basename(filename)
-                    shutil.copy(filename, tmpfilename)
+                    tmpfilename = "/tmp/migrate-" + os.path.basename(upgrade_file)
+                    shutil.copy(UPGRADE_DIR + upgrade_file, tmpfilename)
                     if pymatch:
                         if test_first:
                             output = self.migrate_cmd("test", [tmpfilename, REPOSITORY, self.dbpath])
-                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, version])
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, str(version)])
                     elif sqlmatch:
-                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, sqlmatch.group(1), sqlmatch.group(2), version])
+                        output = self.migrate_cmd("commit", [tmpfilename, REPOSITORY, sqlmatch.group(1), sqlmatch.group(2), str(version)])
 
     def initialize_schema_version(self):
         """
@@ -136,7 +136,7 @@ class Upgrade(object):
         # create a new repository
         self.migrate_cmd("create", [REPOSITORY, "virt-factory repository"])
         # add upgrade scripts to repo
-        self.commit_versions(false)
+        self.commit_versions(False)
         # add the database
         self.migrate_cmd("version_control", [self.dbpath, REPOSITORY, str(self.get_loaded_schema_version())])
 
@@ -147,14 +147,14 @@ class Upgrade(object):
         sent to stdout), log the error output and throw an exception
         """
         cmdline = [MIGRATE, command] + args
-        self.logger.info("calling " + cmdline.join(' '))
+        self.logger.info("calling " + ' '.join(cmdline))
         
         pipe = Popen(cmdline, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
         cmd_output = pipe.stdout.read().strip()
         error_msg = pipe.stderr.read().strip()
         exitCode = pipe.wait()
-        if (len(error_msg > 0) or exitCode != 0):
-            self.logger.error("error in running " + cmdline)
+        if ((len(error_msg) > 0) or (exitCode != 0)):
+            self.logger.error("error in running " + ' '.join(cmdline))
             self.logger.error(error_msg)
             raise Exception(error_msg)
         else:
@@ -177,6 +177,7 @@ def main(argv):
 
     (options, args) = parser.parse_args()
     upgrade = Upgrade()
+    print "db path: " + upgrade.dbpath
     if (options.query):
         if (options.query in ["d", "db"]):
             print upgrade.get_loaded_schema_version()

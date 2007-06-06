@@ -314,6 +314,15 @@ mappers =\
 ormbindings =\
     dict([(m.class_,[c.name for c in m.local_table.columns]) for m in mappers ])
 
+def interpolate_url_password(url):
+    if url is None:
+        raise SQLException(comment="no connection string specified")
+    if url.find("%(password)s") != -1:
+        pwfile = open("/etc/virt-factory/db/dbaccess")
+        read_pw = pwfile.read()
+        pwfile.close()
+        url = url % { "password" : read_pw }
+    return url
 
 class Database:
     """
@@ -331,14 +340,7 @@ class Database:
         @type url: string 
         """
         Database.primary = self
-        if url is None:
-            raise SQLException(comment="no connection string specified")
-        if url.find("%(password)s") != -1:
-            pwfile = open("/etc/virt-factory/db/dbaccess")
-            read_pw = pwfile.read()
-            pwfile.close()
-            url = url % { "password" : read_pw }
-        global_connect(url, echo=True)
+        global_connect(interpolate_url_password(url), echo=True)
         
     def create(self):
         """

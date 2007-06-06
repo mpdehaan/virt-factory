@@ -5,6 +5,7 @@ import random
 import sys
 import distutils.sysconfig
 import os
+import shutil
 
 sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 from server import db as vfdb
@@ -38,6 +39,8 @@ CREATE_SCHEMA_SQL = """
     GRANT ALL ON DATABASE %(DATABASE)s TO %(username)s;
 """
 
+MIGRATE_REPOSITORY = "/var/lib/virt-factory/db/migrate_repository"
+
 def mkpasswd():
     """
     Generates a random password using /dev/urandom and saves it in PW_FILE,
@@ -56,6 +59,8 @@ def createdb(drop=True):
     # FIXME: error handling
     if drop:
        subprocess.call(["/usr/bin/dropdb",DATABASE])
+       if os.path.exists(MIGRATE_REPOSITORY):
+           shutil.rmtree(MIGRATE_REPOSITORY)
     subprocess.call(["/usr/bin/createdb",DATABASE])
 
 def setupdb(username,password):
@@ -98,6 +103,9 @@ def populatedb():
     pwf.close()
     connstr = "postgres://%(user)s:%(pass)s@localhost/virtfactory" 
     connvars = { "user": USERNAME, "pass" : pw }
+    print "connection: " + connstr
+    print connvars
+    
  
     database = vfdb.Database(connstr % connvars)
     # database.drop() -- don't do this, user might run by accident

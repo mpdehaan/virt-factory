@@ -19,7 +19,9 @@ if __name__ == "__main__":
         wwwpath    = "/var/www/%s" % NAME
         initpath   = "/etc/init.d/"
         logpath    = "/var/log/%s/" % NAME
+        logpathdb  = "/var/log/%s/db/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
+        migraterepopath = "/var/lib/%s/db/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
 	upgradepath = schemapath + "upgrade/"
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
@@ -57,6 +59,8 @@ if __name__ == "__main__":
 			      (etcpath, ["settings"]),
 			      (etcpathdb, []),
 			      (logpath, []),
+			      (logpathdb, []),
+			      (migraterepopath, []),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),
