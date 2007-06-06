@@ -18,7 +18,7 @@ from server import db as vfdb
 PG_HBA_CONF   = "/var/lib/pgsql/data/pg_hba.conf"
 DATABASE      = "virtfactory"
 PW_FILE       = "/etc/virt-factory/db/dbaccess"  
-USERNAME      = "virtf2"
+USERNAME      = "virtfactory"
 EXISTS_FILE   = "/etc/virt-factory/db/exists" 
 ######################################
 
@@ -227,7 +227,8 @@ if __name__ == "__main__":
        populatedb()
 
        print "- initializing upgrade path"
-       initialize_upgrade_path()
+       # FIXME -- commenting this out until this code can run with the postgres acct
+       # initialize_upgrade_path()
 
        print "- dB setup complete"
        # the existance of this file keeps the db script from running again the next
