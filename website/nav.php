@@ -7,7 +7,7 @@
   		 <li><a href=\"news.php\">News</a></li>
    		<li><a href=\"download.php\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li><a href=\"communicate\">Communicate</a></li>
  		</ul>";
@@ -18,7 +18,7 @@
   		 <li id=\"active\"><a href=\"news.php\">News</a></li>
   		 <li><a href=\"download.php\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
@@ -29,7 +29,7 @@
   		 <li><a href=\"news.php\">News</a></li>
   		 <li id=\"active\"><a href=\"#\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
 		 </ul>";
@@ -40,7 +40,7 @@
   		 <li><a href=\"news.php\">News</a></li>
   		 <li><a href=\"download.php\">Download</a></li>
   		 <li id=\"active\"><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
@@ -51,7 +51,7 @@
 		   <li><a href=\"news.php\">News</a></li>
   		 <li><a href=\"download.php\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
   		 <li id=\"active\"><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
@@ -62,7 +62,7 @@
                    <li><a href=\"news.php\">News</a></li>
                  <li><a href=\"download.php\">Download</a></li>
                  <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
                  <li id=\"active\"><a href=\"documentation.php\">Documentation</a></li>                 
 		<li><a href=\"communicate.php\">Communicate</a></li>
                 </ul>";
@@ -73,7 +73,7 @@
  		  <li><a href=\"news.php\">News</a></li>
   		 <li><a href=\"download.php\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li id=\"active\"><a href=\"components\">Components</a></li>
+  		 <li id=\"active\"><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
@@ -84,7 +84,7 @@
  		  <li><a href=\"news.php\">News</a></li>
   		 <li><a href=\"download.php\">Download</a></li>
   		 <li><a href=\"faq.php\">FAQ</a></li>
-  		 <li><a href=\"components\">Components</a></li>
+  		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
  		  <li><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
