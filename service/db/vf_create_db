@@ -173,20 +173,21 @@ def fix_postgres_auth():
 
     # read conf file
     hba = open(PG_HBA_CONF,"r")
+    found = False
     data = hba.read()
     lines = data.split("\n")
+    for line in lines:
+        if line.find("virtfactory") != -1:
+           found = True
     hba.close()
 
     # rewrite conf file
     hba = open(PG_HBA_CONF,"w")
-    found = False
-    for line in lines:
-        if line.find("virtfactory") != -1:
-           found = True
-        hba.write(line)
-        hba.write("\n")
     if not found:
         hba.write("local   all         virtfactory                               md5\n")
+    for line in lines:
+        hba.write(line)
+        hba.write("\n")
     hba.close()
 
     # restart service
