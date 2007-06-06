@@ -103,8 +103,6 @@ def populatedb():
     pwf.close()
     connstr = "postgres://%(user)s:%(pass)s@localhost/virtfactory" 
     connvars = { "user": USERNAME, "pass" : pw }
-    print "connection: " + connstr
-    print connvars
     
  
     database = vfdb.Database(connstr % connvars)
@@ -227,8 +225,7 @@ if __name__ == "__main__":
        populatedb()
 
        print "- initializing upgrade path"
-       # FIXME -- commenting this out until this code can run with the postgres acct
-       # initialize_upgrade_path()
+       initialize_upgrade_path()
 
        print "- dB setup complete"
        # the existance of this file keeps the db script from running again the next

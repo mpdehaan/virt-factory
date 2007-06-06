@@ -69,6 +69,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/virt-factory/db_schema/upgrade
 /usr/share/virt-factory/db_schema/upgrade/upgrades.conf
 /usr/share/virt-factory/db_schema/upgrade/*.sql
+/usr/share/virt-factory/db_schema/upgrade/*.py*
 %dir /usr/share/virt-factory/puppet-config
 /etc/puppet/manifests/site.pp
 /usr/share/virt-factory/puppet-config/puppetmaster
