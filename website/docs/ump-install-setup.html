@@ -49,6 +49,13 @@
 <h4>Installing the Management Server Package</h4>
 <p>Run the following command on the system you would like to setup as an UMP management server:</p>
 <blockquote>yum install virt-factory-server</blockquote>
+<h4>Configuring the Database</h4>
+<p>UMP uses <A HREF="http://www.postgresql.org">PostgreSQL</A> for it's database.</p>
+<p>If you are not already using any PostgreSQL databases on the server, run the following command to set up the database to allow connections by the virt factory user:</p>
+<blockquote>vf_fix_db_auth</blockquote> 
+<p>If the server already has a PostgreSQL installation that other applications are relying upon, do <strong>not</strong> run the above command, but instead manually change the server's <A HREF="http://www.postgresql.org/docs/7.4/interactive/client-authentication.html">pg_hba.conf</A> file to allow "md5" authentication for all "host" connections, then restart the Postgresql service with:</p>
+<blockquote>/sbin/service postgresql restart</blockquote>
+</p>
 <h4>Setting Up Mirrors For Virtual Guest Deployment</h4>
 <p>As root, edit the <tt>/etc/virt-factory/settings</tt> file to include the address of a public rsync mirror for Fedora Core 6, or otherwise change the path to point to where you have a DVD or the DVD ISO mounted. This path settings will allow UMP to import a distribution mirror for use in installing virtual systems.</p>
 
