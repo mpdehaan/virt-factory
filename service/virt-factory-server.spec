@@ -44,6 +44,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_import
 %{_bindir}/vf_get_puppet_node
 %{_bindir}/vf_create_db
+%{_bindir}/vf_fix_db_auth
 %{_bindir}/vf_nodecomm
 %{_bindir}/vf_upgrade_db
 %{_bindir}/vf_config_firewall

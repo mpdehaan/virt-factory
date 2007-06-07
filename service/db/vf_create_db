@@ -169,50 +169,14 @@ def populatedb():
 
     session.flush() # commit everything to file
 
-def fix_postgres_auth():
-    """
-    Enable postgres to use password authentication, which is off
-    by default.
-    """
-    
-    subprocess.call("/sbin/service postgresql start", shell=True)
-
-    # read conf file
-    hba = open(PG_HBA_CONF,"r")
-    found = False
-    data = hba.read()
-    lines = data.split("\n")
-    for line in lines:
-        if line.find("virtfactory") != -1:
-           found = True
-    hba.close()
-
-    # rewrite conf file
-    hba = open(PG_HBA_CONF,"w")
-    if not found:
-        hba.write("local   all         virtfactory                               md5\n")
-    for line in lines:
-        hba.write(line)
-        hba.write("\n")
-    hba.close()
-
-    # restart service
-    subprocess.call("/sbin/service postgresql restart", shell=True)
 
 if __name__ == "__main__":
     # FIXME: real option parsing
     if (len(sys.argv) != 2):
-       print "Usage: vf_create_db --fixauth  | fixes PG authentication"
-       print "       vf_create_db --replace  | drops and recreates db (WARNING!)"
+       print "Usage:   vf_create_db --replace  | drops and recreates db (WARNING!)"
        sys.exit(1)
 
-    if sys.argv[1] == "--fixauth":
-
-       # this needs to be run as root
-       print "- fixing postgres authentication..."
-       fix_postgres_auth()
-
-    elif sys.argv[1] == "--replace":
+    if sys.argv[1] == "--replace":
 
        print "- generating password"
        # this needs to be run as Postgres

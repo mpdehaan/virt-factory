@@ -26,7 +26,6 @@ start() {
     if test -f /etc/virt-factory/db/exists ; then
         sudo -u postgres /usr/bin/vf_upgrade_db
     else
-        /usr/bin/vf_create_db --fixauth 
         sudo -u postgres /usr/bin/vf_create_db --replace 
     fi 
     /usr/bin/vf_server --daemon
