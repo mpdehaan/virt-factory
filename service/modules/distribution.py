@@ -57,7 +57,7 @@ class Distribution(web_svc.AuthWebSvc):
         """
         required = ('kernel', 'initrd', 'name', 'architecture')
         optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.validatelidate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
             distribution = db.Distribution()
