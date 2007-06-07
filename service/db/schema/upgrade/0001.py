@@ -158,10 +158,32 @@ tables.append(Table('events', meta,
     useexisting=True,
 ))
 
+#
+# provides a static dictionary of tables.
+#
+table = dict([(t.name, t) for t in tables])
+
+def initial_inserts():
+    table['users'].insert().execute({'username':'admin', 'password':'fedora',
+                                     'first':'', 'last':'',
+                                     'description':'default admin account',
+                                     'email':'root@localhost'},
+                                    {'id':-1,'username':'system', 'password':'locked',
+                                     'first':'?', 'last':'?',
+                                     'description':'system account', 'email':'?'})
+    table['distributions'].insert().execute(id = -1, name = '*Unassigned*')
+    table['profiles'].insert().execute(id = -1, name = '*Unassigned*', version = '0.00',
+                                       distribution_id = -1)
+    table['machines'].insert().execute(id = -1, name = '*Unassigned*', profile_id = -1)
+    table['regtokens'].insert().execute(id = -1, profile_id = -1)
+    table['deployments'].insert().execute(id = -1, hostname = '*Unassigned*',
+                                          display_name = '*Unassigned*',
+                                          profile_id = -1, machine_id = -1)
+        
 def upgrade():
     for t in tables:
         t.create(checkfirst=True)
-    
+    initial_inserts()
 
 def downgrade():
     mylist = list(tables)
