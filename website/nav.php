@@ -1,4 +1,6 @@
 <?php
+
+
   switch ($current_page) {
 
 	case "about":
@@ -9,7 +11,7 @@
   		 <li><a href=\"faq.php\">FAQ</a></li>
   		 <li><a href=\"components.php\">Components</a></li>
   		 <li><a href=\"documentation.php\">Documentation</a></li>
-  		 <li><a href=\"communicate\">Communicate</a></li>
+  		 <li><a href=\"communicate.php\">Communicate</a></li>
  		</ul>";
 		break;
   	case "news":
