@@ -54,7 +54,7 @@ tables.append(Table('distributions',
     Column('options', String(255)),
     Column('kickstart', String(255)),
     Column('name', String(255), unique=True),
-    Column('architecture', Integer),
+    Column('architecture', String(255)),
     Column('kernel_options', String(255)),
     Column('kickstart_metadata', String(255))
 ))
@@ -71,7 +71,7 @@ tables.append(Table('profiles',
     Column('virt_ram', Integer),
     Column('kickstart_metadata', String(255)),
     Column('kernel_options', String(255)),
-    Column('valid_targets', Integer),
+    Column('valid_targets', String(255)),
     Column('is_container', Integer),
     Column('puppet_classes', TEXT)
 ))
@@ -81,7 +81,7 @@ tables.append(Table('machines',
     Column('hostname', String(255)),
     Column('ip_address', String(255)),
     Column('registration_token', String(255)),
-    Column('architecture', Integer),
+    Column('architecture', String(255)),
     Column('processor_speed', Integer),
     Column('processor_count', Integer),
     Column('memory', Integer),
@@ -113,7 +113,7 @@ tables.append(Table('deployments',
         Integer,
         ForeignKey('profiles.id', ondelete="cascade"),
         nullable=False),
-    Column('state', Integer),
+    Column('state', String(255)),
     Column('display_name', String(255)),
     Column('puppet_node_diff', TEXT),
     Column('netboot_enabled', Integer),
@@ -233,7 +233,6 @@ class Base(object):
     get = classmethod(__get)
     delete = classmethod(__delete)
     list = classmethod(__list)
-
 
 class User(Base):
     pass
