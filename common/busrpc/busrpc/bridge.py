@@ -36,7 +36,7 @@ class Bridge(object):
         retval = None
         try:
             self.registration_lock.acquire()
-            if self.services_has_key(service):
+            if self.services.has_key(service):
                 host_list = self.services[service]
                 retval = [hostname + "!" + server + "!" + service
                           for hostname, server in host_list]

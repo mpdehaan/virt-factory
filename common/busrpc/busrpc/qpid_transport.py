@@ -28,7 +28,6 @@ class QpidTransport(Transport):
     def __init__(self, host='localhost', port=5672, user='guest',
                  password='guest', vhost='development'):
         self.nethostname = socket.gethostname()
-        self.cert_mgr = None
         self.host = host
         self.port = port
         self.user = user
@@ -107,9 +106,6 @@ class QpidTransport(Transport):
 
     def declare_queue(self):
             return qpid_util.declare_queue(self, create=True, auto_remove=True)
-
-    def _setup_certs(self):
-        self.cert_mgr = CertManager(self.certdir, self.nethostname, self.cryptopassword)
         
 
 class QpidServerTransport(QpidTransport, ServerTransport):
@@ -155,7 +151,12 @@ class QpidServerTransport(QpidTransport, ServerTransport):
     def _dispatch(self):
         while not self.is_stopped:
             call_body = self.pending_calls.get()
-            addr, reply = self.callback(call_body)
+            try:
+                addr, reply = self.callback(call_body)
+            except TypeError, e:
+                print e
+                return
+                
             if addr == None or reply == None:
                 return
             else:

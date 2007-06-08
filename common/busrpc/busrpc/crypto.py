@@ -1,7 +1,9 @@
 import os
 import threading
-import base64
-from M2Crypto import RSA
+import cPickle
+from Crypto.Util.randpool import RandomPool
+from Crypto.Cipher import Blowfish
+from Crypto.Hash import SHA
 
 class CryptoException(Exception):
 
@@ -13,26 +15,17 @@ class CryptoException(Exception):
 
 class CertManager(object):
 
-    def __init__(self, certdir, hostname, password):
-        self.pub_keys = {}
-        self.pub_key_lock = threading.RLock()
-        self.private_keys = []
-        self.private_key_lock = threading.RLock()
-        self.keystore_password = password
+    def __init__(self, keydir, hostname):
+        self.keydir = keydir
         self.hostname = hostname
-        if not certdir.endswith('/'):
-            certdir += '/'
-        self.private_key_dir = os.path.realpath(certdir + 'private/') + '/'
-        self.public_key_dir = os.path.realpath(certdir + 'public/') + '/'
-        self.private_key_file = self.private_key_dir + self.hostname + '.pem'
-        if not os.path.lexists(self.private_key_dir):
-            self._setup_dir(self.private_key_dir)
-        if not os.path.lexists(self.public_key_dir):
-            self._setup_dir(self.public_key_dir)
-        self._gen_private_key()
+        if not self.keydir.endswith('/'):
+            self.keydir += '/'
+        self.private_keys = []
+        self.pub_keys = {}
+        self.private_key_lock = threading.RLock()
+        self.pub_key_lock = threading.RLock()
 
     def decrypt_message(self, message):
-        parts = message.split("\n\n")
         secure_host, encrypted_message = self._parse_secure_message(message)
         if secure_host == None:
             return message
@@ -40,9 +33,8 @@ class CertManager(object):
             key = None
             try:
                 key = self.load_pub_key(secure_host)
-                retval = key.public_decrypt(base64.decodestring(encrypted_message), RSA.pkcs1_padding)
-                print 'Returning:\n%s' % retval
-                return retval
+                retval = key.decrypt(encrypted_message)
+                return retval.strip()
             finally:
                 if not key == None:
                     self.release_pub_key(secure_host, key)
@@ -50,8 +42,10 @@ class CertManager(object):
     def encrypt_message(self, host, message):
         key = None
         try:
+            while not len(message) % 8 == 0:
+                message += ' '
             key = self.load_private_key()
-            encrypted_message = base64.encodestring(key.private_encrypt(message, RSA.pkcs1_padding))
+            encrypted_message = key.encrypt(message)
             composed_message = ''.join(['secure-host:',
                                         host,
                                         '\n\n',
@@ -105,27 +99,47 @@ class CertManager(object):
             self.pub_key_lock.release()
 
     def _load_pub_key(self, host):
-        file_name = self.public_key_dir + host + '.pem'
-        return RSA.load_pub_key(file_name)
+        key = None
+        file_name = self.keydir + host + '.key'
+        if os.path.lexists(file_name):
+            f = file(file_name)
+            unpickler = cPickle.Unpickler(f)
+            try:
+                seed = unpickler.load()
+                key = Blowfish.new(seed)
+            finally:
+                f.close()
+        return key
 
     def _load_private_key(self):
-        return RSA.load_key(self.private_key_file, callback=self._dummy_password_callback)
+        key = self._load_pub_key(self.hostname)
+        if key == None:
+            self._setup_dir(self.keydir)
+            seed = self._generate_seed(8192)
+            key = Blowfish.new(seed)
+            file_name = self.keydir + self.hostname + '.key'
+            f = file(file_name)
+            pickler = cPickle.Pickler(f)
+            try:
+                pickler.dump(seed)
+                f.flush()
+            finally:
+                f.close()
+        return key
+            
+
+    def _generate_seed(self, size):
+        rp = RandomPool()
+        for i in range(7):
+            m = SHA.new()
+            temp_seed = rp.get_bytes(size)
+            m.update(tempseed)
+            rp.add_event(m.hexdigest())
+        return rp.get_bytes(size)
     
     def _setup_dir(self, dirpath):
         os.makedirs(dirpath)
-
-    def _gen_private_key(self):
-        if not os.path.lexists(self.private_key_file):
-            rsa = RSA.gen_key(4096, 65537, callback=self._dummy_gen_callback)
-            rsa.save_key(self.private_key_file, callback=self._dummy_password_callback)
-            rsa.save_pub_key(self.public_key_dir + self.hostname + '.pem')
         
-    def _dummy_password_callback(self, arg):
-        return self.keystore_password
-    
-    def _dummy_gen_callback(self, arg):
-        pass
-
     def _parse_secure_message(self, message):
         parts = message.split('\n\n')
         secure_host = None

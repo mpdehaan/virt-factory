@@ -14,10 +14,10 @@ class _LocalRPCMethod(object):
         self.cert_mgr = cert_mgr
         self.results = {}
         self.params = {}
-        self.partial_encoded_message = encode_partial_rpc_message(self.transport.queue_name,
-                                                                  self.namespace,
-                                                                  self.method_name,
-                                                                  self.hostname)
+##         self.partial_encoded_message = encode_partial_rpc_message(self.transport.queue_name,
+##                                                                   self.namespace,
+##                                                                   self.method_name,
+##                                                                   self.hostname)
 
     def __call__(self, *args, **kwargs):
         results = None
@@ -40,10 +40,12 @@ class _LocalRPCMethod(object):
                 self.params[args] = params
         else:
             params = encode_object(args)
-        encoded_call = self.partial_encoded_message + params
-        print 'Encoded call: %s' % encoded_call
-        if not self.cert_mgr == None:
-            encoded_call = self.cert_mgr.encrypt_message(self.hostname, encoded_call)
+        encoded_call = encode_rpc_request(self.transport.queue_name,
+                                          self.namespace,
+                                          self.method_name,
+                                          self.hostname,
+                                          params,
+                                          cert_mgr=self.cert_mgr)
         if not async_call:
             raw_results = self.transport.send_message_wait(self.server, encoded_call)
             sender, namespace, method, headers, results = decode_rpc_response(raw_results, cert_mgr=self.cert_mgr)

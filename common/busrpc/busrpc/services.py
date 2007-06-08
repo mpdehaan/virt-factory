@@ -42,7 +42,7 @@ class RPCDispatcher(object):
         self.register_with_bridge = register_with_bridge
         self.runner_thread = None
         self.instance_method_cache = {}
-        self.cert_mgr = CertManager(certdir, self.hostname, pwd)
+        self.cert_mgr = CertManager(certdir, self.hostname)
         self.client_transport = self.transport.clone()
         self.bridge = busrpc.rpc.lookup_service('bridge', self.client_transport, cert_mgr=self.cert_mgr)
         for name in config.instances.iterkeys():
@@ -92,9 +92,14 @@ class RPCDispatcher(object):
         try:
             method = self.instance_method_cache[cache_key]
         except KeyError:
-            instance = self.instances[namespace]
-            method = self._resolve_method(instance, called_method)
-            self.instance_method_cache[cache_key] = method
+            try:
+                print self.instances
+                instance = self.instances[namespace]
+                method = self._resolve_method(instance, called_method)
+                self.instance_method_cache[cache_key] = method
+            except KeyError, e:
+                print e
+                return
         params = decode_object(encoded_params)
         results = method(*params)
         headers = {}
