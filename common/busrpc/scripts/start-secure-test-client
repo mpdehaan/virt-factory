@@ -1,0 +1,9 @@
+#! /usr/bin/python
+
+from socket import gethostname
+from busrpc.test.test_client import do_test
+from busrpc.crypto import CertManager
+
+cm = CertManager('/tmp', gethostname())
+do_test(cert_mgr=cm)
+

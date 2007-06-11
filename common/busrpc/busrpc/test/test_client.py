@@ -2,13 +2,16 @@ import time
 import sys
 
 from busrpc.rpc import lookup_service
+from busrpc.crypto import CertManager
 import busrpc.qpid_transport
 
 transport = busrpc.qpid_transport.QpidTransport()
 transport.connect()
 
-fp = lookup_service("foo", transport, 'bogon.rdu.redhat.com')
-bp = lookup_service("bar", fp.transport)
+cm = CertManager('/home/rdu/ksmith/tmp', 'bogon.rdu.redhat.com')
+
+fp = lookup_service("foo", transport, host='bogon.rdu.redhat.com', cert_mgr=cm)
+bp = lookup_service("bar", fp.transport, cert_mgr=cm)
 if fp == None or bp == None:
     print "Lookup failed :("
     sys.exit(-1)    
@@ -22,7 +25,7 @@ for i in range(0, iterations):
     end = time.time()
     total_time = total_time + (end - start)
     start = time.time()
-    bp.add(3, 10, rpc_async=True)
+    bp.add(3, 10)
     end = time.time()
     total_time = total_time + (end - start)
     start = time.time()    

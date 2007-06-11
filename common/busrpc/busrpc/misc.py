@@ -3,20 +3,20 @@ import simplejson
 import busrpc.rpc
 import qpid_transport
 
-def encode_partial_rpc_message(sender, namespace, method):    
-    return ''.join(['from:', sender, '\n',
-                    'ns:', namespace, '\n',
-                    'method:', method, '\n\n'])
+def encode_rpc_request(sender, namespace, method, hostname, args, cert_mgr=None):
+    retval = ''.join([_encode_partial_rpc_message(sender,
+                                                namespace,
+                                                method,
+                                                hostname),
+                    '\n',
+                    args])
+    if not cert_mgr == None:
+        retval = cert_mgr.encrypt_message(hostname, retval)
+    return retval
 
-def encode_rpc_message(sender, namespace, method, args):
-    return ''.join(['from:', sender, '\n',
-                   'ns:', namespace, '\n',
-                   'method:', method, '\n\n', args])
 
-def encode_rpc_response(sender, namespace, called_method, results, headers=None):
-    retval = ''.join(['from:', sender, '\n',
-                      'ns:', namespace, '\n',
-                      'method:', called_method, '\n'])
+def encode_rpc_response(sender, hostname, namespace, called_method, results, headers=None, cert_mgr=None):
+    retval = _encode_partial_rpc_message(sender, namespace, called_method, hostname)
     if not headers == None:
         for key in headers.iterkeys():
             retval = retval + key + ':' + headers[key] + '\n'
@@ -24,13 +24,32 @@ def encode_rpc_response(sender, namespace, called_method, results, headers=None)
     else:
         retval = retval + '\n'
     retval = retval + results
+    if not cert_mgr == None:
+        retval = cert_mgr.encrypt_message(hostname, retval)
     return retval
 
-def decode_rpc_message(message):
-    headers, args = message.split('\n\n')
+def _encode_partial_rpc_message(sender, namespace, method, hostname):
+    return ''.join(['from:', sender, '\n',
+                    'host:', hostname, '\n',
+                    'ns:', namespace, '\n',
+                    'method:', method, '\n'])
+
+def decode_rpc_request(message, cert_mgr=None):
+    if not cert_mgr == None:
+        try:
+            message = cert_mgr.decrypt_message(message)
+        except Exception, e:
+            print '[DecodeReq]Decryption failed: %s' % (e)
+        print '[DecodeReq]Decrypted message (%d):\n%s' % (len(message), message)
+        headers, args = message.split('\n\n')
+    else:
+        headers, args = message.split('\n\n')
+        if is_secure(headers):
+            raise qpid_transport.QpidTransportException('CertManager not found for secure content')
     sender = None
     namespace = None
     method = None
+    hostname = None
     parts = headers.split('\n')
     for i in range(len(parts)):
         line_parts = parts[i].split(':')
@@ -40,14 +59,25 @@ def decode_rpc_message(message):
             namespace = line_parts[1].strip(' ')
         elif line_parts[0] == 'method':
             method = line_parts[1].strip(' ')
+        elif line_parts[0] == 'host':
+            hostname = line_parts[1].strip(' ')
     if not (sender == None and namespace == None
             and method == None and args == None):
-        return sender, namespace, method, args.strip(' ')
+        return sender, hostname, namespace, method, args.strip(' ')
     else:
         return None, None, None, None
 
-def decode_rpc_response(message):
-    all_headers, results = message.split('\n\n')
+def decode_rpc_response(message, cert_mgr=None):
+    if not cert_mgr == None:
+        try:
+            message = cert_mgr.decrypt_message(message)
+        except Exception, e:
+            print '[DecodeResp]Decryption failed: %s' % (e)
+        all_headers, results = message.split('\n\n')
+    else:
+        all_headers, results = message.split('\n\n')
+        if is_secure(all_headers):
+            raise qpid_transport.QpidTransportException('CertManager not found for secure content')
     sender = None
     namespace = None
     method = None
@@ -66,6 +96,9 @@ def decode_rpc_response(message):
         else:
             headers[name] = value
     return sender, namespace, method, headers, simplejson.loads(results)
+
+def is_secure(raw_headers):
+    return raw_headers.startswith('secure-host')
 
 def decode_object(obj):
     return simplejson.loads(obj)
