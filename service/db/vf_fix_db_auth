@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+import subprocess
+import random
+import sys
+import distutils.sysconfig
+import os
+import shutil
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+from server import db as vfdb
+
+# FIXME: can we get away with md5 vs password?  Hopefully.
+PG_HBA_CONTENTS = """
+# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
+
+# "local" is for Unix domain socket connections only
+local   all         all                               ident sameuser 
+# IPv4 local connections:
+host    all         all         127.0.0.1/32          md5
+# IPv6 local connections:
+host    all         all         ::1/128               md5
+"""
+
+######################################
+PG_HBA_CONF   = "/var/lib/pgsql/data/pg_hba.conf"
+######################################
+
+def fix_postgres_auth():
+    """
+    Enable postgres to use password authentication, which is off
+    by default.
+    """
+    
+    # start postgres such that the database will be created if it's not
+    # there ... 
+    subprocess.call("/sbin/service postgresql start", shell=True)
+
+    # write the conf file
+    hba = open(PG_HBA_CONF,"w+")
+    hba.write(PG_HBA_CONTENTS)
+    hba.close()
+
+    # restart service
+    subprocess.call("/sbin/service postgresql restart", shell=True)
+
+if __name__ == "__main__":
+    fix_postgres_auth()
+

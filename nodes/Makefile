@@ -30,7 +30,7 @@ setversion:
 	-echo "$(VERSION) $(RELEASE)" > version
 
 
-build: clean messages
+build: clean 
 	python setup.py build -f
 
 install: build

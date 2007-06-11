@@ -34,119 +34,135 @@ from sqlalchemy import *
 from datetime import datetime
 from codes import SQLException, NoSuchObjectException
 
-tables =\
-(
-    Table('users',
-          Column('id', Integer, Sequence('userid'), primary_key=True),
-          Column('username', String(255), nullable=False, unique=True),
-          Column('password', String(255), nullable=False),
-          Column('first', String(255), nullable=False),
-          Column('middle', String(255)),
-          Column('last', String(255), nullable=False),
-          Column('description', String(255)),
-          Column('email', String(255), nullable=False)),
-      Table('distributions',
-          Column('id', Integer, Sequence('distid'), primary_key=True),
-          Column('kernel', String(255), nullable=False),
-          Column('initrd', String(255), nullable=False),
-          Column('options', String(255)),
-          Column('kickstart', String(255)),
-          Column('name', String(255), unique=True),
-          Column('architecture', Integer, nullable=False),
-          Column('kernel_options', String(255)),
-          Column('kickstart_metadata', String(255))),
-    Table('profiles',
-        Column('id', Integer, Sequence('profileid'), primary_key=True),
-        Column('name', String(255), unique=True),
-        Column('version', String(255), nullable=False),
-        Column('distribution_id',
-               Integer, 
-               ForeignKey('distributions.id', ondelete="cascade"), 
-               nullable=False),
-        Column('virt_storage_size', Integer),
-        Column('virt_ram', Integer),
-        Column('kickstart_metadata', String(255)),
-        Column('kernel_options', String(255)),
-        Column('valid_targets', Integer, nullable=False),
-        Column('is_container', Integer, nullable=False),
-        Column('puppet_classes', TEXT)),
-    Table('machines',
-        Column('id', Integer, Sequence('machineid'), primary_key=True),
-        Column('hostname', String(255)),
-        Column('ip_address', String(255)),
-        Column('registration_token', String(255)),
-        Column('architecture', Integer),
-        Column('processor_speed', Integer),
-        Column('processor_count', Integer),
-        Column('memory', Integer),
-        Column('kernel_options', String(255)),
-        Column('kickstart_metadata', String(255)),
-        Column('list_group', String(255)),
-        Column('mac_address', String(255)),
-        Column('is_container', Integer),
-        Column('profile_id',
-               Integer,
-               ForeignKey('profiles.id', ondelete="cascade"), 
-               nullable=False),
-        Column('puppet_node_diff', TEXT),
-        Column('netboot_enabled', Integer),
-        Column('is_locked', Integer)),
-    Table('deployments',
-        Column('id', Integer, Sequence('deploymentid'), primary_key=True),
-        Column('hostname', String(255)),
-        Column('ip_address', String(255)),
-        Column('registration_token', String(255)),
-        Column('mac_address', String(255)),
-        Column('machine_id',
-               Integer, 
-               ForeignKey('machines.id', ondelete="cascade"),
-               nullable=False),
-        Column('profile_id',
-               Integer,
-               ForeignKey('profiles.id', ondelete="cascade"),
-               nullable=False),
-        Column('state', Integer, nullable=False),
-        Column('display_name', String(255), nullable=False),
-        Column('puppet_node_diff', TEXT),
-        Column('netboot_enabled', Integer),
-        Column('is_locked', Integer)),
-    Table('regtokens',
-        Column('id', Integer, Sequence('regtokenid'), primary_key=True),
-        Column('token', String(255)),
-        Column('profile_id', Integer, ForeignKey('profiles.id')),
-        Column('uses_remaining', Integer)),
-    Table('sessions',
-        Column('id', Integer, Sequence('ssnid'), primary_key=True),
-        Column('session_token', String(255), nullable=False, unique=True),
-        Column('user_id', 
-               Integer, 
-               ForeignKey('users.id', ondelete="cascade"), 
-               nullable=False),
-        Column('session_timestamp',
-               DateTime, 
-               nullable=False,
-               default=datetime.utcnow())),
-    Table('tasks', 
-          Column('id', Integer, Sequence('taskid'), primary_key=True),
-          Column('user_id',
-                 Integer,
-                 ForeignKey('users.id', ondelete="cascade"), 
-                 nullable=False),
-          Column('action_type', Integer, nullable=False),
-          Column('machine_id',
-                 Integer, 
-                 ForeignKey('machines.id', ondelete="cascade"), 
-                 nullable=False),
-          Column('deployment_id', 
-                 Integer, 
-                 ForeignKey('deployments.id', ondelete="cascade"), 
-                 nullable=False),
-          Column('state', Integer, nullable=False),
-          Column('time',
-                 DateTime, 
-                 nullable=False,
-                 default=datetime.utcnow())),
-    Table('events',
+tables = []
+
+tables.append(Table('users',
+    Column('id', Integer, Sequence('userid'), primary_key=True),
+    Column('username', String(255), nullable=False, unique=True),
+    Column('password', String(255), nullable=False),
+    Column('first', String(255)),
+    Column('middle', String(255)),
+    Column('last', String(255)),
+    Column('description', String(255)),
+    Column('email', String(255))
+))
+      
+tables.append(Table('distributions',
+    Column('id', Integer, Sequence('distid'), primary_key=True),
+    Column('kernel', String(255)),
+    Column('initrd', String(255)),
+    Column('options', String(255)),
+    Column('kickstart', String(255)),
+    Column('name', String(255), unique=True),
+    Column('architecture', String(255)),
+    Column('kernel_options', String(255)),
+    Column('kickstart_metadata', String(255))
+))
+
+tables.append(Table('profiles',
+    Column('id', Integer, Sequence('profileid'), primary_key=True),
+    Column('name', String(255), unique=True),
+    Column('version', String(255)),
+    Column('distribution_id',
+        Integer, 
+        ForeignKey('distributions.id', ondelete="cascade"), 
+        nullable=False),
+    Column('virt_storage_size', Integer),
+    Column('virt_ram', Integer),
+    Column('kickstart_metadata', String(255)),
+    Column('kernel_options', String(255)),
+    Column('valid_targets', String(255)),
+    Column('is_container', Integer),
+    Column('puppet_classes', TEXT)
+))
+
+tables.append(Table('machines',
+    Column('id', Integer, Sequence('machineid'), primary_key=True),
+    Column('hostname', String(255)),
+    Column('ip_address', String(255)),
+    Column('registration_token', String(255)),
+    Column('architecture', String(255)),
+    Column('processor_speed', Integer),
+    Column('processor_count', Integer),
+    Column('memory', Integer),
+    Column('kernel_options', String(255)),
+    Column('kickstart_metadata', String(255)),
+    Column('list_group', String(255)),
+    Column('mac_address', String(255)),
+    Column('is_container', Integer),
+    Column('profile_id',
+        Integer,
+        ForeignKey('profiles.id', ondelete="cascade"), 
+        nullable=False),
+    Column('puppet_node_diff', TEXT),
+    Column('netboot_enabled', Integer),
+    Column('is_locked', Integer)
+))
+ 
+tables.append(Table('deployments',
+    Column('id', Integer, Sequence('deploymentid'), primary_key=True),
+    Column('hostname', String(255)),
+    Column('ip_address', String(255)),
+    Column('registration_token', String(255)),
+    Column('mac_address', String(255)),
+    Column('machine_id',
+        Integer, 
+        ForeignKey('machines.id', ondelete="cascade"),
+        nullable=False),
+    Column('profile_id',
+        Integer,
+        ForeignKey('profiles.id', ondelete="cascade"),
+        nullable=False),
+    Column('state', String(255)),
+    Column('display_name', String(255)),
+    Column('puppet_node_diff', TEXT),
+    Column('netboot_enabled', Integer),
+    Column('is_locked', Integer)
+))
+
+tables.append(Table('regtokens',
+    Column('id', Integer, Sequence('regtokenid'), primary_key=True),
+    Column('token', String(255)),
+    Column('profile_id', Integer, ForeignKey('profiles.id')),
+    Column('uses_remaining', Integer)
+))
+
+tables.append(Table('sessions',
+    Column('id', Integer, Sequence('ssnid'), primary_key=True),
+    Column('session_token', String(255), nullable=False, unique=True),
+    Column('user_id', 
+        Integer, 
+        ForeignKey('users.id', ondelete="cascade"), 
+        nullable=False),
+    Column('session_timestamp',
+        DateTime, 
+        nullable=False,
+        default=datetime.utcnow())
+))
+
+tables.append(Table('tasks', 
+    Column('id', Integer, Sequence('taskid'), primary_key=True),
+    Column('user_id',
+        Integer,
+        ForeignKey('users.id', ondelete="cascade"), 
+        nullable=False),
+    Column('action_type', Integer, nullable=False),
+    Column('machine_id',
+        Integer, 
+        ForeignKey('machines.id', ondelete="cascade"), 
+        nullable=False),
+    Column('deployment_id', 
+        Integer, 
+        ForeignKey('deployments.id', ondelete="cascade"), 
+        nullable=False),
+    Column('state', Integer, nullable=False),
+    Column('time',
+        DateTime, 
+        nullable=False,
+        default=datetime.utcnow())
+))
+
+tables.append(Table('events',
           Column('id', Integer, Sequence('eventid'), primary_key=True),
           Column('time', Integer, nullable=False),
           Column('user_id',
@@ -159,8 +175,8 @@ tables =\
           Column('severity', Integer, nullable=False),
           Column('category', String(255), nullable=False),
           Column('action', String(255), nullable=False),
-          Column('user_comment', String(255))),
-)
+          Column('user_comment', String(255))
+))
 
 #
 # provides a static dictionary of tables.
@@ -218,7 +234,6 @@ class Base(object):
     delete = classmethod(__delete)
     list = classmethod(__list)
 
-
 class User(Base):
     pass
 class Distribution(Base):
@@ -243,29 +258,29 @@ mappers =\
 (
     mapper(User, table['users'],
         properties={
-            'sessions' : relation(Session, cascade="delete-orphan", lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
-            'events' : relation(Task, cascade="delete-orphan", lazy=True),
+            'sessions' : relation(Session, passive_deletes=True, viewonly=True, lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+            'events' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             }),
     mapper(Distribution, table['distributions']),
     mapper(Profile, table['profiles'],
         properties={
             'distribution' : relation(Distribution, lazy=True),
-            'machines' : relation(Machine, cascade="delete-orphan", lazy=True),
-            'deployments' : relation(Deployment, cascade="delete-orphan", lazy=True),
+            'machines' : relation(Machine, passive_deletes=True, viewonly=True, lazy=True),
+            'deployments' : relation(Deployment, passive_deletes=True, viewonly=True, lazy=True),
             'regtokens' : relation(RegToken, lazy=True)
             }),
     mapper(Machine, table['machines'],
         properties={
             'profile' : relation(Profile, lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             'events' : relation(Event, lazy=True),
             }),
     mapper(Deployment, table['deployments'],
         properties={
             'profile' : relation(Profile, lazy=True),
             'machine' : relation(Machine, lazy=True),
-            'tasks' : relation(Task, cascade="delete-orphan", lazy=True),
+            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
             'events' : relation(Event, lazy=True),
             }),
     mapper(RegToken, table['regtokens'],
@@ -298,6 +313,15 @@ mappers =\
 ormbindings =\
     dict([(m.class_,[c.name for c in m.local_table.columns]) for m in mappers ])
 
+def interpolate_url_password(url):
+    if url is None:
+        raise SQLException(comment="no connection string specified")
+    if url.find("%(password)s") != -1:
+        pwfile = open("/etc/virt-factory/db/dbaccess")
+        read_pw = pwfile.read()
+        pwfile.close()
+        url = url % { "password" : read_pw }
+    return url
 
 class Database:
     """
@@ -315,7 +339,7 @@ class Database:
         @type url: string 
         """
         Database.primary = self
-        global_connect(url, echo=True)
+        global_connect(interpolate_url_password(url), echo=True)
         
     def create(self):
         """
@@ -368,6 +392,8 @@ class Facade:
             try:
                 return self.method(*args)
             except Exception, e:
+                # FIXME: not sure if loggers work here, until then..
+                traceback.print_exc()
                 raise SQLException(
                            comment = str(e),
                            traceback=traceback.format_exc())
@@ -386,6 +412,9 @@ def open_session():
 
 
 if __name__ == '__main__':
+    #
+    # This is test code only.  Do not use this a a reference implementation.
+    #
     database = Database('postgres://jortel:jortel@localhost/virtfactory')
     database.drop()
     database.create()
@@ -402,26 +431,22 @@ if __name__ == '__main__':
         ssn.save(user)
         ssn.flush()
         
-
         user = User.get(ssn, 1)
         session = Session()
-        session.session_token = 'my token'
-        user.sessions.append(session)
+        session.session_token = 'my token-1'
+        session.user = user
+        ssn.save(session)
+        session = Session()
+        session.session_token = 'my token-2'
+        session.user = user
         ssn.save(session)
         ssn.flush()
-
-        try:
-            fetched = User.get(ssn, 1)
-            print '______fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
-            fetched.update({'middle':'Dog'})
-            ssn.save(fetched)
-            ssn.flush()
-            for fetched in User.list(ssn):
-                print '______(list) fetched= %s %s %s ________' % (fetched.last, fetched.middle, fetched.first)
-        except Exception, e:
-            print '___failed___%s'  % e.comment
+        
+        user = User.get(ssn, 1)
+        for s in user.sessions:
+            print s.session_token
 
         User.delete(ssn, 1)
-    finally:
-        pass
+    except Exception, e:
+        print e.comment
         

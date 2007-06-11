@@ -13,12 +13,15 @@ A small pluggabe xml-rpc daemon used by %s to implement various web services hoo
 """ % NAME
 
 if __name__ == "__main__":
-        manpath  = "share/man/man1/"
-        etcpath  = "/etc/%s" % NAME
-        wwwpath  = "/var/www/%s" % NAME
-        initpath = "/etc/init.d/"
-        logpath  = "/var/log/%s/" % NAME
+        manpath    = "share/man/man1/"
+        etcpath    = "/etc/%s" % NAME
+        etcpathdb  = "/etc/%s/db" % NAME
+        wwwpath    = "/var/www/%s" % NAME
+        initpath   = "/etc/init.d/"
+        logpath    = "/var/log/%s/" % NAME
+        logpathdb  = "/var/log/%s/db/" % NAME
 	settingspath = "/var/lib/%s/" % NAME
+        migraterepopath = "/var/lib/%s/db/" % NAME
 	schemapath = "/usr/share/%s/db_schema/" % NAME
 	upgradepath = schemapath + "upgrade/"
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
@@ -40,7 +43,8 @@ if __name__ == "__main__":
 			   "scripts/vf_config_firewall",
 			   "scripts/vf_remove_firewall_rules",
 			   "scripts/vf_gen_profile_stub",
-			   "db/vf_create_db"],
+			   "db/vf_fix_db_auth",
+                           "db/vf_create_db"],
 		package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
@@ -54,7 +58,10 @@ if __name__ == "__main__":
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/virt-factory-server"]),
 			      (etcpath, ["settings"]),
+			      (etcpathdb, []),
 			      (logpath, []),
+			      (logpathdb, []),
+			      (migraterepopath, []),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),

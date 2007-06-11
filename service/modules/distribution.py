@@ -57,7 +57,7 @@ class Distribution(web_svc.AuthWebSvc):
         """
         required = ('kernel', 'initrd', 'name', 'architecture')
         optional = ('options', 'kickstart', 'kernel_options', 'kickstart_metadata')
-        self.validatelidate(args, required)
+        self.validate(args, required)
         session = db.open_session()
         try:
             distribution = db.Distribution()
@@ -220,7 +220,7 @@ class Distribution(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             name = args['name']
-            distribution = ssn.query(db.Distribution).selectfirst_by(name == name)
+            distribution = session.query(db.Distribution).selectfirst_by(name == name)
             if deployment is None:
                 raise NoSuchObjectException(comment=objectid)
             return success(distribution.data())

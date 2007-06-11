@@ -188,6 +188,7 @@ def main(argv):
 
 
 if __name__ == "__main__":
+    _("test") # make gettext be quiet when there are no strings
     textdomain(I18N_DOMAIN)
     main(sys.argv)
 

@@ -22,16 +22,16 @@ import config_data
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
 class Singleton(object):
-    def __new__(type):
+    def __new__(type, *args, **kwargs):
         if not '_the_instance' in type.__dict__:
-            type._the_instance = object.__new__(type)
+            type._the_instance = object.__new__(type, *args, **kwargs)
         return type._the_instance
 
 # logging is weird, we don't want to setup mutliple handlers
 # so make sure we do that mess only once
 class Logger(Singleton):
     __no_handlers = True
-    def __init__(self):
+    def __init__(self, logfilepath ="/var/log/virt-factory/svclog"):
 
         self.config = config_data.Config().get()     
         if self.config.has_key("loglevel"):
@@ -40,7 +40,7 @@ class Logger(Singleton):
            self.loglevel = logging.INFO   
         self.__setup_logging()
         if self.__no_handlers:
-            self.__setup_handlers()
+            self.__setup_handlers(logfilepath=logfilepath)
         
     def __setup_logging(self):
         self.logger = logging.getLogger("svc")

@@ -47,8 +47,12 @@ class Config(Singleton):
         config_file = open(CONFIG_FILE)
         data = config_file.read()
         self.ds = yaml.load(data).next()
-        self.cobbler_api = cobbler_api.BootAPI()
-        self.cobbler_api.deserialize()
+   
+        # not legal to instantiate cobbler API as non-root
+        # as there will be no permission to read the config
+        if os.getuid() == 0:
+            self.cobbler_api = cobbler_api.BootAPI()
+            self.cobbler_api.deserialize()
 
     def get(self):
         return self.ds

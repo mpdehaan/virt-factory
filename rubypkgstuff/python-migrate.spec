@@ -1,5 +1,6 @@
 
 %{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()")}
+%{!?python_version: %define python_version %(%{__python} -c "from distutils.sysconfig import get_python_version; print get_python_version()")}
 
 Summary: Database schema migration for SQLAlchemy
 Name: python-migrate
@@ -54,7 +55,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/migrate/versioning/templates/repository/default/versions/*.py*
 %dir %{python_sitelib}/migrate/versioning/templates/script
 %{python_sitelib}/migrate/versioning/templates/script/*.py*
-%{python_sitelib}/migrate-0.2.2-py2.4.egg-info
+%{python_sitelib}/migrate-0.2.2-py%{python_version}.egg-info
 
 %changelog
 * Tue May 29 2007 Adrian Likins <alikins@redhat.com> - 0.2.2-1

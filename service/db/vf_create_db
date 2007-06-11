@@ -2,19 +2,50 @@
 
 import subprocess
 import random
+import sys
+import distutils.sysconfig
+import os
+import shutil
+
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+from server import db as vfdb
+
 
 ######################################
 # CONFIG SECTION
 
 # must be chown postgres, chmod 550
+PG_HBA_CONF   = "/var/lib/pgsql/data/pg_hba.conf"
 DATABASE      = "virtfactory"
 PW_FILE       = "/etc/virt-factory/db/dbaccess"  
-#SCHEMA_FILE   = "/var/lib/virt-factory/db_schema/schema.sql"
-#POPULATE_FILE = "/var/lib/virt-factory/db_schema/populate.sql"
-
+USERNAME      = "virtfactory"
+EXISTS_FILE   = "/etc/virt-factory/db/exists" 
 ######################################
 
-def createdb():
+# FIXME: drop database first
+#     DROP DATABASE %(DATABASE)s;
+# FIXME: schema parts removable?
+# DROP SCHEMA %(DATABASE)s;
+# CREATE SCHEMA %(DATABASE)s;
+
+# CREATE DATABASE %(DATABASE)s OWNER %(username)s;
+# ALTER ROLE %(username)s SET search_path=%(DATABASE)s,public;
+
+CREATE_SCHEMA_SQL = """
+    DROP ROLE %(username)s;
+    CREATE ROLE %(username)s LOGIN PASSWORD '%(password)s'
+    NOINHERIT
+    VALID UNTIL 'infinity';
+    GRANT ALL ON DATABASE %(DATABASE)s TO %(username)s;
+"""
+
+MIGRATE_REPOSITORY = "/var/lib/virt-factory/db/migrate_repository"
+
+def mkpasswd():
+    """
+    Generates a random password using /dev/urandom and saves it in PW_FILE,
+    which is readable by postgres and root.
+    """
     dvr = open("/dev/urandom","r")
     r = random.Random(dvr.read(255))
     dvr.close()
@@ -22,29 +53,158 @@ def createdb():
     pwf = open(PW_FILE, "w+")
     pwf.write(password)
     pwf.close()
+    return password
 
-    #sf = open(SCHEMA_FILE, "r")
-    #data = sf.read() % { "password" : password }
-    data = "" # no initial schema, use SQLalchemy 
+def createdb(drop=True):
+    # FIXME: error handling
+    if drop:
+       subprocess.call(["/usr/bin/dropdb",DATABASE])
+       if os.path.exists(MIGRATE_REPOSITORY):
+           shutil.rmtree(MIGRATE_REPOSITORY)
+    subprocess.call(["/usr/bin/createdb",DATABASE])
+
+def setupdb(username,password):
+    """
+    Creates a DB, with a certain user allowed to access it.
+    """
+    data = CREATE_SCHEMA_SQL % {
+        "username"    : username,
+        "password"    : password,
+        "DATABASE"    : DATABASE
+    }
     __runsql(data)
 
-#def populate():
-#    data = open(POPULATE_FILE, "r")
-#    __runsql(data)
-
 def initialize_upgrade_path():
+    """
+    Calls the upgrade DB script to allow for (but not execute) future
+    upgrades.
+    """
     p = subprocess.Popen("/usr/bin/vf_upgrade_db --initialize", shell=True)
     p.communicate()
    
 def __runsql(data):
+    """
+    Wrapper around running the psql command line to interject some
+    SQL commands.
+    """
     print data
     p = subprocess.Popen("psql --dbname %s" % (DATABASE), shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     (stdout, stderr) = p.communicate(data)
 
+def populatedb():
+    """
+    Create all of the null (default) row entries for various objects, as well as
+    the default username/password account the sysadmin will need to initially log in
+    (this should be changed post-login).
+    """
+
+    pwf = open(PW_FILE)
+    pw = pwf.read()
+    pwf.close()
+    connstr = "postgres://%(user)s:%(pass)s@localhost/virtfactory" 
+    connvars = { "user": USERNAME, "pass" : pw }
+    
+ 
+    database = vfdb.Database(connstr % connvars)
+    # database.drop() -- don't do this, user might run by accident
+    database.create()
+
+    session = database.open_session()
+    
+    # default user account
+    user = vfdb.User()
+    user.username    = 'admin'
+    user.password    = 'fedora'
+    user.first       = ''
+    user.last        = ''
+    user.description = 'default admin account'
+    user.email       = 'root@localhost'
+    session.save(user)
+
+    # null user account
+    null_user = vfdb.User()
+    null_user.id = -1
+    null_user.username = 'system'
+    null_user.password = 'locked' # can't log in, just filler
+    null_user.first = '?'
+    null_user.last  = '?'
+    null_user.description = 'system account'
+    null_user.email = '?'
+    session.save(null_user)
+    
+    # null distribution
+    null_distribution = vfdb.Distribution()
+    null_distribution.id = -1
+    null_distribution.name = '*Unassigned*'
+    session.save(null_distribution)
+
+    # null profile
+    null_profile = vfdb.Profile()
+    null_profile.id = -1
+    null_profile.name = '*Unassigned*'
+    null_profile.version = '0.00'
+    null_profile.distribution = null_distribution
+    session.save(null_profile)
+
+    # null machine
+    null_machine = vfdb.Machine()
+    null_machine.id = -1
+    null_machine.name = '*Unassigned*'
+    null_machine.profile = null_profile
+    session.save(null_machine)
+
+    # null regtoken
+    null_regtoken = vfdb.RegToken()
+    null_regtoken.id = -1
+    null_regtoken.profile = null_profile
+    session.save(null_regtoken)
+ 
+    # null deployment
+    null_deployment = vfdb.Deployment()
+    null_deployment.id = -1
+    null_deployment.hostname = null_deployment.display_name = '*Unassigned*'
+    null_deployment.profile = null_profile
+    null_deployment.machine = null_machine
+    session.save(null_deployment)
+
+    session.flush() # commit everything to file
+
+
 if __name__ == "__main__":
-    createdb()
-    initialize_upgrade_path()
-    # populate() -- let sqlalchemy do this
+    # FIXME: real option parsing
+    if (len(sys.argv) != 2):
+       print "Usage:   vf_create_db --replace  | drops and recreates db (WARNING!)"
+       sys.exit(1)
+
+    if sys.argv[1] == "--replace":
+
+       print "- generating password"
+       # this needs to be run as Postgres
+       # warning -- if the database already exists, this could be dangerous...
+       pw = mkpasswd()
+
+       print "- creating DB"
+       createdb()
+
+       print "- DB setup"
+       setupdb(USERNAME,pw)
+
+       print "- populating DB"
+       populatedb()
+
+       print "- initializing upgrade path"
+       initialize_upgrade_path()
+
+       print "- dB setup complete"
+       # the existance of this file keeps the db script from running again the next
+       # time the service starts up.
+       exists = open(EXISTS_FILE,"w+")
+       exists.close()
+
+    else:
+
+       print "unknown option"
+       sys.exit(1)
 
 
 

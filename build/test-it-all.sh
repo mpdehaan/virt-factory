@@ -211,6 +211,7 @@ setup_vf_repo_upstream()
 
 }
 
+# note, in this function, the DB and server probably aren't started yet
 setup_vf_server()
 {
     msg "Setting up the config settings for vf_server"
@@ -230,8 +231,8 @@ setup_vf_server()
 
 setup_puppet()
 {
-	touch /etc/puppet/manifests/site.pp
-
+    # FIXME: can this be removed?
+    touch /etc/puppet/manifests/site.pp
 }
 
 stop_services()
@@ -248,13 +249,14 @@ start_services()
 {
     /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
+    
+    # this will restart postgresql
+    # and also set up it's pg_hba.conf
+    vf_fix_db_auth
+
     /etc/init.d/virt-factory-server restart
     /etc/init.d/virt-factory-wui restart
-
-    # fresh postgresql requires an initdb first
-    /etc/init.d/postgresql initdb
-    /etc/init.d/postgresql restart
-
+    
     # we need to restart httpd after installing mongrel
     /etc/init.d/httpd restart
 }
@@ -420,6 +422,15 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
         ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/fc6/devel/i686 /var/www/html/download/repo/fc6/devel/i386
 fi
 
+# purge the db
+if [ "$REFRESH_DB" == "Y" ] ; then
+    msg "Purging the db"
+    mkdir -p db_backup
+    TIMESTAMP=` date '+%s'`
+    mv /var/lib/psql "db_backup/"
+    rm -rf /var/lib/pgsql
+    rm -rf /etc/virt-factory/db
+fi
 
 # FIXME: we currently dont rev packages very well, we either need to rev on every package build
 # or remove all the packages first, otherwise we never pick up "new, but not newer version" packages
@@ -454,15 +465,6 @@ if [ "$CLEANUP_PUPPET" == "Y" ] ; then
     cleanup_puppet
 fi
 
-# purge the db
-if [ "$REFRESH_DB" == "Y" ] ; then
-    msg "Purging the db"
-    mkdir -p db_backup
-    TIMESTAMP=` date '+%s'`
-    mv /var/lib/virt-factory/primary_db "db_backup/primary_db_$TIMESTAMP"
-    /usr/bin/vf_create_db.sh
-fi
-
 if [ "$SETUP_PUPPET" == "Y" ] ; then
     msg "Setting up puppet"
     setup_puppet
@@ -475,23 +477,27 @@ setup_vf_server
 msg "cleanup repo mirror"
 cleanup_repo_mirror
 
+# NOTE: we have to do this after "vf_server import" as that creates
+# the vf_repo
+if [ "$INSTALL_PACKAGES" == "Y" ] ; then
+    msg "Installing client packages from vf_repo"
+    install_client_packages
+fi
+
+if [ "$START_SERVICES" == "Y" ] ; then
+    msg "restarting services"
+    start_services
+    start_client_services
+fi
 
 # This creates the vf_repo as well, though we probably need to create the sample
 # repo somewhere ($REMOTE_HOST?) and set the settings to sync from there to here,
 # so that we get the fresh packages we just built
 if [ "$VF_SERVER_IMPORT" == "Y" ] ; then
     msg "Starting vf_server import, this could take a while"
-    
+   
     # do the rynsc, the db import, and reposync the vf_repo's
     /usr/bin/vf_server import
-fi
-
-
-# NOTE: we have to do this after "vf_server import" as that creates
-# the vf_repo
-if [ "$INSTALL_PACKAGES" == "Y" ] ; then
-    msg "Installing client packages from vf_repo"
-    install_client_packages
 fi
 
 
@@ -512,13 +518,6 @@ if [ "$VF_IMPORT" == "Y" ] ; then
     done
     popd
 fi
-
-if [ "$START_SERVICES" == "Y" ] ; then
-    msg "restarting services"
-    start_services
-    start_client_services
-fi
-
 
 if [ "$REGISTER_SYSTEM" == "Y" ] ; then
     msg "Registering system"
