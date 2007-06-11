@@ -1,0 +1,6 @@
+#! /usr/bin/python
+
+from busrpc.test.test_client import do_test
+
+do_test()
+

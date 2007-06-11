@@ -1,0 +1,5 @@
+#! /usr/bin/python
+
+from busrpc.test.test_service import start_service
+
+start_service("../configs/secure-test.conf")
