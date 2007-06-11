@@ -64,7 +64,7 @@ class Profile(web_svc.AuthWebSvc):
         self.validate(args, required)
         session = db.open_session()
         try:
-            profile = db.Proflie()
+            profile = db.Profile()
             profile.update(args)
             session.save(profile)
             session.flush()
@@ -101,7 +101,7 @@ class Profile(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id')
+        required = ('id',)
         optional =\
             ('name', 'version', 'valid_targets', 'is_container', 'distribution_id', 'virt_storage_size', 
              'virt_ram', 'kickstart_metadata', 'kernel_options', 'puppet_classes')
@@ -128,7 +128,7 @@ class Profile(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id')
+        required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
@@ -235,10 +235,10 @@ class Profile(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             name = args['name']
-            profile = session.query(db.Profile).selectfirst_by(name == name)
-            if profile is None:
-                 raise NoSuchObjectException(comment=name)
-            return success(self.expand(profile))
+            profile = session.query(db.Profile).selectfirst_by(name = name)
+            if profile:
+                profile = self.expand(profile)
+            return success(profile)
         finally:
             session.close()
 
@@ -246,8 +246,8 @@ class Profile(web_svc.AuthWebSvc):
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
-        vdr.verify_printable('name', 'version')
-        vdr.verify_int('virt_storage_size', 'virt_ram', 'kernel_options', 'puppet_classes')
+        vdr.verify_printable('name', 'version', 'kernel_options', 'puppet_classes')
+        vdr.verify_int('virt_storage_size', 'virt_ram')
         vdr.verify_enum('valid_targets', VALID_TARGETS)
         vdr.verify_enum('is_container', VALID_CONTAINERS)
 
