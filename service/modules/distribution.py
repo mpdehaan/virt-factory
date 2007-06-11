@@ -220,7 +220,7 @@ class Distribution(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             name = args['name']
-            distribution = ssn.query(db.Distribution).selectfirst_by(name == name)
+            distribution = session.query(db.Distribution).selectfirst_by(name == name)
             if deployment is None:
                 raise NoSuchObjectException(comment=objectid)
             return success(distribution.data())
