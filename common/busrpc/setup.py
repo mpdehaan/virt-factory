@@ -32,9 +32,8 @@ if __name__ == "__main__":
 		packages = ["busrpc",],
 #			    "busrpc/local",
 #			    "busrpc/remote"],
-                data_files = [(etcpath, ["configs/system-local.conf",
-			        	      "configs/test.conf",
-					      "configs/amqp.0-8.xml"]),
+                data_files = [(etcpath, ["configs/test.conf",
+					 "configs/amqp.0-8.xml"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
