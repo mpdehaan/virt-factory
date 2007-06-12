@@ -514,7 +514,8 @@ if [ "$VF_IMPORT" == "Y" ] ; then
     for profile in `ls`
     do
       msg "importing $profile"
-      /usr/bin/vf_import $profile
+      rpm -Uvh $profile
+      /usr/bin/vf_import
     done
     popd
 fi
