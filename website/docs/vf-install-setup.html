@@ -1,7 +1,6 @@
 <a name="toc">
-<h2>Update & Management Platform (UMP) Installation &amp; Setup Guide</h2>
+<h2>Virt-Factory Installation &amp; Setup Guide</h2>
 </a>
-<p>A printer-friendly version of this guide is available:<br /> <a href="http://spira.boston.redhat.com/projects/nextgen/vf_website/docs/ump-install-setup.html">Update & Management Platform (UMP) Installation &amp; Setup Guide: Printer-Friendly Version</a>.</p>
 <h3>Table of Contents</h3>
 <ul id="toc">
 <li><a href="#about">About this Document</a></li>
@@ -20,19 +19,19 @@
 <a name="about">
 <h3>About this Document</h3>
 </a>
-<p>This document explains how to install and set up a basic installation of Update &amp; Management Platform (UMP).
+<p>This document explains how to install and set up a basic installation of Virt-Factory.
 </p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 
 <a name="requirements">
 <h3>Before You Start: Requirements</h3>
 </a>
-<h4>For the UMP Management Server:</h4>
-<p>Currently you will need a system running Fedora Core 6 to most easily install and setup an UMP management server. We recommend using a 32-bit system.</p>
-<p class="note">You may also install an UMP management server using our <a href="download.php">source tarballs or our git code respository</a>. Using these methods you may install the server on a Fedora Core 6, Fedora Core 7, or Red Hat Enterprise Linux 5 system (32-bit x86 or 64-bit x86_64.) However, these instructions currently refer to using a yum repository which currently only supports Fedora Core 6 x86.</p>
+<h4>For the Virt-Factory Management Server:</h4>
+<p>Currently you will need a system running Fedora Core 6 to most easily install and setup an Virt-Factory management server. We recommend using a 32-bit system.</p>
+<p class="note">You may also install an Virt-Factory management server using our <a href="download.php">source tarballs or our git code respository</a>. Using these methods you may install the server on a Fedora Core 6, Fedora Core 7, or Red Hat Enterprise Linux 5 system (32-bit x86 or 64-bit x86_64.) However, these instructions currently refer to using a yum repository which currently only supports Fedora Core 6 x86.</p>
 <p>You will also need access to one of the <a href="http://mirrors.fedoraproject.org/publiclist/Fedora/6/<">Fedora Core 6 public rsync mirrors</a> or a DVD ISO of Fedora Core 6, Fedora 7, or Red Hat Enterprise Linux 5 to enable the server to provision new guest systems.</p>
-<h4>For systems registering to the UMP Management Server:</h4>
-<p>You will need at least one additional system to register to the UMP management server. Currently UMP supports client systems running Fedora Core 6, Fedora 7, or Red Hat Enterprise Linux 5 on 32-bit x86 or 64-bit x86_64 hardware.</p>
+<h4>For systems registering to the Virt-Factory Management Server:</h4>
+<p>You will need at least one additional system to register to the Virt-Factory management server. Currently Virt Factory supports client systems running Fedora Core 6, Fedora 7, or Red Hat Enterprise Linux 5 on 32-bit x86 or 64-bit x86_64 hardware.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 
 <a name="getrpms">
@@ -47,17 +46,17 @@
 <h3>Installing the Management Server</h3>
 </a>
 <h4>Installing the Management Server Package</h4>
-<p>Run the following command on the system you would like to setup as an UMP management server:</p>
+<p>Run the following command on the system you would like to setup as an Virt-Factory management server:</p>
 <blockquote>yum install virt-factory-server</blockquote>
 <h4>Configuring the Database</h4>
-<p>UMP uses <A HREF="http://www.postgresql.org">PostgreSQL</A> for it's database.</p>
+<p>Virt-Factory uses <A HREF="http://www.postgresql.org">PostgreSQL</A> for it's database.</p>
 <p>If you are not already using any PostgreSQL databases on the server, run the following command to set up the database to allow connections by the virt factory user:</p>
 <blockquote>vf_fix_db_auth</blockquote> 
 <p>If the server already has a PostgreSQL installation that other applications are relying upon, do <strong>not</strong> run the above command, but instead manually change the server's <A HREF="http://www.postgresql.org/docs/7.4/interactive/client-authentication.html">pg_hba.conf</A> file to allow "md5" authentication for all "host" connections, then restart the Postgresql service with:</p>
 <blockquote>/sbin/service postgresql restart</blockquote>
 </p>
 <h4>Setting Up Mirrors For Virtual Guest Deployment</h4>
-<p>As root, edit the <tt>/etc/virt-factory/settings</tt> file to include the address of a public rsync mirror for Fedora Core 6, or otherwise change the path to point to where you have a DVD or the DVD ISO mounted. This path settings will allow UMP to import a distribution mirror for use in installing virtual systems.</p>
+<p>As root, edit the <tt>/etc/virt-factory/settings</tt> file to include the address of a public rsync mirror for Fedora Core 6, or otherwise change the path to point to where you have a DVD or the DVD ISO mounted. This path settings will allow Virt-Factory to import a distribution mirror for use in installing virtual systems.</p>
 
 <p class="note"><strong>Note:</strong> A list of current public mirrors of Fedora Core 6, including rsync mirrors, is available here: <a href="http://mirrors.fedoraproject.org/publiclist/Fedora/6/">http://mirrors.fedoraproject.org/publiclist/Fedora/6/</a>.<br /><br />We recommend that you import Fedora Core 6 as this is the operating system we provide pre-built profiles for. If you import something else, you will need to create a profile for it before you can deploy a virtual guest using it.</p>
 </p>
@@ -77,8 +76,8 @@
 <p>Now you'll want to import some profiles to deploy to machines. To do this, you'll first of course need to find some profile files. We have some samples profiles available at: <a href="http://virt-factory.et.redhat.com/download/profiles">http://virt-factory.et.redhat.com/download/profiles</a>.</p>
 <p>We recommend that you download all of our sample profiles for starters. You can make your own profiles later if you want. For each profile you wish to deploy, run:</p>
 <blockquote>sudo vf_import <em>/path/to/profile.tar.gz</em></blockquote>
-<h4>Set Up the UMP Management Server Web Interface</h4>
-<p>You'll need to install and start the web interface on the UMP management server using the following commands:</p>
+<h4>Set Up the Virt-Factory Management Server Web Interface</h4>
+<p>You'll need to install and start the web interface on the Virt-Factory management server using the following commands:</p>
 <blockquote>sudo yum install virt-factory-wui</blockquote>
 <blockquote>sudo /sbin/service virt-factory-wui start</blockquote>
 <p>You will be able to access the web interface by visiting <tt>http://www.example.com/vf/</tt>, where <tt>www.example.com</tt> is your server's actual IP address or domain name.</p>
@@ -93,7 +92,7 @@
 <a name="loggingin">
 <h3>Logging In</h3>
 </a>
-<p>The default username and password for the UMP Management Server web interface are the following:</p>
+<p>The default username and password for the Virt-Factory Management Server web interface are the following:</p>
 <ul>
 <li><strong>Username:</strong> admin</li>
 <li><strong>Password:</strong> fedora</li>
@@ -105,17 +104,17 @@
 </a>
 <p>You'll want to add some systems that can serve as virtual hosts. Consider these machines part of your "machine farm". There are two ways to do this, all of which should be available in the fairly minimalistic web interface.</p>
 <h4>Registering Virtual Host Systems via PXE Provisioning</h4>
-<p>The easiest way to register a physical host system to the UMP management server is to use the "add a machine for PXE" item in the web interface. Type in a MAC address in the web form, and select a profile for the system to run after it PXE boots. Most likely, you'll want to pick the "Container" profile (available from our <a href="download.php">download page</a>), because that profile means "This machine is going to run managed virtual guests". In fact, when assigning profiles to machines, always pick the "Container" profile. It will keep things simple.</p>
+<p>The easiest way to register a physical host system to the Virt-Factory management server is to use the "add a machine for PXE" item in the web interface. Type in a MAC address in the web form, and select a profile for the system to run after it PXE boots. Most likely, you'll want to pick the "Container" profile (available from our <a href="download.php">download page</a>), because that profile means "This machine is going to run managed virtual guests". In fact, when assigning profiles to machines, always pick the "Container" profile. It will keep things simple.</p>
 <p>To make PXE work, your dhcp server will need to specify that the address of the virt-factory management server is the "next-server" for that particular machine.</p>
 <h4>Registering Virtual Host Systems using a Registration Token on an pre-installed System</h4>
-<p>If you do not have access to your dhcp server to setup PXE, another option you have for registering virtual host systems is the registration token feature of UMP. This will involve installing client software and running a registration script on an already-installed system. This system must be running <a href="#requirements">one of the operating systems required for an UMP-registered system</a>. Also, you'll need to make sure that the system is running a xen kernel so you may deploy virtual guest system on it.</p>
+<p>If you do not have access to your dhcp server to setup PXE, another option you have for registering virtual host systems is the registration token feature of Virt-Factory. This will involve installing client software and running a registration script on an already-installed system. This system must be running <a href="#requirements">one of the operating systems required for an Virt-Factory registered system</a>. Also, you'll need to make sure that the system is running a xen kernel so you may deploy virtual guest system on it.</p>
 <p class="tip">To check if your system is running a xen kernel, run <tt>uname -a</tt>. In the output of that command, check to make sure the kernel has the string 'xen' in it. If not, you'll need to reboot the system into a xen kernel before attempting to provision guests on it.</p>
-<p>Generate a registration token with the "Machines/Create Registration Token" option in the web interface and specify that you want it to be a registration token for the "Container" profile you imported earlier. Then, on an existing installed system run the following commands (where 'www.example.com' is the IP address or hostname of your UMP management server):</p>
+<p>Generate a registration token with the "Machines/Create Registration Token" option in the web interface and specify that you want it to be a registration token for the "Container" profile you imported earlier. Then, on an existing installed system run the following commands (where 'www.example.com' is the IP address or hostname of your Virt-Factory management server):</p>
 <blockquote>yum install virt-factory-nodes<br />
    vf_register --serverurl=http://www.example.com:5150 --token=tokenvalue<br />
    /sbin/service start vf-node-server
 </blockquote>
-<p>Now that system show up as managed in the UMP management server web interface. You are now ready (assuming you just configured it as a "Container" machine, to deploy virtualized systems running specific profiles.</p>
+<p>Now that system show up as managed in the Virt-Factory management server web interface. You are now ready (assuming you just configured it as a "Container" machine, to deploy virtualized systems running specific profiles.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 <a name="viewprofiles">
 <h3>Viewing Imported Profiles</h3>
@@ -135,7 +134,7 @@
 <h3>Creating Profiles</h3>
 </a>
 <p>We have made some sample profiles available on our <a href="download.php">download page</a>.</p>
-<p>You may wish to refer to the <a href="http://et.redhat.com/page/VF_Profile_Format">UMP Profile Format</a> documentation. Follow the same format (XML file + puppet files and manifests) to create your own profiles for how your servers should run and be set up. Our Test1 profile is as minimalistic as it gets, and it's possible to create much more tailored profiles, including ones that set up web servers, application servers, and so forth - and keep them configured - using puppet.</p>
+<p>You may wish to refer to the <a href="http://et.redhat.com/page/VF_Profile_Format">Virt-Factory Profile Format</a> documentation. Follow the same format (XML file + puppet files and manifests) to create your own profiles for how your servers should run and be set up. Our Test1 profile is as minimalistic as it gets, and it's possible to create much more tailored profiles, including ones that set up web servers, application servers, and so forth - and keep them configured - using puppet.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 <a name="schemadbupgrade">
 <h3>Upgrading the Database and Schema</h3>

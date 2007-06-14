@@ -1,20 +1,16 @@
-<h2>About UMP</h2>
-<h3>Introducing the next generation of systems management</h3>
+<h2>About Virt-Factory</h2>
+<h3>Introducing the next generation of virtualization management</h3>
 
 <a href="img/screenshot_full.png"><img src="img/screenshot.png" style="float: left; margin-right: 10px;" /></a>
 
-<p> There are many great and free and open source systems management tools -- perhaps too many.  As systems management choices are numerous and disparate, selecting which tools to use and how to connect them can become a time consuming process.</p>
-
-<p> The Update &amp; Management Platform (UMP) is a software application framework for integrating systems management applications.  It's also a product.  Configuration management, provisioning, and update management come batteries included -- without time consuming setup and rewiring.  Other features can be swapped in/out over time, making it easy to incorporate the best features of other open source applications (such as your favorite monitoring stack) and choose the best options for a particular environment.
+<p>Virt-Factory is a framework for managing a very large number of virtual machines such as might be found in datacenters or compute farms.  In many ways, it is a bit of a research project to determine new and efficient ways to control these large environments.
 </p>
 
-<p> For users, this means a well-integrated systems management solution with a common Web UI, command line scripting tools, and a uniform XMLRPC interface.  For infrastructure developers, struggling to deal with the cognitive dissonance of multiple systems management apps, it's one tool to unite them all.
+<p>
+Virt-Factory works by managing a pool of registered physical hosts, and then deploying virtual machines, which have specific roles as defined by their "profiles", onto those hosts.</p>
+
+<p>
+The application provides a Web UI, an XMLRPC API, and a command line interface is in development.  Basic management support is available now, though the future will revolve around tagging, batch management, reporting, and automated assistance around deployment ("deploying into the cloud"), and finding good candidate systems for migrations.  An example migration case: when taking a host machine down for maintaince, where should the guest virtual machines be moved?  We want virt-factory to be able to make these kinds of decisions automatically.
 </p>
 
-<p>Read more about <a href="components.php">our approach to system management</a> and let us know what you think.</p>
-
-<h3>Free to use, developed openly</h3>
-
-<p>Use UMP freely to get your system update and management tasks done. Get involved with the UMP developers or become an UMP developer in UMP's open development community to get your system update and management tasks done <strong>better</strong>.</p>
-
-<p>Your feedback is valuable to us. Let us know which UMP features are most valuable to you, which ones are not, and which ones you'd like to see. Become an UMP developer and help us reach our vision. Either way, we'd love to hear from you.</p>
+<p>Your feedback is valuable to us. Let us know which virtualization management features are most valuable to you, which ones are not, and which ones you'd like to see. Become a Virt-Factory developer and help us reach our vision. Either way, we'd love to hear from you.</p>

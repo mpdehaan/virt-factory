@@ -10,7 +10,7 @@
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="description" content="" />
 <meta name="keywords" content="" />
-<title>UMP: Update and Management Platform</title>
+<title>Virt-Factory</title>
 
   <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
 </head>
@@ -36,7 +36,7 @@
 
 require_once('magpierss/rss_fetch.inc');
 
-$url = 'http://umpdevel.wordpress.com/feed/';
+$url = 'http://virtfactory.wordpress.com/feed/';
 $rss = fetch_rss($url);
 
 	foreach ($rss->items as $item) {

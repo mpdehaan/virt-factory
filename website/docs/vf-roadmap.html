@@ -1,0 +1,175 @@
+<a name="toc">
+<h2>Virt-Factory Roadmap</h2>
+</a>
+<h3>Table of Contents</h3>
+<ul id="toc">
+<li><a href="#2">0.0.2 -- released 5/1</a></li>
+<li><a href="#3">0.0.3</a></li>
+<li><a href="#4">0.0.4</a></li>
+<li><a href="#5">0.0.5</a></li>
+<li><a href="#6">0.0.6</a></li>
+<li><a href="#7">0.0.6</a></li>
+<li><a href="#tbf">Future / To Be Filed</a></li>
+</ul>
+
+<a name="2">
+<h3>0.0.2 -- released 5/1</h3>
+</a>
+<p>
+<pre>
+Simplify the setup process. This is one of the most important things we need to do. --
+
+* DVD imports + misc cobbler features (Michael, 7 days) -- OK
+* automated puppet setup,  (Scott, 2 days) -- OK
+* and automated vf_repo setup from something like on command. (Adrian 4, days) -- OK
+
+Test PXE menu provisioning by profile, fix anything that comes up with kickstarts, registration, etc (Michael, 3 days) -- done
+
+Change any prints to use log files. (Scott 1 day) -- done
+
+Database upgrade support (Scott 5 days) -- OK
+
+Have cobbler mirror extras (using reposync rather than rsync:// -- preferably with mirror-list awareness) to allow nodes to get things like puppet and koan -- rather important as this keeps node installs from working from PXE (or from cases where yum isn't accessible in non-PXE). This will become even more important as we move to having everything in extras. Once this is all done, finish PXE testing for registration hooks. (mdehaan, 3-4 days) -- done
+
+Have registration ensure time is synced up for SSL purposes (sseago, ...) -- done, (NTP)
+
+Have registration or node tool install configure iptables such that it allows puppet to go through (sseago) -- skipped?
+
+More logging from register.py -- /var/log/virt-factory/register maybe. Right now there is no way to tell what happens during registration and failures are pretty easy given time issues, stopped services, etc (sseago) -- done 
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="3">
+<h3>0.0.3</h3>
+</a>
+<p>
+<pre>
+(If anyone wants anything else, sign up)
+
+Use busrpc(AMQP) to communicate with WUI, nodes, etc. -- alikins, ksmith (server-side); sseago (WUI side)
+
+Further test infrastructure tweaks? -- alikins?
+
+Minor architecture cleanup in modules as needed -- mdehaan, jortel?, others as needed
+
+ORM usage and move to Postgres (possibly also support MySQL?). Database init scripts also. -- jortel, sseago
+
+Work on new cobbler features (HW virt, other virt types, CD installs, better DHCP control) -- mdehaan, zeus
+
+Work on jumpstarting [sic] channel/repo management project 'surfr' -- mmccune, ksmith
+
+Incorporate shinier and better CSS/HTML/artwork (mostly done; minor CSS additions expected, and maybe some changes to the view/edit pages) -- mizmo, sseago, zeus (if needed)
+
+Refactor vf_import to use puppet modules (done) -- sseago
+
+Come up with plan for localization framework -- mmccune, ksmith, zeus 
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="4">
+<h3>0.0.4</h3>
+</a>
+<p>
+<pre>
+Status tracking -- heartbeat from node daemons and associated infrastructure work to do that securely. Not to be confused with monitoring but may include what is accessible through libvirt, etc.
+
+Keeping VM's started when host nodes restart and so on.
+
+Display view cleanup, UI refinement, possible support for pagination for very large groups of machines.
+
+Better integration with cobbler status tracking, etc. Watch provisioning status and make it visible in the WUI (mdehaan?)
+
+Seperate WUI from central server so they can optionally be installed on seperate machines.
+
+The Naming Question...
+
+Integrate role/permission based control over what users can access what in the GUI. Specific use cases should be given so that starter roles can be established. This is probably not super-critical for initial release, so just having "Admin" and "Guest" for default roles may be enough. Consider support for authentication against other sources (LDAP) though do not require it.
+
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+<a name="5">
+
+<h3>0.0.5</h3>
+</a>
+<p>
+<pre>
+Upload and import profiles via the WUI without using vf_import
+
+A per host task view. Slice by hosts. See what is going on in a specific host when you visit that page for the individual host.
+
+Tracking of who initiated tasks. (Audit logging). Show this when clicking on the task.
+
+Task error reporting (in GUI).... show why things fail and what state tasks are in better.
+
+Batch management via tasks and tag selection. (Do this to all machines tagged "foo" and "bar").
+
+Yum channel management. Be able to create new channels in the WUI and add software to it. This requires a fairly advanced channel module, so we might want to create this seperately and let stand-alone cobbler use it also. Also be able to mirror existing (external) content.
+
+Fedora 7 support. How to select which distros to import? 
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="6">
+<h3>0.0.6</h3>
+</a>
+<p>
+<pre>
+Ability to lock down channels (entitlements) for specific systems. May involve changing the way registration tokens work today.
+
+Support for non-virtual clients running earlier RHEL. Associated package management support -- example: delivering ISV content. (Configure up2date for yum support?). Server software does need to support earlier editions.
+
+Improve registration tool to store more inventory data about the system.
+
+Improve registration tool to allow jailing of systems that do not have profile information contained in their registration token. Require that sysadmins approve the system and choose a profile. If using a regtoken, this would be automatically included and the step can be skipped.
+
+Command line client -- ampm. 
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="7">
+<h3>0.0.7</h3>
+</a>
+<p>
+<pre>
+Tag management tools should be able to store the tags required to run a virtual machine, i.e. "lab4 storagepool5 fullvirtcapable" and be able to have a button to click on for a mahcine, that will allow all virtual deployments running on it to move to similarly tagged guests. These should be selected on an individual basis and can be overriden with non-similarly tagged guests as needed. Automation will come later.
+
+Knowledge of basic storage information needed for migration.
+
+Integration with basic monitoring information (something like SPECTRE) needed to develop automated "into the cloud" deployment heuristics. 
+</pre>
+</p>
+
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="tbf">
+<h3>Future / To Be Filed</h3>
+</a>
+<p>
+<pre>
+Automate cloud deployment and migration based on tags and basic resource availability.
+
+Run WUI on seperate server from management daemon
+
+Guard against unauthorized registration in the case of PXE (requires Cobbler voodoo).
+
+Create more sample profiles
+
+API cleanup -- create higher level API more suitable for ISVs and sysadmins who want to integrate with VF. It's a bit low-level as it stands now, but workable.
+
+Scaling
+
+Backup features
+
+Make it easy to deploy RHX-type content as virtual appliance apps 
+</pre>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+
+
+
