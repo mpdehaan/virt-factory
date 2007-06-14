@@ -64,7 +64,7 @@ build_profile()
     pushd $PROFILE
     make
     mkdir -p $BUILD/profiles
-    cp *.tar.gz $BUILD/profiles/
+    cp rpm-build/*.noarch.rpm $BUILD/profiles/
     popd
 }
 

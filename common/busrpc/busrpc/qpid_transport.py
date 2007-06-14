@@ -1,9 +1,9 @@
 import os
+import socket
 import threading
 import Queue
 import time
-
-import pp
+from M2Crypto import RSA
 
 import qpid.spec
 import qpid.content
@@ -12,6 +12,7 @@ import qpid.queue
 import qpid.peer
 
 from busrpc.transport import Transport, ServerTransport
+from busrpc.crypto import CertManager
 import busrpc.qpid_util as qpid_util
 
 class QpidTransportException(Exception):
@@ -20,12 +21,13 @@ class QpidTransportException(Exception):
         self.message = message
 
     def __str__(self):
-        return repr(self.message)
+        return repr(self.message)       
 
 class QpidTransport(Transport):
 
     def __init__(self, host='localhost', port=5672, user='guest',
                  password='guest', vhost='development'):
+        self.nethostname = socket.gethostname()
         self.host = host
         self.port = port
         self.user = user
@@ -79,10 +81,10 @@ class QpidTransport(Transport):
                                        vhost=self.vhost)                    
 
     def send_message(self, to, message):
-		properties={"Content-Type":"text/plain", "Reply-To": self.queue_name}
-		qpid_util.publish_message(self, exchange_name=self.exchange_name,
-                                  routing_key_name=to, props=properties,
-                                  message=message)
+        properties = {"Content-Type":"text/plain", "Reply-To": self.queue_name}
+        qpid_util.publish_message(self, exchange_name=self.exchange_name,
+                                  routing_key_name=to, message=message,
+                                  props=properties)
 
     def send_message_wait(self, to, message, timeout=60):
         self.send_message(to, message)
@@ -104,11 +106,12 @@ class QpidTransport(Transport):
 
     def declare_queue(self):
             return qpid_util.declare_queue(self, create=True, auto_remove=True)
+        
 
 class QpidServerTransport(QpidTransport, ServerTransport):
 
     def __init__(self, service_name, host='localhost', port=5672, user='guest',
-                 password='guest', vhost='development', workers=2):        
+                 password='guest', vhost='development', workers=2, certdir=None, cryptopassword=None):        
         self.service_name = service_name
         self.callback = None
         self.max_workers = workers
@@ -148,7 +151,12 @@ class QpidServerTransport(QpidTransport, ServerTransport):
     def _dispatch(self):
         while not self.is_stopped:
             call_body = self.pending_calls.get()
-            addr, reply = self.callback(call_body)
+            try:
+                addr, reply = self.callback(call_body)
+            except TypeError, e:
+                print e
+                return
+                
             if addr == None or reply == None:
                 return
             else:

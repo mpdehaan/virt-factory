@@ -5,6 +5,7 @@ import socket
 
 import busrpc.qpid_transport
 import busrpc.rpc
+from busrpc.crypto import CertManager
 from busrpc.misc import *
 
 def _extract_names(full_class_name):
@@ -31,6 +32,8 @@ class RPCDispatcher(object):
         self.instances = {}
         self.hostname = socket.gethostname()
         self.name = config.server_name
+        certdir = config.get_value('busrpc.crypto.certdir')
+        pwd = config.get_value('busrpc.crypto.password')
         if register_with_bridge:
             self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name)
         else:
@@ -39,8 +42,9 @@ class RPCDispatcher(object):
         self.register_with_bridge = register_with_bridge
         self.runner_thread = None
         self.instance_method_cache = {}
+        self.cert_mgr = CertManager(certdir, self.hostname)
         self.client_transport = self.transport.clone()
-        self.bridge = busrpc.rpc.lookup_service('bridge', self.client_transport)
+        self.bridge = busrpc.rpc.lookup_service('bridge', self.client_transport, cert_mgr=self.cert_mgr)
         for name in config.instances.iterkeys():
             instance = config.instances[name]
             self.add_instance(name, _create_instance(config, instance))
@@ -75,7 +79,12 @@ class RPCDispatcher(object):
         self.instances.clear()
 
     def dispatch(self, message):
-        sender, namespace, called_method, encoded_params = decode_rpc_message(message)
+        sender, hostname, namespace, called_method, encoded_params = decode_rpc_request(message, cert_mgr=self.cert_mgr)
+        print "Sender: %s, Host: %s, Namespace: %s, Method: %s, Encoded Params: %s" % (sender,
+                                                                                       hostname,
+                                                                                       namespace,
+                                                                                       called_method,
+                                                                                       encoded_params)
         if sender == None or namespace == None:
             return
         cache_key = ''.join([namespace, '.', called_method])
@@ -83,16 +92,21 @@ class RPCDispatcher(object):
         try:
             method = self.instance_method_cache[cache_key]
         except KeyError:
-            instance = self.instances[namespace]
-            method = self._resolve_method(instance, called_method)
-            self.instance_method_cache[cache_key] = method
+            try:
+                print self.instances
+                instance = self.instances[namespace]
+                method = self._resolve_method(instance, called_method)
+                self.instance_method_cache[cache_key] = method
+            except KeyError, e:
+                print e
+                return
         params = decode_object(encoded_params)
         results = method(*params)
         headers = {}
         if hasattr(method, '_header_generator'):
             method._header_generator(headers)
-        return sender, encode_rpc_response(self.name, namespace, called_method,
-                                           encode_object(results), headers)
+        return sender, encode_rpc_response(self.name, hostname, namespace, called_method,
+                                           encode_object(results), headers=headers, cert_mgr=self.cert_mgr)
 
     def add_instance(self, namespace, instance):
         self.instances[namespace] = instance

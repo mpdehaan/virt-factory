@@ -52,14 +52,17 @@ from urllib import urlretrieve
 
 sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
+from server.config_data import *
 from server.codes import *
 from server import logger
 from server.modules import distribution
 from server.modules import profile
 from server.modules import provisioning
+from server.db import Database
 
 # TODO: should go in /var/lib/puppet/config/lib once puppet modules work
 PUPPET_FILE_DIR="/var/lib/virt-factory/profiles"
+PUPPET_QUEUED_FILE_DIR="queued"
 PUPPET_SITE_MANIFEST="/etc/puppet/manifests/site.pp"
 
 NAME_TAG = "name"
@@ -90,6 +93,14 @@ class VirtFactoryImporter:
        log = logger.Logger("/var/log/virt-factory/vf_import.log")
        self.logger = log.logger
        self.profile = parse(self.module_dir + '/' + self.module_name + "/profile.xml")
+
+   def run_import(self):
+       self.update_puppet_manifest()
+       print "populating..."
+       self.populate_sm_profile()
+       pending_marker = self.module_dir + '/' + PUPPET_QUEUED_FILE_DIR + '/' + self.module_name
+       if os.path.exists(pending_marker):
+           os.remove(pending_marker)
 
    def update_puppet_manifest(self):
        # import_str should be simply "import profile_name" once
@@ -149,9 +160,10 @@ class VirtFactoryImporter:
        except Exception, e:
            print "error adding profile: "
            (t, v, tb) = sys.exc_info()
-           self.logger.debug("Exception occured: %s" % t )
-           self.logger.debug("Exception value: %s" % v)
-           self.logger.debug("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+           self.logger.error("Exception occured: %s" % t )
+           self.logger.error("Exception value: %s" % v)
+           self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+           raise
 
        
    def get_node_text(self, name):
@@ -175,7 +187,7 @@ def main():
     Start things up.
     """
     
-    usage = "usage: %prog [options] module-name"
+    usage = "usage: %prog [options] [module-name]"
     parser = OptionParser(usage=usage)
     parser.add_option("-d", "--module-dir", dest="module",
                       help="top-level puppet module directory",
@@ -183,15 +195,31 @@ def main():
     parser.add_option("-m", "--site-wide-manifest", dest="manifest",
                       help="puppet site-wide manifest",
                       default=PUPPET_SITE_MANIFEST)
+    parser.add_option("-f", "--force-all", dest="force_all",
+                      action="store_true", default=False,
+                      help="reload all profiles")
     
     (options, args) = parser.parse_args()
-    if len(args) != 1:
-        parser.error("incorrect number of arguments")    
-    importer = VirtFactoryImporter(args[0], options.module, options.manifest)
-    importer.update_puppet_manifest()
-    print "populating..."
-    importer.populate_sm_profile()
-   
+    profiles = []
+    if len(args) > 1:
+        parser.error("incorrect number of arguments")
+    elif len(args) == 0:
+        profiles = os.listdir(options.module + "/" + PUPPET_QUEUED_FILE_DIR)
+    elif len(args) == 0:
+        profiles = os.listdir(options.module)
+    else:
+        profiles = [args[0]]
+
+    config_obj = Config()
+    config_result = config_obj.get()
+    config = config_result
+    databases = config['databases']
+    url = databases['primary']
+    Database(url)
+
+    for profile in profiles:
+        VirtFactoryImporter(profile, options.module, options.manifest).run_import()
+    
     prov = provisioning.Provisioning()
     prov.sync(None, None)
 

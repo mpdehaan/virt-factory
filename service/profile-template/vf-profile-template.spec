@@ -45,7 +45,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(-, virtfact, virtfact) %{app_root}/templates
 
 %post
-vf_import %{profile_name}
+touch %{_localstatedir}/lib/virt-factory/profiles/queued/%{profile_name}
 
 %changelog
 

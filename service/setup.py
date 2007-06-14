@@ -27,6 +27,8 @@ if __name__ == "__main__":
 	puppetpath = "/usr/share/%s/puppet-config/" % NAME
 	manifestpath = "/etc/puppet/manifests/"
 	profiletemplatepath = "/usr/share/%s/profile-template/" % NAME
+        profilespath    = "/var/lib/%s/profiles/" % NAME
+        queuedprofilespath    = "/var/lib/%s/profiles/queued/" % NAME
         setup(
                 name="%s-server" % NAME,
                 version = VERSION,
@@ -62,6 +64,8 @@ if __name__ == "__main__":
 			      (logpath, []),
 			      (logpathdb, []),
 			      (migraterepopath, []),
+			      (profilespath, []),
+			      (queuedprofilespath, []),
 			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),

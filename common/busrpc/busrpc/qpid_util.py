@@ -1,6 +1,10 @@
+from M2Crypto import RSA
+import base64
+
 import qpid.content
 import qpid.queue
 
+from busrpc.crypto import CertManager, CryptoException
 
 def declare_exchange(caller, channel_id=1,exchange_name='',
                      create=False, auto_remove=False,

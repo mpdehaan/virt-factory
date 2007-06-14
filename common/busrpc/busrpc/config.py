@@ -3,6 +3,8 @@ INSTANCE_NAME = "busrpc.instance"
 
 def _parse_name_value(line):
     parts = line.split("=")
+    if len(parts) < 2:
+        return None, None
     return parts[0], parts[1]
 
 class DeploymentConfig:
@@ -26,7 +28,11 @@ class DeploymentConfig:
         line = line.replace("\n", "")
         if line.startswith("#"):
             pass
+        if len(line.strip()) == 0:
+            pass
         name, value = _parse_name_value(line)
+        if name == None:
+            return
         if name == SERVER_NAME:
             self.server_name = value.replace("\"", "")
         elif name.startswith(INSTANCE_NAME):

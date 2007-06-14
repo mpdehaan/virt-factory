@@ -1,0 +1,7 @@
+#!/usr/bin/python
+
+from busrpc.bridge import start_bridge
+
+start_bridge("../configs/secure-bridge.conf")
+
+
