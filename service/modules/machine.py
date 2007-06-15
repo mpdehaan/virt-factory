@@ -284,7 +284,7 @@ class Machine(web_svc.AuthWebSvc):
             hostname = args['hostname']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
-            for machine in query.select_by(hostname == hostname, offset=offset, limit=limit):
+            for machine in query.select_by(hostname = hostname, offset=offset, limit=limit):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
@@ -329,7 +329,7 @@ class Machine(web_svc.AuthWebSvc):
             regtoken = args['registration_token']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
-            for machine in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
+            for machine in query.select_by(registration_token = regtoken, offset=offset, limit=limit):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
@@ -374,7 +374,7 @@ class Machine(web_svc.AuthWebSvc):
             mac_address = args['mac_address']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
-            for machine in query.select_by(mac_address == mac_address, offset=offset, limit=limit):
+            for machine in query.select_by(mac_address = mac_address, offset=offset, limit=limit):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
