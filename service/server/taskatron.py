@@ -338,8 +338,8 @@ def main(argv):
     Start things up.
     """
     config_obj = config_data.Config()
-    self.config = config_obj.get()
-    databases = self.config['databases']
+    config = config_obj.get()
+    databases = config['databases']
     url = databases['primary']
     # connect
     Database(url)
