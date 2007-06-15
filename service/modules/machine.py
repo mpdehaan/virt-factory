@@ -371,7 +371,7 @@ class Machine(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             result = []
-            regtoken = args['mac_address']
+            mac_address = args['mac_address']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
             for machine in query.select_by(mac_address == mac_address, offset=offset, limit=limit):
