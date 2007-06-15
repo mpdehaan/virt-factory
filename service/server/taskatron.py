@@ -337,6 +337,12 @@ def main(argv):
     """
     Start things up.
     """
+    config_obj = config_data.Config()
+    self.config = config_obj.get()
+    databases = self.config['databases']
+    url = databases['primary']
+    # connect
+    Database(url)
 
     textdomain(I18N_DOMAIN)
     taskatron = Taskatron()
@@ -363,12 +369,6 @@ vf_tasktron  (no args) (just runs through one pass)
             
 
 if __name__ == "__main__":
-    config_obj = config_data.Config()
-    self.config = config_obj.get()
-    databases = self.config['databases']
-    url = databases['primary']
-    # connect
-    Database(url)
     main(sys.argv)
 
 
