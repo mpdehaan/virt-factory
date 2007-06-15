@@ -336,6 +336,51 @@ class Machine(web_svc.AuthWebSvc):
             session.close()
 
 
+    def get_by_mac_address(self, token, args):
+        """
+        Get a machines by MAC address.
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of machine attributes.
+            - mac_address
+            - offset (optional)
+            - limit (optional)
+        @type args: dict
+        @return A list of machines.
+        @rtype: [dict,]
+            - id
+            - hostname (optional)
+            - ip_address (optional)
+            - registration_token (optional)
+            - architecture (optional)
+            - processor_speed (optional)
+            - processor_count  (optional)
+            - memory (optional)
+            - kernel_options  (optional)
+            - kickstart_metadata (optional)
+            - list_group (optional)
+            - mac_address (optional)
+            - is_container (optional)
+            - profile_id
+            - puppet_node_diff (optional)
+            - netboot_enabled (optional)
+        @raise SQLException: On database error
+        """
+        required = ('mac_address',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            regtoken = args['mac_address']
+            offset, limit = self.offset_and_limit(args)
+            query = session.query(db.Machine)
+            for machine in query.select_by(mac_address == mac_address, offset=offset, limit=limit):
+                result.append(self.expand(machine))
+            return codes.success(result)
+        finally:
+            session.close()
+
+
     def get(self, token, args):
         """
         Get a machine by id.
