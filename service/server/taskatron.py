@@ -337,6 +337,12 @@ def main(argv):
     """
     Start things up.
     """
+    config_obj = config_data.Config()
+    config = config_obj.get()
+    databases = config['databases']
+    url = databases['primary']
+    # connect
+    Database(url)
 
     textdomain(I18N_DOMAIN)
     taskatron = Taskatron()
