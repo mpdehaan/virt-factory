@@ -243,6 +243,10 @@ stop_services()
     /etc/init.d/virt-factory-wui stop
     /etc/init.d/virt-factory-node-server stop
     /etc/init.d/postgresql stop
+    # make extra sure
+    pkill -9 vf_server
+    pkill -9 vf_taskatron
+    pkill -9 vf_node_server
 }
 
 start_services()
