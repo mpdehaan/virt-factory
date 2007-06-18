@@ -33,7 +33,7 @@ start() {
     RETVAL=$?
     echo_success
     echo
-    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/vf_server
+    touch /var/lock/subsys/vf_server
     return $RETVAL
 }
 
