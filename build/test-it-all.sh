@@ -243,10 +243,6 @@ stop_services()
     /etc/init.d/virt-factory-wui stop
     /etc/init.d/virt-factory-node-server stop
     /etc/init.d/postgresql stop
-    # make extra sure
-    pkill -9 vf_server
-    pkill -9 vf_taskatron
-    pkill -9 vf_node_server
 }
 
 start_services()
@@ -390,8 +386,7 @@ if [ "$REBUILD" == "Y" ] ; then
 	# build it all expect us to run it from the source dir, so go
 	# there if we need to
 	pwd
-        BUILD_PATH="$BUILD_PATH/virt-factory"
-	pushd $BUILD_PATH/build
+	pushd $BUILD_PATH/virt-factory/build
     else
 	# just so we don't have to track were we are
 	msg "!!! Skipping checkout"
@@ -401,6 +396,8 @@ if [ "$REBUILD" == "Y" ] ; then
     
     msg "Rebuilding everything for kicks in $BUILD_PATH" 
 
+    $BUILD_PATH/virt-factory/build/build-it-all.sh
+   
     if [ $? != 0 ]; then
         echo "Error building packages"
         exit 1
@@ -420,8 +417,8 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
 	BUILD_RELEASE=$FEDORA_RELEASE
         ssh $REMOTE_USER@$REMOTE_HOST rm -rf /var/www/html/download/*
         
-	echo "$BUILD_PATH/build/sync-it-all.py --localpath $BUILD_PATH/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
-	$BUILD_PATH/build/sync-it-all.py --localpath $BUILD_PATH/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
+	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
+	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
         ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/fc6/devel/i686 /var/www/html/download/repo/fc6/devel/i386
 fi
 
@@ -510,7 +507,7 @@ if [ "$VF_IMPORT" == "Y" ] ; then
     # import the profiles from the checkout tree
     PROFILE_DIR="/profiles"
     if [ "$REBUILD" == "Y" ] ; then
-	PROFILE_DIR="$BUILD_PATH/build/profiles"
+	PROFILE_DIR="$BUILD_PATH/virt-factory/build/profiles"
     fi
 
     pushd $PROFILE_DIR

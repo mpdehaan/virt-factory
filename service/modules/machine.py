@@ -373,8 +373,8 @@ class Machine(web_svc.AuthWebSvc):
             result = []
             mac_address = args['mac_address']
             offset, limit = self.offset_and_limit(args)
-            query = session.query(db.Machine)
-            for machine in query.select_by(mac_address = mac_address, offset=offset, limit=limit):
+            query = session.query(db.Machine).limit(limit).offset(offset)
+            for machine in query.select_by(mac_address = mac_address):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
