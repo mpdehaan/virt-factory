@@ -345,9 +345,11 @@ class Database:
         self.__dict__ = self.__shared_state
 
         if not Database.has_loaded:
-            global_connect(interpolate_url_password(url), echo=True)
+
+            global_connect(interpolate_url_password(url), echo=False)
             Database.has_loaded = True       
  
+
     def create(self):
         """
         Create all tables, indexes and constraints that have not
