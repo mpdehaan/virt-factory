@@ -408,7 +408,7 @@ class Deployment(web_svc.AuthWebSvc):
             hostname = args['hostname']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
-            for deployment in query.select_by(hostname == hostname, offset=offset, limit=limit):
+            for deployment in query.select_by(hostname=hostname, offset=offset, limit=limit):
                 result.append(self.expand(deployment))
             return success(result)
         finally:
@@ -448,7 +448,7 @@ class Deployment(web_svc.AuthWebSvc):
             regtoken = args['registration_token']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment)
-            for deployment in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
+            for deployment in query.select_by(registration_token=regtoken, offset=offset, limit=limit):
                 result.append(self.expand(deployment))
             return success(result)
         finally:

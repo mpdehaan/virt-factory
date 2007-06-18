@@ -390,6 +390,7 @@ if [ "$REBUILD" == "Y" ] ; then
 	# build it all expect us to run it from the source dir, so go
 	# there if we need to
 	pwd
+        BUILD_PATH="$BUILD_PATH/virt-factory"
 	pushd $BUILD_PATH/build
     else
 	# just so we don't have to track were we are
@@ -400,8 +401,6 @@ if [ "$REBUILD" == "Y" ] ; then
     
     msg "Rebuilding everything for kicks in $BUILD_PATH" 
 
-    $BUILD_PATH/build/build-it-all.sh
-   
     if [ $? != 0 ]; then
         echo "Error building packages"
         exit 1
