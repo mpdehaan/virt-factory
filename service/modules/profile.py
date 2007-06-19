@@ -247,7 +247,7 @@ class Profile(web_svc.AuthWebSvc):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
         vdr.verify_printable('name', 'version', 'kernel_options', 'puppet_classes')
-        vdr.verify_int('virt_storage_size', 'virt_ram')
+        vdr.verify_int(['virt_storage_size', 'virt_ram'])
         vdr.verify_enum('valid_targets', VALID_TARGETS)
         vdr.verify_enum('is_container', VALID_CONTAINERS)
 
