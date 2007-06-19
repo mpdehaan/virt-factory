@@ -152,7 +152,7 @@ class User(web_svc.AuthWebSvc):
             result = []
             offset, limit = self.offset_and_limit(args)
             for user in db.User.list(session, offset, limit):
-                result.append(user.data())
+                result.append(user.get_hash())
             return success(result)
         finally:
             session.close()
@@ -174,7 +174,7 @@ class User(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             user = db.User.get(session, args['id'])
-            return success(user.data())
+            return success(user.get_hash())
         finally:
             session.close()
 

@@ -416,7 +416,7 @@ class Machine(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             machine = db.Machine.get(session, args['id'])
-            return codes.success(machine.data())
+            return codes.success(machine.get_hash())
         finally:
             session.close()
 
@@ -433,8 +433,8 @@ class Machine(web_svc.AuthWebSvc):
 
 
     def expand(self, machine):
-        result = machine.data()
-        result['profile'] = machine.profile.data()
+        result = machine.get_hash()
+        result['profile'] = machine.profile.get_hash()
         return result
 
 

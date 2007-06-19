@@ -157,7 +157,7 @@ class Deployment(web_svc.AuthWebSvc):
             deployment.update(args)
             session.save(deployment)
             session.flush()
-            self.cobbler_sync(deployment.data())
+            self.cobbler_sync(deployment.get_hash())
             args["id"] = results.data
             self.__queue_operation(token, args, TASK_OPERATION_INSTALL_VIRT) 
             return success(deployment.id)
@@ -231,7 +231,7 @@ class Deployment(web_svc.AuthWebSvc):
             deployment.update(args, filter)
             session.save(deployment)
             session.flush()
-            self.cobbler_sync(deployment.data())
+            self.cobbler_sync(deployment.get_hash())
             return success()
         finally:
             session.close()
@@ -248,7 +248,7 @@ class Deployment(web_svc.AuthWebSvc):
                 deployment.is_locked = 0
             session.save(deployment)
             session.flush()
-            self.cobbler_sync(deployment.data())
+            self.cobbler_sync(deployment.get_hash())
             return success()
         finally:
             session.close()
@@ -262,7 +262,7 @@ class Deployment(web_svc.AuthWebSvc):
             deployment.state = status_code
             session.save(deployment)
             session.flush()
-            self.cobbler_sync(deployment.data())
+            self.cobbler_sync(deployment.get_hash())
             return success()
         finally:
             session.close()
@@ -524,9 +524,9 @@ class Deployment(web_svc.AuthWebSvc):
 
 
     def expand(self, deployment):
-        result = deployment.data()
-        result['machine'] = deployment.machine.data()
-        result['profile'] = deployment.profile.data()
+        result = deployment.get_hash()
+        result['machine'] = deployment.machine.get_hash()
+        result['profile'] = deployment.profile.get_hash()
         return result
 
 

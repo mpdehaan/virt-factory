@@ -64,7 +64,7 @@ class Distribution(web_svc.AuthWebSvc):
             distribution.update(args)
             session.save(distribution)
             session.flush()
-            self.cobbler_sync(distribution.data())
+            self.cobbler_sync(distribution.get_hash())
         finally:
             session.close()
 
@@ -102,7 +102,7 @@ class Distribution(web_svc.AuthWebSvc):
             distribution.update(args, filter)
             session.save(distribution)
             session.flush()
-            self.cobbler_sync(distribution.data())
+            self.cobbler_sync(distribution.get_hash())
             return success()
         finally:
             session.close()
@@ -156,7 +156,7 @@ class Distribution(web_svc.AuthWebSvc):
             result = []
             offset, limit = self.offset_and_limit(args)
             for distribution in db.Distribution.list(session, offset, limit):
-                result.append(distribution.data())
+                result.append(distribution.get_hash())
             return success(result)
         finally:
             session.close()
@@ -189,7 +189,7 @@ class Distribution(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             distribution = db.Distribution.get(session, args['id'])
-            return success(distribution.data())
+            return success(distribution.get_hash())
         finally:
             session.close()
 
@@ -223,7 +223,7 @@ class Distribution(web_svc.AuthWebSvc):
             distribution = session.query(db.Distribution).selectfirst_by(name = name)
             if distribution is None:
                 raise NoSuchObjectException(comment=objectid)
-            return success(distribution.data())
+            return success(distribution.get_hash())
         finally:
             session.close()
 

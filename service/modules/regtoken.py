@@ -234,9 +234,9 @@ class RegToken(web_svc.AuthWebSvc):
 
 
     def expand(self, regtoken):
-        result = regtoken.data()
+        result = regtoken.get_hash()
         if regtoken.profile:
-            result['profile'] = regtoken.profile.data()
+            result['profile'] = regtoken.profile.get_hash()
         return result
 
 

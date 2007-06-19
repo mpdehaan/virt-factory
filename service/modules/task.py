@@ -174,10 +174,10 @@ class Task(web_svc.AuthWebSvc):
 
 
     def expand(self, task):
-        result = task.data()
-        result['user'] = task.user.data()
-        result['machine'] = task.machine.data()
-        result['deployment'] = task.deployment.data()
+        result = task.get_hash()
+        result['user'] = task.user.get_hash()
+        result['machine'] = task.machine.get_hash()
+        result['deployment'] = task.deployment.get_hash()
         return result
         
  

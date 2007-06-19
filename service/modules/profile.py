@@ -68,7 +68,7 @@ class Profile(web_svc.AuthWebSvc):
             profile.update(args)
             session.save(profile)
             session.flush()
-            self.cobbler_sync(profile.data())
+            self.cobbler_sync(profile.get_hash())
         finally:
             session.close()
 
@@ -253,8 +253,8 @@ class Profile(web_svc.AuthWebSvc):
 
 
     def expand(self, profile):
-        result = profile.data()
-        result['distribution'] = profile.distribution.data()
+        result = profile.get_hash()
+        result['distribution'] = profile.distribution.get_hash()
         return result
 
 

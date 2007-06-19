@@ -194,7 +194,7 @@ class Base(object):
     def fields(self):
         return ormbindings.get(self.__class__, ())
     
-    def data(self, filter=[]):
+    def get_hash(self, filter=[]):
         result = {}
         for key in self.fields():
             if key in filter:
