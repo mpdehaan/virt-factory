@@ -77,8 +77,8 @@ class Task(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id')
-        optional = ('state')
+        required = ('id',)
+        optional = ('state',)
         filter_fields = ('id', 'user_id', 'action_type', 'machine_id', 'deployment_id')
         validator = FieldValidator(args)
         validator.verify_required(required)

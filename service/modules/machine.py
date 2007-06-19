@@ -65,7 +65,7 @@ class Machine(web_svc.AuthWebSvc):
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 
              'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
-        required = ('profile_id')
+        required = ('profile_id',)
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -164,7 +164,7 @@ class Machine(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id')
+        required = ('id',)
         optional =\
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 'profile_id', 
@@ -284,7 +284,7 @@ class Machine(web_svc.AuthWebSvc):
             hostname = args['hostname']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
-            for machine in query.select_by(hostname == hostname, offset=offset, limit=limit):
+            for machine in query.select_by(hostname = hostname, offset=offset, limit=limit):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
@@ -329,7 +329,7 @@ class Machine(web_svc.AuthWebSvc):
             regtoken = args['registration_token']
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Machine)
-            for machine in query.select_by(registration_token == regtoken, offset=offset, limit=limit):
+            for machine in query.select_by(registration_token = regtoken, offset=offset, limit=limit):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
@@ -371,10 +371,10 @@ class Machine(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             result = []
-            regtoken = args['mac_address']
+            mac_address = args['mac_address']
             offset, limit = self.offset_and_limit(args)
-            query = session.query(db.Machine)
-            for machine in query.select_by(mac_address == mac_address, offset=offset, limit=limit):
+            query = session.query(db.Machine).limit(limit).offset(offset)
+            for machine in query.select_by(mac_address = mac_address):
                 result.append(self.expand(machine))
             return codes.success(result)
         finally:
@@ -425,7 +425,7 @@ class Machine(web_svc.AuthWebSvc):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
         vdr.verify_enum('architecture', codes.VALID_ARCHS)
-        vdr.verify_int('processor_speed', 'processor_count', 'memory')
+        #vdr.verify_int(['processor_speed', 'processor_count', 'memory'])
         vdr.verify_printable(
                'kernel_options', 'kickstart_metadata', 'list_group', 
                'list_group', 'puppet_node_diff')

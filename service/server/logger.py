@@ -27,7 +27,7 @@ class Singleton(object):
             type._the_instance = object.__new__(type, *args, **kwargs)
         return type._the_instance
 
-# logging is weird, we don't want to setup mutliple handlers
+# logging is weird, we don't want to setup multiple handlers
 # so make sure we do that mess only once
 class Logger(Singleton):
     __no_handlers = True

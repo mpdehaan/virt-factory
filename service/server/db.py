@@ -328,8 +328,11 @@ class Database:
     Represents the database and provides database lifecycle and
     other convienience methods.
     """
-    primary = None
-    
+
+    __shared_state = {}
+    has_loaded = False
+    # primary = None 
+ 
     def __init__(self, url=None):
         """
         Constructor, sets itself as the primary database.
@@ -338,9 +341,15 @@ class Database:
         @param url: a sqlalchemy database url.
         @type url: string 
         """
-        Database.primary = self
-        global_connect(interpolate_url_password(url), echo=True)
         
+        self.__dict__ = self.__shared_state
+
+        if not Database.has_loaded:
+
+            global_connect(interpolate_url_password(url), echo=False)
+            Database.has_loaded = True       
+ 
+
     def create(self):
         """
         Create all tables, indexes and constraints that have not
@@ -405,9 +414,7 @@ def open_session():
     module can simply (import db) and create a session as: db.open_session()
     and not deal with the Database object.
     """
-    if Database.primary is None:
-        raise SQLException(comment='Primary database not initialized')
-    return Database.primary.open_session()
+    return Database().open_session()
 
 
 

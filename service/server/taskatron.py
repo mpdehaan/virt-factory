@@ -30,9 +30,11 @@ import socket
 import socket
 import subprocess
 
+
 # import distutils.sysconfig
 # sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
+from db import Database
 from codes import *
 import config_data
 import logger
@@ -337,6 +339,12 @@ def main(argv):
     """
     Start things up.
     """
+    config_obj = config_data.Config()
+    config = config_obj.get()
+    databases = config['databases']
+    url = databases['primary']
+    # connect
+    Database(url)
 
     textdomain(I18N_DOMAIN)
     taskatron = Taskatron()

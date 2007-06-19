@@ -75,7 +75,9 @@
 <h4>Importing Profiles</h4>
 <p>Now you'll want to import some profiles to deploy to machines. To do this, you'll first of course need to find some profile files. We have some samples profiles available at: <a href="http://virt-factory.et.redhat.com/download/profiles">http://virt-factory.et.redhat.com/download/profiles</a>.</p>
 <p>We recommend that you download all of our sample profiles for starters. You can make your own profiles later if you want. For each profile you wish to deploy, run:</p>
-<blockquote>sudo vf_import <em>/path/to/profile.tar.gz</em></blockquote>
+<blockquote>sudo rpm -Uvh  <em>/path/to/profile.noarch.rpm</em></blockquote>
+<p>Then after installing each profile RPM, run:</p>
+<blockquote>sudo vf_import</em></blockquote>
 <h4>Set Up the Virt-Factory Management Server Web Interface</h4>
 <p>You'll need to install and start the web interface on the Virt-Factory management server using the following commands:</p>
 <blockquote>sudo yum install virt-factory-wui</blockquote>

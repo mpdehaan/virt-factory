@@ -30,7 +30,7 @@ class FieldValidator:
         if len(violations) > 0:
             raise InvalidArgumentsException(invalid_fields=violations)
         
-    def verify_int(self, positive=True, strict=False, *keyset):
+    def verify_int(self, keyset, positive=True, strict=False):
         violations = {}
         for key in keyset:
             try:
