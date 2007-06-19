@@ -64,8 +64,8 @@ class RegToken(web_svc.AuthWebSvc):
         @type args: dict
         @raise SQLException: On database error
         """
-        required = ('token',)
-        optional = ('profile_id', 'uses_remaining')
+        required = ()
+        optional = ('profile_id', 'uses_remaining', 'token')
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_int('uses_remaining')
