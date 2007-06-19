@@ -111,8 +111,8 @@ class Registration(web_svc.AuthWebSvc):
             # no profile ID found for token, try allow a name lookup if specified
             self.logger.debug("passed in profile name is (%s)" % profile_name)
             profile_obj = profile.Profile()
-            profiles = profile_obj.get_by_name({}, { "name" : profile_name })
-            if profiles.error_code == 0 and len(profiles.data) != 0:
+            found_profile = profile_obj.get_by_name({}, { "name" : profile_name })
+            if found_profile.error_code == 0 and found_profile.data:
                 self.logger.debug("profile assigned from input, given no assignment by token")
                 profile_id = found_profile.data["id"]
 
