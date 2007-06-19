@@ -250,6 +250,12 @@ start_services()
     /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
     
+
+    # for someone reason f7 doesn't the initdb on startup
+    if [ "$FEDORA_RELEASE" == "7" ] ; then
+	/etc/init.d/postgresql initdb
+    fi
+
     # this will restart postgresql
     # and also set up it's pg_hba.conf
     vf_fix_db_auth
