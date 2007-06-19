@@ -125,9 +125,9 @@ class RegToken(web_svc.AuthWebSvc):
         try:
             result = []
             offset, limit = self.offset_and_limit(args)
-            query = session.query(db.RegToken)
+            query = session.query(db.RegToken).offset(offset).limit(limit)
             tknstr = args['token']
-            for rt in query.select_by(token=tknstr, offset=offset, limit=limit):
+            for rt in query.select_by(token=tknstr):
                 result.append(self.expand(rt))
             return success(result)
         finally:

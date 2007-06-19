@@ -223,11 +223,8 @@ class Base(object):
     
     def __list(self, session, offset=0, limit=0):
         result = []        
-        query = session.query(self)
-        if limit > 0:
-            result = query.select(offset=offset, limit=limit)
-        else:
-            result = query.select()
+        query = session.query(self).offset(offset).limit(limit)
+        result = query.select()
         return result
     
     get = classmethod(__get)
