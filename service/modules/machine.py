@@ -424,8 +424,9 @@ class Machine(web_svc.AuthWebSvc):
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
-        vdr.verify_enum('architecture', codes.VALID_ARCHS)
-        #vdr.verify_int(['processor_speed', 'processor_count', 'memory'])
+        # this code doesn't work, so commenting out for now -- MPD
+        # vdr.verify_enum('architecture', codes.VALID_ARCHS)
+        # vdr.verify_int(['processor_speed', 'processor_count', 'memory'])
         vdr.verify_printable(
                'kernel_options', 'kickstart_metadata', 'list_group', 
                'list_group', 'puppet_node_diff')
