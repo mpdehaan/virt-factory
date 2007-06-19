@@ -65,7 +65,7 @@ class Registration(web_svc.AuthWebSvc):
         else:
             abstract_obj = machine.Machine()
         self.logger.debug("registering against mac address: %s" % mac_addr)
-        results = abstract_obj.get_by_mac_address({}, { "mac_address" : "'%s'" % mac_addr })
+        results = abstract_obj.get_by_mac_address({}, { "mac_address" : mac_addr })
         self.logger.debug("done with mac_address query")
         if results.error_code != 0:
             return results
@@ -85,7 +85,7 @@ class Registration(web_svc.AuthWebSvc):
         # for usernames and passwords.
         if token is not None and token != "" and token != "UNSET":
             regtoken_obj = regtoken.RegToken()
-            results = regtoken_obj.get_by_token({}, { "token" : "'%s'" % token })
+            results = regtoken_obj.get_by_token({}, { "token" : "%s" % token })
             if results.error_code != 0 and len(results.data) != 0:
                 self.logger.debug("regtoken match from regtoken table")
                 profile_id = results.data[0]["profile_id"]
@@ -111,7 +111,7 @@ class Registration(web_svc.AuthWebSvc):
             # no profile ID found for token, try allow a name lookup if specified
             self.logger.debug("passed in profile name is (%s)" % profile_name)
             profile_obj = profile.Profile()
-            profiles = profile_obj.get_by_name({}, { "name" : "'%s'" % profile_name })
+            profiles = profile_obj.get_by_name({}, { "name" : profile_name })
             if profiles.error_code == 0 and len(profiles.data) != 0:
                 self.logger.debug("profile assigned from input, given no assignment by token")
                 profile_id = profiles.data[0]["id"]
