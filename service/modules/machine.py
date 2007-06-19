@@ -65,7 +65,7 @@ class Machine(web_svc.AuthWebSvc):
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 
              'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
-        required = ('profile_id')
+        required = ('profile_id',)
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -164,7 +164,7 @@ class Machine(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id')
+        required = ('id',)
         optional =\
             ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
              'processor_count','memory', 'kernel_options', 'kickstart_metadata', 'profile_id', 
