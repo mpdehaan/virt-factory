@@ -177,7 +177,7 @@ class Machine(web_svc.AuthWebSvc):
             session.save(machine)
             session.flush()
             if machine.profile_id >= 0:
-                self.cobbler_sync(data)
+                self.cobbler_sync(machine.data)
             return codes.success()
         finally:
             session.close()
