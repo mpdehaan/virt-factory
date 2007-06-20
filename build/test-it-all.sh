@@ -13,7 +13,7 @@ REMOTE_PATH="/var/www/html/download"
 URL_PATH="/download/"
 
 # the profile we assign to a system on registration
-DEFAULT_PROFILE="Test1"
+DEFAULT_PROFILE="Container"
 
 # where we checkout the code to, and run the build
 BUILD_PATH="/tmp/vf-test"
