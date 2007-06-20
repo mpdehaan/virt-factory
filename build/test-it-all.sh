@@ -251,7 +251,7 @@ start_services()
     /etc/init.d/puppetmaster restart
     
 
-    # for someone reason f7 doesn't the initdb on startup
+    # for someone reason f7 doesn't do the initdb on startup
     if [ "$FEDORA_RELEASE" == "7" ] ; then
 	/etc/init.d/postgresql initdb
     fi
@@ -521,8 +521,8 @@ if [ "$VF_IMPORT" == "Y" ] ; then
     do
       msg "importing $profile"
       rpm -Uvh $profile
-      /usr/bin/vf_import
     done
+    /usr/bin/vf_import
     popd
 fi
 
