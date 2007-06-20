@@ -24,19 +24,22 @@ from cobbler import api as cobbler_api
 CONFIG_FILE = "/etc/virt-factory/settings"
 
 # from the comments in http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/66531
-class Singleton(object):
-    def __new__(type):
-        if not '_the_instance' in type.__dict__:
-            type._the_instance = object.__new__(type)
-        return type._the_instance
+#class Singleton(object):
+#    def __new__(type):
+#        if not '_the_instance' in type.__dict__:
+#            type._the_instance = object.__new__(type)
+#        return type._the_instance
 
 
-class Config(Singleton):
+class Config:
 
+    # this class is a Borg
+    __shared_state = {}
     has_read = False
 
     def __init__(self):
-        if not Config.has_read:
+        self.__dict__ = self.__shared_state
+        if not self.has_read:
             self.read()
             print "***** CONFIG RELOAD *****"
             Config.has_read = True
