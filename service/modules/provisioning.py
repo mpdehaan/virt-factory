@@ -329,8 +329,15 @@ class CobblerTranslatedSystem:
            return # can't deploy this
 
        new_item = cobbler_api.new_system()
+       #self.logger.error("debugging cobbler profiles")
+       #for x in cobbler_api.profiles():
+       #    self.logger.error("cobbler has a profile: ") 
+       #    self.logger.error(x)
+       #    self.logger.error(x.printable())
+      
        new_item.set_name(from_db["mac_address"])
-       self.logger.debug("cobbler profile name is %s" % profile_name)
+       # FIXME: change back to DEBUG:
+       self.logger.error("cobbler profile name is %s" % profile_name)
        new_item.set_profile(profile_name)
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
        
