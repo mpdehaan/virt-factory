@@ -328,12 +328,18 @@ class CobblerTranslatedSystem:
            print "name not found"
            return # can't deploy this
 
+       # FIXME -- work around what appears to be duality
+       # of Cobbler State not having the profile in memory
+       # but having it on disk.  Workaround only.
+       # this should NOT be neccessary.
+       cobbler_api.deserialize() # load from file!
+
        new_item = cobbler_api.new_system()
-       #self.logger.error("debugging cobbler profiles")
-       #for x in cobbler_api.profiles():
-       #    self.logger.error("cobbler has a profile: ") 
-       #    self.logger.error(x)
-       #    self.logger.error(x.printable())
+       self.logger.info("debugging cobbler profiles")
+       for x in cobbler_api.profiles():
+           self.logger.info("cobbler has a profile: ") 
+           self.logger.info(x)
+           self.logger.info(x.printable())
       
        new_item.set_name(from_db["mac_address"])
        # FIXME: change back to DEBUG:
