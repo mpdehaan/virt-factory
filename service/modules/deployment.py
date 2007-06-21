@@ -119,7 +119,7 @@ class Deployment(web_svc.AuthWebSvc):
                     'ip_address',
                     'registration_token',
                     'mac_address',
-                    'netboot_enabled', 
+                    'netboot_enabled',
                     'puppet_node_diff',
                     'is_locked')
         validator = FieldValidator(args)
@@ -203,8 +203,7 @@ class Deployment(web_svc.AuthWebSvc):
         mac = None
         profilename = None
         required = ('id',)
-        optional =
-            ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
+        optional = ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
              'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
         filter = ('id', 'profile_id')
         validator = FieldValidator(args)
