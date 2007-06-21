@@ -162,7 +162,7 @@ class Deployment(web_svc.AuthWebSvc):
             session.save(deployment)
             session.flush()
             self.cobbler_sync(deployment.get_hash())
-            args["id"] = results.data
+            args["id"] = deployment.id
             self.__queue_operation(token, args, TASK_OPERATION_INSTALL_VIRT) 
             return success(deployment.id)
         finally:
