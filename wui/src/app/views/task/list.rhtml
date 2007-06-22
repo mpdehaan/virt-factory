@@ -35,7 +35,7 @@
                   <% end %>
              <TD>
              <TD> <%= item.state %> </TD>
-             <TD> <%= item.time %> </TD>
+             <TD> <%= Time.at(item.time) %> </TD>
          </TR>
       <% end %>
 

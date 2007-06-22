@@ -15,6 +15,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 from server.codes import *
 from server import db
+import time 
 from fieldvalidator import FieldValidator
 import web_svc
 
@@ -178,6 +179,7 @@ class Task(web_svc.AuthWebSvc):
         result['user'] = task.user.get_hash()
         result['machine'] = task.machine.get_hash()
         result['deployment'] = task.deployment.get_hash()
+        result['time'] = time.mktime(task.time.timetuple())
         return result
         
  
