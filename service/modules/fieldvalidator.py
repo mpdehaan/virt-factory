@@ -56,7 +56,7 @@ class FieldValidator:
                 raise Exception
         except:
             violation = { key:REASON_RANGE }
-            raise InvalidArgumentsException(invalid_fields=(violation,))
+            raise InvalidArgumentsException(invalid_fields=violation)
         
     def verify_file(self, *keyset):
         violations = {}

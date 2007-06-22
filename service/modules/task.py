@@ -53,7 +53,7 @@ class Task(web_svc.AuthWebSvc):
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_enum('state', VALID_TASK_STATES)
-        validator.verify_enum('action_type', VALID_TASK_STATES)
+        validator.verify_enum('action_type', VALID_TASK_OPERATIONS)
         session = db.open_session()
         try:
             task = db.Task()
