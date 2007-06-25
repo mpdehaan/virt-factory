@@ -114,10 +114,14 @@ class Deployment(web_svc.AuthWebSvc):
         """
         mac = None
         profilename = None
-        required = ('machine_id', 'profile_id', 'state', 'display_name')
-        optional =\
-            ('hostname', 'ip_address', 'registration_token', 'mac_address', 'netboot_enabled', 
-             'puppet_node_diff', 'is_locked')
+        required = ('machine_id', 'profile_id')
+        optional = ('hostname',
+                    'ip_address',
+                    'registration_token',
+                    'mac_address',
+                    'netboot_enabled',
+                    'puppet_node_diff',
+                    'is_locked')
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -158,7 +162,7 @@ class Deployment(web_svc.AuthWebSvc):
             session.save(deployment)
             session.flush()
             self.cobbler_sync(deployment.get_hash())
-            args["id"] = results.data
+            args["id"] = deployment.id
             self.__queue_operation(token, args, TASK_OPERATION_INSTALL_VIRT) 
             return success(deployment.id)
         finally:
@@ -199,8 +203,7 @@ class Deployment(web_svc.AuthWebSvc):
         mac = None
         profilename = None
         required = ('id',)
-        optional =\
-            ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
+        optional = ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
              'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
         filter = ('id', 'profile_id')
         validator = FieldValidator(args)

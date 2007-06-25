@@ -78,7 +78,7 @@ TEST_WEB_STUFF=Y
 TEST_NODECOMM=Y
 
 # do we try doing an actual deployment
-TEST_PROFILE_DEPLOY=N
+TEST_PROFILE_DEPLOY=Y
 # where to deploy?
 DEPLOY_HOST=mdehaan.rdu.redhat.com
 
@@ -93,6 +93,7 @@ fi
 # since we can change VF_SERVER in the config, expand this after that
 VF_SERVER_URL="$VF_SERVER:5150"
 
+COOKIES_FILE="cookies"
 
 show_config()
 {
