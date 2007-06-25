@@ -332,7 +332,7 @@ class CobblerTranslatedSystem:
        # of Cobbler State not having the profile in memory
        # but having it on disk.  Workaround only.
        # this should NOT be neccessary.
-       # cobbler_api.deserialize() # load from file! # UNFIXMED
+       cobbler_api.deserialize() # load from file! # UNFIXMED
 
        new_item = cobbler_api.new_system()
        self.logger.info("debugging cobbler profiles")
@@ -435,7 +435,7 @@ class Provisioning(web_svc.AuthWebSvc):
       
       try:
          cobbler_api = config_data.Config().cobbler_api
-         #cobbler_api.deserialize()
+         # cobbler_api.deserialize()
          cobbler_repos    = cobbler_api.repos()   
          cobbler_distros  = cobbler_api.distros()
          cobbler_profiles = cobbler_api.profiles()
