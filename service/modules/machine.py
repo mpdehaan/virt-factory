@@ -415,6 +415,7 @@ class Machine(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
+            self.logger.info(args)
             machine = db.Machine.get(session, args['id'])
             return codes.success(machine.get_hash())
         finally:
