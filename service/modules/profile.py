@@ -201,6 +201,7 @@ class Profile(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
+            self.logger.info(args)
             profile = db.Profile.get(session, args['id'])
             return success(self.expand(profile))
         finally:
