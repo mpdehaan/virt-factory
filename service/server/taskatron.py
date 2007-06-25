@@ -127,7 +127,6 @@ class Taskatron:
 
             if item.state == TASK_STATE_QUEUED:
                 self.logger.info("*** RUNNING")
-                task = item
                 self.set_running(item)
                 try:
                     rc = 0
@@ -197,13 +196,11 @@ class Taskatron:
         #debug("  deployment  : %s" % task.deployment_id)
         #debug("        user  : %s" % task.user_id)
         #debug("        time  : %s" % task.time)
-        task = db.Task.get(self.session, task.id)
         task.state = TASK_STATE_RUNNING
         self.session.save(task)
         self.session.flush()
        
     def set_finished(self,task):
-        task = db.Task.get(self.session, task.id)
         task.state = TASK_STATE_FINISHED
         self.session.save(task)
         self.session.flush()
@@ -213,7 +210,6 @@ class Taskatron:
         Set a task as failed.
         """
         #debug("Failing task : %s" % task)
-        task = db.Task(self.session, task.id)
         task.state = TASK_STATE_FAILED
         self.session.save(task)
         self.session.flush()
