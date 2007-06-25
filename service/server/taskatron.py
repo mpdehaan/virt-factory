@@ -178,11 +178,11 @@ class Taskatron:
         for task in tasks:
 
             # delete failed or finished records in 30 minutes
-            item = db.Machine.get(self.session, task["id"])
+            item = db.Task.get(self.session, task["id"])
 
             if (item.state == TASK_STATE_FINISHED or item.state == TASK_STATE_FAILED) and time.time() - now > 30*60:
                 self.logger.info("deleting: %s" % item)
-                db.Machine.delete(self.session, task["id"])
+                db.Task.delete(self.session, task["id"])
                 self.session.save()
                 self.session.flush()
      
