@@ -54,11 +54,9 @@ class Authentication(web_svc.WebSvc):
          user = None
          token = self.next_token()
          session = db.open_session()
-         try:
-             query = session.query(db.User)
-             user = query.selectfirst_by(username=username)
-         finally:
-             session.close()
+         
+         query = session.query(db.User)
+         user = query.selectfirst_by(username=username)
              
          if user is None:
              raise UserInvalidException(comment=username)
@@ -68,7 +66,9 @@ class Authentication(web_svc.WebSvc):
          ssn = db.Session()
          ssn.user_id = user.id
          ssn.session_token = token
+         
          user.sessions.append(ssn)
+         
          session.save(ssn)
          session.flush()
          
