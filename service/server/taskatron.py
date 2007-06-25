@@ -34,7 +34,7 @@ import subprocess
 # import distutils.sysconfig
 # sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
-from db import Database
+import db
 from codes import *
 import config_data
 import logger
@@ -54,11 +54,6 @@ from modules import user
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_server"
 
-#from M2Crypto import SSL
-#from M2Crypto.m2xmlrpclib import SSL_Transport, Server
-#from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
-
-
 #--------------------------------------------------------------------------
 
 class Taskatron:
@@ -67,6 +62,7 @@ class Taskatron:
         Constructor sets up logging
         """
         self.logger = logger.Logger(logfilepath = "/var/log/virt-factory/taskatron.log").logger
+        self.session = db.open_session()
 
     def __log_exc(self):
         (t, v, tb) = sys.exc_info()
@@ -83,12 +79,16 @@ class Taskatron:
         task_obj = task_module.Task()
         task_results = task_obj.list(None, {})
         tasks = task_results.data
+
         for task in tasks:
-            item = task_module.TaskData.produce(task)
+            item = db.Task.get(self.session, task["id"])
+            if item.id is None:
+                item.id = -1   
             if item.state == TASK_STATE_RUNNING:
                 item.state = TASK_STATE_QUEUED
-                self.logger.info("queuing unfinished task: %s" % item.to_datastruct())
-                task_obj.edit(None, item.to_datastruct())
+                self.logger.info("queuing unfinished task: %s" % task)
+                self.session.save(item)
+                self.session.flush()
          
 
     def run_forever(self):
@@ -112,57 +112,57 @@ class Taskatron:
         task_results = task_obj.list(None, {})
         tasks = task_results.data
 
-        task_results = task_obj.list(None, {})
-        tasks = task_results.data
-
         # not a lot of tasks, no need for db sort...
         def sorter(a,b):
             return cmp(a["time"], b["time"])
         tasks.sort(sorter,reverse=True)
 
         # run any tasks in the queue.
-        for item in tasks:
-            item = task_module.TaskData.produce(item)
+        for task in tasks:
+            item = db.Task.get(self.session, task["id"])
             op = item.action_type
+
+            if item.user_id is None:
+                item.user_id = -1
 
             if item.state == TASK_STATE_QUEUED:
                 self.logger.info("*** RUNNING")
                 task = item
-                self.set_running(task)
+                self.set_running(item)
                 try:
                     rc = 0
                     self.logger.info("operation : %s" % op)
                     if op == TASK_OPERATION_INSTALL_VIRT:
-                        rc = self.install_virt(task)
+                        rc = self.install_virt(item)
                     elif op == TASK_OPERATION_SHUTDOWN_VIRT:
-                        rc = self.shutdown_virt(task)
+                        rc = self.shutdown_virt(item)
                     elif op == TASK_OPERATION_START_VIRT:
-                        rc = self.start_virt(task)
+                        rc = self.start_virt(item)
                     elif op == TASK_OPERATION_DELETE_VIRT:  
-                        rc = self.delete_virt(task)
+                        rc = self.delete_virt(item)
                     elif op == TASK_OPERATION_PAUSE_VIRT:  
-                        rc = self.pause_virt(task)
+                        rc = self.pause_virt(item)
                     elif op == TASK_OPERATION_UNPAUSE_VIRT:  
-                        rc = self.unpause_virt(task)
+                        rc = self.unpause_virt(item)
                     elif op == TASK_OPERATION_DESTROY_VIRT:  
-                        rc = self.destroy_virt(task)
+                        rc = self.destroy_virt(item)
                     elif op == TASK_OPERATION_TEST:
-                        rc = self.test(task)
+                        rc = self.test(item)
                     else:
                         raise TaskException(comment="unknown task type")
                     self.logger.info(rc)
                     self.logger.info("setting finished")
                     if rc == 0:
-                        self.set_finished(task)
+                        self.set_finished(item)
                     else:
-                        self.set_failed(task)
+                        self.set_failed(item)
                 except Exception, tb: 
                     self.logger.error("Exception:\n")
                     #self.logger.error(str(traceback.extract_tb(tb)))
                     #traceback.print_exc() # until logging gets cleaned up
                     self.__log_exc()
                     self.logger.error("setting failed")
-                    self.set_failed(task)
+                    self.set_failed(item)
 
         task_results2 = task_obj.list(None, {})
         tasks = task_results2.data
@@ -176,14 +176,16 @@ class Taskatron:
         # this is only temporary code to control the task list.
         # refine later.
 
-        for item in tasks:
+        for task in tasks:
 
             # delete failed or finished records in 30 minutes
+            item = db.Machine.get(self.session, task["id"])
 
-            if (item["state"] == TASK_STATE_FINISHED or item["state"] == TASK_STATE_FAILED) and time.time() - now > 30*60:
+            if (item.state == TASK_STATE_FINISHED or item.state == TASK_STATE_FAILED) and time.time() - now > 30*60:
                 self.logger.info("deleting: %s" % item)
-                task_obj.delete(None, item)
-
+                db.Machine.delete(self.session, task["id"])
+                self.session.save()
+                self.session.flush()
      
     def set_running(self,task):
         """
@@ -195,23 +197,26 @@ class Taskatron:
         #debug("  deployment  : %s" % task.deployment_id)
         #debug("        user  : %s" % task.user_id)
         #debug("        time  : %s" % task.time)
+        task = db.Task.get(self.session, task.id)
         task.state = TASK_STATE_RUNNING
-        task_obj = task_module.Task()
-        task_obj.edit(None, task.to_datastruct())
+        self.session.save(task)
+        self.session.flush()
        
     def set_finished(self,task):
+        task = db.Task.get(self.session, task.id)
         task.state = TASK_STATE_FINISHED
-        task_obj = task_module.Task()
-        task_obj.edit(None, task.to_datastruct())
+        self.session.save(task)
+        self.session.flush()
 
     def set_failed(self,task):
         """
         Set a task as failed.
         """
         #debug("Failing task : %s" % task)
+        task = db.Task(self.session, task.id)
         task.state = TASK_STATE_FAILED
-        task_obj = task_module.Task()
-        task_obj.edit(None, task.to_datastruct())
+        self.session.save(task)
+        self.session.flush()
 
 
     def get_records(self,task):
@@ -219,22 +224,21 @@ class Taskatron:
         Helper function to retrieve objects and datastructures based on the machine and deployment info in the 
         task entry.
         """
-        mid = task.machine_id
-        did = task.deployment_id
-        machine_obj = machine.Machine()
-        deployment_obj = deployment.Deployment()
-        machine_record = machine_obj.get(None, { "id" : mid })
-        if not machine_record.ok():
+        mid = task["machine_id"]
+        did = task["deployment_id"]
+
+        machine_record = db.Machine.get(self.session, mid)
+
+        if not machine_record:
             raise TaskException(comment="machine missing")
         if did >= 0:
-            deployment_record = deployment_obj.get(None, { "id" : did })
-            if not deployment_record.ok():
+            deployment_record = db.Deployment.get(self.session, did)
+            if not deployment_record:
                 raise TaskException(comment="deployment missing")
-            ddata = deployment_record.data
+            ddata = deployment_record.expand()
         else:
-            deployment_record = None
-            ddata = None
-        return (machine_obj, machine_record.data, deployment_obj, ddata)
+            raise TaskException(comment="deployment missing")
+        return (machine_record, deployment_record)
 
     def callback(self,*args):
         print args
@@ -259,78 +263,88 @@ class Taskatron:
        
     def install_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        self.logger.info("hostname target is ... (%s)" % machine_hostname)
+        (mdata, ddata) = self.get_records(task)
+        self.logger.info("hostname target is ... (%s)" % mdata.machine_hostname)
         self.logger.info("go go gadget virt install!")
-        (rc, data) = self.node_comm(machine_hostname, "virt_install", ddata["mac_address"], True)
+        (rc, data) = self.node_comm(machine_hostname, "virt_install", ddata.mac_address, True)
         return rc
 
 
     def delete_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) =  self.node_comm(machine_hostname, "virt_delete", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) =  self.node_comm(machine_hostname, "virt_delete", ddata.mac_address)
         return rc
 
     def start_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_start", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) = self.node_comm(machine_hostname, "virt_start", ddata.mac_address)
         return rc
 
     def stop_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_stop", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.mac_address
+        (rc, data) = self.node_comm(machine_hostname, "virt_stop", ddata.mac_address)
         if rc == 0:
-            mrec.set_state(None, { "id" : mdata["id"] }, DEPLOYMENT_STATE_STOPPED)
+            mdata.state = DEPLOYMENT_STATE_STOPPED
+            self.session.save(mdata)
+            self.session.flush()
         return rc
 
     def pause_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname,"virt_pause",ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) = self.node_comm(machine_hostname,"virt_pause",ddata.mac_address)
         if rc == 0:
-            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_PAUSED)
+            ddata.state = DEPLOYMENT_STATE_PAUSED
+            self.session.save(ddata)
+            self.session.flush()
+
         return rc
 
     def shutdown_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_shutdown", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) = self.node_comm(machine_hostname, "virt_shutdown", ddata.mac_address)
         if rc == 0:
-            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_STOPPED)
+            ddata.state = DEPLOYMENT_STATE_STOPPED
+            self.session.save(ddata)
+            self.session.flush()
         return rc
 
     def destroy_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_destroy", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) = self.node_comm(machine_hostname, "virt_destroy", ddata.mac_address)
         if rc == 0:
-            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_STOPPED)
+            ddata.state = DEPLOYMENT_STATE_STOPPED
+            self.session.save(ddata)
+            self.session.flush()
         return rc
 
     def test(self, task):
         
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
         (rc, data) = self.node_comm(machine_hostname, "test_blippy", 52.8)
         return rc
 
     def unpause_virt(self,task):
 
-        (mrec, mdata, drec, ddata) = self.get_records(task)
-        machine_hostname = mdata["hostname"]
-        (rc, data) = self.node_comm(machine_hostname, "virt_unpause", ddata["mac_address"])
+        (mdata, ddata) = self.get_records(task)
+        machine_hostname = mdata.hostname
+        (rc, data) = self.node_comm(machine_hostname, "virt_unpause", ddata.mac_address)
         if rc == 0:
-            drec.set_state(None, { "id" : ddata["id"] }, DEPLOYMENT_STATE_RUNNING)
+            ddata.state = DEPLOYMENT_STATE_RUNNING
+            self.session.save(ddata)
+            self.ession.flush()
         return rc
 
 #--------------------------------------------------------------------------
@@ -344,7 +358,7 @@ def main(argv):
     databases = config['databases']
     url = databases['primary']
     # connect
-    Database(url)
+    db.Database(url)
 
     textdomain(I18N_DOMAIN)
     taskatron = Taskatron()
