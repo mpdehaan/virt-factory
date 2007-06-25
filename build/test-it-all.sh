@@ -79,7 +79,8 @@ TEST_NODECOMM=Y
 
 # do we try doing an actual deployment
 TEST_PROFILE_DEPLOY=N
-
+# where to deploy?
+DEPLOY_HOST=mdehaan.rdu.redhat.com
 
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
@@ -313,8 +314,8 @@ deploy_a_system()
 
     # FIXME: this is a bit hardcode at
     web_login
-    echo curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://grimlock.devel.redhat.com/vf/deployment/edit_submit
-    RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://grimlock.devel.redhat.com/vf/deployment/edit_submit`
+    echo curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit
+    RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='0'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit`
     echo "Provisioming a system returned $RET_CODE"
 
 

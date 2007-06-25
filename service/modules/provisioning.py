@@ -332,7 +332,7 @@ class CobblerTranslatedSystem:
        # of Cobbler State not having the profile in memory
        # but having it on disk.  Workaround only.
        # this should NOT be neccessary.
-       cobbler_api.deserialize() # load from file!
+       # cobbler_api.deserialize() # load from file! # UNFIXMED
 
        new_item = cobbler_api.new_system()
        self.logger.info("debugging cobbler profiles")
