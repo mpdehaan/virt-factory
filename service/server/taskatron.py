@@ -220,8 +220,8 @@ class Taskatron:
         Helper function to retrieve objects and datastructures based on the machine and deployment info in the 
         task entry.
         """
-        mid = task["machine_id"]
-        did = task["deployment_id"]
+        mid = task.machine_id
+        did = task.deployment_id
 
         machine_record = db.Machine.get(self.session, mid)
 
