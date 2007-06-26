@@ -16,9 +16,11 @@ module ApplicationHelper
 	   <ul>
 	   <li><A HREF="#{app_root}/machine/list"><%= _("View Machines") %></A></li>
 	   <li><A HREF="#{app_root}/machine/edit"><%= _("Add a Machine via PXE") %></A></li>
-	   <li><A HREF="#{app_root}/regtoken/edit"><%= _("Create Registration Tokens") %></A></li>
+	   <!-- not needed under current auth mechanism
+           <li><A HREF="#{app_root}/regtoken/edit"><%= _("Create Registration Tokens") %></A></li>
 	   <li><A HREF="#{app_root}/regtoken/list"><%= _("View Registration Tokens") %></A></li>
-	   </ul>
+	   -->
+           </ul>
        </li>
        <li><strong><%= _("Image Profiles") %></strong>
 	   <ul>
