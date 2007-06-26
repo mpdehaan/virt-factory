@@ -231,7 +231,6 @@ class Taskatron:
             deployment_record = db.Deployment.get(self.session, did)
             if not deployment_record:
                 raise TaskException(comment="deployment missing")
-            ddata = deployment_record.expand()
         else:
             raise TaskException(comment="deployment missing")
         return (machine_record, deployment_record)
