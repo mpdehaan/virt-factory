@@ -378,6 +378,24 @@ class Deployment(web_svc.AuthWebSvc):
          })
 
 
+    def get_by_mac_address(self, token, args):
+        """
+        """
+        required = ('mac_address',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            mac_address = args['mac_address']
+            offset, limit = self.offset_and_limit(args)
+            query = session.query(db.Machine).limit(limit).offset(offset)
+            for machine in query.select_by(mac_address = mac_address):
+                result.append(self.expand(machine))
+            return success(result)
+        finally:
+            session.close()
+
+
     def get_by_hostname(self, token, args):
         """
         Get deployments by hostname.
