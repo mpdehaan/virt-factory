@@ -368,8 +368,9 @@ class CobblerTranslatedSystem:
        if from_db.has_key("ip_address"):
            pxe_address = from_db["ip_address"]
 
-       # FIXME: deal with is_virtual
-
+       if is_virtual:
+           # make sure guests get registered as guests, not hosts
+           ks_meta["server_param"] = ks_meta["server_param"] + " --virtual"
 
        new_item.set_kernel_options(kernel_options)
        new_item.set_ksmeta(ks_meta)
@@ -463,7 +464,7 @@ class Provisioning(web_svc.AuthWebSvc):
              CobblerTranslatedSystem(cobbler_api,profiles,p)
          for dp in deployments:
              print "- deployment: %s" % dp
-             CobblerTranslatedSystem(cobbler_api,profiles,dp)
+             CobblerTranslatedSystem(cobbler_api,profiles,dp,virtual=True)
          
 
          cobbler_api.serialize()
