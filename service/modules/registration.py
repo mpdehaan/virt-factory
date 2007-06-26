@@ -64,20 +64,21 @@ class Registration(web_svc.AuthWebSvc):
             abstract_obj = deployment.Deployment()
         else:
             abstract_obj = machine.Machine()
-        self.logger.debug("registering against mac address: %s" % mac_addr)
+        self.logger.info("registering against mac address: %s" % mac_addr)
         results = abstract_obj.get_by_mac_address({}, { "mac_address" : mac_addr })
         self.logger.debug("done with mac_address query")
         if results.error_code != 0:
             return results
         if len(results.data) > 0:
-            self.logger.debug("results = %s" % results)
+            self.logger.info("results = %s" % results)
             abstract_id =  results.data[0]["id"]
-            self.logger.debug("existing id = %s" % abstract_id)
+            self.logger.info("existing id = %s" % abstract_id)
         else:
+            # should never happen for virtual machines 
             results = abstract_obj.new(token)
-            self.logger.debug("results = %s" % results)
+            self.logger.info("results = %s" % results)
             abstract_id = results.data 
-            self.logger.debug("new abstract id = %s" % abstract_id)
+            self.logger.info("new abstract id = %s" % abstract_id)
 
         profile_id = None
 
