@@ -259,9 +259,9 @@ class Taskatron:
     def install_virt(self,task):
 
         (mdata, ddata) = self.get_records(task)
-        self.logger.info("hostname target is ... (%s)" % mdata.machine_hostname)
+        self.logger.info("hostname target is ... (%s)" % mdata.hostname)
         self.logger.info("go go gadget virt install!")
-        (rc, data) = self.node_comm(machine_hostname, "virt_install", ddata.mac_address, True)
+        (rc, data) = self.node_comm(mdata.hostname, "virt_install", ddata.mac_address, True)
         return rc
 
 
@@ -282,7 +282,7 @@ class Taskatron:
     def stop_virt(self,task):
 
         (mdata, ddata) = self.get_records(task)
-        machine_hostname = mdata.mac_address
+        machine_hostname = mdata.hostname
         (rc, data) = self.node_comm(machine_hostname, "virt_stop", ddata.mac_address)
         if rc == 0:
             mdata.state = DEPLOYMENT_STATE_STOPPED
