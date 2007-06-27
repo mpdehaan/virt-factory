@@ -159,7 +159,9 @@ class CobblerTranslatedProfile:
 
        if from_db.has_key("id") and from_db["id"] < 0:
            return
+   
        
+           
        vf_config = config_data.Config().get()
 
        new_item = cobbler_api.new_profile()
@@ -230,7 +232,7 @@ class CobblerTranslatedProfile:
        ks_meta["extra_post_magic"]     = ""
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
-       ks_meta["token_param"]          = "--token=UNSET" # intentional, system can override
+       ks_meta["token_param"]          = "--profile=%s" % from_db["name"]
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
 
@@ -361,7 +363,8 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
-       ks_meta["token_param"] = "--token=%s" % from_db["registration_token"]
+       profile_name = from_db["profile"]["name"]
+       ks_meta["token_param"] = "--profile=%s" % profile_name
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
@@ -464,7 +467,7 @@ class Provisioning(web_svc.AuthWebSvc):
              CobblerTranslatedSystem(cobbler_api,profiles,p)
          for dp in deployments:
              print "- deployment: %s" % dp
-             CobblerTranslatedSystem(cobbler_api,profiles,dp,virtual=True)
+             CobblerTranslatedSystem(cobbler_api,profiles,dp,is_virtual=True)
          
 
          cobbler_api.serialize()
