@@ -1,4 +1,4 @@
-      <% @page_title = "View Profile Profiles" %>
+      <% @page_title = "View Profiles" %>
       <% @primary = "profile" %>
       <% @secondary = "list" %>
      
@@ -10,10 +10,10 @@
             <th><%= _("Name") %></th>
             <th><%= _("Version") %></th>
             <th><%= _("Distribution") %></th>
-            <th><%= _("Storage") %></th>
-            <th><%= _("Memory") %></th>
+            <th><%= _("Virt Storage (GB)") %></th>
+            <th><%= _("Virt Memory (MB)") %></th>
             <th><%= _("Targets") %></th>
-            <th><%= _("Container?") %></th>
+            <!-- <th><%= _("Container?") %></th> -->
             <th colspan="2"><%= _("Actions") %></th>
          </thead>
       <% else %>
@@ -32,7 +32,7 @@
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
-             <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Y" : "N" %> </TD>
+             <!-- <TD> <%= (item.is_container == MACHINE_IS_CONTAINER) ? "Y" : "N" %> </TD> -->
              <TD> <%= link_to "[delete]", :controller => "profile", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>

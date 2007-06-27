@@ -12,25 +12,25 @@ module ApplicationHelper
        app_root = ActionController::AbstractRequest.relative_url_root
        template = <<-EOF
        <ul class="nav">
-       <li><strong><%= _("Machines") %></strong>
+       <li><strong><%= _("Hosts") %></strong>
 	   <ul>
-	   <li><A HREF="#{app_root}/machine/list"><%= _("View Machines") %></A></li>
-	   <li><A HREF="#{app_root}/machine/edit"><%= _("Add a Machine via PXE") %></A></li>
+	   <li><A HREF="#{app_root}/machine/list"><%= _("View Hosts") %></A></li>
+	   <li><A HREF="#{app_root}/machine/edit"><%= _("Add a Host via PXE") %></A></li>
 	   <!-- not needed under current auth mechanism
            <li><A HREF="#{app_root}/regtoken/edit"><%= _("Create Registration Tokens") %></A></li>
 	   <li><A HREF="#{app_root}/regtoken/list"><%= _("View Registration Tokens") %></A></li>
 	   -->
            </ul>
        </li>
-       <li><strong><%= _("Image Profiles") %></strong>
+       <li><strong><%= _("Profiles") %></strong>
 	   <ul>
-	   <li><A HREF="#{app_root}/profile/list"><%= _("View Image Profiles") %></A></li>
+	   <li><A HREF="#{app_root}/profile/list"><%= _("View Profiles") %></A></li>
 	   </ul>
        </li>
-       <li><strong><%= _("Virtual Deployments") %></strong>
+       <li><strong><%= _("Guests") %></strong>
            <ul>
-           <li><A HREF="#{app_root}/deployment/list"><%= _("View Virtual Deployments") %></A></li>
-           <li><A HREF="#{app_root}/deployment/edit"><%= _("Add a Virtual Deployment") %></A></li>
+           <li><A HREF="#{app_root}/deployment/list"><%= _("View Guests") %></A></li>
+           <li><A HREF="#{app_root}/deployment/edit"><%= _("Add a Guest") %></A></li>
            </ul>
        </li>
        <li><strong><%= _("Task Queue") %></strong>
@@ -40,7 +40,7 @@ module ApplicationHelper
        </li>
        <li><strong><%= _("Users") %></strong>
            <ul>
-           <li><A HREF="#{app_root}/user/list"><%= _("View virt-factory Users") %></A></li>
+           <li><A HREF="#{app_root}/user/list"><%= _("View Users") %></A></li>
            <li><A HREF="#{app_root}/user/edit"><%= _("Add a User") %></A></li>
            <li><A HREF="#{app_root}/user/logout"><%= _("Logout") %></A></li>
            </ul>

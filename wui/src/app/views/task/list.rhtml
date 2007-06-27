@@ -33,7 +33,7 @@
                   <% else %>
                       <%= link_to !item.get_deployment().hostname.nil? ?  item.get_deployment().hostname : _("(Unknown)"), :controller => "deployment", :action => "edit", :id => item.deployment_id %> 
                   <% end %>
-             <TD>
+             </TD>
              <TD> <%= item.state %> </TD>
              <TD> <%= Time.at(item.time) %> </TD>
          </TR>
