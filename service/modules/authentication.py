@@ -66,6 +66,7 @@ class Authentication(web_svc.WebSvc):
          ssn = db.Session()
          ssn.user_id = user.id
          ssn.session_token = token
+         ssn.session_timestamp = datetime.utcnow()
          
          user.sessions.append(ssn)
          
@@ -145,6 +146,7 @@ class Authentication(web_svc.WebSvc):
             if ssn is not None:
                 if ssn.session_timestamp < self.expired_mark():
                     session.delete(ssn)
+                    raise TokenExpiredException()
                 else:
                     valid = True
                     ssn.session_timestamp = datetime.utcnow()
