@@ -363,7 +363,7 @@ class CobblerTranslatedSystem:
            (success, ksmeta) = input_string_or_hash(from_db["kickstart_metadata"], " ")
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
-       profile_name = from_db["profile"]["name"]
+       
        ks_meta["token_param"] = "--profile=%s" % profile_name
 
        # FIXME: be sure this field name corresponds with the new machine/deployment field
