@@ -95,7 +95,7 @@ class Machine(web_svc.AuthWebSvc):
         return self.add(token, args)
 
 
-    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
+    def associate(self, token, machine_id, machine_id_junk, hostname, ip_addr, mac_addr, profile_id=None,
                   architecture=None, processor_speed=None, processor_count=None,
                   memory=None):
         """

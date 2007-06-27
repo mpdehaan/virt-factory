@@ -59,10 +59,13 @@ class Registration(web_svc.AuthWebSvc):
     def register(self, token, hostname, ip_addr, mac_addr, profile_name, virtual):
 
         self.__check_auth(token)
+        machine_id = None
         
         if virtual:
+            self.logger.info("registering a deployment")
             abstract_obj = deployment.Deployment()
         else:
+            self.logger.info("registering a machine")
             abstract_obj = machine.Machine()
         self.logger.info("registering against mac address: %s" % mac_addr)
         results = abstract_obj.get_by_mac_address({}, { "mac_address" : mac_addr })
@@ -73,11 +76,18 @@ class Registration(web_svc.AuthWebSvc):
             self.logger.info("results = %s" % results)
             abstract_id =  results.data[0]["id"]
             self.logger.info("existing id = %s" % abstract_id)
+            if virtual:
+               machine_id = results.data[0]["machine_id"]
+            else:
+               machine_id = results.data[0]["id"]
         else:
+            self.logger.debug("no match found for mac: %s" % mac_addr)
+            if virtual:
+                raise VirtFactoryException(comment="not pre-created")
             # should never happen for virtual machines 
             results = abstract_obj.new(token)
             self.logger.info("results = %s" % results)
-            abstract_id = results.data 
+            machine_id = abstract_id = results.data 
             self.logger.info("new abstract id = %s" % abstract_id)
 
         profile_id = None
@@ -119,7 +129,7 @@ class Registration(web_svc.AuthWebSvc):
 
         self.logger.debug("calling associate with abstract_id: %s", abstract_id)
         self.logger.debug("profile id is: %s", profile_id)
-        return abstract_obj.associate(token, abstract_id, hostname, ip_addr, mac_addr, profile_id)
+        return abstract_obj.associate(token, abstract_id, machine_id, hostname, ip_addr, mac_addr, profile_id)
 
 
 methods = Registration()

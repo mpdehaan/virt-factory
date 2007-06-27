@@ -50,35 +50,39 @@ class Deployment(web_svc.AuthWebSvc):
         web_svc.AuthWebSvc.__init__(self)
 
 
-    def associate(self, token, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
+    def associate(self, token, deployment_id, machine_id, hostname, ip_addr, mac_addr, profile_id=None,
               architecture=None, processor_speed=None, processor_count=None,
               memory=None):
         """
         Associate a machine with an ip/host/mac address
         """
         self.logger.info("associating...")
+
+        # THIS IS ALL OBSOLETE...
         # determine the profile from the token.
         # FIXME: inefficient. ideally we'd have a retoken.get_by_value() or equivalent
-        regtoken_obj = regtoken.RegToken()
-        if token is None:
-            self.logger.info("token is None???")
-        results = regtoken_obj.get_by_token(None, { "token" : token })
-        self.logger.info("get_by_token")
-        self.logger.info("results: %s" % results)
-        if results.error_code != 0:
-            raise InvalidArgumentsException("bad token")
+        #regtoken_obj = regtoken.RegToken()
+        #if token is None:
+        #    self.logger.info("token is None???")
+        #results = regtoken_obj.get_by_token(None, { "token" : token })
+        #self.logger.info("get_by_token")
+        #self.logger.info("results: %s" % results)
+        #if results.error_code != 0:
+        #    raise InvalidArgumentsException("bad token")
         # FIXME: check that at least some results are returned.
 
-        if results.data[0].has_key("profile_id"):
-            profile_id = results.data[0]["profile_id"]
+        session = db.open_session()
 
-        return self.edit({
-            'id': machine_id,
-            'hostname': hostname,
-            'ip_address': ip_addr,
-            'mac_address': mac_addr,
-            'profile_id': profile_id
-         })
+        deployment = db.Deployment().get(session, deployment_id)
+        deployment.machine_id  = machine_id
+        deployment.hostname    = hostname
+        deployment.ip_address  = ip_addr
+        deployment.mac_address = mac_addr
+        deployment.profile_id  = profile_id
+
+        session.save(deployment)
+        session.flush()
+        return success()
 
 
     def cobbler_sync(self, data):
@@ -122,6 +126,7 @@ class Deployment(web_svc.AuthWebSvc):
                     'netboot_enabled',
                     'puppet_node_diff',
                     'is_locked')
+        self.logger.info(args)
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -386,9 +391,12 @@ class Deployment(web_svc.AuthWebSvc):
         session = db.open_session()
         try:
             result = []
-            mac_address = args['mac_address']
+            # creation gives uppercase MAC addresses, so be sure
+            # we search on the same criteria until the DB search
+            # can be made case insensitive.  (FIXME)
+            mac_address = args['mac_address'].upper()
             offset, limit = self.offset_and_limit(args)
-            query = session.query(db.Machine).limit(limit).offset(offset)
+            query = session.query(db.Deployment).limit(limit).offset(offset)
             for machine in query.select_by(mac_address = mac_address):
                 result.append(self.expand(machine))
             return success(result)
