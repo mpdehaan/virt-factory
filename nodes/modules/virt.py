@@ -149,7 +149,10 @@ class Virt(web_svc.WebSvc):
         by deleting the disk image and it's configuration file.
         """
 
-        return self.__xm_command("undefine", mac_address, [ "off" ] )
+        # make sure the machine is off, no warning time given
+        killcode = self.__xm_command("destroy", mac_address, None)
+        # allow it to be deleted -- use virsh for this as XM can't do it (?)
+        return subprocess.call(["/usr/bin/virsh","undefine",mac_address], shell=True)
 
     #=======================================================================
 
