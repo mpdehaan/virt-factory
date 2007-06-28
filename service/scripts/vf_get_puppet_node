@@ -19,6 +19,9 @@ import sys
 import distutils.sysconfig
 import string
 import xmlrpclib
+# note that cobbler yaml support might go away in the future -- in which case
+# we'll have to handle this differently
+from cobbler import yaml
 
 sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
 
@@ -45,11 +48,8 @@ def main(argv):
             sys.exit(1)
 
         data = rc[1]["data"]
-        if (data.has_key("parent")):
-            print data["parent"]
-        else:
-            print
-        print " ".join(data["puppet_classes"])
+        output = { "classes": data["puppet_classes"] }
+        sys.stdout.write(yaml.dump(output))
     else:
         print "Usage:" 
         print "sm_get_puppet_node.py nodename"
