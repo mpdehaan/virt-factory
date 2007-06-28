@@ -26,7 +26,6 @@ import xmlrpclib
 import socket
 import os
 import os.path
-import fileinput
 import traceback
 
 from rhpl.translate import _, N_, textdomain, utf8
@@ -112,19 +111,9 @@ class Register(object):
         return rc
 
     def update_puppet_sysconfig(self, server):
-        found = 0
-        file = fileinput.input("/etc/sysconfig/puppet",inplace =1)
-        for line in file:
-            line = line.strip()
-            if not 'PUPPET_SERVER' in line:
-                print line
-            else:
-                found = 1
-                print "PUPPET_SERVER=",server
-        if (not found):
-            file = open("/etc/sysconfig/puppet", 'a')
-            file.write('PUPPET_SERVER=' + server + '\n')
-            file.close();
+        file = open("/etc/sysconfig/puppet","w+")
+        file.write("PUPPET_SERVER=%s\n" % server)
+        file.close()
 
     def register_system(self, regtoken, username, password, profile_name, virtual):
         if regtoken:
