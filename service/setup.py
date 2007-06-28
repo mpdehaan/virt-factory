@@ -70,7 +70,7 @@ if __name__ == "__main__":
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
-					    "puppet-config/puppetd.conf"]),
+					    "puppet-config/puppet.conf"]),
 			      (manifestpath, ["puppet-config/site.pp"]),
 			      (profiletemplatepath, ["profile-template/Makefile",
                                                      "profile-template/profile.xml.in",

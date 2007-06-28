@@ -76,7 +76,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/virt-factory/puppet-config
 /etc/puppet/manifests/site.pp
 /usr/share/virt-factory/puppet-config/puppetmaster
-/usr/share/virt-factory/puppet-config/puppetd.conf
+/usr/share/virt-factory/puppet-config/puppet.conf
 %dir /usr/share/virt-factory/profile-template
 /usr/share/virt-factory/profile-template/Makefile
 /usr/share/virt-factory/profile-template/profile.xml.in
