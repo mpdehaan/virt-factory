@@ -94,7 +94,7 @@ class Register(object):
             server = self.server_url.split('/')[2]
             server = server.split(':')[0]
             self.update_puppet_sysconfig(server)
-            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " -=certname " + hostname + " --test"
+            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --certname " + hostname + " --test"
             self.logger.info("puppet cmd: %s" % puppetcmd)
             puppet_in, puppet_out = os.popen4(puppetcmd)
             for line in puppet_out.readlines():
