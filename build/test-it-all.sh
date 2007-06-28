@@ -82,6 +82,11 @@ TEST_PROFILE_DEPLOY=Y
 # where to deploy?
 DEPLOY_HOST=mdehaan.rdu.redhat.com
 
+# whether to attempt to slay and undefine the first virtual
+# machine prior to starting testing, otherwise, testing
+# a deployment will fail.
+DEPLOY_DESTROY=Y
+
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
 
@@ -123,6 +128,7 @@ show_config()
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
     echo "TEST_NODECOMM=$TEST_NODECOMM"
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
+    echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
 }
 
 msg()
@@ -151,6 +157,12 @@ check_out_code()
     git clone git://et.redhat.com/cobbler
     echo $?
     popd
+}
+
+remove_virtual_machine()
+{
+    /usr/sbin/xm destroy 00_16_3E_00_00_00
+    virsh undefine 00_16_3E_00_00_00
 }
 
 remove_all_packages()
@@ -316,7 +328,7 @@ deploy_a_system()
     # FIXME: this is a bit hardcode at
     web_login
     echo curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='1'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit
-    RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='1'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit`
+    RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]=1&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit`
     echo "Provisioming a system returned $RET_CODE"
 
 
@@ -373,6 +385,10 @@ show_config
 stop_services
 
 
+if [ "$DEPLOY_DESTROY" == "Y" ] ; then
+    msg "Destroying first allocated virtual machine"
+    remove_virtual_machine
+fi
 
 if [ "$REMOVE_PACKAGES" == "Y" ] ; then
     msg "Removing lots of packages"
