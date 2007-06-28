@@ -89,7 +89,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
-/bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
+/bin/cp /usr/share/virt-factory/puppet-config/puppet.conf /etc/puppet
 /sbin/chkconfig --add virt-factory-server
 exit 0
 
