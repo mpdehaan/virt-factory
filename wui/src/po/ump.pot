@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-06-18 13:27-0400\n"
+"POT-Creation-Date: 2007-06-28 17:09-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -96,8 +96,7 @@ msgstr ""
 msgid "Procesor Count"
 msgstr ""
 
-#: app/views/machine/edit.rhtml:45 app/views/profile/list.rhtml:14
-#: app/views/deployment/view.rhtml:44
+#: app/views/machine/edit.rhtml:45 app/views/deployment/view.rhtml:44
 msgid "Memory"
 msgstr ""
 
@@ -119,10 +118,12 @@ msgid "Mac Address"
 msgstr ""
 
 #: app/views/machine/edit.rhtml:76 app/views/user/edit.rhtml:44
+#: app/views/deployment/edit.rhtml:44
 msgid "Add"
 msgstr ""
 
 #: app/views/machine/edit.rhtml:78 app/views/user/edit.rhtml:44
+#: app/views/deployment/edit.rhtml:44
 msgid "Edit"
 msgstr ""
 
@@ -173,6 +174,10 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
+#: app/views/user/edit.rhtml:40 app/views/user/list.rhtml:13
+msgid "Email"
+msgstr ""
+
 #: app/views/user/list.rhtml:9
 msgid "First"
 msgstr ""
@@ -183,10 +188,6 @@ msgstr ""
 
 #: app/views/user/list.rhtml:11
 msgid "Last"
-msgstr ""
-
-#: app/views/user/list.rhtml:13
-msgid "Email"
 msgstr ""
 
 #: app/views/profile/edit.rhtml:11
@@ -241,7 +242,11 @@ msgid "Version"
 msgstr ""
 
 #: app/views/profile/list.rhtml:13
-msgid "Storage"
+msgid "Virt Storage (GB)"
+msgstr ""
+
+#: app/views/profile/list.rhtml:14
+msgid "Virt Memory (MB)"
 msgstr ""
 
 #: app/views/profile/list.rhtml:15
@@ -283,6 +288,18 @@ msgstr ""
 msgid "Puppet Class Node Overrides (Optional)"
 msgstr ""
 
+#: app/views/deployment/edit.rhtml:35
+msgid "MAC Address"
+msgstr ""
+
+#: app/views/deployment/edit.rhtml:39
+msgid "Current State"
+msgstr ""
+
+#: app/views/deployment/edit.rhtml:53
+msgid "Control actions:"
+msgstr ""
+
 #: app/views/deployment/list.rhtml:10 app/views/deployment/view.rhtml:23
 msgid "Host Machine"
 msgstr ""
@@ -301,9 +318,7 @@ msgid "State"
 msgstr ""
 
 #: app/views/deployment/list.rhtml:19
-msgid ""
-"There are no virtual profiles created or deployed yet.  Use the \"Add\" link "
-"to create one."
+msgid "There are no guests yet.  Use the \"Add\" link to create one."
 msgstr ""
 
 #: app/views/deployment/view.rhtml:14
@@ -366,22 +381,22 @@ msgstr ""
 msgid "Username:"
 msgstr ""
 
-#: app/views/login/input.rhtml:11
+#: app/views/login/input.rhtml:12
 msgid "No Account?"
 msgstr ""
 
-#: app/views/login/input.rhtml:11
+#: app/views/login/input.rhtml:12
 msgid "Request one."
 msgstr ""
 
-#: app/views/login/input.rhtml:12
+#: app/views/login/input.rhtml:14
 msgid "Password:"
 msgstr ""
 
-#: app/views/login/input.rhtml:15
+#: app/views/login/input.rhtml:18
 msgid "Forgot your password?"
 msgstr ""
 
-#: app/views/login/input.rhtml:16
+#: app/views/login/input.rhtml:20
 msgid "Log In"
 msgstr ""
