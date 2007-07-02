@@ -13,7 +13,12 @@
 require "util/codes"
 require "util/code-lookup"
 require "xmlrpc/client"
-@@server = XMLRPC::Client.new("127.0.0.1","/",5150)
+
+File.open("/etc/sysconfig/virt-factory-wui/server", aModeString="r") do |file| 
+  servername = file.read().strip()
+  @@server = XMLRPC::Client.new(servername,"/",5150)
+end
+
 
 # the virt-factory WUI automatically converts return codes that represent failure into Ruby exception
 # objects -- XMLRPCClientExceptions.  These exceptions split out meaningful data out of the return and
