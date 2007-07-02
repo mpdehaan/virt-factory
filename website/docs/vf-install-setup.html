@@ -84,6 +84,8 @@
 <blockquote>sudo /sbin/service virt-factory-wui start</blockquote>
 <p>You will be able to access the web interface by visiting <tt>http://www.example.com/vf/</tt>, where <tt>www.example.com</tt> is your server's actual IP address or domain name.</p>
 <p class="tip"><strong>Tip:</strong> You may also wish to configure the web interface to start automatically on reboot.</p>
+<p>Alternatively, you can also install the web interface on a different machine than the one running the virt factory XMLRPC server. If the WUI is installed on a different box, 
+edit <tt>/etc/sysconfig/virt-factory-wui/server</tt> to point to the XMLRPC server's hostname (rather than the default <tt>127.0.0.1</tt>)
 <h4>Management Server Security Configuration</h4>
 <h5>Firewall</h5>
 <p>If you're running iptables you will need to open up access to the ports required for HTTP/HTTPS, the xmlrpc ports for virt-factory-server and cobbler, and the puppetmaster port. <tt>/usr/bin/vf_config_firewall</tt> will open up these ports, although without any local host-specific restrictions.</p>
