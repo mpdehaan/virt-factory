@@ -11,19 +11,27 @@ tables = []  # no new tables
 table = dict([(t.name, t) for t in tables])
 
 
-def column_additions():
+def get_columns():
 
     machines_table = sqlalchemy.Table('machines',meta) 
     state_column = Column('state',String(255),nullable=True)
-    create_column(state_column,table=machines_table)
 
     deployments_table = sqlalchemy.Table('deployments',meta) 
     auto_start_column = Column('auto_start',Integer,nullable=True)
-    create_column(auto_start_column,table=deployments_table)
+    return { state_column: machines_table,
+             auto_start_column: deployments_table }
+
+columns = get_columns()
+
+def column_additions():
+
+    for c, t in columns.items():
+        create_column(c, table=t)
 
 def column_removals():
-    # FIXME
-    pass
+    for c, t in columns.items():
+        drop_column(c, table=t)
+        
 
 def initial_inserts():
     # no inserts for this step
@@ -36,6 +44,7 @@ def upgrade():
     column_additions()
 
 def downgrade():
+    column_removals()
     mylist = list(tables)
     mylist.reverse()
     for t in mylist:
