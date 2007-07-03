@@ -14,12 +14,19 @@ table = dict([(t.name, t) for t in tables])
 def get_columns():
 
     machines_table = sqlalchemy.Table('machines',meta) 
-    state_column = Column('state',String(255),nullable=True)
-
     deployments_table = sqlalchemy.Table('deployments',meta) 
+    
+    state_column = Column('state',String(255),nullable=True)
+    hb_column    = Column('last_heartbeat',Integer,nullable=True)
     auto_start_column = Column('auto_start',Integer,nullable=True)
-    return { state_column: machines_table,
-             auto_start_column: deployments_table }
+    hb_column2   = Column('last_heartbeat',Integer,nullable=True)
+
+    return { 
+        state_column:      machines_table,
+        auto_start_column: deployments_table,
+        hb_column:         machines_table,
+        hb_column2:        deployments_table
+    }
 
 columns = get_columns()
 
