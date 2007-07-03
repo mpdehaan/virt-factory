@@ -18,7 +18,9 @@ class Deployment < ManagedObject
        :machine            => { :type => Machine, :id_attr => :machine_id }, 
        :profile            => { :type => Profile, :id_attr => :profile_id },
        :netboot_enabled    => { :type => Integer },
-       :is_locked          => { :type => Integer } 
+       :is_locked          => { :type => Integer },
+       :auto_start         => { :type => Integer },
+       :last_heartbeat     => { :type => Integer } 
     }
     self.set_attrs(ATTR_LIST)
      
