@@ -103,17 +103,6 @@ class Deployment(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of deployment arguments.
         @type args: dict
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id
-            - profile_id
-            - state
-            - display_name
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """
         mac = None
@@ -125,7 +114,7 @@ class Deployment(web_svc.AuthWebSvc):
                     'mac_address',
                     'netboot_enabled',
                     'puppet_node_diff',
-                    'is_locked')
+                    'is_locked','auto_start','last_heartbeat')
         self.logger.info(args)
         validator = FieldValidator(args)
         validator.verify_required(required)
@@ -191,17 +180,6 @@ class Deployment(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of deployment arguments.
         @type args: dict
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id  (optional)
-            - state  (optional)
-            - display_name  (optional)
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
@@ -209,7 +187,7 @@ class Deployment(web_svc.AuthWebSvc):
         profilename = None
         required = ('id',)
         optional = ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
-             'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked')
+             'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked', 'last_heartbeat','auto_start')
         filter = ('id', 'profile_id')
         validator = FieldValidator(args)
         validator.verify_required(required)
@@ -343,17 +321,6 @@ class Deployment(web_svc.AuthWebSvc):
             - limit (optional)
         @return: A list of deployments.
         @rtype: [dict,]
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id  (optional)
-            - state  (optional)
-            - display_name  (optional)
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """
         session = db.open_session()
@@ -416,17 +383,6 @@ class Deployment(web_svc.AuthWebSvc):
         @type args: dict
         @return: A list of deployments.
         @rtype: [dict,]
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id
-            - profile_id
-            - state
-            - display_name
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """
         required = ('hostname',)
@@ -445,6 +401,9 @@ class Deployment(web_svc.AuthWebSvc):
 
 
     def get_by_regtoken(self, token, args):
+        # FIXME: registration tokens are currently non-operational
+        # for virt-factory 0.0.3 and later.  This code can be pruned
+        # if regtoken usage is not reinstated.
         """
         Get deployments by registration token.
         @param token: A security token.
@@ -456,17 +415,6 @@ class Deployment(web_svc.AuthWebSvc):
         @type args: dict
         @return: A list of deployments.
         @rtype: [dict,]
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id
-            - profile_id
-            - state
-            - display_name
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """
         required = ('registration_token',)
@@ -528,17 +476,6 @@ class Deployment(web_svc.AuthWebSvc):
         @type args: dict
         @return: A deployment.
         @rtype: dict
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - mac_address (optional)
-            - machine_id
-            - profile_id
-            - state
-            - display_name
-            - netboot_enabled (optional)
-            - puppet_node_diff (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
