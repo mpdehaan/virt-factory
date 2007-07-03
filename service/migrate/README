@@ -1,0 +1,7 @@
+Code based on MIT licensed code here http://erosson.com/migrate/trac/
+
+This fork was made after list-announcement that the code was no longer maintained, and to
+deal with build issues (the build scripts where hitting an egg server, which was causing
+failures).
+
+Migrate subdirectory code remains MIT, Virt-Factory is GPL and therefore compatible.

@@ -28,7 +28,7 @@ from server import logger
 import shutil
 import string
 
-MIGRATE = "/usr/bin/migrate"
+MIGRATE = "/usr/bin/vf_migrate"
 UPGRADE_DIR = "/usr/share/virt-factory/db_schema/upgrade/"
 REPOSITORY = "/var/lib/virt-factory/db/migrate_repository"
 

@@ -18,7 +18,6 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
-Requires: python-migrate
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
@@ -50,13 +49,13 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_config_firewall
 %{_bindir}/vf_remove_firewall_rules
 %{_bindir}/vf_gen_profile_stub
+%{_bindir}/vf_migrate
 /etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
 %dir /var/lib/virt-factory/profiles
 %dir /var/lib/virt-factory/profiles/queued
 %dir %attr(755,postgres,postgres) /var/lib/virt-factory/db
 %config(noreplace) /etc/virt-factory/settings
-# kickstart templaces
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/server
@@ -66,6 +65,29 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate
+%{python_sitelib}/virt-factory/server/migrate/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/changeset
+%{python_sitelib}/virt-factory/server/migrate/changeset
+%{python_sitelib}/virt-factory/server/migrate/changeset/databases
+%dir %{python_sitelib}/virt-factory/server/migrate/changeset/databases/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning
+%{python_sitelib}/virt-factory/server/migrate/versioning/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/base
+%{python_sitelib}/virt-factory/server/migrate/versioning/base/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/script
+%{python_sitelib}/virt-factory/server/migrate/versioning/script/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/*.py*
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/*.cfg
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/script
+%{python_sitelib}/virt-factory/server/migrate/versioning/templates/script/*.py*
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
 %{python_sitelib}/virt-factory/server/db_upgrade/*.py*
 %dir /usr/share/virt-factory
