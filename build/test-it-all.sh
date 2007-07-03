@@ -167,6 +167,7 @@ remove_virtual_machine()
 
 remove_all_packages()
 {
+    rm /etc/virt-factory/db/exists
     yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
 		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
 		  python-psycopg2 postgresql-python python-sqlalchemy
@@ -270,6 +271,9 @@ start_services()
 	/etc/init.d/postgresql initdb
     fi
 
+    # just to be sure...
+    /etc/init.d/postgresql start
+    
     # this will restart postgresql
     # and also set up it's pg_hba.conf
     vf_fix_db_auth
