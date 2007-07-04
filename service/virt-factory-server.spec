@@ -69,8 +69,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/migrate/*.py*
 %dir %{python_sitelib}/virt-factory/server/migrate/changeset
 %{python_sitelib}/virt-factory/server/migrate/changeset/*.py*
-%{python_sitelib}/virt-factory/server/migrate/changeset/databases
-%dir %{python_sitelib}/virt-factory/server/migrate/changeset/databases/*.py*
+%dir %{python_sitelib}/virt-factory/server/migrate/changeset/databases
+%{python_sitelib}/virt-factory/server/migrate/changeset/databases/*.py*
 %dir %{python_sitelib}/virt-factory/server/migrate/versioning
 %{python_sitelib}/virt-factory/server/migrate/versioning/*.py*
 %dir %{python_sitelib}/virt-factory/server/migrate/versioning/base
