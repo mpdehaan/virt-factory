@@ -21,6 +21,7 @@ Requires: yum-utils
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
+Requires: python-migrate
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -49,7 +50,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_config_firewall
 %{_bindir}/vf_remove_firewall_rules
 %{_bindir}/vf_gen_profile_stub
-%{_bindir}/vf_migrate
 /etc/init.d/virt-factory-server
 %dir /var/lib/virt-factory
 %dir /var/lib/virt-factory/profiles
@@ -65,28 +65,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate
-%{python_sitelib}/virt-factory/server/migrate/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/changeset
-%{python_sitelib}/virt-factory/server/migrate/changeset/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/changeset/databases
-%{python_sitelib}/virt-factory/server/migrate/changeset/databases/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning
-%{python_sitelib}/virt-factory/server/migrate/versioning/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/base
-%{python_sitelib}/virt-factory/server/migrate/versioning/base/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/script
-%{python_sitelib}/virt-factory/server/migrate/versioning/script/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates
-%{python_sitelib}/virt-factory/server/migrate/versioning/templates/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository
-%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default
-%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions
-%{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions/*.py*
-%dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/script
-%{python_sitelib}/virt-factory/server/migrate/versioning/templates/script/*.py*
 # are tmpl files included?
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
 %{python_sitelib}/virt-factory/server/db_upgrade/*.py*
