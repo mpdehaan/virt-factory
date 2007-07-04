@@ -1,6 +1,6 @@
 from sqlalchemy import *
-from server.migrate import *
-from server.migrate.changeset import *
+from migrate import *
+from migrate.changeset import *
 
 from datetime import datetime
 

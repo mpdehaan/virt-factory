@@ -168,7 +168,7 @@ remove_virtual_machine()
 remove_all_packages()
 {
     rm /etc/virt-factory/db/exists
-    yum remove -y virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
+    yum remove -y python-migrate virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
 		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
 		  python-psycopg2 postgresql-python python-sqlalchemy
     echo $?
