@@ -2,6 +2,7 @@
 
 import sys
 from distutils.core import setup, Extension
+#from setuptools import setup,find_packages
 import string
 import glob
 
@@ -12,7 +13,9 @@ LONG_DESC = """
 A small pluggabe xml-rpc daemon used by %s to implement various web services hooks
 """ % NAME
 
+
 if __name__ == "__main__":
+ 
         manpath    = "share/man/man1/"
         etcpath    = "/etc/%s" % NAME
         etcpathdb  = "/etc/%s/db" % NAME
@@ -49,7 +52,8 @@ if __name__ == "__main__":
                            "db/vf_create_db",
                            "scripts/vf_migrate"
                 ],
-		package_dir = {"%s" % NAME: "",
+		# package_data = { '' : ['*.*'] },
+                package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
 			       "%s/server/db_upgrade" % NAME: "db_upgrade/",
@@ -67,10 +71,10 @@ if __name__ == "__main__":
                                "%s/server/migrate/versioning/templates/script" % NAME: "migrate/versioning/templates/script/"
                 },
 		packages = ["%s" % NAME,
-			    "%s/server" % NAME,
-			    "%s/server/modules" % NAME,
-			    "%s/server/db_upgrade" % NAME,
-			    "%s/server/yaml" % NAME,
+	        	    "%s/server" % NAME,
+	        	    "%s/server/modules" % NAME,
+	  	 	    "%s/server/db_upgrade" % NAME,
+	 	            "%s/server/yaml" % NAME,
                             "%s/server/migrate" % NAME,
                             "%s/server/migrate/changeset" % NAME,
                             "%s/server/migrate/changeset/databases" % NAME,

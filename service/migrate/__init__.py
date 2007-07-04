@@ -1,1 +1,1 @@
-from server.migratelib.run import *
+from server.migrate.run import *
