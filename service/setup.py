@@ -81,6 +81,7 @@ if __name__ == "__main__":
                             "%s/server/migrate/versioning/templates/repository" % NAME,
                             "%s/server/migrate/versioning/templates/repository/default" % NAME,
                             "%s/server/migrate/versioning/templates/repository/default/versions" % NAME,
+                            "%s/server/migrate/versioning/templates/script" % NAME,
                             "%s/server/migrate/versioning/script" % NAME
                 ],
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 			      (migraterepopath, []),
 			      (profilespath, []),
 			      (queuedprofilespath, []),
-			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
+                              (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
