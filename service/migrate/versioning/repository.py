@@ -129,8 +129,8 @@ class Repository(Pathed):
         cls.require_notfound(path)
 
         pkg,rsrc = template.get_repository(as_pkg=True)
-        # tmplpkg = '.'.join((pkg,rsrc))
-        # tmplfile = resource_filename(pkg,rsrc)
+        tmplpkg = None # '.'.join((pkg,rsrc))
+        tmplfile = None # resource_filename(pkg,rsrc)
         config_text = cls.prepare_config(tmplpkg,cls._config,name,**opts)
         # Create repository
         try:
