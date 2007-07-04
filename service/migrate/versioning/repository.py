@@ -8,6 +8,35 @@ from migrate.versioning.pathed import *
 from migrate.versioning import script,exceptions,version
 from migrate.versioning.version import VerNum
 
+TEMPLATE_DATA = """
+[db_settings]
+# Used to identify which repository this database is versioned under.
+# You can use the name of your project.
+repository_id=${repository_id}
+
+# The name of the database table used to track the schema version.
+# This name shouldn't already be used by your project.
+# If this is changed once a database is under version control, you'll need to
+# change the table name in each database too.
+version_table=${version_table}
+
+# When committing a change script, Migrate will attempt to generate the
+# sql for all supported databases; normally, if one of them fails - probably
+# because you don't have that database installed - it is ignored and the
+# commit continues, perhaps ending successfully.
+# Databases in this list MUST compile successfully during a commit, or the
+# entire commit will fail. List the databases your application will actually
+# be using to ensure your updates to that database work properly.
+# This must be a list; example: ['postgres','sqlite']
+required_dbs=${required_dbs}
+"""
+
+TEMPLATE_DATA2 = """
+#!/usr/bin/python
+from migrate.versioning.shell import main
+
+main(%(defaults)s)
+"""
 
 class Changeset(dict):
     """A collection of changes to be applied to a database
@@ -89,7 +118,8 @@ class Repository(Pathed):
             if (key not in opts) or (opts[key] is None):
                 opts[key]=val
 
-        tmpl = resource_string(pkg,rsrc)
+        # resource_string(pkg,rsrc)
+        tmpl = TEMPLATE_DATA
         ret = string.Template(tmpl).substitute(opts)
         return ret
 
@@ -99,14 +129,13 @@ class Repository(Pathed):
         cls.require_notfound(path)
 
         pkg,rsrc = template.get_repository(as_pkg=True)
-        tmplpkg = '.'.join((pkg,rsrc))
-        tmplfile = resource_filename(pkg,rsrc)
+        # tmplpkg = '.'.join((pkg,rsrc))
+        # tmplfile = resource_filename(pkg,rsrc)
         config_text = cls.prepare_config(tmplpkg,cls._config,name,**opts)
         # Create repository
         try:
-            shutil.copytree(tmplfile,path)
-            # Edit config defaults
-            fd = open(os.path.join(path,cls._config),'w')
+            os.makedirs(path)
+            fd = open(os.path.join(path,"migrate.cfg"),'w')
             fd.write(config_text)
             fd.close()
             # Create a management script
@@ -158,7 +187,7 @@ class Repository(Pathed):
 def manage(file,**opts):
     """Create a project management script"""
     pkg,rsrc = template.manage(as_pkg=True)
-    tmpl = resource_string(pkg,rsrc)
+    tmpl = TEMPLATE_DATA2
     vars = ",".join(["%s='%s'"%vars for vars in opts.iteritems()])
     result = tmpl%dict(defaults=vars)
 

@@ -90,7 +90,7 @@ if __name__ == "__main__":
                 ],
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/virt-factory-server"]),
-			      (etcpath, ["settings"]),
+                              (etcpath, ["settings"]),
 			      (etcpathdb, []),
 			      (logpath, []),
 			      (logpathdb, []),

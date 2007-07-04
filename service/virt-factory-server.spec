@@ -83,7 +83,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/*.py*
 %dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default
 %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/*.py*
-# %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/*.cfg
 %dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions
 %{python_sitelib}/virt-factory/server/migrate/versioning/templates/repository/default/versions/*.py*
 %dir %{python_sitelib}/virt-factory/server/migrate/versioning/templates/script
