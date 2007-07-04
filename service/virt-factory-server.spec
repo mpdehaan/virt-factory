@@ -105,6 +105,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/vf-profile-template.spec
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
+
 %dir %attr(755,postgres,postgres) /var/log/virt-factory/db
 %defattr(2770,postgres,postgres)
 %dir /etc/virt-factory/db
