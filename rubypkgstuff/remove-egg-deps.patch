@@ -1,0 +1,14 @@
+diff -ruN migrate-0.2.2/setup.py migrate-0.2.2.rh/setup.py
+--- python-migrate-0.2.2/setup.py	2006-12-03 18:56:24.000000000 -0500
++++ python-migrate-0.2.2.rh/setup.py	2007-07-05 13:33:01.000000000 -0400
+@@ -18,8 +18,8 @@
+ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with database schema changes in `SQLAlchemy <http://sqlalchemy.org>`_ projects.
+ """,
+ 
+-    install_requires = ['sqlalchemy >= 0.3.0dev'],
+-    setup_requires = ['py >= 0.8.0-alpha2'],
++    install_requires = [],
++    setup_requires = [],
+ 
+     author = "Evan Rosson",
+     author_email = "evan.rosson@gmail.com",

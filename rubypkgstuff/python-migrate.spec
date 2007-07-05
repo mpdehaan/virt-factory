@@ -7,6 +7,7 @@ Name: python-migrate
 Version: 0.2.2
 Release: 1%{?dist}
 Source0: migrate-%{version}.tar.gz
+Patch0: remove-egg-deps.patch
 License: MIT
 Group: Applications/System
 Requires: python >= 2.3
@@ -21,6 +22,7 @@ Url: http://erosson.com/migrate/
 Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with database schema changes in SQLAlchemy projects.
 %prep
 %setup -q -n migrate-%{version}
+%patch0 -p1
 
 %build
 %{__python} setup.py build
