@@ -26,6 +26,7 @@
 
              <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
              <TD> <%= item.mac_address %> </TD>
+             <TD> <%= item.state       %> </TD>
              <% if item.is_locked == 1 %>
                 <TD COLSPAN="2"><%= _("(Locked)") %></TD>
              <% else %>

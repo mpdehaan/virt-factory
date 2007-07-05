@@ -18,10 +18,10 @@ Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
-Requires: python-migrate
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
+Requires: python-migrate
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -56,7 +56,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/virt-factory/profiles/queued
 %dir %attr(755,postgres,postgres) /var/lib/virt-factory/db
 %config(noreplace) /etc/virt-factory/settings
-# kickstart templaces
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/server
@@ -66,6 +65,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
+# are tmpl files included?
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
 %{python_sitelib}/virt-factory/server/db_upgrade/*.py*
 %dir /usr/share/virt-factory
@@ -83,6 +83,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 /usr/share/virt-factory/profile-template/vf-profile-template.spec
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
+
 %dir %attr(755,postgres,postgres) /var/log/virt-factory/db
 %defattr(2770,postgres,postgres)
 %dir /etc/virt-factory/db

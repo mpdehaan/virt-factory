@@ -1,0 +1,12 @@
+#!/usr/bin/python
+
+
+import sys
+import distutils.sysconfig
+
+sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+sys.path.append("%s/virt-factory/server" % distutils.sysconfig.get_python_lib())
+
+from migrate.versioning.shell import main
+
+main()

@@ -97,7 +97,8 @@ tables.append(Table('machines',
     Column('puppet_node_diff', TEXT),
     Column('netboot_enabled', Integer),
     Column('is_locked', Integer),
-    Column('state', String(255))
+    Column('state', String(255)),
+    Column('last_heartbeat', Integer)
 ))
  
 tables.append(Table('deployments',
@@ -119,7 +120,8 @@ tables.append(Table('deployments',
     Column('puppet_node_diff', TEXT),
     Column('netboot_enabled', Integer),
     Column('is_locked', Integer),
-    Column('auto_start', Integer)
+    Column('auto_start', Integer),
+    Column('last_heartbeat', Integer)
 ))
 
 tables.append(Table('regtokens',

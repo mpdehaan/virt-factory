@@ -20,9 +20,17 @@ class DeploymentController < AbstractObjectController
        # do the regular get stuff here.
        super
 
-       # get a list of address to ip mappings
+       # get a list of machines
+       # do not allow a deployment to a machine if
+       #  (A) the machine is the "no machine" record
+       #  (B) no hostname, i.e. not completed registered yet
+       #  (C) offline (i.e. no heartbeat)
+       # if any of the above conditions are true, deploying to those
+       # machines is not acceptible
+       # FIXME: API call for get_machines_that_can_deploy (or equivalent)
+       # would be useful.  TBA.
        @machines = ManagedObject.retrieve_all(Machine, get_login).collect do |machine|
-           [machine.hostname, machine.id] unless machine.id < 0 or machine.hostname.nil?
+           [machine.hostname, machine.id] unless machine.id < 0 or machine.hostname.nil? or machine.state == MACHINE_STATE_OFFLINE
        end
        @machines.reject! { |foo| foo.nil? }
 

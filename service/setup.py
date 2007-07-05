@@ -2,6 +2,7 @@
 
 import sys
 from distutils.core import setup, Extension
+#from setuptools import setup,find_packages
 import string
 import glob
 
@@ -12,7 +13,9 @@ LONG_DESC = """
 A small pluggabe xml-rpc daemon used by %s to implement various web services hooks
 """ % NAME
 
+
 if __name__ == "__main__":
+ 
         manpath    = "share/man/man1/"
         etcpath    = "/etc/%s" % NAME
         etcpathdb  = "/etc/%s/db" % NAME
@@ -46,27 +49,31 @@ if __name__ == "__main__":
 			   "scripts/vf_remove_firewall_rules",
 			   "scripts/vf_gen_profile_stub",
 			   "db/vf_fix_db_auth",
-                           "db/vf_create_db"],
-		package_dir = {"%s" % NAME: "",
+                           "db/vf_create_db",
+                ],
+		# package_data = { '' : ['*.*'] },
+                package_dir = {"%s" % NAME: "",
 			       "%s/server" % NAME: "server",
 			       "%s/server/modules" % NAME: "modules/",
 			       "%s/server/db_upgrade" % NAME: "db_upgrade/",
-			       "%s/server/yaml" % NAME: "server/yaml/"},
+			       "%s/server/yaml" % NAME: "server/yaml/",
+                },
 		packages = ["%s" % NAME,
-			    "%s/server" % NAME,
-			    "%s/server/modules" % NAME,
-			    "%s/server/db_upgrade" % NAME,
-			    "%s/server/yaml" % NAME],
+	        	    "%s/server" % NAME,
+	        	    "%s/server/modules" % NAME,
+	  	 	    "%s/server/db_upgrade" % NAME,
+	 	            "%s/server/yaml" % NAME,
+                ],
                 data_files = [(settingspath, ["kickstart/kick-fc6.ks"]),
 			      (initpath, ["init-scripts/virt-factory-server"]),
-			      (etcpath, ["settings"]),
+                              (etcpath, ["settings"]),
 			      (etcpathdb, []),
 			      (logpath, []),
 			      (logpathdb, []),
 			      (migraterepopath, []),
 			      (profilespath, []),
 			      (queuedprofilespath, []),
-			      (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
+                              (upgradepath, ["db/schema/upgrade/upgrades.conf"] + 
 					     glob.glob("db/schema/upgrade/*.sql") + 
 					     glob.glob("db/schema/upgrade/*.py")),
 			      (puppetpath, ["puppet-config/puppetmaster", 
