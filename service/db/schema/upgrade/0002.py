@@ -30,30 +30,49 @@ def get_columns():
 
 columns = get_columns()
 
-def column_additions():
-
+def column_additions(connection):
     for c, t in columns.items():
-        create_column(c, table=t)
+        create_column(c, table=t, connection=connection)
 
-def column_removals():
+def column_removals(connection):
     for c, t in columns.items():
-        drop_column(c, table=t)
+        drop_column(c, table=t, connection=connection)
         
 
-def initial_inserts():
+def initial_inserts(connection):
     # no inserts for this step
     pass
  
 def upgrade():
-    for t in tables:
-        t.create(checkfirst=True)
-    initial_inserts()
-    column_additions()
+    connection = migrate_engine.connect()   # Connection
+    session = create_session(bind_to=connection)
+    transaction = connection.begin()
+
+    try:
+        for t in tables:
+            t.create(connectable=connection, checkfirst=True)
+        initial_inserts(connection)
+        column_additions(connection)
+        session.flush()
+    except:
+        transaction.rollback()
+        raise
+    transaction.commit()
 
 def downgrade():
-    column_removals()
-    mylist = list(tables)
-    mylist.reverse()
-    for t in mylist:
-        t.drop(checkfirst=True)
+    connection = migrate_engine.connect()   # Connection
+    session = create_session(bind_to=connection)
+    transaction = connection.begin()
+
+    try:
+        column_removals(connection)
+        mylist = list(tables)
+        mylist.reverse()
+        for t in mylist:
+            t.drop(connectable=connection, checkfirst=True)
+        session.flush()
+    except:
+        transaction.rollback()
+        raise
+    transaction.commit()
     

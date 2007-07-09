@@ -8,6 +8,7 @@ Version: 0.2.2
 Release: 1%{?dist}
 Source0: migrate-%{version}.tar.gz
 Patch0: remove-egg-deps.patch
+Patch1: column-kwargs.patch
 License: MIT
 Group: Applications/System
 Requires: python >= 2.3
@@ -23,6 +24,7 @@ Inspired by Ruby on Rails' migrations, Migrate provides a way to deal with datab
 %prep
 %setup -q -n migrate-%{version}
 %patch0 -p1
+%patch1 -p1
 
 %build
 %{__python} setup.py build
