@@ -21,6 +21,7 @@ Requires(preun): /sbin/service
 BuildRequires: ruby >= 1.8.1
 BuildRequires: ruby-devel
 BuildRequires: ruby-gettext-package
+BuildRequires: rubygem(rake) >= 0.7
 Provides: virt-factory-wui
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
