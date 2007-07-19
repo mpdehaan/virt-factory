@@ -154,9 +154,9 @@ check_out_code()
     pushd $BUILD_PATH
     git clone git://et.redhat.com/virt-factory
     echo $?
-    git clone git://et.redhat.com/koan
+    git clone git://git.fedoraproject.org/git/hosted/cobbler 
     echo $?
-    git clone git://et.redhat.com/cobbler
+    git clone git://git.fedoraproject.org/git/hosted/koan
     echo $?
     popd
 }
