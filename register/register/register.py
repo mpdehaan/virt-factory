@@ -38,7 +38,7 @@ ERR_ARGUMENTS_INVALID = 8 # ...
 
 class Server:
     def __init__(self, host=None):
-        transport = busrpc.qpid_transport.QpidTransport()
+        transport = busrpc.qpid_transport.QpidTransport(host=host)
         transport.connect()
 
         cm = CertManager('/var/lib/virt-factory/qpidcert', host)
