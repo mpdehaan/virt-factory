@@ -65,6 +65,7 @@ class RPCDispatcher(object):
                 return True
             except Exception, e:
                 print e
+                traceback.print_exc()
                 return False
         else:
             return True

@@ -449,6 +449,7 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
         
 	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
 	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
+	echo "ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386"
         ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386
 fi
 

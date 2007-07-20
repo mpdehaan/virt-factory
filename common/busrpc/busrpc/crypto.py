@@ -118,7 +118,7 @@ class CertManager(object):
             seed = self._generate_seed(8192)
             key = Blowfish.new(seed)
             file_name = self.keydir + self.hostname + '.key'
-            f = file(file_name)
+            f = file(file_name, "w")
             pickler = cPickle.Pickler(f)
             try:
                 pickler.dump(seed)
@@ -132,13 +132,13 @@ class CertManager(object):
         rp = RandomPool()
         for i in range(7):
             m = SHA.new()
-            temp_seed = rp.get_bytes(size)
+            tempseed = rp.get_bytes(size)
             m.update(tempseed)
             rp.add_event(m.hexdigest())
         return rp.get_bytes(size)
     
     def _setup_dir(self, dirpath):
-        os.makedirs(dirpath)
+        if not os.path.exists(dirpath): os.makedirs(dirpath)
         
     def _parse_secure_message(self, message):
         parts = message.split('\n\n')

@@ -1,4 +1,6 @@
 include settings
+include qpid.conf
+include qpid-bridge.conf
 include version
 recursive-include kickstart * 
 recursive-include docs *

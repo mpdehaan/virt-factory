@@ -15,6 +15,7 @@ A rpc implementation that uses dbus and qpid/amqp
 if __name__ == "__main__":
         manpath  = "share/man/man1/"
         etcpath  = "/etc/%s" % NAME
+        qpidetcpath  = "/etc/qpid"
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
         logpath  = "/var/log/%s/" % NAME
@@ -26,14 +27,16 @@ if __name__ == "__main__":
                 url = "http://%s.et.redhat.com/" % NAME,
                 license = "GPL",
 		scripts = ["scripts/start-bridge"],
-		package_dir = {"busrpc/": "",},
+		package_dir = {"busrpc/": "",
+			       "busrpc/test/": "test/",},
 #			       "busrpc/local/": "local/",
 #			       "busrpc/remote/": "remote/",},
-		packages = ["busrpc",],
+		packages = ["busrpc",
+			    "busrpc/test",],
 #			    "busrpc/local",
 #			    "busrpc/remote"],
-                data_files = [(etcpath, ["configs/test.conf",
-					 "configs/amqp.0-8.xml"]),
+                data_files = [(etcpath, ["configs/test.conf"]),
+			      (qpidetcpath, ["configs/amqp.0-8.xml"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
