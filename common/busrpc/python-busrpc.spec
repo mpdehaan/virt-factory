@@ -3,7 +3,7 @@
 
 #FIXME
 Summary: message bus based rpc 
-Name: busrpc
+Name: python-busrpc
 Source1: version
 Version: %(echo `awk '{ print $1 }' %{SOURCE1}`)
 Release: %(echo `awk '{ print $2 }' %{SOURCE1}`)%{?dist}
@@ -45,7 +45,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %preun
 
 %changelog
-* Fri July 20 2007 Scott Seago <sseago@redhat.com> - 0.0.1-3
+* Fri Jul 20 2007 Scott Seago <sseago@redhat.com> - 0.0.1-3
 - minor changes to get busrpc up and running
 
 * Tue May 29 2007 Adrian Likins <alikins@redhat.com> - 0.0.1-2

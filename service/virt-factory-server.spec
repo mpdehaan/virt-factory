@@ -22,7 +22,8 @@ Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
 Requires: python-migrate
-Requires: busrpc
+Requires: python-busrpc
+Requires: qpidd
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -105,6 +106,9 @@ fi
 
 
 %changelog
+* Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-4
+- added busrpc, qpid dependencies
+
 * Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-3
 - remove old db stuff
 
