@@ -106,7 +106,7 @@ fi
 
 
 %changelog
-* Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-4
+* Mon Jul 20 2007 Scott Seago <sseago@redhat.com> - 0.0.3-4
 - added busrpc, qpid dependencies
 
 * Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-3
