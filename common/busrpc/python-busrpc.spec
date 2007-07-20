@@ -12,6 +12,7 @@ License: GPL
 Group: Applications/System
 Requires: python >= 2.3
 Requires: python-simplejson
+Requires: m2crypto
 Requires: python-crypto
 Requires: python-qpid
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
