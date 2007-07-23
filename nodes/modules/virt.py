@@ -73,9 +73,11 @@ class Virt(web_svc.WebSvc):
         target = "profile"
         if system:
             target = "system"
+        # TODO: FUTURE: set --virt-path in cobbler or here
         koan_args = [
             "/usr/bin/koan",
             "--virt",
+            "--virt-graphics",  # enable VNC
             "--%s=%s" % (target, target_name),
             "--server=%s" % self.server_name
         ]
