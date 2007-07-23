@@ -22,6 +22,7 @@ BUILD_PATH="/tmp/vf-test"
 # that the code will be running on
 VF_SERVER="http://172.16.59.215"
 
+ARCH="fc7"
 
 # er, variables...
 
@@ -129,6 +130,7 @@ show_config()
     echo "TEST_NODECOMM=$TEST_NODECOMM"
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
     echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
+    echo "ARCH=$ARCH"
 }
 
 msg()
@@ -152,9 +154,9 @@ check_out_code()
     pushd $BUILD_PATH
     git clone git://et.redhat.com/virt-factory
     echo $?
-    git clone git://et.redhat.com/koan
+    git clone git://git.fedoraproject.org/git/hosted/cobbler 
     echo $?
-    git clone git://et.redhat.com/cobbler
+    git clone git://git.fedoraproject.org/git/hosted/koan
     echo $?
     popd
 }
@@ -216,7 +218,7 @@ cleanup_puppet()
 
 # FIXME: sync this repo
 # create the repo like the one at 
-# http://virt-factory.et.redhat.com/download/repo/fc6/stable/i386/
+# http://virt-factory.et.redhat.com/download/repo/$ARCH/stable/i386/
 # but with the recently built packages and synced to REMOTE_HOST so
 # that the vf_server import/cobbler import can be told to sync it from there
 # and create the virt-factory vf_repo repo 
@@ -447,7 +449,7 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
         
 	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
 	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
-        ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/fc6/devel/i686 /var/www/html/download/repo/fc6/devel/i386
+        ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386
 fi
 
 # purge the db

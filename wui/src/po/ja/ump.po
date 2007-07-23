@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-06-28 17:09-0400\n"
+"POT-Creation-Date: 2007-07-19 12:31-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,39 +15,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: app/controllers/login_controller.rb:29
-msgid "Could not connect to virt-factory server."
-msgstr "virt工場サーバーに接続できなかった。"
-
-#: app/controllers/application.rb:128
-msgid "Internal Server Error"
-msgstr ""
+#: app/models/event.rb:-
+msgid "event"
+msgstr "でき事"
 
 #: app/models/managed_object.rb:154
 msgid "No child arguments?"
 msgstr ""
 
-#: app/models/event.rb:-
-msgid "event"
-msgstr "でき事"
+#: app/controllers/login_controller.rb:29
+msgid "Could not connect to virt-factory server."
+msgstr "virt工場サーバーに接続できなかった。"
 
-#: app/views/regtoken/edit.rhtml:13 app/views/regtoken/list.rhtml:10
-#: app/views/regtoken/view.rhtml:12 app/views/machine/edit.rhtml:27
-#: app/views/machine/list.rhtml:10 app/views/deployment/edit.rhtml:21
-#: app/views/deployment/list.rhtml:14 app/views/deployment/view.rhtml:52
-msgid "Profile"
-msgstr ""
-
-#: app/views/regtoken/edit.rhtml:17
-msgid "Usage Limit (Optional)"
-msgstr ""
-
-#: app/views/regtoken/edit.rhtml:21
-msgid "Create"
+#: app/controllers/application.rb:133
+msgid "Internal Server Error"
 msgstr ""
 
 #: app/views/regtoken/list.rhtml:9 app/views/regtoken/view.rhtml:8
 msgid "Token"
+msgstr ""
+
+#: app/views/regtoken/list.rhtml:10 app/views/regtoken/view.rhtml:12
+#: app/views/regtoken/edit.rhtml:13 app/views/machine/list.rhtml:10
+#: app/views/machine/edit.rhtml:27 app/views/deployment/list.rhtml:14
+#: app/views/deployment/view.rhtml:52 app/views/deployment/edit.rhtml:21
+msgid "Profile"
 msgstr ""
 
 #: app/views/regtoken/list.rhtml:11 app/views/regtoken/view.rhtml:16
@@ -70,6 +62,253 @@ msgstr ""
 
 #: app/views/regtoken/view.rhtml:13 app/views/task/edit.rhtml:23
 msgid "None"
+msgstr ""
+
+#: app/views/regtoken/edit.rhtml:17
+msgid "Usage Limit (Optional)"
+msgstr ""
+
+#: app/views/regtoken/edit.rhtml:21
+msgid "Create"
+msgstr ""
+
+#: app/views/profile/list.rhtml:10 app/views/profile/view.rhtml:8
+#: app/views/deployment/view.rhtml:57
+msgid "Name"
+msgstr ""
+
+#: app/views/profile/list.rhtml:11 app/views/profile/view.rhtml:12
+#: app/views/deployment/view.rhtml:61
+msgid "Version"
+msgstr ""
+
+#: app/views/profile/list.rhtml:12 app/views/profile/view.rhtml:16
+#: app/views/profile/edit.rhtml:19
+msgid "Distribution"
+msgstr ""
+
+#: app/views/profile/list.rhtml:13
+msgid "Virt Storage (GB)"
+msgstr ""
+
+#: app/views/profile/list.rhtml:14
+msgid "Virt Memory (MB)"
+msgstr ""
+
+#: app/views/profile/list.rhtml:15
+msgid "Targets"
+msgstr ""
+
+#: app/views/profile/list.rhtml:16
+msgid "Container?"
+msgstr ""
+
+#: app/views/profile/list.rhtml:17 app/views/user/list.rhtml:14
+#: app/views/machine/list.rhtml:12 app/views/deployment/list.rhtml:16
+msgid "Actions"
+msgstr ""
+
+#: app/views/profile/list.rhtml:20
+msgid "There are no profile definitions installed into virt-factory."
+msgstr ""
+
+#: app/views/profile/view.rhtml:20 app/views/profile/edit.rhtml:28
+msgid "Virtual Storage Size (GB)"
+msgstr ""
+
+#: app/views/profile/view.rhtml:24 app/views/profile/edit.rhtml:32
+msgid "Virtual RAM (MB)"
+msgstr ""
+
+#: app/views/profile/view.rhtml:28 app/views/machine/edit.rhtml:55
+msgid "Kickstart Metadata"
+msgstr ""
+
+#: app/views/profile/view.rhtml:32 app/views/machine/edit.rhtml:51
+msgid "Kernel Options"
+msgstr ""
+
+#: app/views/profile/view.rhtml:36 app/views/profile/edit.rhtml:44
+msgid "Valid Targets"
+msgstr ""
+
+#: app/views/profile/view.rhtml:40 app/views/profile/edit.rhtml:48
+msgid "Appliance Container"
+msgstr ""
+
+#: app/views/profile/view.rhtml:41
+msgid "Yes"
+msgstr ""
+
+#: app/views/profile/view.rhtml:41
+msgid "No"
+msgstr ""
+
+#: app/views/profile/view.rhtml:44 app/views/deployment/view.rhtml:73
+msgid "Puppet Classes"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:11
+msgid "Name (string)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:15
+msgid "Version (string)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:36
+msgid "Kickstart Metadata (key=value key=value)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:40
+msgid "Kernel Options (key=value word)"
+msgstr ""
+
+#: app/views/profile/edit.rhtml:52
+msgid "Puppet Classes (space delimited)"
+msgstr ""
+
+#: app/views/login/input.rhtml:8
+msgid "Username:"
+msgstr "ユーザ名 "
+
+#: app/views/login/input.rhtml:12
+msgid "No Account?"
+msgstr "    記述無しか。 "
+
+#: app/views/login/input.rhtml:12
+msgid "Request one."
+msgstr ""
+
+#: app/views/login/input.rhtml:14
+msgid "Password:"
+msgstr "    パスワード "
+
+#: app/views/login/input.rhtml:18
+msgid "Forgot your password?"
+msgstr "    パスワード "
+
+#: app/views/login/input.rhtml:20
+msgid "Log In"
+msgstr ""
+
+#: app/views/user/list.rhtml:8 app/views/user/edit.rhtml:11
+msgid "Username"
+msgstr "ユーザ名 "
+
+#: app/views/user/list.rhtml:9
+msgid "First"
+msgstr ""
+
+#: app/views/user/list.rhtml:10
+msgid "Middle"
+msgstr ""
+
+#: app/views/user/list.rhtml:11
+msgid "Last"
+msgstr ""
+
+#: app/views/user/list.rhtml:12 app/views/user/edit.rhtml:36
+msgid "Description"
+msgstr ""
+
+#: app/views/user/list.rhtml:13 app/views/user/edit.rhtml:40
+msgid "Email"
+msgstr ""
+
+#: app/views/user/edit.rhtml:20
+msgid "Password"
+msgstr "    パスワード "
+
+#: app/views/user/edit.rhtml:24
+msgid "First name"
+msgstr ""
+
+#: app/views/user/edit.rhtml:28
+msgid "Middle name"
+msgstr ""
+
+#: app/views/user/edit.rhtml:32
+msgid "Last name"
+msgstr ""
+
+#: app/views/user/edit.rhtml:44 app/views/machine/edit.rhtml:78
+#: app/views/deployment/edit.rhtml:44
+msgid "Edit"
+msgstr ""
+
+#: app/views/user/edit.rhtml:44 app/views/machine/edit.rhtml:76
+#: app/views/deployment/edit.rhtml:44
+msgid "Add"
+msgstr ""
+
+#: app/views/task/list.rhtml:9 app/views/task/edit.rhtml:17
+msgid "User"
+msgstr "ユーザ名 "
+
+#: app/views/task/list.rhtml:10
+msgid "Action"
+msgstr ""
+
+#: app/views/task/list.rhtml:11 app/views/task/edit.rhtml:40
+#: app/views/deployment/edit.rhtml:12
+msgid "Machine"
+msgstr ""
+
+#: app/views/task/list.rhtml:12 app/views/task/edit.rhtml:51
+msgid "Deployment"
+msgstr ""
+
+#: app/views/task/list.rhtml:13 app/views/task/edit.rhtml:62
+#: app/views/deployment/list.rhtml:15 app/views/deployment/view.rhtml:81
+msgid "State"
+msgstr ""
+
+#: app/views/task/list.rhtml:15
+msgid "Start Time"
+msgstr ""
+
+#: app/views/task/list.rhtml:18
+msgid "There are no scheduled tasks at this time."
+msgstr ""
+
+#: app/views/task/list.rhtml:34
+msgid "(Unknown)"
+msgstr ""
+
+#: app/views/task/edit.rhtml:29
+msgid "Action Type"
+msgstr ""
+
+#: app/views/task/edit.rhtml:73
+msgid "Time"
+msgstr ""
+
+#: app/views/task/edit.rhtml:84
+msgid "go"
+msgstr ""
+
+#: app/views/machine/list.rhtml:9 app/views/deployment/view.rhtml:28
+msgid "Hostname"
+msgstr ""
+
+#: app/views/machine/list.rhtml:11 app/views/machine/edit.rhtml:66
+#: app/views/deployment/list.rhtml:13
+msgid "Mac Address"
+msgstr ""
+
+#: app/views/machine/list.rhtml:15
+msgid ""
+"No machines are in the virt-factory database.  Use the \"Add\" link to "
+"register some."
+msgstr ""
+
+#: app/views/machine/list.rhtml:25
+msgid "(Pending)"
+msgstr ""
+
+#: app/views/machine/list.rhtml:31
+msgid "(Locked)"
 msgstr ""
 
 #: app/views/machine/edit.rhtml:13
@@ -100,204 +339,8 @@ msgstr ""
 msgid "Memory"
 msgstr ""
 
-#: app/views/machine/edit.rhtml:51 app/views/profile/view.rhtml:32
-msgid "Kernel Options"
-msgstr ""
-
-#: app/views/machine/edit.rhtml:55 app/views/profile/view.rhtml:28
-msgid "Kickstart Metadata"
-msgstr ""
-
 #: app/views/machine/edit.rhtml:59
 msgid "List Group"
-msgstr ""
-
-#: app/views/machine/edit.rhtml:66 app/views/machine/list.rhtml:11
-#: app/views/deployment/list.rhtml:13
-msgid "Mac Address"
-msgstr ""
-
-#: app/views/machine/edit.rhtml:76 app/views/user/edit.rhtml:44
-#: app/views/deployment/edit.rhtml:44
-msgid "Add"
-msgstr ""
-
-#: app/views/machine/edit.rhtml:78 app/views/user/edit.rhtml:44
-#: app/views/deployment/edit.rhtml:44
-msgid "Edit"
-msgstr ""
-
-#: app/views/machine/list.rhtml:9 app/views/deployment/view.rhtml:28
-msgid "Hostname"
-msgstr ""
-
-#: app/views/machine/list.rhtml:12 app/views/user/list.rhtml:14
-#: app/views/profile/list.rhtml:17 app/views/deployment/list.rhtml:16
-msgid "Actions"
-msgstr ""
-
-#: app/views/machine/list.rhtml:15
-msgid ""
-"No machines are in the virt-factory database.  Use the \"Add\" link to "
-"register some."
-msgstr ""
-
-#: app/views/machine/list.rhtml:25
-msgid "(Pending)"
-msgstr ""
-
-#: app/views/machine/list.rhtml:30
-msgid "(Locked)"
-msgstr ""
-
-#: app/views/user/edit.rhtml:11 app/views/user/list.rhtml:8
-msgid "Username"
-msgstr "ユーザ名 "
-
-#: app/views/user/edit.rhtml:20
-msgid "Password"
-msgstr "    パスワード "
-
-#: app/views/user/edit.rhtml:24
-msgid "First name"
-msgstr ""
-
-#: app/views/user/edit.rhtml:28
-msgid "Middle name"
-msgstr ""
-
-#: app/views/user/edit.rhtml:32
-msgid "Last name"
-msgstr ""
-
-#: app/views/user/edit.rhtml:36 app/views/user/list.rhtml:12
-msgid "Description"
-msgstr ""
-
-#: app/views/user/edit.rhtml:40 app/views/user/list.rhtml:13
-msgid "Email"
-msgstr ""
-
-#: app/views/user/list.rhtml:9
-msgid "First"
-msgstr ""
-
-#: app/views/user/list.rhtml:10
-msgid "Middle"
-msgstr ""
-
-#: app/views/user/list.rhtml:11
-msgid "Last"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:11
-msgid "Name (string)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:15
-msgid "Version (string)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:19 app/views/profile/list.rhtml:12
-#: app/views/profile/view.rhtml:16
-msgid "Distribution"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:28 app/views/profile/view.rhtml:20
-msgid "Virtual Storage Size (GB)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:32 app/views/profile/view.rhtml:24
-msgid "Virtual RAM (MB)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:36
-msgid "Kickstart Metadata (key=value key=value)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:40
-msgid "Kernel Options (key=value word)"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:44 app/views/profile/view.rhtml:36
-msgid "Valid Targets"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:48 app/views/profile/view.rhtml:40
-msgid "Appliance Container"
-msgstr ""
-
-#: app/views/profile/edit.rhtml:52
-msgid "Puppet Classes (space delimited)"
-msgstr ""
-
-#: app/views/profile/list.rhtml:10 app/views/profile/view.rhtml:8
-#: app/views/deployment/view.rhtml:57
-msgid "Name"
-msgstr ""
-
-#: app/views/profile/list.rhtml:11 app/views/profile/view.rhtml:12
-#: app/views/deployment/view.rhtml:61
-msgid "Version"
-msgstr ""
-
-#: app/views/profile/list.rhtml:13
-msgid "Virt Storage (GB)"
-msgstr ""
-
-#: app/views/profile/list.rhtml:14
-msgid "Virt Memory (MB)"
-msgstr ""
-
-#: app/views/profile/list.rhtml:15
-msgid "Targets"
-msgstr ""
-
-#: app/views/profile/list.rhtml:16
-msgid "Container?"
-msgstr ""
-
-#: app/views/profile/list.rhtml:20
-msgid "There are no profile definitions installed into virt-factory."
-msgstr ""
-
-#: app/views/profile/view.rhtml:41
-msgid "Yes"
-msgstr ""
-
-#: app/views/profile/view.rhtml:41
-msgid "No"
-msgstr ""
-
-#: app/views/profile/view.rhtml:44 app/views/deployment/view.rhtml:73
-msgid "Puppet Classes"
-msgstr ""
-
-#: app/views/demo/list.rhtml:12
-msgid ""
-"Most of these pages are just database scaffolding.  This will grow more "
-"later."
-msgstr ""
-
-#: app/views/deployment/edit.rhtml:12 app/views/task/edit.rhtml:40
-#: app/views/task/list.rhtml:11
-msgid "Machine"
-msgstr ""
-
-#: app/views/deployment/edit.rhtml:30
-msgid "Puppet Class Node Overrides (Optional)"
-msgstr ""
-
-#: app/views/deployment/edit.rhtml:35
-msgid "MAC Address"
-msgstr ""
-
-#: app/views/deployment/edit.rhtml:39
-msgid "Current State"
-msgstr ""
-
-#: app/views/deployment/edit.rhtml:53
-msgid "Control actions:"
 msgstr ""
 
 #: app/views/deployment/list.rhtml:10 app/views/deployment/view.rhtml:23
@@ -310,11 +353,6 @@ msgstr ""
 
 #: app/views/deployment/list.rhtml:12
 msgid "IP"
-msgstr ""
-
-#: app/views/deployment/list.rhtml:15 app/views/deployment/view.rhtml:81
-#: app/views/task/edit.rhtml:62 app/views/task/list.rhtml:13
-msgid "State"
 msgstr ""
 
 #: app/views/deployment/list.rhtml:19
@@ -341,62 +379,24 @@ msgstr ""
 msgid "Puppet Class Node Overrides"
 msgstr ""
 
-#: app/views/task/edit.rhtml:17 app/views/task/list.rhtml:9
-msgid "User"
-msgstr "ユーザ名 "
-
-#: app/views/task/edit.rhtml:29
-msgid "Action Type"
+#: app/views/deployment/edit.rhtml:30
+msgid "Puppet Class Node Overrides (Optional)"
 msgstr ""
 
-#: app/views/task/edit.rhtml:51 app/views/task/list.rhtml:12
-msgid "Deployment"
+#: app/views/deployment/edit.rhtml:35
+msgid "MAC Address"
 msgstr ""
 
-#: app/views/task/edit.rhtml:73
-msgid "Time"
+#: app/views/deployment/edit.rhtml:39
+msgid "Current State"
 msgstr ""
 
-#: app/views/task/edit.rhtml:84
-msgid "go"
+#: app/views/deployment/edit.rhtml:53
+msgid "Control actions:"
 msgstr ""
 
-#: app/views/task/list.rhtml:10
-msgid "Action"
-msgstr ""
-
-#: app/views/task/list.rhtml:15
-msgid "Start Time"
-msgstr ""
-
-#: app/views/task/list.rhtml:18
-msgid "There are no scheduled tasks at this time."
-msgstr ""
-
-#: app/views/task/list.rhtml:34
-msgid "(Unknown)"
-msgstr ""
-
-#: app/views/login/input.rhtml:8
-msgid "Username:"
-msgstr "ユーザ名 "
-
-#: app/views/login/input.rhtml:12
-msgid "No Account?"
-msgstr "    記述無しか。 "
-
-#: app/views/login/input.rhtml:12
-msgid "Request one."
-msgstr ""
-
-#: app/views/login/input.rhtml:14
-msgid "Password:"
-msgstr "    パスワード "
-
-#: app/views/login/input.rhtml:18
-msgid "Forgot your password?"
-msgstr "    パスワード "
-
-#: app/views/login/input.rhtml:20
-msgid "Log In"
+#: app/views/demo/list.rhtml:12
+msgid ""
+"Most of these pages are just database scaffolding.  This will grow more "
+"later."
 msgstr ""
