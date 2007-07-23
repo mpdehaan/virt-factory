@@ -14,15 +14,21 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
-# NOTE: this module implements virt support via koan and xm commands.
-# the xm commands /should/ be replaced with libvirt logic, though
-# libvirt inactive domain management is not currently available in RHEL5.
-# if it does become available, switch the xm commands over.
-
-import glob
 import sys
 import os
 import subprocess
+import libvirt
+
+# db values, do not translate!
+VIRT_STATE_NAME_MAP = {
+   0 : "running",
+   1 : "running",
+   2 : "running",
+   3 : "paused",
+   4 : "shutdown",
+   5 : "shutdown",
+   6 : "crashed"
+}
 
 if __name__ == "__main__":
    sys.path.append("../")
@@ -30,7 +36,7 @@ if __name__ == "__main__":
 from nodes.codes import *
 from modules import web_svc
 
-XM_BIN = "/usr/sbin/xm"
+#XM_BIN = "/usr/sbin/xm"
 
 class Virt(web_svc.WebSvc):
     
@@ -58,6 +64,11 @@ class Virt(web_svc.WebSvc):
             "virt_delete"   : self.undefine,
             "virt_status"   : self.get_status,
         }
+
+        self.xen_conn = libvirt.open(None)  # warning: Xen only!
+        if not self.xen_conn:
+           raise VirtException(comment="Xen connection failure")
+ 
         web_svc.WebSvc.__init__(self)
 
     #=======================================================================
@@ -86,18 +97,35 @@ class Virt(web_svc.WebSvc):
             return success(0)
         else:
             raise VirtException(comment="koan returned %d" % rc)
+ 
+    #=======================================================================
 
+    def find_vm(self, mac_address):
 
+        # name we use
+        needle = mac_address.replace(":","_").upper()
+
+        ids = conn.listDomainsID()
+        for domain in ids:
+            try:
+                domain = self.xen_conn.lookupByID(domain)
+            except libvirt.libvirtError, lve:
+                raise virtException(comment="libvirt go boom: %s" % repr(lve))          
+            if domain.name() == needle:
+                return domain
+
+        raise VirtException(comment="virtual machine %s not found" % needle)
+    
     #=======================================================================
    
     def shutdown(self, mac_address):
 
-         """
-         Make the machine with the given mac_address stop running.
-         Whatever that takes.
-         """
-
-         self.__xm_command("shutdown", mac_address, [ "r", "p", "b", "-----" ])
+        """
+        Make the machine with the given mac_address stop running.
+        Whatever that takes.
+        """
+        self.find_vm(mac_address).shutdown()
+        return True        
 
     #=======================================================================
    
@@ -106,9 +134,8 @@ class Virt(web_svc.WebSvc):
         """
         Pause the machine with the given mac_address.
         """
-
-        return self.__xm_command("pause", mac_address, [ "r", "b", "-----" ])
-
+        self.find_vm(mac_address).suspend()
+        return True
 
     #=======================================================================
    
@@ -118,7 +145,8 @@ class Virt(web_svc.WebSvc):
         Unpause the machine with the given mac_address.
         """
 
-        return self.__xm_command("unpause", mac_address, [ "p" ])
+        self.find_vm(mac_address).resume()
+        return True
 
     #=======================================================================
 
@@ -127,9 +155,9 @@ class Virt(web_svc.WebSvc):
         """
         Start the machine via the given mac address. 
         """
-  
-        return self.__xm_command("create", mac_address, None)
-   
+        self.find_vm(mac_address).create()
+        return True  
+ 
     # ======================================================================
 
     def destroy(self, mac_address):
@@ -138,8 +166,8 @@ class Virt(web_svc.WebSvc):
         Pull the virtual power from the virtual domain, giving it virtually no
         time to virtually shut down.
         """
-
-        return self.__xm_command("destroy", mac_address, [ "p", "b", "-----", "r" ])
+        self.find_vm(mac_address).destroy()
+        return True
 
 
     #=======================================================================
@@ -151,10 +179,8 @@ class Virt(web_svc.WebSvc):
         by deleting the disk image and it's configuration file.
         """
 
-        # make sure the machine is off, no warning time given
-        killcode = self.__xm_command("destroy", mac_address, None)
-        # allow it to be deleted -- use virsh for this as XM can't do it (?)
-        return subprocess.call(["/usr/bin/virsh","undefine",mac_address], shell=True)
+        self.find_vm(mac_address).undefine()
+        return True
 
     #=======================================================================
 
@@ -163,17 +189,14 @@ class Virt(web_svc.WebSvc):
         """
         Return a state suitable for server consumption.  Aka, codes.py values, not XM output.
         """
+        
+        # info returns a tuple of things, not documented in the code
+        #  MEMORY = [1]
+        #  STATE  = [0]
 
-        state = self.__get_xm_state(mac_address)
-        if state == "off":
-            return success("STATE=off")
-        elif state.find("p") != -1:
-            return success("STATE=paused")
-        elif state.find("b") != -1 or state.find("-----") != -1 or state.find("r") != -1:
-            return success("STATE=running")
-        else: 
-            return success("STATE=unknown")
-        return success()
+        state = self.find_vm(mac_address).info()[1]
+        return success("STATE=%s" % VIRT_NAME_STATE_MAP.get(state,"unknown"))
+
 
     #=======================================================================
 
@@ -214,52 +237,6 @@ class Virt(web_svc.WebSvc):
 
     #=======================================================================
 
-    def __xm_command(self, command, mac_address, valid_states):
-        
-        """
-        Execute an xm command for a mac_address only if the xm state is one of valid_states.
-        Otherwise, it's an error.
-        """
-
-        current_state = self.__get_xm_state(mac_address)
-        if valid_states is not None:
-            print "valid states:", valid_states
-            for state in valid_states:
-                if current_state.find(state) != -1:
-                    return self.__run_xm(command, mac_address, False)
-            comment = "invalid state %s for %s on %s" % (current_state, command, mac_address)
-            print comment
-            raise VirtException(comment=comment)
-        else:
-            rc = self.__run_xm(command, mac_address, False)
-            if rc == 0:
-                return success(rc)
-            else:
-                raise VirtException(comment="failed")
-
-    #=======================================================================
-
-    def __run_xm(self, command, mac_address, string_out):
-
-         """
-         Run a xm command named "command" against a domain named after a mac_address
-         (only with :'s converted to _ and lowercased), returning either an integer
-         or a string based on the boolean value of string_out.
-         """       
-
-         if mac_address is not None:
-             cmd_mac = mac_address.replace(":","_").upper()
-             xm_command = "%s %s %s" % (XM_BIN, command, cmd_mac)
-         else:
-             xm_command = "%s %s" % (XM_BIN, command)
-         print xm_command
-         if string_out:
-             (cin, couterr) = os.popen4(xm_command)
-             output = couterr.read()
-             return output
-         else:
-             return os.system(xm_command)
-
 
 methods = Virt()
 register_rpc = methods.register_rpc
@@ -268,11 +245,8 @@ if __name__ == "__main__":
     # development testing only
     virt = Virt()
 
-    # install a virtual system
-    # print virt.install("Test1",False)
-
     # start a virtual system
-    TEST = "00:16:3E:53:83:0B"
+    TEST = "00:16:3E:05:29:26"
     
     virt.create(TEST)
     virt.shutdown(TEST)
