@@ -24,7 +24,10 @@ class Machine < ManagedObject
                   :is_container => {:type => Integer}, 
                   :netboot_enabled => { :type => Integer },
                   :puppet_node_diff => {:type => String},
-                  :is_locked => {:type => Integer} }
+                  :is_locked => {:type => Integer},
+                  :last_heartbeat => {:type => Integer},
+                  :state => {:type => String}
+    }
 
     self.set_attrs(ATTR_LIST)
 

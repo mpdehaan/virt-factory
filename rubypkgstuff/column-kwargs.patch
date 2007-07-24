@@ -1,0 +1,33 @@
+diff -ruN migrate-0.2.2/migrate/changeset/__init__.py migrate-0.2.2.rh/migrate/changeset/__init__.py
+--- migrate-0.2.2/migrate/changeset/__init__.py	2006-12-03 18:56:22.000000000 -0500
++++ migrate-0.2.2.rh/migrate/changeset/__init__.py	2007-07-09 14:16:15.000000000 -0400
+@@ -226,7 +226,7 @@
+ 
+ class ChangesetTable(object):
+     """Changeset extensions to SQLAlchemy tables."""
+-    def create_column(self,column):
++    def create_column(self,column, **kwargs):
+         """Creates a column
+         The column parameter may be a column definition or the name of a column
+         in this table. 
+@@ -234,9 +234,9 @@
+         if not isinstance(column,sqlalchemy.Column):
+             # It's a column name
+             column = getattr(self.c,str(column))
+-        column.create(table=self)
++        column.create(table=self, **kwargs)
+     
+-    def drop_column(self,column):
++    def drop_column(self,column, **kwargs):
+         """Drop a column, given its name or definition."""
+         if not isinstance(column,sqlalchemy.Column):
+             # It's a column name
+@@ -247,7 +247,7 @@
+                 # definition to drop the column, just its name, so create a dummy
+                 # column with the same name.
+                 column = sqlalchemy.Column(str(column))
+-        column.drop(table=self)
++        column.drop(table=self, **kwargs)
+ 
+     def _meta_key(self):
+         return schema._get_table_key(self.name,self.schema)

@@ -4,6 +4,7 @@ Virt-factory backend code.
 Copyright 2006, Red Hat, Inc
 Michael DeHaan <mdehaan@redhat.com>
 Scott Seago <sseago@redhat.com>
+Adrian Likins <alikins@redhat.com>
 
 This software may be freely redistributed under the terms of the GNU
 general public license.
@@ -42,36 +43,23 @@ class Machine(web_svc.AuthWebSvc):
         @param token: A security token.
         @type token: string
         @param args: A dictionary of machine attributes.
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
-            - is_locked (optional)
         @type args: dict
         @raise SQLException: On database error
         """    
-        optional =\
-            ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
-             'processor_count','memory', 'kernel_options', 'kickstart_metadata', 
-             'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
+        optional = (
+            'hostname', 'ip_address', 'registration_token', 
+            'architecture', 'processor_speed', 
+            'processor_count','memory', 'kernel_options', 
+            'kickstart_metadata', 'list_group', 'mac_address', 
+            'is_container', 'puppet_node_diff', 
+            'netboot_enabled', 'is_locked', 'status', 'last_heartbeat'
+        )
         required = ('profile_id',)
         self.validate(args, required)
         session = db.open_session()
         try:
             machine = db.Machine()
             machine.update(args)
-            # TODO: generate the registration token here and make it actually random and decent.
             machine.registration_token = regtoken.RegToken().generate(token)
             machine.netboot_enabled = 1 # initially, allow PXE, until it registers
             session.save(machine)
@@ -144,31 +132,19 @@ class Machine(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of machine attributes.
         @type args: dict
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
-        optional =\
-            ('hostname', 'ip_address', 'registration_token', 'architecture', 'processor_speed', 
-             'processor_count','memory', 'kernel_options', 'kickstart_metadata', 'profile_id', 
-             'list_group', 'mac_address', 'is_container', 'puppet_node_diff', 'netboot_enabled', 'is_locked')
+        optional = (
+             'hostname', 'ip_address', 'registration_token', 
+             'architecture', 'processor_speed', 
+             'processor_count','memory', 'kernel_options', 
+             'kickstart_metadata', 'profile_id', 
+             'list_group', 'mac_address', 'is_container', 
+             'puppet_node_diff', 'netboot_enabled', 'is_locked',
+             'state', 'last_heartbeat'
+        )
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -215,23 +191,6 @@ class Machine(web_svc.AuthWebSvc):
             - limit (optional)
         @return A list of all machines.
         @rtype: [dict,]
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """    
         session = db.open_session()
@@ -257,23 +216,6 @@ class Machine(web_svc.AuthWebSvc):
         @type args: dict
         @return A list of all machines.
         @rtype: [dict,]
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         """
         required = ('hostname',)
@@ -292,6 +234,9 @@ class Machine(web_svc.AuthWebSvc):
 
 
     def get_by_regtoken(self, token, args):
+        # FIXME: this code is currently non-operational in VF 0.0.3 and later
+        # this code can be pruned if regtoken functional is needed and
+        # reinstated.
         """
         Get a machines by registration token.
         @param token: A security token.
@@ -303,22 +248,6 @@ class Machine(web_svc.AuthWebSvc):
         @type args: dict
         @return A list of machines.
         @rtype: [dict,]
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
         @raise SQLException: On database error
         """
         required = ('registration_token',)
@@ -364,23 +293,6 @@ class Machine(web_svc.AuthWebSvc):
         @type args: dict
         @return A machine.
         @rtype: dict
-            - id
-            - hostname (optional)
-            - ip_address (optional)
-            - registration_token (optional)
-            - architecture (optional)
-            - processor_speed (optional)
-            - processor_count  (optional)
-            - memory (optional)
-            - kernel_options  (optional)
-            - kickstart_metadata (optional)
-            - list_group (optional)
-            - mac_address (optional)
-            - is_container (optional)
-            - profile_id
-            - puppet_node_diff (optional)
-            - netboot_enabled (optional)
-            - is_locked (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """

@@ -20,9 +20,6 @@ The last released milestone was 0.0.2, which was released on 5/1/2007.  We are c
 </a>
 <ul>
 <li>
-Use busrpc(AMQP) to communicate with nodes
-</li>
-<li>
 Further test infrastructure upgrades
 </li>
 <li>
@@ -50,13 +47,13 @@ Implement basis for localization framework
 <p>
 <ul>
 <li>
-Status tracking -- heartbeat from node daemons and associated infrastructure work to do that securely. Not to be confused with monitoring but may include what is accessible through libvirt, etc.  Do this over the bus.
+Use busrpc(AMQP) to communicate with nodes
+</li>
+<li>
+Status tracking -- heartbeat from node daemons and associated infrastructure work to do that securely. Not to be confused with monitoring but may include what is accessible through libvirt, etc.  Do this over the bus.  Also improve Cobbler status tracking.
 </li>
 <li>
 Keeping VM's started when host nodes restart and so on.
-</li>
-<li>
-Take advantage of message bus for better status tracking.  Also improve Cobbler status tracking (shows status in the middle of kickstarts).
 </li>
 <li>
 Seperate WUI from central server so they can optionally be installed on seperate machines.
@@ -77,14 +74,14 @@ Write the command line app ("ampm")
 Upload and import profiles via the WUI without using vf_import
 </li>
 <li>
+Batch management via tasks and tag selection. (Do X to all machines tagged "foo" and "bar", look at all machines tagged "foo" and "bar", etc). 
+</li>
+<li>
 A per host task view. Slice by hosts, see what each are doing. See what is going on in a specific host when you visit that page for the individual host.
 Tracking of who/what initiated tasks when. (Audit logging). Show this when clicking on the task.
 </li>
 <li>
-Batch management via tasks and tag selection. (Do X to all machines tagged "foo" and "bar", look at all machines tagged "foo" and "bar", etc). 
-</li>
-<li>
-Fedora 7 support. Better distro import interface (allow for running this at any time, not just startup).
+Better distro import interface (allow for running this at any time, not just startup).
 </li>
 </ul>
 </p>

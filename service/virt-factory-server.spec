@@ -13,15 +13,15 @@ Requires: python >= 2.3
 Requires: cobbler >= 0.4.7
 Requires: koan >= 0.2.8
 Requires: python-virtinst
-Requires: puppet-server
+Requires: puppet-server >= 0.23
 Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils
-Requires: python-migrate
 Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
+Requires: python-migrate
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -56,7 +56,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/virt-factory/profiles/queued
 %dir %attr(755,postgres,postgres) /var/lib/virt-factory/db
 %config(noreplace) /etc/virt-factory/settings
-# kickstart templaces
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/server
@@ -66,6 +65,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{python_sitelib}/virt-factory/server/modules/*.py*
 %dir %{python_sitelib}/virt-factory/server/yaml
 %{python_sitelib}/virt-factory/server/yaml/*.py*
+# are tmpl files included?
 %dir %{python_sitelib}/virt-factory/server/db_upgrade
 %{python_sitelib}/virt-factory/server/db_upgrade/*.py*
 %dir /usr/share/virt-factory
@@ -76,20 +76,21 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /usr/share/virt-factory/puppet-config
 /etc/puppet/manifests/site.pp
 /usr/share/virt-factory/puppet-config/puppetmaster
-/usr/share/virt-factory/puppet-config/puppetd.conf
+/usr/share/virt-factory/puppet-config/puppet.conf
 %dir /usr/share/virt-factory/profile-template
 /usr/share/virt-factory/profile-template/Makefile
 /usr/share/virt-factory/profile-template/profile.xml.in
 /usr/share/virt-factory/profile-template/vf-profile-template.spec
 /usr/share/virt-factory/profile-template/init.pp
 %dir /var/log/virt-factory
+
 %dir %attr(755,postgres,postgres) /var/log/virt-factory/db
 %defattr(2770,postgres,postgres)
 %dir /etc/virt-factory/db
 
 %post
 /bin/cp /usr/share/virt-factory/puppet-config/puppetmaster /etc/sysconfig
-/bin/cp /usr/share/virt-factory/puppet-config/puppetd.conf /etc/puppet
+/bin/cp /usr/share/virt-factory/puppet-config/puppet.conf /etc/puppet
 /sbin/chkconfig --add virt-factory-server
 exit 0
 

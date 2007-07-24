@@ -15,13 +15,13 @@ Requires: rubygem(rails) >= 1.2.2
 Requires: rubygem(mongrel) >= 1.0.1
 Requires: ruby-gettext-package
 Requires: httpd >= 2.0
-Requires: virt-factory-server >= 0.0.1
 Requires(post):  /sbin/chkconfig
 Requires(preun): /sbin/chkconfig
 Requires(preun): /sbin/service
 BuildRequires: ruby >= 1.8.1
 BuildRequires: ruby-devel
 BuildRequires: ruby-gettext-package
+BuildRequires: rubygem(rake) >= 0.7
 Provides: virt-factory-wui
 BuildArch: noarch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -44,6 +44,7 @@ mkdir %{buildroot}
 %{__install} -d -m0755 %{buildroot}%{_sbindir}
 %{__install} -d -m0755 %{buildroot}%{_initrddir}
 %{__install} -d -m0755 %{buildroot}%{_sysconfdir}/httpd/conf.d
+%{__install} -d -m0755 %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 %{__install} -d -m0755 %{buildroot}%{_localstatedir}/lib/%{name}
 %{__install} -d -m0755 %{buildroot}%{_localstatedir}/log/%{name}
 %{__install} -d -m0755 %{buildroot}%{_localstatedir}/run/%{name}
@@ -53,6 +54,7 @@ touch %{buildroot}%{_localstatedir}/log/%{name}/mongrel.log
 touch %{buildroot}%{_localstatedir}/log/%{name}/rails.log
 %{__install} -p -m0644 %{pbuild}/conf/%{name}.conf %{buildroot}%{_sysconfdir}/httpd/conf.d
 %{__install} -Dp -m0755 %{pbuild}/conf/%{name} %{buildroot}%{_initrddir}
+%{__install} -p -m0644 %{pbuild}/conf/server %{buildroot}%{_sysconfdir}/sysconfig/%{name}
 %{__cp} -a %{pbuild}/src/* %{buildroot}%{app_root}
 %{__rm} -rf %{buildroot}%{app_root}/tmp 
 %{__mkdir} %{buildroot}%{_localstatedir}/lib/%{name}/tmp
@@ -67,6 +69,8 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,0755)
 %{_initrddir}/%{name}
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/%{name}.conf
+%dir /etc/sysconfig/%{name}
+%config(noreplace) /etc/sysconfig/%{name}/server
 %doc
 %attr(-, virtfact, virtfact) %{_localstatedir}/lib/%{name}
 %attr(-, virtfact, virtfact) %{_localstatedir}/run/%{name}
