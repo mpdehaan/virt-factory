@@ -15,7 +15,7 @@ A rpc implementation that uses dbus and qpid/amqp
 if __name__ == "__main__":
         manpath  = "share/man/man1/"
         etcpath  = "/etc/busrpc"
-        qpidetcpath  = "/etc/qpid"
+#        qpidetcpath  = "/etc/qpid"
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
         logpath  = "/var/log/busrpc/"
@@ -34,7 +34,7 @@ if __name__ == "__main__":
 #			    "busrpc/local",
 #			    "busrpc/remote"],
                 data_files = [(etcpath, ["configs/test.conf"]),
-			      (qpidetcpath, ["configs/amqp.0-8.xml"]),
+#			      (qpidetcpath, ["configs/amqp.0-8.xml"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

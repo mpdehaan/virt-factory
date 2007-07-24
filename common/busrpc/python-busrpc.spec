@@ -35,7 +35,6 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %files
 %{_bindir}/start-bridge
 #%dir /var/lib/bus-rpc
-%config(noreplace) /etc/qpid/amqp.0-8.xml
 %config(noreplace) /etc/busrpc/test.conf
 %dir %{python_sitelib}/busrpc
 %{python_sitelib}/busrpc/*.py*

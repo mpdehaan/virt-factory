@@ -36,7 +36,7 @@ class QpidTransport(Transport):
         self.credentials = {"LOGIN":user, "PASSWORD":password}
         self.channels = {}
         self.client = qpid.client.Client(host, port,
-                                         qpid.spec.load("file:///etc/qpid/amqp.0-8.xml"),
+                                         qpid.spec.load("file:///usr/share/amqp/amqp.0-9.xml", "file:///usr/share/amqp/amqp-errata.0-9.xml"),
                                          vhost=vhost)
         self.exchange_name = "busrpc"
         self.connected = False
