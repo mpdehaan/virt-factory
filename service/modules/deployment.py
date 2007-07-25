@@ -45,7 +45,9 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_refresh": self.refresh,
                         "deployment_delete": self.delete,
                         "deployment_list": self.list,
-                        "deployment_get": self.get}
+                        "deployment_get": self.get,
+			"deployment_get_by_mac_address": self.get_by_mac_address,
+			"deployment_get_by_hostname": self.get_by_hostname}
 
         web_svc.AuthWebSvc.__init__(self)
 
