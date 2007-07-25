@@ -12,14 +12,6 @@ class Machine(base_module.BaseModule):
         self.methods = ["machine_list"]
 
     def machine_list(self):
-        (retcode, data) = self.server.machine_list(self.token,{})
-        pprint.pprint(data)
-        for machine in data['data']:
-            if machine['id'] == -1:
-                continue
-            print "hostname: %s id: %s profile_name: %s" % (machine['id'], machine['hostname'], machine['profile']['name'])
-#            print machine['id']
-#            print machine['hostname']
-#            print machine['profile']['name']
+        return self.server.machine_list(self.token,{})
 
 api_class = Machine

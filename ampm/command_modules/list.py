@@ -2,6 +2,7 @@
 
 import getopt
 import os
+import pprint
 import sys
 
 import ampmlib
@@ -35,5 +36,9 @@ class List(object):
                 self.list_machines()
 
     def list_machines(self):
-        self.api.machine_list()
-    
+        (retcode, data) = self.api.machine_list()
+        pprint.pprint(data)
+        for machine in data['data']:
+            if machine['id'] == -1:
+                continue
+            print "hostname: %s id: %s profile_name: %s" % (machine['id'], machine['hostname'], machine['profile']['name'])
