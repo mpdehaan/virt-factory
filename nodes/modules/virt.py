@@ -200,6 +200,7 @@ class Virt(web_svc.WebSvc):
         # the state directly.
 
         state = self.find_vm(mac_address).info()[1]
+        self.logger.debug("state: %s" % state)
         return success("STATE=%s" % VIRT_STATE_NAME_MAP.get(state,"unknown"))
 
 

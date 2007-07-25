@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-07-25 11:47-0400\n"
+"POT-Creation-Date: 2007-07-25 15:25-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -233,12 +233,12 @@ msgid "Last name"
 msgstr ""
 
 #: app/views/user/edit.rhtml:44 app/views/machine/edit.rhtml:78
-#: app/views/deployment/edit.rhtml:44
+#: app/views/deployment/edit.rhtml:47
 msgid "Edit"
 msgstr ""
 
 #: app/views/user/edit.rhtml:44 app/views/machine/edit.rhtml:76
-#: app/views/deployment/edit.rhtml:44
+#: app/views/deployment/edit.rhtml:47
 msgid "Add"
 msgstr ""
 
@@ -391,7 +391,7 @@ msgstr ""
 msgid "Current State"
 msgstr ""
 
-#: app/views/deployment/edit.rhtml:53
+#: app/views/deployment/edit.rhtml:56
 msgid "Control actions:"
 msgstr ""
 
