@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: ump 0.1.0\n"
-"POT-Creation-Date: 2007-07-25 15:25-0400\n"
+"POT-Creation-Date: 2007-07-25 15:55-0400\n"
 "PO-Revision-Date: 2007-05-23 15:49-0400\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"

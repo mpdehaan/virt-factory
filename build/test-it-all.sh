@@ -164,7 +164,13 @@ check_out_code()
 remove_virtual_machine()
 {
     /usr/sbin/xm destroy 00_16_3E_00_00_00
+    /usr/sbin/xm destroy 00_16_3E_00_00_01
+    /usr/sbin/xm destroy 00_16_3E_00_00_02
+    /usr/sbin/xm destroy 00_16_3E_00_00_03
     virsh undefine 00_16_3E_00_00_00
+    virsh undefine 00_16_3E_00_00_01
+    virsh undefine 00_16_3E_00_00_02
+    virsh undefine 00_16_3E_00_00_03
 }
 
 remove_all_packages()
