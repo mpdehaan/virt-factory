@@ -37,11 +37,11 @@ ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not 
 ERR_ARGUMENTS_INVALID = 8 # ...
 
 class Server:
-    def __init__(self, host=None):
+    def __init__(self, client=None, host=None):
         transport = busrpc.qpid_transport.QpidTransport(host=host)
         transport.connect()
-
-        cm = CertManager('/var/lib/virt-factory/qpidcert', host)
+        
+        cm = CertManager('/var/lib/virt-factory/qpidcert', client)
     
         self.rpc_interface = lookup_service("rpc", transport, host=host, cert_mgr=cm)
         if self.rpc_interface == None:
@@ -58,7 +58,9 @@ class Register(object):
         self.server_host = self.server_url.split('/')[2]
         self.server_host = self.server_host.split(':')[0]
         self.logger = logger.Logger().logger
-        self.server = Server(self.server_host)
+        self.net_info = machine_info.get_netinfo(self.server_url)
+        self.logger.info(self.net_info)
+        self.server = Server(client=self.net_info['hostname'], host=self.server_host)
         self.token = None
 
     # assume username/password exist, so no user creation race conditions to avoid
@@ -134,11 +136,9 @@ class Register(object):
         else:
             self.login(username, password)
 
-        net_info = machine_info.get_netinfo(self.server_url)
-        self.logger.info(net_info)
  
         try:
-            rc = self.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
+            rc = self.register(self.net_info['hostname'], self.net_info['ipaddr'], self.net_info['hwaddr'], profile_name, virtual)
         except socket.error:
             print _("Could not connect to server.")
             return 1
