@@ -24,4 +24,7 @@
 # ntp
 /sbin/iptables -A virt-factory-input -p udp --dport   123 -j ACCEPT 
 
+# amqp
+/sbin/iptables -A virt-factory-input -p udp --dport  5672 -j ACCEPT 
+
 /sbin/service iptables save
