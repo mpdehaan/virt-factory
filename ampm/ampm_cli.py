@@ -19,19 +19,21 @@ import getopt
 import os
 import sys
 
-api = ampmlib.Api(url="http://127.0.0.1/vf/")
+api = ampmlib.Api(url="http://127.0.0.1/vf/",
+                  username="admin",
+                  password="fedora")
 
 
 from command_modules import list
+from command_modules import query
 
 def print_help():
-    print "nothing to see here"
+    print "== This is a useless help string blurb =="
     print
 
 
 def main():
 
-    print "blip"
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hv", [
             "help",
@@ -56,7 +58,7 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list"]:
+    if mode not in ["help", "list", "query"]:
         print_help()
         sys.exit()
 
@@ -64,6 +66,9 @@ def main():
     
     if mode == "list":
         list.run(modeargs)
+
+    if mode == "query":
+        query.run(modeargs)
 if __name__ == "__main__":
     main()
 
