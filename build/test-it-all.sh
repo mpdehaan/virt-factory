@@ -254,6 +254,7 @@ setup_puppet()
 
 stop_services()
 {
+    /etc/init.d/iptables stop
     /etc/init.d/cobblerd stop
     /etc/init.d/puppetmaster stop
     /etc/init.d/virt-factory-server stop
