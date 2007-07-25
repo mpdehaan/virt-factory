@@ -37,7 +37,10 @@
          </TR>
          <TR>
             <TD><%= _("Current State") %></TD>
-            <TD><%= @item.state %> <%= link_to "(reload)", :controller => "deployment", :action=>"edit", :id => @item.id %></TD>
+            <TD><%= @item.state %> 
+                <!-- this should update automatically 
+                    <%= link_to "(reload)", :controller => "deployment", :action=>"edit", :id => @item.id %></TD>
+                -->
          </TR>
          <% end %>
          <TR>

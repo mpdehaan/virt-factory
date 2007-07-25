@@ -438,15 +438,16 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
-    def refresh(self, token, args):
+    def refresh(self, token, get_results):
          """
          Most all node actions are out of band (scheduled) but we need
          the current state when loading the edit page
          """
 
-         dargs = self.get(token, { "id" : args["id"] }).data
+         dargs = get_results
 
-         self.logger.info("running refresh code")
+         self.logger.info("refresh request for: %s" % get_results)
+
          cmd = [
             "/usr/bin/vf_nodecomm",
             socket.gethostname(),
@@ -486,16 +487,25 @@ class Deployment(web_svc.AuthWebSvc):
         @raise NoSuchObjectException: On object not found.
         """
 
-        # we want the state "now" so we must contact the node
-        # to update it!
-        self.refresh(token, args)
 
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
+            results = self.expand(deployment)
+
+            self.logger.info("your deployment is: %s" % results)
+ 
+            # we want the state "now" so we must contact the node
+            # to update it!
+            self.refresh(token, results)
+
+            # now re-get the updated record which will have an
+            # accurate state.
+            deployment = db.Deployment.get(session, args['id'])
             return success(self.expand(deployment))
+
         finally:
             session.close()
 
