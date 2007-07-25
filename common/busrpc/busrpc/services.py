@@ -106,7 +106,7 @@ class RPCDispatcher(object):
         headers = {}
         if hasattr(method, '_header_generator'):
             method._header_generator(headers)
-        return sender, encode_rpc_response(self.name, hostname, namespace, called_method,
+        return sender, encode_rpc_response(self.name, self.hostname, namespace, called_method,
                                            encode_object(results), headers=headers, cert_mgr=self.cert_mgr)
 
     def add_instance(self, namespace, instance):
