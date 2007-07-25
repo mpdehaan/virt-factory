@@ -194,8 +194,13 @@ class Virt(web_svc.WebSvc):
         #  MEMORY = [1]
         #  STATE  = [0]
 
+        # FIXME: we're invoking this via vf_nodecomm so it's stdout based
+        # and rather messy, hence the STATE=foo in the return to make things
+        # parseable.  When we move to the message bus we should just return
+        # the state directly.
+
         state = self.find_vm(mac_address).info()[1]
-        return success("state=%s" % VIRT_STATE_NAME_MAP.get(state,"unknown"))
+        return success("STATE=%s" % VIRT_STATE_NAME_MAP.get(state,"unknown"))
 
 
     #=======================================================================
