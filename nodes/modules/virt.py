@@ -105,7 +105,7 @@ class Virt(web_svc.WebSvc):
         # name we use
         needle = mac_address.replace(":","_").upper()
 
-        ids = conn.listDomainsID()
+        ids = self.xen_conn.listDomainsID()
         for domain in ids:
             try:
                 domain = self.xen_conn.lookupByID(domain)
@@ -125,7 +125,7 @@ class Virt(web_svc.WebSvc):
         Whatever that takes.
         """
         self.find_vm(mac_address).shutdown()
-        return True        
+        return success()        
 
     #=======================================================================
    
@@ -135,7 +135,7 @@ class Virt(web_svc.WebSvc):
         Pause the machine with the given mac_address.
         """
         self.find_vm(mac_address).suspend()
-        return True
+        return success()
 
     #=======================================================================
    
@@ -146,7 +146,7 @@ class Virt(web_svc.WebSvc):
         """
 
         self.find_vm(mac_address).resume()
-        return True
+        return success()
 
     #=======================================================================
 
@@ -156,7 +156,7 @@ class Virt(web_svc.WebSvc):
         Start the machine via the given mac address. 
         """
         self.find_vm(mac_address).create()
-        return True  
+        return success()
  
     # ======================================================================
 
@@ -167,7 +167,7 @@ class Virt(web_svc.WebSvc):
         time to virtually shut down.
         """
         self.find_vm(mac_address).destroy()
-        return True
+        return success()
 
 
     #=======================================================================
@@ -180,7 +180,7 @@ class Virt(web_svc.WebSvc):
         """
 
         self.find_vm(mac_address).undefine()
-        return True
+        return success()
 
     #=======================================================================
 
@@ -194,48 +194,53 @@ class Virt(web_svc.WebSvc):
         #  MEMORY = [1]
         #  STATE  = [0]
 
+        # FIXME: we're invoking this via vf_nodecomm so it's stdout based
+        # and rather messy, hence the STATE=foo in the return to make things
+        # parseable.  When we move to the message bus we should just return
+        # the state directly.
+
         state = self.find_vm(mac_address).info()[1]
-        return success("STATE=%s" % VIRT_NAME_STATE_MAP.get(state,"unknown"))
+        return success("STATE=%s" % VIRT_STATE_NAME_MAP.get(state,"unknown"))
 
 
     #=======================================================================
 
-    def __get_xm_state(self, mac_address):
-
-        """
-
-        Run xm to get the state portion out of the output.
-        This will be a width 5 string that may contain:
-        
-           p       -- paused
-           r       -- running
-           b       -- blocked  (basically running though)
-           "-----" -- no state (basically running though)
-        
-        if not found at all, the domain doesn't at all exist, or it's off.
-        since we'll know if virtfactory deleted it, assume off.  if needed,
-        we can later comb the Xen directories to see if a file is still around.
-
-        """  
-
-        cmd_mac = mac_address.replace(":","_").upper()
-        output = self.__run_xm("list", None, True)
-        lines = output.split("\n")
-        if len(lines) == 1:
-            print "state --> off"
-            return "off"
-        for line in lines[1:]:
-            try:
-                (name, id, mem, cpus, state, time) = line.split(None)
-                if name == cmd_mac:
-                    print "state --> %s" % state
-                    return state       
-            except:
-                pass
-        print "state --> off"      
-        return "off"
-
-    #=======================================================================
+#    #def __get_xm_state(self, mac_address):
+#
+#        """
+#
+#        Run xm to get the state portion out of the output.
+#        This will be a width 5 string that may contain:
+#        
+#           p       -- paused
+#           r       -- running
+#           b       -- blocked  (basically running though)
+#           "-----" -- no state (basically running though)
+#        
+#        if not found at all, the domain doesn't at all exist, or it's off.
+#        since we'll know if virtfactory deleted it, assume off.  if needed,
+#        we can later comb the Xen directories to see if a file is still around.
+#
+#        """  
+#
+#        cmd_mac = mac_address.replace(":","_").upper()
+#        output = self.__run_xm("list", None, True)
+#        lines = output.split("\n")
+#        if len(lines) == 1:
+#            print "state --> off"
+#            return "off"
+#        for line in lines[1:]:
+#            try:
+#                (name, id, mem, cpus, state, time) = line.split(None)
+#                if name == cmd_mac:
+#                    print "state --> %s" % state
+#                    return state       
+#            except:
+#                pass
+#        print "state --> off"      
+#        return "off"
+#
+#    #=======================================================================
 
 
 methods = Virt()

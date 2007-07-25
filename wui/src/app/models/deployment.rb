@@ -61,9 +61,11 @@ class Deployment < ManagedObject
         __virt_call(self.id, "deployment_shutdown")
     end
 
-    def refresh
-        __virt_call(self.id, "deployment_refresh")
-    end
+    # should not be called from WUI anymore unless things
+    # happen to change a lot.
+    #def refresh
+    #    __virt_call(self.id, "deployment_refresh")
+    #end
 
 end
 

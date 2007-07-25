@@ -347,7 +347,10 @@ class Database:
 
         if not Database.has_loaded:
 
-            global_connect(interpolate_url_password(url), echo=True)
+            # FIXME: this echo causes output for every query to go to stdout
+            # Should always be False in version control. May want to
+            # parameterize it.
+            global_connect(interpolate_url_password(url), echo=False)
             Database.has_loaded = True       
  
 
