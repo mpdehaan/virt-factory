@@ -257,6 +257,16 @@ class Deployment(web_svc.AuthWebSvc):
         dargs = self.get(token, { "id" : args["id" ]}).data
         self.__set_locked(token, dargs, DEPLOYMENT_STATE_DELETING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_DELETE_VIRT)
+
+        # FIXME/NOTE: there may be situations where the above operation fails in
+        # which case it is the job of taskatron to ensure the virtual machine
+        # perishes.  It will be removed from the WUI immediately here. This
+        # behavior can probably be improved somewhat but seems better than
+        # having a non-existant undeletable entry stick around in the WUI.
+
+        session = db.open_session()
+        db.Deployment.delete(session, args['id'])
+
         return success() # FIXME: always?
 
     def pause(self, token, args):
