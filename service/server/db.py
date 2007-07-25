@@ -347,7 +347,7 @@ class Database:
 
         if not Database.has_loaded:
 
-            global_connect(interpolate_url_password(url), echo=False)
+            global_connect(interpolate_url_password(url), echo=True)
             Database.has_loaded = True       
  
 
