@@ -323,6 +323,12 @@ class Deployment(web_svc.AuthWebSvc):
         @rtype: [dict,]
         @raise SQLException: On database error
         """
+
+        # it is going to be expensive to query all of the list results
+        # for an update.  so right now, we're doing it only for 1-item
+        # gets, with the thought that nodes should be sending async
+        # updates, or that we are periodically polling them for status
+
         session = db.open_session()
         try:
             result = []
@@ -432,15 +438,16 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
-    def refresh(self, token, args):
+    def refresh(self, token, get_results):
          """
          Most all node actions are out of band (scheduled) but we need
          the current state when loading the edit page
          """
 
-         dargs = self.get(token, { "id" : args["id"] }).data
+         dargs = get_results
 
-         self.logger.info("running refresh code")
+         self.logger.info("refresh request for: %s" % get_results)
+
          cmd = [
             "/usr/bin/vf_nodecomm",
             socket.gethostname(),
@@ -479,12 +486,26 @@ class Deployment(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
+
+
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
+            results = self.expand(deployment)
+
+            self.logger.info("your deployment is: %s" % results)
+ 
+            # we want the state "now" so we must contact the node
+            # to update it!
+            self.refresh(token, results)
+
+            # now re-get the updated record which will have an
+            # accurate state.
+            deployment = db.Deployment.get(session, args['id'])
             return success(self.expand(deployment))
+
         finally:
             session.close()
 

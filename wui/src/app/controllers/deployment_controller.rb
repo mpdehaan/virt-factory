@@ -14,7 +14,7 @@ class DeploymentController < AbstractObjectController
        # current state is, and update it.
        if !params[:id].nil?
            obj = ManagedObject.retrieve(Deployment, get_login, params[:id])
-           obj.refresh()
+           # obj.refresh() -- do not call this from WUI (at least for now)
        end
 
        # do the regular get stuff here.
