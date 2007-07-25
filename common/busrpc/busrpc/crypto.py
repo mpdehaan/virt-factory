@@ -28,13 +28,13 @@ class CertManager(object):
     def decrypt_message(self, message):
         secure_host, encrypted_message = self._parse_secure_message(message)
         if secure_host == None:
-            return message
+            return message, False
         else:
             key = None
             try:
                 key = self.load_pub_key(secure_host)
                 retval = key.decrypt(encrypted_message)
-                return retval.strip()
+                return retval.strip(), True
             finally:
                 if not key == None:
                     self.release_pub_key(secure_host, key)

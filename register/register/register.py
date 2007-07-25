@@ -40,8 +40,10 @@ class Server:
     def __init__(self, client=None, host=None):
         transport = busrpc.qpid_transport.QpidTransport(host=host)
         transport.connect()
-        
-        cm = CertManager('/var/lib/virt-factory/qpidcert', client)
+
+        # no crypto for now
+        #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
+        cm = None
     
         self.rpc_interface = lookup_service("rpc", transport, host=host, cert_mgr=cm)
         if self.rpc_interface == None:
