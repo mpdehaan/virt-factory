@@ -45,7 +45,9 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_refresh": self.refresh,
                         "deployment_delete": self.delete,
                         "deployment_list": self.list,
-                        "deployment_get": self.get}
+                        "deployment_get": self.get,
+			"deployment_get_by_mac_address": self.get_by_mac_address,
+			"deployment_get_by_hostname": self.get_by_hostname}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -240,7 +242,8 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
             
         self.edit(token, args)
-     
+    
+    # FIXME: unused except possibly by registration? 
     def set_state(self, token, args, status_code):
         session = db.open_session()
         try:
@@ -255,37 +258,47 @@ class Deployment(web_svc.AuthWebSvc):
 
     def delete(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_DELETING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_DELETE_VIRT)
+
+        # FIXME/NOTE: there may be situations where the above operation fails in
+        # which case it is the job of taskatron to ensure the virtual machine
+        # perishes.  It will be removed from the WUI immediately here. This
+        # behavior can probably be improved somewhat but seems better than
+        # having a non-existant undeletable entry stick around in the WUI.
+
+        session = db.open_session()
+        db.Deployment.delete(session, args['id'])
+
         return success() # FIXME: always?
 
     def pause(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PAUSING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_PAUSE_VIRT)
         return success()
 
     def unpause(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_UNPAUSING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_UNPAUSE_VIRT)
         return success()
 
     def shutdown(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STOPPING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_SHUTDOWN_VIRT)
         return success()
     
     def destroy(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STOPPING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_DESTROY_VIRT)
         return success()
 
     def start(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STARTING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_START_VIRT)
         return success()
 
@@ -323,6 +336,12 @@ class Deployment(web_svc.AuthWebSvc):
         @rtype: [dict,]
         @raise SQLException: On database error
         """
+
+        # it is going to be expensive to query all of the list results
+        # for an update.  so right now, we're doing it only for 1-item
+        # gets, with the thought that nodes should be sending async
+        # updates, or that we are periodically polling them for status
+
         session = db.open_session()
         try:
             result = []
@@ -432,15 +451,16 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
-    def refresh(self, token, args):
+    def refresh(self, token, get_results):
          """
          Most all node actions are out of band (scheduled) but we need
          the current state when loading the edit page
          """
 
-         dargs = self.get(token, { "id" : args["id"] }).data
+         dargs = get_results
 
-         self.logger.info("running refresh code")
+         self.logger.info("refresh request for: %s" % get_results)
+
          cmd = [
             "/usr/bin/vf_nodecomm",
             socket.gethostname(),
@@ -479,12 +499,26 @@ class Deployment(web_svc.AuthWebSvc):
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
+
+
         required = ('id',)
         FieldValidator(args).verify_required(required)
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
+            results = self.expand(deployment)
+
+            self.logger.info("your deployment is: %s" % results)
+ 
+            # we want the state "now" so we must contact the node
+            # to update it!
+            self.refresh(token, results)
+
+            # now re-get the updated record which will have an
+            # accurate state.
+            deployment = db.Deployment.get(session, args['id'])
             return success(self.expand(deployment))
+
         finally:
             session.close()
 
