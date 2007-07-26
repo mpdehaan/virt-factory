@@ -26,6 +26,7 @@ api = ampmlib.Api(url="http://127.0.0.1/vf/",
 
 from command_modules import list
 from command_modules import query
+from command_modules import create
 
 def print_help():
     print "== This is a useless help string blurb =="
@@ -58,7 +59,7 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query"]:
+    if mode not in ["help", "list", "query", "create"]:
         print_help()
         sys.exit()
 
@@ -69,6 +70,9 @@ def main():
 
     if mode == "query":
         query.run(modeargs)
+
+    if mode == "create":
+        create.run(modeargs)
 if __name__ == "__main__":
     main()
 

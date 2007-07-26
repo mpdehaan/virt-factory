@@ -56,7 +56,7 @@ class Query(object):
             # we could try to figure out the local deployment name and use
             # that here FIXME
             print "need a deployment name"
-        (retcode, data) = self.api.deployment_get(deployment=deployment)
+        (retcode, data) = self.api.deployment_get_by_mac_address(deployment=deployment)
         if self.verbose > 2:
             pprint.pprint(data)
 
@@ -69,7 +69,7 @@ class Query(object):
             # we could try to figure out the local deployment name and use
             # that here FIXME
             print "need a deployment name"
-        (retcode, data) = self.api.deployment_get(deployment=deployment)
+        (retcode, data) = self.api.deployment_get_by_mac_address(deployment=deployment)
         if self.verbose > 2:
             pprint.pprint(data)
 
