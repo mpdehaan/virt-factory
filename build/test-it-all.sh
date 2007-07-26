@@ -97,7 +97,7 @@ fi
 
 
 # since we can change VF_SERVER in the config, expand this after that
-VF_SERVER_URL="$VF_SERVER:5150"
+VF_SERVER_URL="$VF_SERVER"
 
 COOKIES_FILE="cookies"
 
@@ -172,7 +172,7 @@ remove_all_packages()
     rm /etc/virt-factory/db/exists
     yum remove -y python-migrate virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
 		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
-		  python-psycopg2 postgresql-python python-sqlalchemy
+		  python-psycopg2 postgresql-python python-sqlalchemy amqp python-qpid qpidd qpidc
     echo $?
 }
 
@@ -266,6 +266,7 @@ start_services()
 {
     /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
+    /etc/init.d/qpidd restart
     
 
     # for someone reason f7 doesn't do the initdb on startup
