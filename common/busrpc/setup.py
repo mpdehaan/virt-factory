@@ -5,7 +5,7 @@ from distutils.core import setup, Extension
 import string
 import glob
 
-NAME = "busrpc"
+NAME = "python-busrpc"
 VERSION = open("version", "r+").read().split()[0]
 SHORT_DESC = "busprc server and client"
 LONG_DESC = """
@@ -14,10 +14,11 @@ A rpc implementation that uses dbus and qpid/amqp
 
 if __name__ == "__main__":
         manpath  = "share/man/man1/"
-        etcpath  = "/etc/%s" % NAME
+        etcpath  = "/etc/busrpc"
+#        qpidetcpath  = "/etc/qpid"
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
-        logpath  = "/var/log/%s/" % NAME
+        logpath  = "/var/log/busrpc/"
         setup(
                 name="%s" % NAME,
                 version = VERSION,
@@ -32,8 +33,8 @@ if __name__ == "__main__":
 		packages = ["busrpc",],
 #			    "busrpc/local",
 #			    "busrpc/remote"],
-                data_files = [(etcpath, ["configs/test.conf",
-					 "configs/amqp.0-8.xml"]),
+                data_files = [(etcpath, ["configs/test.conf"]),
+#			      (qpidetcpath, ["configs/amqp.0-8.xml"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

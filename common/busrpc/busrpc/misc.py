@@ -15,7 +15,7 @@ def encode_rpc_request(sender, namespace, method, hostname, args, cert_mgr=None)
     return retval
 
 
-def encode_rpc_response(sender, hostname, namespace, called_method, results, headers=None, cert_mgr=None):
+def encode_rpc_response(sender, hostname, namespace, called_method, results, headers=None, cert_mgr=None, encrypt=True):
     retval = _encode_partial_rpc_message(sender, namespace, called_method, hostname)
     if not headers == None:
         for key in headers.iterkeys():
@@ -24,7 +24,7 @@ def encode_rpc_response(sender, hostname, namespace, called_method, results, hea
     else:
         retval = retval + '\n'
     retval = retval + results
-    if not cert_mgr == None:
+    if (not cert_mgr == None) and (encrypt == True):
         retval = cert_mgr.encrypt_message(hostname, retval)
     return retval
 
@@ -35,9 +35,10 @@ def _encode_partial_rpc_message(sender, namespace, method, hostname):
                     'method:', method, '\n'])
 
 def decode_rpc_request(message, cert_mgr=None):
+    was_encrypted = False
     if not cert_mgr == None:
         try:
-            message = cert_mgr.decrypt_message(message)
+            message, was_encrypted = cert_mgr.decrypt_message(message)
         except Exception, e:
             print '[DecodeReq]Decryption failed: %s' % (e)
         print '[DecodeReq]Decrypted message (%d):\n%s' % (len(message), message)
@@ -63,14 +64,15 @@ def decode_rpc_request(message, cert_mgr=None):
             hostname = line_parts[1].strip(' ')
     if not (sender == None and namespace == None
             and method == None and args == None):
-        return sender, hostname, namespace, method, args.strip(' ')
+        return sender, hostname, namespace, method, args.strip(' '), was_encrypted
     else:
-        return None, None, None, None
+        return None, None, None, None, False
 
 def decode_rpc_response(message, cert_mgr=None):
+    was_encrypted = False
     if not cert_mgr == None:
         try:
-            message = cert_mgr.decrypt_message(message)
+            message, was_encrypted = cert_mgr.decrypt_message(message)
         except Exception, e:
             print '[DecodeResp]Decryption failed: %s' % (e)
         all_headers, results = message.split('\n\n')

@@ -1,5 +1,3 @@
-import dbus
-
 import busrpc.decorators
 from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig

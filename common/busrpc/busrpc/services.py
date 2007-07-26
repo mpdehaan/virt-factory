@@ -65,6 +65,7 @@ class RPCDispatcher(object):
                 return True
             except Exception, e:
                 print e
+                traceback.print_exc()
                 return False
         else:
             return True
@@ -79,7 +80,7 @@ class RPCDispatcher(object):
         self.instances.clear()
 
     def dispatch(self, message):
-        sender, hostname, namespace, called_method, encoded_params = decode_rpc_request(message, cert_mgr=self.cert_mgr)
+        sender, hostname, namespace, called_method, encoded_params, was_encrypted = decode_rpc_request(message, cert_mgr=self.cert_mgr)
         print "Sender: %s, Host: %s, Namespace: %s, Method: %s, Encoded Params: %s" % (sender,
                                                                                        hostname,
                                                                                        namespace,
@@ -105,8 +106,8 @@ class RPCDispatcher(object):
         headers = {}
         if hasattr(method, '_header_generator'):
             method._header_generator(headers)
-        return sender, encode_rpc_response(self.name, hostname, namespace, called_method,
-                                           encode_object(results), headers=headers, cert_mgr=self.cert_mgr)
+        return sender, encode_rpc_response(self.name, self.hostname, namespace, called_method,
+                                           encode_object(results), headers=headers, cert_mgr=self.cert_mgr, encrypt=was_encrypted)
 
     def add_instance(self, namespace, instance):
         self.instances[namespace] = instance

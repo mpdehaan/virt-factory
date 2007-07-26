@@ -21,8 +21,8 @@ def declare_queue(caller, channel_id=1, queue_name='',
     create = not create
     msg = channel.queue_declare(queue=queue_name, passive=create,
                                 exclusive=exclusive_use, auto_delete=auto_remove)
-    if not msg == None and len(msg.fields) > 0:
-        return msg.fields[0]
+    if not msg == None and len(msg.frame.args) > 0:
+        return msg.frame.args[0]
     else:
         return None
         

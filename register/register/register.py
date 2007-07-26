@@ -22,28 +22,47 @@ logger.logfilepath = "/var/log/virt-factory-register/vf_register.log"
 import getopt
 import string
 import sys
-import xmlrpclib
 import socket
 import os
 import os.path
 import traceback
+
+from busrpc.rpc import lookup_service
+from busrpc.crypto import CertManager
+import busrpc.qpid_transport
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_registerr"
 ERR_TOKEN_INVALID = 2   # from codes.py, which we don't import because it's not installed ??
 ERR_ARGUMENTS_INVALID = 8 # ...
 
-class Server(xmlrpclib.ServerProxy):
-    def __init__(self, url=None):
-        xmlrpclib.ServerProxy.__init__(self, url)
+class Server:
+    def __init__(self, client=None, host=None):
+        transport = busrpc.qpid_transport.QpidTransport(host=host)
+        transport.connect()
 
+        # no crypto for now
+        #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
+        cm = None
+    
+        self.rpc_interface = lookup_service("rpc", transport, host=host, cert_mgr=cm)
+        if self.rpc_interface == None:
+            print "Lookup failed :("
+            sys.exit(-1)    
+
+    def __getattr__(self, name):
+        return self.rpc_interface.__getattr__(name)
 
 
 class Register(object):
     def __init__(self,url):
         self.server_url = url
+        self.server_host = self.server_url.split('/')[2]
+        self.server_host = self.server_host.split(':')[0]
         self.logger = logger.Logger().logger
-        self.server = Server(url)
+        self.net_info = machine_info.get_netinfo(self.server_url)
+        self.logger.info(self.net_info)
+        self.server = Server(client=self.net_info['hostname'], host=self.server_host)
         self.token = None
 
     # assume username/password exist, so no user creation race conditions to avoid
@@ -90,10 +109,8 @@ class Register(object):
             fd4 = open("/etc/sysconfig/virt-factory/profile", "w+")
             fd4.write(profile_name)
             fd4.close()
-            server = self.server_url.split('/')[2]
-            server = server.split(':')[0]
-            self.update_puppet_sysconfig(server)
-            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + server + " --certname " + hostname + " --test"
+            self.update_puppet_sysconfig(self.server_host)
+            puppetcmd = "/usr/sbin/puppetd --waitforcert 0 --server " + self.server_host + " --certname " + hostname + " --test"
             self.logger.info("puppet cmd: %s" % puppetcmd)
             puppet_in, puppet_out = os.popen4(puppetcmd)
             for line in puppet_out.readlines():
@@ -121,11 +138,9 @@ class Register(object):
         else:
             self.login(username, password)
 
-        net_info = machine_info.get_netinfo(self.server_url)
-        self.logger.info(net_info)
  
         try:
-            rc = self.register(net_info['hostname'], net_info['ipaddr'], net_info['hwaddr'], profile_name, virtual)
+            rc = self.register(self.net_info['hostname'], self.net_info['ipaddr'], self.net_info['hwaddr'], profile_name, virtual)
         except socket.error:
             print _("Could not connect to server.")
             return 1

@@ -601,7 +601,7 @@ class Provisioning(web_svc.AuthWebSvc):
                # note that if this happens, we can't delete and re-add as other things might be depending on the distro.
                # though there shouldn't be any fields we want to change.  As a result, we'll just ignore the error
                # if it's one from the SQL insert, which is normally tested to work.  Other exceptions need to go through.
-               pass  
+               pass
 
            # don't have to delete the cobbler distribution entries as they are going to be rewritten
            # on sync (with similar data)

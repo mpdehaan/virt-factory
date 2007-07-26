@@ -26,7 +26,8 @@ import xmlrpclib
 #print modules
 from api_modules import auth
 from api_modules import machine
-
+from api_modules import deployment
+from api_modules import profile
 
 class Server(xmlrpclib.ServerProxy):
     def __init__(self, url=None):
@@ -61,7 +62,6 @@ class AuthInfo(object):
 class Api(object):
     def __init__(self, url=None, username=None, password=None):
         self.url = url
-        print self.url
         self.server = Server(url)
         self.username = username
         self.password = password
@@ -72,7 +72,8 @@ class Api(object):
         self.api_methods = {}
         
 
-        for module in [auth, machine]:
+        # FIXME: auto-dynamafy this module/method stuff
+        for module in [auth, machine, deployment, profile]:
             self.api_classes[module] = module.api_class()
 
         for api_class in self.api_classes.keys():
@@ -80,12 +81,9 @@ class Api(object):
             for method in methods:
                 # for now we are going to pretend every nethod has a unique name
                 self.api_methods[method] = api_class
-        print "foo"
-        print self.api_methods
 
     def __getattr__(self, attr):
         self.login()
-        print "self.token", self.token
         if attr in self.api_methods:
             obj = self.api_methods[attr].api_class(server=self.server,
                                                    token=self.token)

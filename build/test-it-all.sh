@@ -97,7 +97,7 @@ fi
 
 
 # since we can change VF_SERVER in the config, expand this after that
-VF_SERVER_URL="$VF_SERVER:5150"
+VF_SERVER_URL="$VF_SERVER"
 
 COOKIES_FILE="cookies"
 
@@ -164,7 +164,13 @@ check_out_code()
 remove_virtual_machine()
 {
     /usr/sbin/xm destroy 00_16_3E_00_00_00
+    /usr/sbin/xm destroy 00_16_3E_00_00_01
+    /usr/sbin/xm destroy 00_16_3E_00_00_02
+    /usr/sbin/xm destroy 00_16_3E_00_00_03
     virsh undefine 00_16_3E_00_00_00
+    virsh undefine 00_16_3E_00_00_01
+    virsh undefine 00_16_3E_00_00_02
+    virsh undefine 00_16_3E_00_00_03
 }
 
 remove_all_packages()
@@ -172,7 +178,7 @@ remove_all_packages()
     rm /etc/virt-factory/db/exists
     yum remove -y python-migrate virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
 		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
-		  python-psycopg2 postgresql-python python-sqlalchemy
+		  python-psycopg2 postgresql-python python-sqlalchemy amqp python-qpid qpidd qpidc
     echo $?
 }
 
@@ -267,6 +273,7 @@ start_services()
 {
     /etc/init.d/cobblerd start
     /etc/init.d/puppetmaster restart
+    /etc/init.d/qpidd restart
     
 
     # for someone reason f7 doesn't do the initdb on startup
@@ -450,6 +457,7 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
         
 	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
 	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
+	echo "ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386"
         ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386
 fi
 

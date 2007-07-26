@@ -45,7 +45,9 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_refresh": self.refresh,
                         "deployment_delete": self.delete,
                         "deployment_list": self.list,
-                        "deployment_get": self.get}
+                        "deployment_get": self.get,
+			"deployment_get_by_mac_address": self.get_by_mac_address,
+			"deployment_get_by_hostname": self.get_by_hostname}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -240,7 +242,8 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
             
         self.edit(token, args)
-     
+    
+    # FIXME: unused except possibly by registration? 
     def set_state(self, token, args, status_code):
         session = db.open_session()
         try:
@@ -255,7 +258,7 @@ class Deployment(web_svc.AuthWebSvc):
 
     def delete(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_DELETING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_DELETE_VIRT)
 
         # FIXME/NOTE: there may be situations where the above operation fails in
@@ -271,31 +274,31 @@ class Deployment(web_svc.AuthWebSvc):
 
     def pause(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PAUSING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_PAUSE_VIRT)
         return success()
 
     def unpause(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_UNPAUSING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_UNPAUSE_VIRT)
         return success()
 
     def shutdown(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STOPPING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_SHUTDOWN_VIRT)
         return success()
     
     def destroy(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STOPPING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_DESTROY_VIRT)
         return success()
 
     def start(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
-        self.__set_locked(token, dargs, DEPLOYMENT_STATE_STARTING, True)
+        self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
         self.__queue_operation(token, dargs, TASK_OPERATION_START_VIRT)
         return success()
 

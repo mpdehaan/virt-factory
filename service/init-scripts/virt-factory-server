@@ -29,6 +29,8 @@ start() {
         sudo -u postgres /usr/bin/vf_create_db --replace 
     fi 
     /usr/bin/vf_server --daemon
+    /usr/bin/vf_server bridge --daemon
+    /usr/bin/vf_server qpid --daemon
     /usr/bin/vf_taskatron --daemon
     RETVAL=$?
     echo_success

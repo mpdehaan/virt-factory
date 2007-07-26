@@ -47,17 +47,26 @@ from modules import user
 from modules import regtoken
 from modules import puppet
 
+from busrpc.services import RPCDispatcher
+from busrpc.config import DeploymentConfig
+
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_server"
 
 
-class XmlRpcInterface:
+class Singleton(object):
+    def __new__(type, *args, **kwargs):
+        if not '_the_instance' in type.__dict__:
+            type._the_instance = object.__new__(type, *args, **kwargs)
+            type._the_instance.init(*args, **kwargs)
+        return type._the_instance
 
-    def __init__(self):
+class XmlRpcInterface(Singleton):
+
+    def init(self):
         """
         Constructor sets up SQLAlchemy (database ORM) and logging.
         """
-
         config_obj = config_data.Config()
         self.config = config_obj.get()
        
@@ -79,7 +88,7 @@ class XmlRpcInterface:
         self.__setup_handlers()
         self.auth = authentication.Authentication()
         self.auth.init_resources()
-       
+        
     def __setup_handlers(self):
         """
         Add RPC functions from each class to the global list so they can be called.
@@ -87,80 +96,86 @@ class XmlRpcInterface:
         """
         self.handlers = {}
         for x in [user, machine,
-                 profile, deployment,
-                 distribution,config,
-                 provisioning, registration,
-                 authentication, task, regtoken, puppet,]:
-           x.register_rpc(self.handlers)
-           self.logger.debug("adding %s" % x)
+                  profile, deployment,
+                  distribution,config,
+                  provisioning, registration,
+                  authentication, task, regtoken, puppet,]:
+            x.register_rpc(self.handlers)
+            self.logger.debug("adding %s" % x)
 
-           # FIXME: find some more elegant way to surface the handlers?
-           # FIXME: aforementioned login/session token requirement
+            # FIXME: find some more elegant way to surface the handlers?
+            # FIXME: aforementioned login/session token requirement
 
-    def __log_exc(self):
-       """
-       Log an exception.
-       """
-       (t, v, tb) = sys.exc_info()
-       self.logger.info("Exception occured: %s" % t )
-       self.logger.info("Exception value: %s" % v)
-       self.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-       
+    def get_dispatch_method(self, method):
+        if method in self.handlers:
+            return VfApiMethod(self.logger, self.auth, method,
+                               self.handlers[method])
+      
+        else:
+            self.logger.info("Unhandled method call for method: %s " % method)
+            raise InvalidMethodException
+
     def _dispatch(self, method, params):
-       """
-       the SimpleXMLRPCServer class will call _dispatch if it doesn't
-       find a handler method 
-       """
-      
-       if method in self.handlers:
-           mh = self.handlers[method]
-           self.logger.debug("(X) -------------------------------------------")
-           self.logger.debug("methods: %s params: %s" % (method, params))
-         
-           try:
-               # why aren't these auth checked? well...
-               # user_login is where you get the
-               #   auth token from in the first places
-               # token_check is what validates the token
-               # register can
-               #   take authtokens or regtokens, so they do there own
-               # auth check
-               if method not in ["user_login", "token_check", "register", "sign_node_cert" , "puppet_node_info" ]:
-                   self.auth.token_check(params[0])
-               rc = mh(*params)
-           except VirtFactoryException, e:
-               self.__log_exc()
-               return e.to_datastruct()
-           except:
-               self.logger.debug("Not a virt-factory specific exception")
-               self.__log_exc()
-               raise
-         
-           self.logger.debug("Return code for %s: %s" % (method, rc.to_datastruct()))
-           return rc.to_datastruct()
-      
-       else:
-           self.logger.debug("Unhandled method call for method: %s with params: %s" % (method, params))
-           raise InvalidMethodException
+        """
+        the SimpleXMLRPCServer class will call _dispatch if it doesn't
+        find a handler method 
+        """
+        return self.get_dispatch_method(method)(*params)
 
-
-def database_reset():
-     """
-     Used for testing.  Not callable from the web service.
-     """
-     DATABASE_PATH = "/var/lib/virt-factory/primary_db"
-     try:
-         os.remove(DATABASE_PATH)
-     except:
-         pass
+class BusRpcWrapper:
     
-     p = DATABASE_PATH
-     p1 = subprocess.Popen(["cat","../setup/schema.sql"], stdout=subprocess.PIPE)
-     p2 = subprocess.Popen(["sqlite3",p], stdin=p1.stdout, stdout=subprocess.PIPE)
-     p2.communicate()
-     p3 = subprocess.Popen(["cat","../setup/populate.sql"], stdout=subprocess.PIPE)
-     p4 = subprocess.Popen(["sqlite3",p], stdin=p3.stdout, stdout=subprocess.PIPE)
-     p4.communicate()
+    def __init__(self, config):
+        self.rpc_interface = None
+
+    def __getattr__(self, name):
+        if self.rpc_interface == None:
+            self.rpc_interface = XmlRpcInterface()
+        return self.rpc_interface.get_dispatch_method(name)
+
+    def __repr__(self):
+        return ("<BusRpcWrapper>")
+
+class VfApiMethod:
+    def __init__(self, logger, auth, name, method):
+        self.logger = logger
+        self.auth = auth
+        self.__method = method
+        self.__name = name
+        
+    def __log_exc(self):
+        """
+        Log an exception.
+        """
+        (t, v, tb) = sys.exc_info()
+        self.logger.info("Exception occured: %s" % t )
+        self.logger.info("Exception value: %s" % v)
+        self.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+
+    def __call__(self, *args):
+        self.logger.debug("(X) -------------------------------------------")
+        self.logger.debug("methods: %s params: %s" % (self.__name, args))
+        try:
+            # why aren't these auth checked? well...
+            # user_login is where you get the
+            #   auth token from in the first places
+            # token_check is what validates the token
+            # register can
+            #   take authtokens or regtokens, so they do there own
+            # auth check
+            if self.__name not in ["user_login", "token_check", "register", "sign_node_cert" , "puppet_node_info" ]:
+                self.auth.token_check(args[0])
+            rc = self.__method(*args)
+        except VirtFactoryException, e:
+            self.__log_exc()
+            rc = e
+        except:
+            self.logger.debug("Not a virt-factory specific exception")
+            self.__log_exc()
+            raise
+        rc = rc.to_datastruct()
+        self.logger.debug("Return code for %s: %s" % (self.__name, rc))
+        return rc
+
 
 def serve(websvc):
      """
@@ -171,6 +186,18 @@ def serve(websvc):
      server.register_instance(websvc)
      server.serve_forever()
 
+def serve_qpid(config_path, register_with_bridge=True):
+     """
+     Code for starting the QPID RPC service. 
+     """
+     config = DeploymentConfig(config_path)
+     dispatcher = RPCDispatcher(config, register_with_bridge)
+     
+     try:
+         dispatcher.start()
+     except KeyboardInterrupt:
+         dispatcher.stop()
+     print "Exiting..."
 
 class VirtFactoryXMLRPCServer(SimpleXMLRPCServer.SimpleXMLRPCServer):
     def __init__(self, args):
@@ -181,25 +208,42 @@ def main(argv):
     """
     Start things up.
     """
-    
-    websvc = XmlRpcInterface()
-     
-    for arg in sys.argv:
-       if arg == "import" or arg == "--import":
-          prov_obj = provisioning.Provisioning()
-          prov_obj.init(None, {})
-          return
-       elif arg == "sync" or arg == "--sync":
-          prov_obj = provisioning.Provisioning()
-          prov_obj.sync(None, {}) # just for testing
-          return
-    if "daemon" in sys.argv or "--daemon" in sys.argv:
-       utils.daemonize("/var/run/vf_server.pid")
-       serve(websvc)
+
+    if "bridge" in sys.argv or "--bridge" in sys.argv:
+        if "daemon" in sys.argv or "--daemon" in sys.argv:
+            utils.daemonize("/var/run/vf_server_bridge.pid")
+            serve_qpid("/etc/virt-factory/qpid-bridge.conf", register_with_bridge=False)
+        else:
+            print "serving...\n"
+            # daemonize only if --daemonize, because I forget to type "debug" -- MPD
+            serve_qpid("/etc/virt-factory/qpid-bridge.conf", register_with_bridge=False)
     else:
-       print "serving...\n"
-       # daemonize only if --daemonize, because I forget to type "debug" -- MPD
-       serve(websvc)
+        websvc = XmlRpcInterface()
+    
+        for arg in sys.argv:
+            if arg == "import" or arg == "--import":
+                prov_obj = provisioning.Provisioning()
+                prov_obj.init(None, {})
+                return
+            elif arg == "sync" or arg == "--sync":
+                prov_obj = provisioning.Provisioning()
+                prov_obj.sync(None, {}) # just for testing
+                return
+        if "qpid" in sys.argv or "--qpid" in sys.argv:
+            if "daemon" in sys.argv or "--daemon" in sys.argv:
+                utils.daemonize("/var/run/vf_server_qpid.pid")
+                serve_qpid("/etc/virt-factory/qpid.conf")
+            else:
+                print "serving...\n"
+                # daemonize only if --daemonize, because I forget to type "debug" -- MPD
+                serve_qpid("/etc/virt-factory/qpid.conf")
+        elif "daemon" in sys.argv or "--daemon" in sys.argv:
+            utils.daemonize("/var/run/vf_server.pid")
+            serve(websvc)
+        else:
+            print "serving...\n"
+            # daemonize only if --daemonize, because I forget to type "debug" -- MPD
+            serve(websvc)
        
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.

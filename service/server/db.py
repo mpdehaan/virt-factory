@@ -31,172 +31,13 @@
 import traceback
 import threading
 from sqlalchemy import *
+from sqlalchemy.ext.sessioncontext import SessionContext
 from datetime import datetime
 from codes import SQLException, NoSuchObjectException
 
-tables = []
-
-tables.append(Table('users',
-    Column('id', Integer, Sequence('userid'), primary_key=True),
-    Column('username', String(255), nullable=False, unique=True),
-    Column('password', String(255), nullable=False),
-    Column('first', String(255)),
-    Column('middle', String(255)),
-    Column('last', String(255)),
-    Column('description', String(255)),
-    Column('email', String(255))
-))
-      
-tables.append(Table('distributions',
-    Column('id', Integer, Sequence('distid'), primary_key=True),
-    Column('kernel', String(255)),
-    Column('initrd', String(255)),
-    Column('options', String(255)),
-    Column('kickstart', String(255)),
-    Column('name', String(255), unique=True),
-    Column('architecture', String(255)),
-    Column('kernel_options', String(255)),
-    Column('kickstart_metadata', String(255))
-))
-
-tables.append(Table('profiles',
-    Column('id', Integer, Sequence('profileid'), primary_key=True),
-    Column('name', String(255), unique=True),
-    Column('version', String(255)),
-    Column('distribution_id',
-        Integer, 
-        ForeignKey('distributions.id', ondelete="cascade"), 
-        nullable=False),
-    Column('virt_storage_size', Integer),
-    Column('virt_ram', Integer),
-    Column('kickstart_metadata', String(255)),
-    Column('kernel_options', String(255)),
-    Column('valid_targets', String(255)),
-    Column('is_container', Integer),
-    Column('puppet_classes', TEXT)
-))
-
-tables.append(Table('machines',
-    Column('id', Integer, Sequence('machineid'), primary_key=True),
-    Column('hostname', String(255)),
-    Column('ip_address', String(255)),
-    Column('registration_token', String(255)),
-    Column('architecture', String(255)),
-    Column('processor_speed', Integer),
-    Column('processor_count', Integer),
-    Column('memory', Integer),
-    Column('kernel_options', String(255)),
-    Column('kickstart_metadata', String(255)),
-    Column('list_group', String(255)),
-    Column('mac_address', String(255)),
-    Column('is_container', Integer),
-    Column('profile_id',
-        Integer,
-        ForeignKey('profiles.id', ondelete="cascade"), 
-        nullable=False),
-    Column('puppet_node_diff', TEXT),
-    Column('netboot_enabled', Integer),
-    Column('is_locked', Integer),
-    Column('state', String(255)),
-    Column('last_heartbeat', Integer)
-))
- 
-tables.append(Table('deployments',
-    Column('id', Integer, Sequence('deploymentid'), primary_key=True),
-    Column('hostname', String(255)),
-    Column('ip_address', String(255)),
-    Column('registration_token', String(255)),
-    Column('mac_address', String(255)),
-    Column('machine_id',
-        Integer, 
-        ForeignKey('machines.id', ondelete="cascade"),
-        nullable=False),
-    Column('profile_id',
-        Integer,
-        ForeignKey('profiles.id', ondelete="cascade"),
-        nullable=False),
-    Column('state', String(255)),
-    Column('display_name', String(255)),
-    Column('puppet_node_diff', TEXT),
-    Column('netboot_enabled', Integer),
-    Column('is_locked', Integer),
-    Column('auto_start', Integer),
-    Column('last_heartbeat', Integer)
-))
-
-tables.append(Table('regtokens',
-    Column('id', Integer, Sequence('regtokenid'), primary_key=True),
-    Column('token', String(255)),
-    Column('profile_id', Integer, ForeignKey('profiles.id')),
-    Column('uses_remaining', Integer)
-))
-
-tables.append(Table('sessions',
-    Column('id', Integer, Sequence('ssnid'), primary_key=True),
-    Column('session_token', String(255), nullable=False, unique=True),
-    Column('user_id', 
-        Integer, 
-        ForeignKey('users.id', ondelete="cascade"), 
-        nullable=False),
-    Column('session_timestamp',
-        DateTime, 
-        nullable=False,
-        default=datetime.utcnow())
-))
-
-tables.append(Table('tasks', 
-    Column('id', Integer, Sequence('taskid'), primary_key=True),
-    Column('user_id',
-        Integer,
-        ForeignKey('users.id', ondelete="cascade"), 
-        nullable=False),
-    Column('action_type', String(255), nullable=False),
-    Column('machine_id',
-        Integer, 
-        ForeignKey('machines.id', ondelete="cascade"), 
-        nullable=False),
-    Column('deployment_id', 
-        Integer, 
-        ForeignKey('deployments.id', ondelete="cascade"), 
-        nullable=False),
-    Column('state', String(255), nullable=False),
-    Column('time',
-        DateTime, 
-        nullable=False,
-        default=datetime.utcnow())
-))
-
-tables.append(Table('events',
-          Column('id', Integer, Sequence('eventid'), primary_key=True),
-          Column('time', Integer, nullable=False),
-          Column('user_id',
-                 Integer, 
-                 ForeignKey('users.id', ondelete="cascade"), 
-                 nullable=False),
-          Column('machine_id', Integer, ForeignKey('machines.id')),
-          Column('deployment_id', Integer, ForeignKey('deployments.id')),
-          Column('profile_id', Integer, ForeignKey('profiles.id')),
-          Column('severity', Integer, nullable=False),
-          Column('category', String(255), nullable=False),
-          Column('action', String(255), nullable=False),
-          Column('user_comment', String(255))
-))
-
-#
-# provides a static dictionary of tables.
-#
-table = dict([(t.name, t) for t in tables])
-
-
-indexes =\
-(
-    #Index('username', table['users'].c.username, unique=True),
-)
-
-
 class Base(object):
     def fields(self):
-        return ormbindings.get(self.__class__, ())
+        return Database.ormbindings.get(self.__class__, ())
     
     def get_hash(self, filter=[]):
         result = {}
@@ -255,64 +96,6 @@ class Event(Base):
     pass
 
 
-mappers =\
-(
-    mapper(User, table['users'],
-        properties={
-            'sessions' : relation(Session, passive_deletes=True, viewonly=True, lazy=True),
-            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
-            'events' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
-            }),
-    mapper(Distribution, table['distributions']),
-    mapper(Profile, table['profiles'],
-        properties={
-            'distribution' : relation(Distribution, lazy=True),
-            'machines' : relation(Machine, passive_deletes=True, viewonly=True, lazy=True),
-            'deployments' : relation(Deployment, passive_deletes=True, viewonly=True, lazy=True),
-            'regtokens' : relation(RegToken, lazy=True)
-            }),
-    mapper(Machine, table['machines'],
-        properties={
-            'profile' : relation(Profile, lazy=True),
-            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
-            'events' : relation(Event, lazy=True),
-            }),
-    mapper(Deployment, table['deployments'],
-        properties={
-            'profile' : relation(Profile, lazy=True),
-            'machine' : relation(Machine, lazy=True),
-            'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
-            'events' : relation(Event, lazy=True),
-            }),
-    mapper(RegToken, table['regtokens'],
-        properties={
-            'profile' : relation(Profile, lazy=True),
-            }),
-    mapper(Session, table['sessions'],
-        properties={
-            'user' : relation(User, lazy=True),
-            }),
-    mapper(Task, table['tasks'],
-        properties={
-            'user' : relation(User, lazy=True),
-            'machine' : relation(Machine, lazy=True),
-            'deployment' : relation(Deployment, lazy=True),
-            }),
-    mapper(Event, table['events'],
-        properties={
-            'user' : relation(User, lazy=True),
-            'machine' : relation(Machine, lazy=True),
-            'deployment' : relation(Deployment, lazy=True),
-            }),
-)
-
-
-#
-# provides a static dictionary of orm classes to mapped
-# table column names.
-#
-ormbindings =\
-    dict([(m.class_,[c.name for c in m.local_table.columns]) for m in mappers ])
 
 def interpolate_url_password(url):
     if url is None:
@@ -333,6 +116,13 @@ class Database:
     __shared_state = {}
     has_loaded = False
     # primary = None 
+    ctx = None
+    meta = None
+    tables = None
+    table = None
+    indexes = None
+    mappers = None
+
  
     def __init__(self, url=None):
         """
@@ -346,27 +136,250 @@ class Database:
         self.__dict__ = self.__shared_state
 
         if not Database.has_loaded:
-
+            self.setup_metadata(interpolate_url_password(url))
             # FIXME: this echo causes output for every query to go to stdout
             # Should always be False in version control. May want to
             # parameterize it.
-            global_connect(interpolate_url_password(url), echo=False)
+            Database.meta.connect(interpolate_url_password(url), echo=False)
             Database.has_loaded = True       
  
+
+    def setup_metadata(self,url):
+        Database.ctx = SessionContext(create_session)
+        Database.meta = BoundMetaData(create_engine(url))
+        
+        Database.tables = []
+        
+        Database.tables.append(Table('users', Database.meta,
+            Column('id', Integer, Sequence('userid'), primary_key=True),
+            Column('username', String(255), nullable=False, unique=True),
+            Column('password', String(255), nullable=False),
+            Column('first', String(255)),
+            Column('middle', String(255)),
+            Column('last', String(255)),
+            Column('description', String(255)),
+            Column('email', String(255))
+        ))
+          
+        Database.tables.append(Table('distributions', Database.meta,
+            Column('id', Integer, Sequence('distid'), primary_key=True),
+            Column('kernel', String(255)),
+            Column('initrd', String(255)),
+            Column('options', String(255)),
+            Column('kickstart', String(255)),
+            Column('name', String(255), unique=True),
+            Column('architecture', String(255)),
+            Column('kernel_options', String(255)),
+            Column('kickstart_metadata', String(255))
+        ))
+    
+        Database.tables.append(Table('profiles', Database.meta,
+            Column('id', Integer, Sequence('profileid'), primary_key=True),
+            Column('name', String(255), unique=True),
+            Column('version', String(255)),
+            Column('distribution_id',
+                Integer, 
+                ForeignKey('distributions.id', ondelete="cascade"), 
+                nullable=False),
+            Column('virt_storage_size', Integer),
+            Column('virt_ram', Integer),
+            Column('kickstart_metadata', String(255)),
+            Column('kernel_options', String(255)),
+            Column('valid_targets', String(255)),
+            Column('is_container', Integer),
+            Column('puppet_classes', TEXT)
+        ))
+        
+        Database.tables.append(Table('machines', Database.meta,
+            Column('id', Integer, Sequence('machineid'), primary_key=True),
+            Column('hostname', String(255)),
+            Column('ip_address', String(255)),
+            Column('registration_token', String(255)),
+            Column('architecture', String(255)),
+            Column('processor_speed', Integer),
+            Column('processor_count', Integer),
+            Column('memory', Integer),
+            Column('kernel_options', String(255)),
+            Column('kickstart_metadata', String(255)),
+            Column('list_group', String(255)),
+            Column('mac_address', String(255)),
+            Column('is_container', Integer),
+            Column('profile_id',
+                Integer,
+                ForeignKey('profiles.id', ondelete="cascade"), 
+                nullable=False),
+            Column('puppet_node_diff', TEXT),
+            Column('netboot_enabled', Integer),
+            Column('is_locked', Integer),
+            Column('state', String(255)),
+            Column('last_heartbeat', Integer)
+        ))
+         
+        Database.tables.append(Table('deployments', Database.meta,
+            Column('id', Integer, Sequence('deploymentid'), primary_key=True),
+            Column('hostname', String(255)),
+            Column('ip_address', String(255)),
+            Column('registration_token', String(255)),
+            Column('mac_address', String(255)),
+            Column('machine_id',
+                Integer, 
+                ForeignKey('machines.id', ondelete="cascade"),
+                nullable=False),
+            Column('profile_id',
+                Integer,
+                ForeignKey('profiles.id', ondelete="cascade"),
+                nullable=False),
+            Column('state', String(255)),
+            Column('display_name', String(255)),
+            Column('puppet_node_diff', TEXT),
+            Column('netboot_enabled', Integer),
+            Column('is_locked', Integer),
+            Column('auto_start', Integer),
+            Column('last_heartbeat', Integer)
+        ))
+        
+        Database.tables.append(Table('regtokens', Database.meta,
+            Column('id', Integer, Sequence('regtokenid'), primary_key=True),
+            Column('token', String(255)),
+            Column('profile_id', Integer, ForeignKey('profiles.id')),
+            Column('uses_remaining', Integer)
+        ))
+        
+        Database.tables.append(Table('sessions', Database.meta,
+            Column('id', Integer, Sequence('ssnid'), primary_key=True),
+            Column('session_token', String(255), nullable=False, unique=True),
+            Column('user_id', 
+                Integer, 
+                ForeignKey('users.id', ondelete="cascade"), 
+                nullable=False),
+            Column('session_timestamp',
+                DateTime, 
+                nullable=False,
+                default=datetime.utcnow())
+        ))
+        
+        Database.tables.append(Table('tasks',  Database.meta,
+            Column('id', Integer, Sequence('taskid'), primary_key=True),
+            Column('user_id',
+                Integer,
+                ForeignKey('users.id', ondelete="cascade"), 
+                nullable=False),
+            Column('action_type', String(255), nullable=False),
+            Column('machine_id',
+                Integer, 
+                ForeignKey('machines.id', ondelete="cascade"), 
+                nullable=False),
+            Column('deployment_id', 
+                Integer, 
+                ForeignKey('deployments.id', ondelete="cascade"), 
+                nullable=False),
+            Column('state', String(255), nullable=False),
+            Column('time',
+                DateTime, 
+                nullable=False,
+                default=datetime.utcnow())
+        ))
+        
+        Database.tables.append(Table('events', Database.meta,
+            Column('id', Integer, Sequence('eventid'), primary_key=True),
+            Column('time', Integer, nullable=False),
+            Column('user_id',
+                   Integer, 
+                   ForeignKey('users.id', ondelete="cascade"), 
+                   nullable=False),
+            Column('machine_id', Integer, ForeignKey('machines.id')),
+            Column('deployment_id', Integer, ForeignKey('deployments.id')),
+            Column('profile_id', Integer, ForeignKey('profiles.id')),
+            Column('severity', Integer, nullable=False),
+            Column('category', String(255), nullable=False),
+            Column('action', String(255), nullable=False),
+            Column('user_comment', String(255))
+        ))
+    
+        #
+        # provides a static dictionary of tables.
+        #
+        Database.table = dict([(t.name, t) for t in Database.tables])
+    
+    
+        Database.indexes =\
+        (
+            #Index('username', Database.table['users'].c.username, unique=True),
+        )
+    
+    
+        Database.mappers =\
+        (
+            mapper(User, Database.table['users'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'sessions' : relation(Session, passive_deletes=True, viewonly=True, lazy=True),
+                    'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+                    'events' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+                    }),
+            mapper(Distribution, Database.table['distributions'], extension=Database.ctx.mapper_extension),
+            mapper(Profile, Database.table['profiles'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'distribution' : relation(Distribution, lazy=True),
+                    'machines' : relation(Machine, passive_deletes=True, viewonly=True, lazy=True),
+                    'deployments' : relation(Deployment, passive_deletes=True, viewonly=True, lazy=True),
+                    'regtokens' : relation(RegToken, lazy=True)
+                    }),
+            mapper(Machine, Database.table['machines'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'profile' : relation(Profile, lazy=True),
+                    'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+                    'events' : relation(Event, lazy=True),
+                    }),
+            mapper(Deployment, Database.table['deployments'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'profile' : relation(Profile, lazy=True),
+                    'machine' : relation(Machine, lazy=True),
+                    'tasks' : relation(Task, passive_deletes=True, viewonly=True, lazy=True),
+                    'events' : relation(Event, lazy=True),
+                    }),
+            mapper(RegToken, Database.table['regtokens'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'profile' : relation(Profile, lazy=True),
+                    }),
+            mapper(Session, Database.table['sessions'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'user' : relation(User, lazy=True),
+                    }),
+            mapper(Task, Database.table['tasks'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'user' : relation(User, lazy=True),
+                    'machine' : relation(Machine, lazy=True),
+                    'deployment' : relation(Deployment, lazy=True),
+                    }),
+            mapper(Event, Database.table['events'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'user' : relation(User, lazy=True),
+                    'machine' : relation(Machine, lazy=True),
+                    'deployment' : relation(Deployment, lazy=True),
+                    }),
+        )
+    
+    
+        #
+        # provides a static dictionary of orm classes to mapped
+        # table column names.
+        #
+        Database.ormbindings =\
+            dict([(m.class_,[c.name for c in m.local_table.columns]) for m in Database.mappers ])
 
     def create(self):
         """
         Create all tables, indexes and constraints that have not
         yet been created.
         """
-        for t in tables:
+        for t in Database.tables:
             t.create(checkfirst=True)
     
     def drop(self):
         """
         Drop all tables, indexes and constraints.
         """
-        mylist = list(tables)
+        mylist = list(Database.tables)
         mylist.reverse()
         for t in mylist:
             t.drop(checkfirst=True)
@@ -381,17 +394,18 @@ class Database:
         @rtype: L{Facade}
         """
         try:
-            return Facade(create_session())
+            return Facade()
         except:
+            print traceback.format_exc()
             raise SQLException(traceback=traceback.format_exc())
 
 
 class Facade:
-    def __init__(self, session):
-        self.session = session
-        
+    def __init__(self):
+        pass
+
     def __getattr__(self, name):
-        attribute = getattr(self.session, name)
+        attribute = getattr(Database.ctx.current, name)
         if callable(attribute):
             return Facade.Method(attribute)
         else:
