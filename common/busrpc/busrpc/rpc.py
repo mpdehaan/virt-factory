@@ -47,7 +47,12 @@ class _LocalRPCMethod(object):
                                           params,
                                           cert_mgr=self.cert_mgr)
         if not async_call:
-            raw_results = self.transport.send_message_wait(self.server, encoded_call)
+            # need to retry (w/ short timeouts) to prevent startup race conditions
+            raw_results = None
+            if self.method_name == "register_service":
+                raw_results = self.send_register_message(encoded_call)
+            else:
+                raw_results = self.transport.send_message_wait(self.server, encoded_call)
             sender, namespace, method, headers, results = decode_rpc_response(raw_results, cert_mgr=self.cert_mgr)
             if cache_return and headers.has_key('cache_results'):
                 self.results[args] =  results
@@ -56,7 +61,22 @@ class _LocalRPCMethod(object):
         else:
             self.transport.send_message(self.server, encoded_call)
             return None
-        
+
+    def send_register_message(self, encoded_call):
+        tries = 10
+        timeout = 5
+        registered = False
+        raw_results = None
+        while registered == False:
+            try:
+                print "Registering..."
+                raw_results = self.transport.send_message_wait(self.server, encoded_call, timeout=timeout)
+                registered = True
+            except qpid_transport.QpidTransportException, e:
+                tries = tries - 1
+                if tries == 0:
+                    raise e
+        return raw_results
 
 class RPCProxy(object):
 
