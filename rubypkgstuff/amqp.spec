@@ -1,6 +1,6 @@
 Name:           amqp
 Version:        0.8
-Release:        2rhm.1%{?dist}
+Release:        3rhm.1%{?dist}
 Epoch:          0
 Summary:        The AMQP specification
 
