@@ -33,7 +33,9 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_delete": self.delete,
                         "machine_edit": self.edit,
                         "machine_list": self.list,
-                        "machine_get": self.get}
+                        "machine_get": self.get,
+			"machine_get_by_hostname": self.get_by_hostname,
+			"machine_get_by_mac_address": self.get_by_mac_address}
         web_svc.AuthWebSvc.__init__(self)
 
 

@@ -33,6 +33,7 @@ class Profile(web_svc.AuthWebSvc):
                         "profile_edit": self.edit,
                         "profile_delete": self.delete,
                         "profile_get": self.get,
+			"profile_get_by_name": self.get_by_name,
                         "profile_list": self.list}
         web_svc.AuthWebSvc.__init__(self)
 
