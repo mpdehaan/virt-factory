@@ -11,6 +11,7 @@ License: GPL
 Group: Applications/System
 Requires: python >= 2.3
 Requires: puppet
+Requires: python-busrpc
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -37,6 +38,9 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Fri Jul 20 2007 Scott Seago <sseago@redhat.com> - 0.3-2
+- use qpid/busrpc for communication
+
 * Thu May 2 2007 Adrian Likins <alikins@redhat.com> - 0.3-1
 - change build stuff
 

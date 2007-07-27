@@ -65,10 +65,16 @@ class Virt(web_svc.WebSvc):
             "virt_status"   : self.get_status,
         }
 
-        self.xen_conn = libvirt.open(None)  # warning: Xen only!
-        if not self.xen_conn:
-           raise VirtException(comment="Xen connection failure")
- 
+        try:
+           self.xen_conn = libvirt.open(None)  # warning: Xen only!
+           if not self.xen_conn:
+              raise VirtException(comment="Xen connection failure")
+        except:
+           # FIXME: No Xen for you ... what about trying qemu KVM?
+           # look at newer koan sources for detection and prereq 
+           # validation code.
+           self.xen_conn = None 
+
         web_svc.WebSvc.__init__(self)
 
     #=======================================================================

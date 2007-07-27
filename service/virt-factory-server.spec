@@ -22,6 +22,8 @@ Requires: python-sqlalchemy
 Requires: python-psycopg2
 Requires: postgresql-server
 Requires: python-migrate
+Requires: python-busrpc
+Requires: qpidd
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
@@ -56,6 +58,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir /var/lib/virt-factory/profiles/queued
 %dir %attr(755,postgres,postgres) /var/lib/virt-factory/db
 %config(noreplace) /etc/virt-factory/settings
+%config(noreplace) /etc/virt-factory/qpid.conf
+%config(noreplace) /etc/virt-factory/qpid-bridge.conf
 %config(noreplace) /var/lib/virt-factory/kick-fc6.ks
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/server
@@ -102,6 +106,9 @@ fi
 
 
 %changelog
+* Fri Jul 20 2007 Scott Seago <sseago@redhat.com> - 0.0.3-4
+- added busrpc, qpid dependencies
+
 * Mon Jun 4 2007 Adrian Likins <alikins@redhat.com> - 0.0.3-3
 - remove old db stuff
 

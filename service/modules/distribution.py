@@ -222,7 +222,7 @@ class Distribution(web_svc.AuthWebSvc):
             name = args['name']
             distribution = session.query(db.Distribution).selectfirst_by(name = name)
             if distribution is None:
-                raise NoSuchObjectException(comment=objectid)
+                raise NoSuchObjectException(comment="objectid")
             return success(distribution.get_hash())
         finally:
             session.close()
