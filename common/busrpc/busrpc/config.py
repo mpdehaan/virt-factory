@@ -1,3 +1,4 @@
+SERVER_HOST = "busrpc.server.host"
 SERVER_NAME = "busrpc.server.name"
 INSTANCE_NAME = "busrpc.instance"
 
@@ -14,6 +15,7 @@ class DeploymentConfig:
     def __init__(self, filename):
         self.instances = {}
         self.server_name = None
+        self.server_host = None
         self.config_values = {}
         f = None
         try:
@@ -35,6 +37,8 @@ class DeploymentConfig:
             return
         if name == SERVER_NAME:
             self.server_name = value.replace("\"", "")
+        elif name == SERVER_HOST:
+            self.server_host = value.replace("\"", "")
         elif name.startswith(INSTANCE_NAME):
             name = name[len(INSTANCE_NAME) + 1:]
             self.instances[name] = value

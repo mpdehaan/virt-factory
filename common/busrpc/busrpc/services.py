@@ -31,13 +31,14 @@ class RPCDispatcher(object):
     def __init__(self, config, register_with_bridge = True):
         self.instances = {}
         self.hostname = socket.gethostname()
+        self.server_host = config.server_host
         self.name = config.server_name
         certdir = config.get_value('busrpc.crypto.certdir')
         pwd = config.get_value('busrpc.crypto.password')
         if register_with_bridge:
-            self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name)
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name, host=self.server_host)
         else:
-            self.transport = busrpc.qpid_transport.QpidServerTransport(self.name)
+            self.transport = busrpc.qpid_transport.QpidServerTransport(self.name, host=self.server_host)
         self.transport.callback = self.dispatch
         self.register_with_bridge = register_with_bridge
         self.runner_thread = None
