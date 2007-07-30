@@ -139,31 +139,60 @@ class VirtFactoryImporter:
        self.set_node_text(profile_dict, DISTRIBUTION_TAG)
        distribution_name = profile_dict[DISTRIBUTION_TAG]
        print "distro name = ", distribution_name
-       if (distribution_name is not None):
-           distribution_obj = distribution.Distribution()
-           distribution_result = distribution_obj.get_by_name(None, {"name": distribution_name})
-           print "distro result = ", distribution_result.error_code
-           if (distribution_result.error_code != 0):
-               print distribution_result
-               raise InvalidArgumentsException(comment="bad distribution name")
-           profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
-       profile_obj = profile.Profile()
-       try:
-           existing_profile = profile_obj.get_by_name(None, profile_dict)
-           if existing_profile.data:
-               print "modifying existing profile ", profile_dict["name"]
-               profile_dict["id"] = existing_profile.data["id"]
-               result = profile_obj.edit(None, profile_dict)
-           else:
-               print "creating new profile ", profile_dict["name"]
-               result = profile_obj.add(None, profile_dict)
-       except Exception, e:
-           print "error adding profile: "
-           (t, v, tb) = sys.exc_info()
-           self.logger.error("Exception occured: %s" % t )
-           self.logger.error("Exception value: %s" % v)
-           self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-           raise
+
+       # we want to create multiple profile objects for all of the variant distros
+       # so we split the input like "FC-6, F-7" into a list [FC-6, F-7] and then
+       # for each distro (ex: F-7) we create things like:
+       # FC-6-i386, FC-6-xen-i386, FC-6-xen-x86_64, FC-6-xen which are all the combinations
+       # possible of Cobbler (and VF) distros that might have already been imported.
+       # for ones that are NOT THERE, we don't bother creating any profile objects at 
+       # all... this is totally ok.  In actuality, if we don't find ANY perspective
+       # matches we need to hit the user on the head with a large trout.  Err, rather,
+       # throw up a warning.  It is probably not their fault and they just need to
+       # import some more distros first :)
+
+       distribution_list = distribution_name.split(",")
+       for distribution_name in distribution_list:
+           distribution_name = distribution_name.lstrip().rstrip()
+           combinations = [
+              "%s-xen-i386" % distribution_name,
+              "%s-i386" % distribution_name,
+              "%s-x86_64" % distribution_name,
+              "%s-xen-x86_64" % distribution_name
+           ]
+           matches = 0
+           for distribution_name in combinations:
+
+
+               if (distribution_name is not None):
+                   distribution_obj = distribution.Distribution()
+                   distribution_result = distribution_obj.get_by_name(None, {"name": distribution_name})
+               if (distribution_result.error_code != 0):
+                   print "- no distribution found, skipping: %s" % distribution_name
+                   continue
+               matches = matches + 1
+               profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
+               profile_obj = profile.Profile()
+               try:
+                   existing_profile = profile_obj.get_by_name(None, profile_dict)
+                   if existing_profile.data:
+                       print "modifying existing profile ", profile_dict["name"]
+                       profile_dict["id"] = existing_profile.data["id"]
+                       result = profile_obj.edit(None, profile_dict)
+                   else:
+                       print "creating new profile ", profile_dict["name"]
+                       result = profile_obj.add(None, profile_dict)
+               except Exception, e:
+                   print "error adding profile: "
+                   (t, v, tb) = sys.exc_info()
+                   self.logger.error("Exception occured: %s" % t )
+                   self.logger.error("Exception value: %s" % v)
+                   self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+                   raise
+       if matches == 0:
+           # FIXME 
+           raise InvalidArgumentException(comment="no compatible distributions have been imported for this profile")
+
 
        
    def get_node_text(self, name):
