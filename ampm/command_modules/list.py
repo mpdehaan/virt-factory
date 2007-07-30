@@ -7,7 +7,7 @@ import sys
 
 from rhpl.translate import _, N_, textdomain, utf8
 
-import ampmlib
+from ampm import ampmlib
 
 def run(args):
     command = List(args)
