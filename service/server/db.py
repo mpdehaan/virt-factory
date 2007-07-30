@@ -187,7 +187,8 @@ class Database:
             Column('kernel_options', String(255)),
             Column('valid_targets', String(255)),
             Column('is_container', Integer),
-            Column('puppet_classes', TEXT)
+            Column('puppet_classes', TEXT),
+            Column('virt_type', String(255))
         ))
         
         Database.tables.append(Table('machines', Database.meta,
