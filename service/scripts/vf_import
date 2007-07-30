@@ -147,9 +147,7 @@ class VirtFactoryImporter:
        # possible of Cobbler (and VF) distros that might have already been imported.
        # for ones that are NOT THERE, we don't bother creating any profile objects at 
        # all... this is totally ok.  In actuality, if we don't find ANY perspective
-       # matches we need to hit the user on the head with a large trout.  Err, rather,
-       # throw up a warning.  It is probably not their fault and they just need to
-       # import some more distros first :)
+       # matches we will raise an error -- but just one match is ok.
 
        distribution_list = distribution_name.split(",")
        for distribution_name in distribution_list:
@@ -172,6 +170,9 @@ class VirtFactoryImporter:
                    continue
                matches = matches + 1
                profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
+               # we're going to create four profiles named differently, but weirdly enough
+               # so the WUI can just display one (or a few) and do the right thing.
+               profile_dict["name"] = profile_dict["name"] + "::" + distribution_name
                profile_obj = profile.Profile()
                try:
                    existing_profile = profile_obj.get_by_name(None, profile_dict)
