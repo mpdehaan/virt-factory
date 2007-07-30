@@ -13,6 +13,7 @@ table = dict([(t.name, t) for t in tables])
 
 def get_columns():
 
+    profiles_table = sqlalchemy.Table('profiles',meta) 
     machines_table = sqlalchemy.Table('machines',meta) 
     deployments_table = sqlalchemy.Table('deployments',meta) 
     
@@ -20,12 +21,14 @@ def get_columns():
     hb_column    = Column('last_heartbeat',Integer,nullable=True)
     auto_start_column = Column('auto_start',Integer,nullable=True)
     hb_column2   = Column('last_heartbeat',Integer,nullable=True)
+    vt_column    = Column('virt_type',Integer,nullable=True)
 
     return { 
         state_column:      machines_table,
         auto_start_column: deployments_table,
         hb_column:         machines_table,
-        hb_column2:        deployments_table
+        hb_column2:        deployments_table,
+        vt_column:         profiles_table
     }
 
 columns = get_columns()
