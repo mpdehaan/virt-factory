@@ -70,6 +70,7 @@ VERSION_TAG = "version"
 DISTRIBUTION_TAG = "distribution"
 VIRT_STORAGE_SIZE_TAG = "virt_storage_size"
 VIRT_RAM_TAG = "virt_ram"
+VIRT_TYPE_TAG = "virt_type"
 KICKSTART_METADATA_TAG = "kickstart_metadata"
 KERNEL_OPTIONS_TAG = "kernel_options"
 VALID_TARGETS_TAG = "valid_targets"
@@ -131,6 +132,7 @@ class VirtFactoryImporter:
        self.set_node_text(profile_dict, VERSION_TAG)
        self.set_node_text(profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
        self.set_node_text(profile_dict, VIRT_RAM_TAG, "int")
+       self.set_node_text(profile_dict, VIRT_TYPE_TAG)
        self.set_node_text(profile_dict, KICKSTART_METADATA_TAG)
        self.set_node_text(profile_dict, KERNEL_OPTIONS_TAG)
        self.set_node_text(profile_dict, VALID_TARGETS_TAG)
