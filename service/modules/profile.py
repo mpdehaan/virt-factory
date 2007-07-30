@@ -45,21 +45,11 @@ class Profile(web_svc.AuthWebSvc):
         @type token: string
         @param args: Profile attributes.
         @type args: dict 
-            - id,
-            - name
-            - version
-            - distribution_id
-            - virt_storage_size
-            - virt_ram
-            - kickstart_metadata
-            - kernel_options
-            - valid_targets
-            - is_container
-            - puppet_classes
         @raise SQLException: On database error
         """
         optional =\
-            ('distribution_id', 'virt_storage_size', 'virt_ram', 'kickstart_metadata',
+            ('distribution_id', 'virt_storage_size', 'virt_ram', 'virt_type', 
+             'kickstart_metadata',
              'kernel_options', 'puppet_classes')
         required = ('name', 'version', 'valid_targets', 'is_container')
         self.validate(args, required)
@@ -88,24 +78,13 @@ class Profile(web_svc.AuthWebSvc):
         @type token: string
         @param args: profile attributes.
         @type args: dict 
-            - id,
-            - name (optional)
-            - version (optional)
-            - distribution_id (optional)
-            - virt_storage_size (optional)
-            - virt_ram (optional)
-            - kickstart_metadata (optional)
-            - kernel_options (optional)
-            - valid_targets (optional)
-            - is_container (optional)
-            - puppet_classes (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
         required = ('id',)
         optional =\
             ('name', 'version', 'valid_targets', 'is_container', 'distribution_id', 'virt_storage_size', 
-             'virt_ram', 'kickstart_metadata', 'kernel_options', 'puppet_classes')
+             'virt_ram', 'virt_type', 'kickstart_metadata', 'kernel_options', 'puppet_classes')
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -150,17 +129,6 @@ class Profile(web_svc.AuthWebSvc):
             - limit (optional)
         @return: A list of profiles.
         @rtype: [dict,]
-            - id,
-            - name (optional)
-            - version (optional)
-            - distribution_id (optional)
-            - virt_storage_size (optional)
-            - virt_ram (optional)
-            - kickstart_metadata (optional)
-            - kernel_options (optional)
-            - valid_targets (optional)
-            - is_container (optional)
-            - puppet_classes (optional)
         @raise SQLException: On database error
         """
         session = db.open_session()
@@ -184,17 +152,6 @@ class Profile(web_svc.AuthWebSvc):
             - id
         @return: A profile.
         @rtype: dict
-            - id,
-            - name (optional)
-            - version (optional)
-            - distribution_id (optional)
-            - virt_storage_size (optional)
-            - virt_ram (optional)
-            - kickstart_metadata (optional)
-            - kernel_options (optional)
-            - valid_targets (optional)
-            - is_container (optional)
-            - puppet_classes (optional)
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.  
         """
@@ -219,17 +176,6 @@ class Profile(web_svc.AuthWebSvc):
             - name
         @return: A profile.
         @rtype: dict
-            - id,
-            - name (optional)
-            - version (optional)
-            - distribution_id (optional)
-            - virt_storage_size (optional)
-            - virt_ram (optional)
-            - kickstart_metadata (optional)
-            - kernel_options (optional)
-            - valid_targets (optional)
-            - is_container (optional)
-            - puppet_classes (optional)
         @raise SQLException: On database error
         """
         required = ('name',)
@@ -248,7 +194,7 @@ class Profile(web_svc.AuthWebSvc):
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
-        vdr.verify_printable('name', 'version', 'kernel_options', 'puppet_classes')
+        vdr.verify_printable('name', 'version', 'kernel_options', 'puppet_classes', 'virt_type')
         vdr.verify_int(['virt_storage_size', 'virt_ram'])
         vdr.verify_enum('valid_targets', VALID_TARGETS)
         vdr.verify_enum('is_container', VALID_CONTAINERS)
