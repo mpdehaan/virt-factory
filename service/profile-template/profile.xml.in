@@ -5,6 +5,7 @@
   <distribution>$distribution</distribution>
   <virt_storage_size>$storage</virt_storage_size>
   <virt_ram>$ram</virt_ram>
+  <virt_type>$ram</virt_type>
   <kickstart_metadata>$ksmetadata</kickstart_metadata>
   <kernel_options>$koptions</kernel_options>
   <valid_targets>$targets</valid_targets>
