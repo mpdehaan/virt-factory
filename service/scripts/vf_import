@@ -128,7 +128,7 @@ class VirtFactoryImporter:
        file.close()
        return found
        
-   def load_profile_dict(self,which)
+   def load_profile_dict(self,which):
        self.set_node_text(profile_dict, NAME_TAG)
        self.set_node_text(profile_dict, VERSION_TAG)
        self.set_node_text(profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
