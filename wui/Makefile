@@ -46,3 +46,9 @@ new-rpms: bumprelease rpms
 
 rpms: tar	
 	rpmbuild $(RPM_FLAGS) -ba $(SPEC_FILE)
+
+# convience method to simulate make install, not for production use
+install:
+	make rpms
+	rpm -Uvh rpm-build/virt-factory-wui-0.0.3-1.fc7.noarch.rpm --force
+        /sbin/service virt-factory-wui restart	
