@@ -79,6 +79,8 @@ PUPPET_CLASSES_TAG = "puppet_classes"
 
 DISTRIBUTION_ID_TAG = "distribution_id"
 
+# FIXME: this class needs more comments
+
 class VirtFactoryImporter:
    """
    Main class for sm_import tool
