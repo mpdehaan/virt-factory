@@ -343,7 +343,7 @@ deploy_a_system()
     web_login
     echo curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]='1'&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit
     RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]=1&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit`
-    echo "Provisioming a system returned $RET_CODE"
+    echo "Provisioning a system returned $RET_CODE"
 
 
 }
