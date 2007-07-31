@@ -1,4 +1,5 @@
-#/usr/bin/python
+#!/usr/bin/python
+
 """
 sm_import is a utility script which imports an profile profile from an
 appliance definition file.
@@ -214,7 +215,9 @@ class VirtFactoryImporter:
                profile_obj = profile.Profile()
 
                # create or modify existing
-                
+               
+               self.logger.info("constructing profile record: %s" % profile_dict)
+ 
                try:
                    existing_profile = profile_obj.get_by_name(None, profile_dict)
                    if existing_profile.data:
