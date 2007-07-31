@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#/usr/bin/python
 """
 sm_import is a utility script which imports an profile profile from an
 appliance definition file.
@@ -125,9 +125,7 @@ class VirtFactoryImporter:
        file.close()
        return found
        
-   def populate_sm_profile(self):
-       profile_dict = {}
-       
+   def load_profile_dict(self,which)
        self.set_node_text(profile_dict, NAME_TAG)
        self.set_node_text(profile_dict, VERSION_TAG)
        self.set_node_text(profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
@@ -140,7 +138,13 @@ class VirtFactoryImporter:
        self.set_node_text(profile_dict, PUPPET_CLASSES_TAG)
        self.set_node_text(profile_dict, DISTRIBUTION_TAG)
        distribution_name = profile_dict[DISTRIBUTION_TAG]
-       print "distro name = ", distribution_name
+
+   def populate_sm_profile(self):
+
+       """
+       Creates the profile record(s) for the given profile object and inserts
+       them into the DB.
+       """
 
        # we want to create multiple profile objects for all of the variant distros
        # so we split the input like "FC-6, F-7" into a list [FC-6, F-7] and then
@@ -152,17 +156,42 @@ class VirtFactoryImporter:
        # matches we will raise an error -- but just one match is ok.
 
        distribution_list = distribution_name.split(",")
+
+       # the XML file contains a comma delimited list of distributions that the given
+       # lightweight appliance descriptor can run on.  We're going to create multiple
+       # profile records for each distro that is supported.
+
        for distribution_name in distribution_list:
+
+           # remove spaces to be tolerant of format
            distribution_name = distribution_name.lstrip().rstrip()
+
+           # add all of the arches we might support if we have them imported.
+           # FIXME: right now this only supports common arches, so if someone wants
+           # to add ppc/ppc64 that won't fit in nicely.  However this covers nearly
+           # everyone that will want to use virt-factory at this point.  IA64 may also
+           # be relevant.  Should possibly include.
            combinations = [
               "%s-xen-i386" % distribution_name,
               "%s-i386" % distribution_name,
               "%s-x86_64" % distribution_name,
               "%s-xen-x86_64" % distribution_name
            ]
+
+           # keep track of whether we have any supported distros so we can raise
+           # an error if there aren't any.
            matches = 0
+
            for distribution_name in combinations:
 
+
+               # create a new profile object on a distro/arch specific basis
+               # or modify one if it already exists
+
+               profile_dict = {}
+               self.load_profile_dict(profile_dict)
+
+               # is this distro even in the cobbler DB?  If not, skip.
 
                if (distribution_name is not None):
                    distribution_obj = distribution.Distribution()
@@ -170,12 +199,20 @@ class VirtFactoryImporter:
                if (distribution_result.error_code != 0):
                    print "- no distribution found, skipping: %s" % distribution_name
                    continue
+
                matches = matches + 1
+
+               # we're going to append some data onto the profile name so it can
+               # be easily parsed out by things that care.  This ideally should be done
+               # by adding some additional fields (also) and populating those.  We
+               # may have some of those fields already (FIXME).
+
                profile_dict[DISTRIBUTION_ID_TAG] = distribution_result.data["id"]
-               # we're going to create four profiles named differently, but weirdly enough
-               # so the WUI can just display one (or a few) and do the right thing.
                profile_dict["name"] = profile_dict["name"] + "::" + distribution_name
                profile_obj = profile.Profile()
+
+               # create or modify existing
+                
                try:
                    existing_profile = profile_obj.get_by_name(None, profile_dict)
                    if existing_profile.data:
@@ -192,8 +229,10 @@ class VirtFactoryImporter:
                    self.logger.error("Exception value: %s" % v)
                    self.logger.error("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
                    raise
+
+       # die if we couldn't find any distro for the given profile.
+
        if matches == 0:
-           # FIXME 
            raise InvalidArgumentException(comment="no compatible distributions have been imported for this profile")
 
 
