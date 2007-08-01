@@ -128,7 +128,7 @@ class VirtFactoryImporter:
        file.close()
        return found
        
-   def load_profile_dict(self,which):
+   def load_profile_dict(self,profile_dict):
        self.set_node_text(profile_dict, NAME_TAG)
        self.set_node_text(profile_dict, VERSION_TAG)
        self.set_node_text(profile_dict, VIRT_STORAGE_SIZE_TAG, "int")
@@ -140,7 +140,7 @@ class VirtFactoryImporter:
        self.set_node_text(profile_dict, IS_CONTAINER_TAG, "int")
        self.set_node_text(profile_dict, PUPPET_CLASSES_TAG)
        self.set_node_text(profile_dict, DISTRIBUTION_TAG)
-       distribution_name = profile_dict[DISTRIBUTION_TAG]
+       self.distribution_list_names = profile_dict[DISTRIBUTION_TAG]
 
    def populate_sm_profile(self):
 
@@ -158,7 +158,9 @@ class VirtFactoryImporter:
        # all... this is totally ok.  In actuality, if we don't find ANY perspective
        # matches we will raise an error -- but just one match is ok.
 
-       distribution_list = distribution_name.split(",")
+       profile_dict = {}
+       self.load_profile_dict(profile_dict)
+       distribution_list = self.distribution_list_names.split(",")
 
        # the XML file contains a comma delimited list of distributions that the given
        # lightweight appliance descriptor can run on.  We're going to create multiple
