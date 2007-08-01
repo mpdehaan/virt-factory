@@ -33,6 +33,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/vf_node_server
 /etc/init.d/virt-factory-node-server
 %config(noreplace) /etc/virt-factory-nodes/node-settings
+%config(noreplace) /etc/virt-factory-nodes/qpid.conf
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/nodes
 #%{python_sitelib}/virt-factory/*.py*

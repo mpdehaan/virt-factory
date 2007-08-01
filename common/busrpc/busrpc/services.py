@@ -28,10 +28,13 @@ def _create_instance(config, full_class_name):
 
 class RPCDispatcher(object):
 
-    def __init__(self, config, register_with_bridge = True):
+    def __init__(self, config, register_with_bridge = True, server_host = None):
         self.instances = {}
         self.hostname = socket.gethostname()
-        self.server_host = config.server_host
+        if (server_host == None):
+            self.server_host = config.server_host
+        else:
+            self.server_host = server_host
         self.name = config.server_name
         certdir = config.get_value('busrpc.crypto.certdir')
         pwd = config.get_value('busrpc.crypto.password')
@@ -100,8 +103,9 @@ class RPCDispatcher(object):
                 method = self._resolve_method(instance, called_method)
                 self.instance_method_cache[cache_key] = method
             except KeyError, e:
+                # no namespace match
                 print e
-                return
+                return None, None
         params = decode_object(encoded_params)
         results = method(*params)
         headers = {}

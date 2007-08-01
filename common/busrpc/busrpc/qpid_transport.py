@@ -153,14 +153,11 @@ class QpidServerTransport(QpidTransport, ServerTransport):
             call_body = self.pending_calls.get()
             try:
                 addr, reply = self.callback(call_body)
+                if (addr != None and reply != None):
+                    self.send_message(addr, reply)
             except TypeError, e:
                 print e
-                return
                 
-            if addr == None or reply == None:
-                return
-            else:
-                self.send_message(addr, reply)
 
     def _poll(self):
         while not self.is_stopped:

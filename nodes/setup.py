@@ -35,7 +35,7 @@ if __name__ == "__main__":
 		            "%s/nodes" % NAME,
 			    "%s/nodes/modules" % NAME,
 			    "%s/nodes/yaml" % NAME],
-                data_files = [(settingspath, ["node-settings"]),
+                data_files = [(settingspath, ["node-settings", "qpid.conf"]),
 			      (initpath, ["init-scripts/virt-factory-node-server"]),
 			      (logpath, [])],
                 description = SHORT_DESC,
