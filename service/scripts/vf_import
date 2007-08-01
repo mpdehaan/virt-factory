@@ -165,10 +165,14 @@ class VirtFactoryImporter:
        # the XML file contains a comma delimited list of distributions that the given
        # lightweight appliance descriptor can run on.  We're going to create multiple
        # profile records for each distro that is supported.
+           
+       print "scanning through: %s" % ",".join(distribution_list)
 
+       matches = 0
        for distribution_name in distribution_list:
 
            # remove spaces to be tolerant of format
+           print "- looking for: %s" % distribution_name
            distribution_name = distribution_name.lstrip().rstrip()
 
            # add all of the arches we might support if we have them imported.
@@ -185,7 +189,6 @@ class VirtFactoryImporter:
 
            # keep track of whether we have any supported distros so we can raise
            # an error if there aren't any.
-           matches = 0
 
            for distribution_name in combinations:
 
@@ -200,11 +203,17 @@ class VirtFactoryImporter:
 
                if (distribution_name is not None):
                    distribution_obj = distribution.Distribution()
-                   distribution_result = distribution_obj.get_by_name(None, {"name": distribution_name})
+                   try:
+                        distribution_result = distribution_obj.get_by_name(None, {"name": distribution_name})
+                   except:
+                        print "- no such distribution: %s" % distribution_name
+                        continue
+
                if (distribution_result.error_code != 0):
                    print "- no distribution found, skipping: %s" % distribution_name
                    continue
 
+               print "- found: %s" % distribution_name
                matches = matches + 1
 
                # we're going to append some data onto the profile name so it can
@@ -240,8 +249,8 @@ class VirtFactoryImporter:
        # die if we couldn't find any distro for the given profile.
 
        if matches == 0:
-           raise InvalidArgumentException(comment="no compatible distributions have been imported for this profile")
-
+           print "- no compatible distributions have been imported for this profile: %s" % profile_dict
+           sys.exit(1)
 
        
    def get_node_text(self, name):
