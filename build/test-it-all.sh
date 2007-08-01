@@ -350,12 +350,12 @@ deploy_a_system()
 
 test_nodecomm()
 {
-    msg "Testing vf_nodecomm to see if basic ssl stuff is working"
+    msg "Testing vf_nodecomm to see if basic node stuff is working"
     HN=`hostname`
-    /usr/bin/vf_nodecomm $HN $HN test_add 1 2 
+    /usr/bin/vf_nodecomm $HN $HN $HN test_add 1 2 
     echo $?
     rm /tmp/blippy
-    /usr/bin/vf_nodecomm $HN $HN test_blippy 52.8
+    /usr/bin/vf_nodecomm $HN $HN $HN test_blippy 52.8
     if ! [ -f /tmp/blippy ]; then
        echo "test_blippy failed"
     fi

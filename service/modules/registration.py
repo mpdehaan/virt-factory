@@ -28,7 +28,7 @@ import traceback
 
 class Registration(web_svc.AuthWebSvc):
     def __init__(self):
-        self.methods = {"register": self.register, }
+        self.methods = {"register_system": self.register_system, }
         web_svc.AuthWebSvc.__init__(self)
         self.auth = authentication.Authentication()
 
@@ -56,7 +56,7 @@ class Registration(web_svc.AuthWebSvc):
         machine_obj = machine.Machine()
         return machine_obj.new(token)
 
-    def register(self, token, hostname, ip_addr, mac_addr, profile_name, virtual):
+    def register_system(self, token, hostname, ip_addr, mac_addr, profile_name, virtual):
 
         self.__check_auth(token)
         machine_id = None

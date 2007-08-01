@@ -14,7 +14,6 @@ Requires: cobbler >= 0.4.7
 Requires: koan >= 0.2.8
 Requires: python-virtinst
 Requires: puppet-server >= 0.23
-Requires: python-sqlite2
 Requires: m2crypto
 Requires: rhpl
 Requires: yum-utils

@@ -77,7 +77,7 @@ class QpidTransport(Transport):
                     time.sleep(wait_time)
                     wait_time = wait_time + 0.25
                     self.client = qpid.client.Client(self.host, self.port,
-                                       qpid.spec.load("file:///etc/qpid/amqp.0-8.xml"),
+                                       qpid.spec.load("file:///usr/share/amqp/amqp.0-9.xml", "file:///usr/share/amqp/amqp-errata.0-9.xml"),
                                        vhost=self.vhost)                    
 
     def send_message(self, to, message):
@@ -153,14 +153,11 @@ class QpidServerTransport(QpidTransport, ServerTransport):
             call_body = self.pending_calls.get()
             try:
                 addr, reply = self.callback(call_body)
+                if (addr != None and reply != None):
+                    self.send_message(addr, reply)
             except TypeError, e:
                 print e
-                return
                 
-            if addr == None or reply == None:
-                return
-            else:
-                self.send_message(addr, reply)
 
     def _poll(self):
         while not self.is_stopped:

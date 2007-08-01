@@ -87,7 +87,7 @@ class Register(object):
         if mac is None:
             mac = "00:00:00:00:00:00"
         try:
-            rc = self.server.register(self.token, hostname, ip, mac, profile_name, virtual)
+            rc = self.server.register_system(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
             (t, v, tb) = sys.exc_info()
             self.logger.error("error running registration.")
@@ -101,7 +101,7 @@ class Register(object):
             fd1.write(self.token)
             fd1.close()
             fd2 = open("/etc/sysconfig/virt-factory/server","w+")
-            fd2.write(self.server_url)
+            fd2.write(self.server_host)
             fd2.close()
             fd3 = open("/etc/sysconfig/virt-factory/mac", "w+")
             fd3.write(mac)

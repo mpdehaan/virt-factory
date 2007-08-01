@@ -1,4 +1,4 @@
-# Generated from fastthread-0.6.4.1.gem by gem2spec -*- rpm-spec -*-
+	# Generated from fastthread-0.6.4.1.gem by gem2spec -*- rpm-spec -*-
 %define gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %define gemname fastthread
 %define geminstdir %{gemdir}/gems/%{gemname}-%{version}
@@ -17,6 +17,7 @@ Source1: %{name}.spec.in
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
 BuildRequires: rubygems
+BuildRequires: ruby-devel
 Provides: rubygem(fastthread) = %{version}
 
 %description
