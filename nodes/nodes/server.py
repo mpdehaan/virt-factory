@@ -149,7 +149,7 @@ def serve_qpid(config_path):
      Code for starting the QPID RPC service. 
      """
      config = DeploymentConfig(config_path)
-     server_file = open("/etc/sysconfig/virt-factory/server","w+")
+     server_file = open("/etc/sysconfig/virt-factory/server","r")
      server_host = server_file.read()
      server_file.close()
      dispatcher = RPCDispatcher(config, server_host=server_host)
