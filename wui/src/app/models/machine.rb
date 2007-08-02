@@ -43,5 +43,11 @@ class Machine < ManagedObject
         self.is_container = self.profile.is_container unless self.profile.nil?
         super
     end
+
+    def get_profile_choices
+        ManagedObject.call_server("machine_get_profile_choices", 
+                                  self.login, { "id" => id }, id.to_s)
+    end
+
 end
 

@@ -241,7 +241,7 @@ class Machine(web_svc.AuthWebSvc):
         Returns the list of profiles that can be installed on this given host
         """
 
-        this_object = self.get(self,token,{ "id" : args["id" ] })
+        this_object = self.get(token,{ "id" : args["id" ] })
         this_object = this_object.data
 
         # the WUI should filter this out but lets be safe anyway
