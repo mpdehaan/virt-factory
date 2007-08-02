@@ -10,6 +10,7 @@
             <th><%= _("Name") %></th>
             <th><%= _("Version") %></th>
             <th><%= _("Distribution") %></th>
+            <th><%= _("Virt Type") %></th>
             <th><%= _("Virt Storage (GB)") %></th>
             <th><%= _("Virt Memory (MB)") %></th>
             <th><%= _("Targets") %></th>
@@ -29,6 +30,7 @@
              <TD> <%= link_to item.name, :controller => "profile", :action=> "edit", :id=> item.id %></TD>
              <TD> <%= item.version %> </TD>
              <TD> <%= item.distribution.name %> </TD>
+             <TD> <%= item.virt_type %> </TD>
              <TD> <%= item.virt_storage_size %> </TD>
              <TD> <%= item.virt_ram %> </TD>
              <TD> <%= VALID_TARGETS[item.valid_targets] %> </TD>
