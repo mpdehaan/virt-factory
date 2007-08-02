@@ -225,6 +225,16 @@ class VirtFactoryImporter:
                profile_dict["name"] = profile_dict["name"] + "::" + distribution_name
                profile_obj = profile.Profile()
 
+               # override the virt type based on the distro
+               if distribution_name.find("xen") != -1:
+                   profile_dict["virt_type"] = "xenpv"
+               else:
+                   # FIXME: if we support more than just kvm/qemu we will 
+                   # want to do this slightly differently.
+                   # qemu here doesn't mean qemu explicitly just things that
+                   # take qemu disk images.
+                   profile_dict["virt_type"] = "qemu"
+
                # create or modify existing
                
                self.logger.info("constructing profile record: %s" % profile_dict)
