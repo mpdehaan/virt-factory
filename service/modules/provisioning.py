@@ -207,14 +207,17 @@ class CobblerTranslatedProfile:
        
        virt_size = 0
        virt_ram  = 0
+       virt_type = "xenpv"
        if from_db.has_key("virt_storage_size"):
            virt_size = from_db["virt_storage_size"]
        if from_db.has_key("virt_ram"):
            virt_ram  = from_db["virt_ram"]
+       if from_db.has_key("virt_type"):
+           virt_ram  = from_db["virt_type"]
 
        new_item.set_virt_file_size(virt_size)
        new_item.set_virt_ram(virt_ram)
-
+       new_item.set_virt_type(virt_type)
 
        ks_meta = {}
        if from_db.has_key("kickstart_metadata"):
