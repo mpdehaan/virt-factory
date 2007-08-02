@@ -65,15 +65,28 @@ class Virt(web_svc.WebSvc):
             "virt_status"   : self.get_status,
         }
 
+        cmd = subprocess.Popen("uname -r", shell=True, stdout=subprocess.PIPE)
+        output = cmd.communicate()[0]
+
         try:
-           self.xen_conn = libvirt.open(None)  # warning: Xen only!
-           if not self.xen_conn:
+
+           # this connection string stuff is a hack though we can fix
+           # it later when more virt types come along.  Right now VF assumes
+           # a given host hosts only one type of virt and that should be a 
+           # decent assumption.
+
+           if output.find("xen") != -1:
+              self.conn = libvirt.open(None)  
+           else:
+              self.conn = libvirt.open("qemu:///system")
+
+           if not self.conn:
               raise VirtException(comment="Xen connection failure")
         except:
            # FIXME: No Xen for you ... what about trying qemu KVM?
            # look at newer koan sources for detection and prereq 
            # validation code.
-           self.xen_conn = None 
+           self.conn = None 
 
         web_svc.WebSvc.__init__(self)
 
@@ -111,10 +124,10 @@ class Virt(web_svc.WebSvc):
         # name we use
         needle = mac_address.replace(":","_").upper()
 
-        ids = self.xen_conn.listDomainsID()
+        ids = self.conn.listDomainsID()
         for domain in ids:
             try:
-                domain = self.xen_conn.lookupByID(domain)
+                domain = self.conn.lookupByID(domain)
             except libvirt.libvirtError, lve:
                 raise virtException(comment="libvirt go boom: %s" % repr(lve))          
             if domain.name() == needle:
