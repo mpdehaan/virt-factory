@@ -35,7 +35,9 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_list": self.list,
                         "machine_get": self.get,
 			"machine_get_by_hostname": self.get_by_hostname,
-			"machine_get_by_mac_address": self.get_by_mac_address}
+			"machine_get_by_mac_address": self.get_by_mac_address,
+                        "machine_get_profile_choices": self.get_profile_choices
+        }
         web_svc.AuthWebSvc.__init__(self)
 
 
@@ -234,6 +236,40 @@ class Machine(web_svc.AuthWebSvc):
         finally:
             session.close()
 
+    def get_profile_choices(self, token, args={}):
+        """
+        Returns the list of profiles that can be installed on this given host
+        """
+
+        this_object = self.get(self,token,{ "id" : args["id" ] })
+        this_object = this_object.data
+
+        # the WUI should filter this out but lets be safe anyway
+        if this_object["is_container"] != codes.MACHINE_IS_CONTAINER:
+            # cannot install any virt types on this machine
+            return codes.success([])
+
+        session = db.open_session()
+        offset, limit = self.offset_and_limit(args)
+        
+        need_arch = this_object["distribution"]["arch"]
+        need_virt = this_object["profile"]["virt_type"]
+
+        # find all profiles with matching virt types and matching arches
+        # matching distros is not important.
+        try:
+            query = session.query(db.Profile).offset(offset).limit(limit)
+            results = []
+            # FIXME: make efficient .. want to send raw SQL to sqlalchemy
+            # to do fancy joins
+            for result in query.select():
+                if result.arch == need_arch and result.virt_type == need_virt:
+                    obj = profile.get(token, { "id" : result.id })
+                    results.append(obj.expand())
+            return codes.success(results)
+        finally:
+            session.close()
+
 
     def get_by_regtoken(self, token, args):
         # FIXME: this code is currently non-operational in VF 0.0.3 and later
@@ -328,5 +364,4 @@ class Machine(web_svc.AuthWebSvc):
 
 methods = Machine()
 register_rpc = methods.register_rpc
-
 

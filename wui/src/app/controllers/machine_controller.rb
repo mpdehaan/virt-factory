@@ -4,6 +4,16 @@
 class MachineController < AbstractObjectController
 
     def edit
+
+        # talk to the node daemon of the host to see what the guest's
+        # current state is, and update it.
+        if !params[:id].nil?
+            obj = ManagedObject.retrieve(Machine, get_login, params[:id])
+            # obj.refresh() -- do not call this from WUI (at least for now)
+            @profile_choices = obj.get_profile_choices()
+        end
+
+
         super
         @profiles = []
 
