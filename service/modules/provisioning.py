@@ -67,6 +67,7 @@ or the chosen mirror was down.\n
 MIRROR_INFO = """
 \nProcessing rsync mirror named: %s
 Address                      : %s\n
+Remote Source (If Available) : %s\n
 """
 
 NOW_SAVING = """
@@ -184,23 +185,23 @@ class CobblerTranslatedProfile:
 
        new_item.set_kickstart("/var/lib/virt-factory/kick-fc6.ks")
 
-       # the repositories that this profile will use vary by architecture.  For now
-       # import only extras/updates and assume the distribution is FC-6.  The repos 
-       # to be imported are defined in the service configuration file and must match
-       # by name... I expect some (minor) pain in this when we support FC6/FC7 simultaneously.
-       # --mpd
+       # the repositories that this profile will use vary by architecture.  Let's not
+       # set these here and if someone wants to add associations in cobbler then they
+       # can do so.
 
-       repos = ['vf_repo']
-       if distrib.data["architecture"] == "x86":
-           # not supporting update mirroring at this time in development, but can re-enable later.
-           # namely turned off due to time it takes to sync.
-           # repos.append('fc6i386updates')
-           repos.append('fc6i386extras')
-       if distrib.data["architecture"] == "x86_64":
-           # repos.append('fc6x86_64updates')
-           repos.append('fc6x86_64extras')
-
-       new_item.set_repos(repos)
+       #  OBSOLETE --left here in case we decide to do this again
+       #
+       #repos = ['vf_repo']
+       #if distrib.data["architecture"] == "x86":
+       #    # not supporting update mirroring at this time in development, but can re-enable later.
+       #    # namely turned off due to time it takes to sync.
+       #    # repos.append('fc6i386updates')
+       #    repos.append('fc6i386extras')
+       #if distrib.data["architecture"] == "x86_64":
+       #    # repos.append('fc6x86_64updates')
+       #    repos.append('fc6x86_64extras')
+       #
+       #new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
@@ -537,9 +538,17 @@ class Provisioning(web_svc.AuthWebSvc):
         # read the config entry to find out cobbler's mirror locations
         for mirror_name in vf_config["mirrors"]:
 
-           mirror_url = vf_config["mirrors"][mirror_name]
+           mirror_cfg = vf_config["mirrors"][mirror_name]
+           mirror_url = mirror_cfg[0]
+           mirror_remote = mirror_cfg[1]
 
-           print MIRROR_INFO % (mirror_name, mirror_url)
+           
+
+           # see if we can't use an external filer
+           if mirror_remote == "":
+               mirror_remote = None # have to actually mirror it
+
+           print MIRROR_INFO % (mirror_name, mirror_url, mirror_remote)
 
 
            # run the cobbler mirror import
@@ -547,7 +556,7 @@ class Provisioning(web_svc.AuthWebSvc):
            # to detect rsync failures such as mirrors that are shut down
            # but don't have any files available.
 
-           cobbler_api.import_tree(mirror_url,mirror_name)
+           cobbler_api.import_tree(mirror_url,mirror_name,mirror_remote)
 
            print MIRROR_EXITED
 
