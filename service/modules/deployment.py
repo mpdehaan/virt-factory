@@ -460,11 +460,12 @@ class Deployment(web_svc.AuthWebSvc):
          dargs = get_results
 
          self.logger.info("refresh request for: %s" % get_results)
-
+         this_host = socket.gethostname()
          cmd = [
             "/usr/bin/vf_nodecomm",
-            socket.gethostname(),
+            this_host,
             dargs["machine"]["hostname"],
+            this_host,
             "virt_status",
             dargs["mac_address"]
          ]

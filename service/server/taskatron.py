@@ -245,6 +245,7 @@ class Taskatron:
             "/usr/bin/vf_nodecomm",
             myhost,
             machine_hostname,
+            myhost,
             command
             ]
         for x in cmd_args:
