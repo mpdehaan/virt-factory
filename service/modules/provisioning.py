@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 ## Virt-factory backend code.
 ##
 ## Copyright 2006-2007, Red Hat, Inc
@@ -275,7 +275,8 @@ class CobblerTranslatedProfile:
        #tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
 
        # ks_meta["tree"] = tree_url 
-       # new_item.set_ksmeta(ks_meta)
+       
+       new_item.set_ksmeta(ks_meta)
 
        print "ADDING PROFILE: ", new_item.printable()      
        cobbler_api.profiles().add(new_item, with_copy=True)
