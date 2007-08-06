@@ -240,21 +240,25 @@ class CobblerTranslatedProfile:
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
 
+       # FIXME: OBSOLETE: the following should have been set by the import
+       # and is therefore totally removable.
+       #
        # Calculate the kickstart tree location from the distro.
-       distribution_name = distrib.data["name"]
-       cobbler_distro = cobbler_api.distros().find(distribution_name)
-       if cobbler_distro is None:
-           assert("no cobbler distro named %s" % distribution_name)
-       kernel_path = cobbler_distro.kernel
-       print kernel_path
-       tree_path = kernel_path.split("/")[0:-3]
-       print tree_path
-       tree_path = "/".join(tree_path)
-       print tree_path
-       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
-       ks_meta["tree"] = tree_url 
- 
-       new_item.set_ksmeta(ks_meta)
+       #distribution_name = distrib.data["name"]
+       #cobbler_distro = cobbler_api.distros().find(distribution_name)
+       #if cobbler_distro is None:
+       #    assert("no cobbler distro named %s" % distribution_name)
+       #kernel_path = cobbler_distro.kernel
+       #print kernel_path
+       #tree_path = kernel_path.split("/")[0:-3]
+       #print tree_path
+       #tree_path = "/".join(tree_path)
+       #print tree_path
+       #tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
+
+       # ks_meta["tree"] = tree_url 
+       # new_item.set_ksmeta(ks_meta)
+
        print "ADDING PROFILE: ", new_item.printable()      
        cobbler_api.profiles().add(new_item, with_copy=True)
 
