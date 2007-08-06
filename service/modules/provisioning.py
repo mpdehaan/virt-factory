@@ -141,26 +141,17 @@ class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
        if from_db.has_key("id") and from_db["id"] < 0:
            return
-       found = cobbler_api.distros().find(from_db["name"])
-       if found is None:
-           # this should only occur when someone deletes the cobbler
-           # distro but we still have any entry in the VF DB.
-           # thus the cobbler object can be modified outside of VF
-           # and will not get "hacked" by VF unless it ceases to
-           # exist.  To ensure advanced cobbler features can still
-           # be used (adding new ksmeta attributes, etc) this is how
-           # we want to have things -- MPD.
-           new_item = cobbler_api.new_distro()
-           new_item.set_name(from_db["name"])
-           new_item.set_kernel(from_db["kernel"])
-           new_item.set_initrd(from_db["initrd"])
-           if from_db.has_key("kernel_options"):
-               new_item.set_kernel_options(from_db["kernel_options"])
-           new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
-           ks_meta = {}
-           if from_db.has_key("kickstart_metadata"):
-               (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
-           cobbler_api.distros().add(new_item, with_copy=True)
+       new_item = cobbler_api.new_distro()
+       new_item.set_name(from_db["name"])
+       new_item.set_kernel(from_db["kernel"])
+       new_item.set_initrd(from_db["initrd"])
+       if from_db.has_key("kernel_options"):
+           new_item.set_kernel_options(from_db["kernel_options"])
+       new_item.set_arch(COBBLER_ARCH_MAPPING[from_db["architecture"]])
+       ks_meta = {}
+       if from_db.has_key("kickstart_metadata"):
+           (rc, ks_meta) = input_string_or_hash(from_db["kickstart_metadata"])
+       cobbler_api.distros().add(new_item, with_copy=True)
 
 #--------------------------------------------------------------------
 
