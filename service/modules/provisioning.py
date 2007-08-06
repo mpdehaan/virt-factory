@@ -141,6 +141,9 @@ class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
        if from_db.has_key("id") and from_db["id"] < 0:
            return
+       if cobbler_api.distros().find(from_db["name"]):
+           # do not reclobber, or we'll erase the tree info!
+           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
