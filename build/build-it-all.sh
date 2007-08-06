@@ -2,7 +2,12 @@
 
 BUILD=`pwd`
 SRCDIR="$BUILD/../"
-VF_PKGS="common/busrpc register nodes service wui rubypkgstuff"
+FEDORA_RELEASE=`rpm -q --queryformat "%{VERSION}\n" fedora-release`
+FC6_PKGS=""
+if [ "$FEDORA_RELEASE" == "6" ] ; then
+    FC6_PKGS=" contrib-fc6"
+fi
+VF_PKGS="common/busrpc register nodes service wui contrib$FC6_PKGS"
 COBBLER_PKGS="cobbler koan"
 
 
