@@ -214,7 +214,7 @@ class CobblerTranslatedProfile:
        if from_db.has_key("virt_ram"):
            virt_ram  = from_db["virt_ram"]
        if from_db.has_key("virt_type"):
-           virt_ram  = from_db["virt_type"]
+           virt_type  = from_db["virt_type"]
 
        new_item.set_virt_file_size(virt_size)
        new_item.set_virt_ram(virt_ram)
