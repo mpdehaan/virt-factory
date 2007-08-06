@@ -19,9 +19,14 @@ import getopt
 import os
 import sys
 
-api = ampmlib.Api(url="http://127.0.0.1/vf/",
-                  username="admin",
-                  password="fedora")
+import config
+cfg = config.AmpmConfig()
+cfg.load()
+
+
+api = ampmlib.Api(url=cfg.get("server", "url"),
+                  username=cfg.get("user", "username"),
+                  password=cfg.get("user", "password"))
 
 
 from command_modules import list

@@ -24,6 +24,9 @@ clean::
 	@rm -fv *.pyc *~ .*~ 
 	@find . -name .\#\* -exec rm -fv {} \;
 	@rm -fv *.rpm
+	@rm -rfv build/
+	@rm -rfv dist/
+	@rm -rfv rpm-build/
 
 
 new-rpms: bumprelease rpms
