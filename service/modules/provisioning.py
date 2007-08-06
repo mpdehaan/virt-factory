@@ -178,7 +178,7 @@ class CobblerTranslatedProfile:
        # for editing of the object rather than recreating it.
        # this allows some degree of control from within cobbler.
 
-       found = cobbler_api.profiles.find(from_db["name"])
+       found = cobbler_api.profiles().find(from_db["name"])
        if found is None:
            new_item = cobbler_api.new_profile()
        else:
