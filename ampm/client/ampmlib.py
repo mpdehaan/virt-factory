@@ -25,7 +25,8 @@ import xmlrpclib
 #modules = module_loader.load_modules(module_path=MODULE_PATH)
 #print modules
 
-print sys.path
+#print sys.path
+from client import config
 from api_modules import auth
 from api_modules import machine
 from api_modules import deployment
