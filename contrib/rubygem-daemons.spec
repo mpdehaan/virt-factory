@@ -1,4 +1,4 @@
-# Generated from daemons-1.0.5.gem by gem2spec -*- rpm-spec -*-
+# Generated from daemons-1.0.5.gem by gem2rpm -*- rpm-spec -*-
 %define gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %define gemname daemons
 %define geminstdir %{gemdir}/gems/%{gemname}-%{version}
@@ -8,19 +8,25 @@ Name: rubygem-%{gemname}
 
 Version: 1.0.5
 Release: 1%{?dist}
-Group: Development/Libraries
-License: Ruby License
+Group: Development/Languages
+License: GPLv2+ or Ruby
 URL: http://daemons.rubyforge.org
-Source0: http://rubyforge.org/frs/download.php/17811/%{gemname}-%{version}.gem
-Source1: %{name}.spec.in
+Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
 BuildRequires: rubygems
 BuildArch: noarch
-Provides: rubygem(daemons) = %{version}
+Provides: rubygem(%{gemname}) = %{version}
 
 %description
-Daemons provides an easy way to wrap existing ruby scripts (for example a self-written server)  to be run as a daemon and to be controlled by simple start/stop/restart commands.  You can also call blocks as daemons and control them from the parent or just daemonize the current process.  Besides this basic functionality, daemons offers many advanced features like exception  backtracing and logging (in case your ruby script crashes) and monitoring and automatic restarting of your processes if they crash.
+Daemons provides an easy way to wrap existing ruby scripts (for example a
+self-written server)  to be run as a daemon and to be controlled by simple
+start/stop/restart commands.  You can also call blocks as daemons and control
+them from the parent or just daemonize the current process.  Besides this
+basic functionality, daemons offers many advanced features like exception 
+backtracing and logging (in case your ruby script crashes) and monitoring and
+automatic restarting of your processes if they crash.
+
 
 %prep
 
@@ -29,7 +35,8 @@ Daemons provides an easy way to wrap existing ruby scripts (for example a self-w
 %install
 %{__rm} -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
-gem install --local --install-dir %{buildroot}%{gemdir} --force --rdoc %{SOURCE0}
+gem install --local --install-dir %{buildroot}%{gemdir} \
+            --force --rdoc %{SOURCE0}
 
 %clean
 %{__rm} -rf %{buildroot}
