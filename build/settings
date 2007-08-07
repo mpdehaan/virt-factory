@@ -6,7 +6,7 @@ logs:
 repos:
     vf_repo: 'VF_REPO'
 mirrors:
-    F-7: [ '/mnt/engarchive2/released/F-7/GOLD/Fedora/',  'nfs://engarchive.rdu.redhat.com:/engineering/archives2/released/F-7/GOLD/Fedora/' ]
+    F-7: [ '/mnt/engarchive2/released/F-7/GOLD/Fedora/',  '' ]
 this_server:
     address: 'ADDRESS'
 extras_rpms:

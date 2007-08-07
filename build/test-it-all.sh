@@ -22,7 +22,7 @@ BUILD_PATH="/tmp/vf-test"
 # that the code will be running on
 VF_SERVER="http://172.16.59.215"
 
-ARCH="fc7"
+ARCH="f7"
 
 # er, variables...
 
