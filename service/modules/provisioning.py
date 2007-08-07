@@ -203,7 +203,6 @@ class CobblerTranslatedProfile:
 
        #  OBSOLETE --left here in case we decide to do this again
        #
-       #repos = ['vf_repo']
        #if distrib.data["architecture"] == "x86":
        #    # not supporting update mirroring at this time in development, but can re-enable later.
        #    # namely turned off due to time it takes to sync.
@@ -213,7 +212,9 @@ class CobblerTranslatedProfile:
        #    # repos.append('fc6x86_64updates')
        #    repos.append('fc6x86_64extras')
        #
-       #new_item.set_repos(repos)
+       
+       repos = ['vf_repo']
+       new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
            new_item.set_kernel_options(from_db["kernel_options"])
