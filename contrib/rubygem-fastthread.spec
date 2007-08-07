@@ -1,48 +1,47 @@
-	# Generated from fastthread-0.6.4.1.gem by gem2spec -*- rpm-spec -*-
+# Generated from fastthread-0.6.4.1.gem by gem2rpm -*- rpm-spec -*-
 %define gemdir %(ruby -rubygems -e 'puts Gem::dir' 2>/dev/null)
 %define gemname fastthread
 %define geminstdir %{gemdir}/gems/%{gemname}-%{version}
-%{!?ruby_sitearch: %define ruby_sitearch %(ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")}
+%define ruby_sitearch %(ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")
+%define _enable_debug_packages 0
 
 Summary: Optimized replacement for thread.rb primitives
 Name: rubygem-%{gemname}
 
 Version: 0.6.4.1
 Release: 1%{?dist}
-Group: Development/Libraries
-License: Ruby License
+Group: Development/Languages
+License: GPLv2+ or Ruby
 URL: http://mongrel.rubyforge.org
-Source0: http://rubyforge.org/frs/download.php/17526/%{gemname}-%{version}.gem
-Source1: %{name}.spec.in
+Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
 BuildRequires: rubygems
 BuildRequires: ruby-devel
-Provides: rubygem(fastthread) = %{version}
+Provides: rubygem(%{gemname}) = %{version}
 
 %description
-
+Optimized replacement for thread.rb primitives
 
 %prep
 
 %build
 
 %install
-%{__rm} -rf %{buildroot}
+rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 gem install --local --install-dir %{buildroot}%{gemdir} --force %{SOURCE0}
-%{__install} -d -m0755 %{buildroot}%{ruby_sitearch}
-#move any .so files to the proper arch-specific dir
+install -d -m0755 %{buildroot}%{ruby_sitearch}
 mv %{buildroot}%{geminstdir}/lib/fastthread.so %{buildroot}%{ruby_sitearch}
-%{__chmod} 0755 %{buildroot}%{ruby_sitearch}/fastthread.so
+chmod 0755 %{buildroot}%{ruby_sitearch}/fastthread.so
 rm -rf %{buildroot}%{geminstdir}/ext
+strip %{buildroot}%{ruby_sitearch}/fastthread.so
 
 %clean
-%{__rm} -rf %{buildroot}
+rm -rf %{buildroot}
 
 %files
 %defattr(-, root, root)
-#arch-specific libs here
 %{ruby_sitearch}/fastthread.so
 %{gemdir}/gems/%{gemname}-%{version}/
 %{gemdir}/cache/%{gemname}-%{version}.gem
