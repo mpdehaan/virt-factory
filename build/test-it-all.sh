@@ -244,7 +244,7 @@ setup_vf_server()
     # FIXME: this path shouldn't be hardcoded
     get_fedora_release
     ARCH=`uname -p`
-    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/fc$FEDORA_RELEASE/devel/$ARCH"
+    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/f$FEDORA_RELEASE/devel/$ARCH"
     cp settings settings.testing
     export HN VF_REPO
     perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" settings.testing
@@ -455,8 +455,8 @@ if [ "$SYNC_REPOS" == "Y" ] ; then
 	BUILD_RELEASE=$FEDORA_RELEASE
         ssh $REMOTE_USER@$REMOTE_HOST rm -rf /var/www/html/download/*
         
-	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro fc$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
-	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "fc$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
+	echo "$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release devel --distro f$FEDORA_RELEASE --arch $BUILD_ARCH --urlpath $URL_PATH"
+	$BUILD_PATH/virt-factory/build/sync-it-all.py --localpath $BUILD_PATH/virt-factory/build --user $REMOTE_USER --hostname $REMOTE_HOST --path $REMOTE_PATH --release "devel" --distro "f$FEDORA_RELEASE" --arch "$BUILD_ARCH" --urlpath $URL_PATH
 	echo "ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386"
         ssh $REMOTE_USER@$REMOTE_HOST ln -s /var/www/html/download/repo/$ARCH/devel/i686 /var/www/html/download/repo/$ARCH/devel/i386
 fi

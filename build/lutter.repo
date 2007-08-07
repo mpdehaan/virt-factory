@@ -1,6 +1,6 @@
 [dlutter-fedora]
 name=Additional Fedora packages (lutter)
-baseurl=http://people.redhat.com/dlutter/yum/fc6/
+baseurl=http://people.redhat.com/dlutter/yum/fc7/
 enabled=0
 gpgcheck=0
 keepcache=0
