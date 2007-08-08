@@ -45,6 +45,7 @@ import web_svc
 import os
 import threading
 import traceback
+import urlgrabber
 
 #--------------------------------------------------------------------
 
@@ -201,21 +202,33 @@ class CobblerTranslatedProfile:
 
        new_item.set_kickstart("/var/lib/virt-factory/kick-fc6.ks")
 
+       # code to only attach a repo if it is actually defined in cobbler.  This is so that
+       # repos we don't have arches for don't break our configs -- mostly a test issue
+       # and not a production issue.
+
+       def repos_append(repos, name):
+           if cobbler_api.repos().find(name):
+               print "- adding repository link: %s" % name
+               repos.append(name)
+
        # the repositories that this profile will use vary by architecture.  Let's not
        # set these here and if someone wants to add associations in cobbler then they
        # can do so.
 
        repos = []
 
-       (dname, dver) = distribution_name.split("-",2)
+       (dname, dver) = distribution_name.split("-",1)
        dver.replace("-","")    
 
-       if from_db["arch"] == "x86_64":
-           repos.append('%s-%s-x86_64-updates-lite' % (dname, dver))
-           repos.append('%s-%s-x86_64-vf_repo' % (dname,dver))
+       if dname.find("x86_64") != -1:
+           repos_append(repos,'%s-%s-x86_64-updates-lite' % (dname, dver))
+           repos_append(repos,'%s-%s-x86_64-vf_repo' % (dname,dver))
        else:
-           repos.append('%s-%s-i386-updates-lite' % (dname, dver))
-           repos.append('%s-%s-i386-vf_repo' % (dname, dver))
+           repos_append(repos,'%s-%s-i386-updates-lite' % (dname, dver))
+           repos_append(repos,'%s-%s-i386-vf_repo' % (dname, dver))
+
+       # FIXME: eventual support for nonstandard arches might be useful.
+       # if so, edit the above to add support.
  
        new_item.set_repos(repos)
 
@@ -556,7 +569,25 @@ class Provisioning(web_svc.AuthWebSvc):
         # deal with repositories first... as the profiles might reference them.
         for repo_name in vf_config["repos"].keys():
            mirror_url = vf_config["repos"][repo_name]
-           CobblerTranslatedRepo(cobbler_api,repo_name,mirror_url)
+
+           # if the remote repository does not exist, and we add it, we'll die on
+           # syncing the mirror and end up in lots of ... peril.
+           # therefore let's try to see if the repo exists and be smart and not
+           # add any repos to cobbler that we don't have on our arch.
+
+           # this really comes up only for testing, where we might not have x86 or x86_64
+           # depending on platform, but we'll have it for users on the real vf_repo
+
+           do_import = False
+           try:
+               urlgrabber.urlread(mirror_url)
+               do_import = True
+           except:
+               print "- not importing inaccessible mirror: %s" % mirror_url
+
+           if do_import:
+               CobblerTranslatedRepo(cobbler_api,repo_name,mirror_url)
+
         cobbler_api.reposync() 
 
         # read the config entry to find out cobbler's mirror locations

@@ -259,7 +259,7 @@ class VirtFactoryImporter:
        # die if we couldn't find any distro for the given profile.
 
        if matches == 0:
-           print "- no compatible distributions have been imported for this profile: %s" % profile_dict
+           print "- no compatible distributions have been imported for this profile: %s" % profile_dict["name"]
            sys.exit(1)
 
        
