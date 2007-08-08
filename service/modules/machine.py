@@ -244,28 +244,36 @@ class Machine(web_svc.AuthWebSvc):
         this_object = self.get(token,{ "id" : args["id" ] })
         this_object = this_object.data
 
-        # the WUI should filter this out but lets be safe anyway
-        if this_object["is_container"] != codes.MACHINE_IS_CONTAINER:
-            # cannot install any virt types on this machine
-            return codes.success([])
+        try:
+            # the WUI should filter this out but lets be safe anyway
+            if this_object["is_container"] != codes.MACHINE_IS_CONTAINER:
+                # cannot install any virt types on this machine
+                return codes.success([])
 
-        session = db.open_session()
-        offset, limit = self.offset_and_limit(args)
-        
-        need_arch = this_object["distribution"]["arch"]
-        need_virt = this_object["profile"]["virt_type"]
+            need_virt = this_object["profile"]["virt_type"]
+            need_arch = this_object["profile"]["distribution"]["architecture"]
+        except KeyError, e:
+            #missing distribution or profile, for now return empty list rather than error
+            print "missing distribution or profile, for now return empty list rather than error", e
+            print "machine: ", this_object
+            return codes.success([])
 
         # find all profiles with matching virt types and matching arches
         # matching distros is not important.
         try:
+            session = db.open_session()
+            offset, limit = self.offset_and_limit(args)        
+            
             query = session.query(db.Profile).offset(offset).limit(limit)
             results = []
             # FIXME: make efficient .. want to send raw SQL to sqlalchemy
             # to do fancy joins
             for result in query.select():
-                if result.arch == need_arch and result.virt_type == need_virt:
-                    obj = profile.get(token, { "id" : result.id })
-                    results.append(obj.expand())
+                print "trying", result
+                if result.distribution.architecture == need_arch and result.virt_type == need_virt:
+                    obj = profile.Profile().get(token, { "id" : result.id })
+                    print "found", obj
+                    results.append(obj.data)
             return codes.success(results)
         finally:
             session.close()
@@ -340,7 +348,7 @@ class Machine(web_svc.AuthWebSvc):
         try:
             self.logger.info(args)
             machine = db.Machine.get(session, args['id'])
-            return codes.success(machine.get_hash())
+            return codes.success(self.expand(machine))
         finally:
             session.close()
 
@@ -359,6 +367,7 @@ class Machine(web_svc.AuthWebSvc):
     def expand(self, machine):
         result = machine.get_hash()
         result['profile'] = machine.profile.get_hash()
+        result['profile']['distribution'] = machine.profile.distribution.get_hash()
         return result
 
 
