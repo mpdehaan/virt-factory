@@ -259,15 +259,17 @@ class CobblerTranslatedProfile:
        if distribution_name.find("xen") != -1:
            ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\nxen\nkernel-xen\n" 
        else:
-           ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\n" 
+           ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\nqemu\nkvm\n" 
 
+       # FIXME: currently not used...
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
+
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
-           # FIXME: is this package list right?
-           ks_meta["node_virt_packages"]   = ""  
-           ks_meta["node_bare_packages"]   = ""
-       ks_meta["extra_post_magic"]     = ""
+           # qemu won't be installed for Xen but it's ok if that command fails...
+           # we do want to make sure libvirt is started though
+           ks_meta["extra_post_magic"]     = "/sbin/chkconfig 345 qemu on\n" + "/sbin/chkconfig 345 libvirtd on\n"
+            
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--profile=%s" % from_db["name"]
