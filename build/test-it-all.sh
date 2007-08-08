@@ -24,6 +24,8 @@ VF_SERVER="http://172.16.59.215"
 
 ARCH="f7"
 
+VIRSH_CONNECTION="--connect qemu:///system"
+
 # er, variables...
 
 # this does a rebuild of all the packages
@@ -131,6 +133,7 @@ show_config()
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
     echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
     echo "ARCH=$ARCH"
+    echo "VIRSH_CONNECTION=$VIRSH_CONNECTION"
 }
 
 msg()
@@ -163,14 +166,14 @@ check_out_code()
 
 remove_virtual_machine()
 {
-    /usr/sbin/xm destroy 00_16_3E_00_00_00
-    /usr/sbin/xm destroy 00_16_3E_00_00_01
-    /usr/sbin/xm destroy 00_16_3E_00_00_02
-    /usr/sbin/xm destroy 00_16_3E_00_00_03
-    virsh undefine 00_16_3E_00_00_00
-    virsh undefine 00_16_3E_00_00_01
-    virsh undefine 00_16_3E_00_00_02
-    virsh undefine 00_16_3E_00_00_03
+    virsh $VIRSH_CONNECTION 00_16_3E_00_00_00
+    virsh $VIRSH_CONNECTION 00_16_3E_00_00_01
+    virsh $VIRSH_CONNECTION 00_16_3E_00_00_02
+    virsh $VIRSH_CONNECTION 00_16_3E_00_00_03
+    virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_00
+    virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_01
+    virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_02
+    virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_03
 }
 
 remove_all_packages()
