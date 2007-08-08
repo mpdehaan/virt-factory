@@ -219,8 +219,7 @@ class CobblerTranslatedProfile:
 
        repos = []
 
-       (dname, dver) = distribution_name.split("-",1)
-       dver.replace("-","")    
+       (dname, dver, junk) = distribution_name.split("-",3)
 
        if dname.find("x86_64") != -1:
            repos_append(repos,'%s-%s-x86_64-updates-lite' % (dname, dver))
