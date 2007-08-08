@@ -1,4 +1,4 @@
-#!/usr/bin/python
+
 ## Virt-factory backend code.
 ##
 ## Copyright 2006-2007, Red Hat, Inc
@@ -67,6 +67,7 @@ or the chosen mirror was down.\n
 MIRROR_INFO = """
 \nProcessing rsync mirror named: %s
 Address                      : %s\n
+Remote Source (If Available) : %s\n
 """
 
 NOW_SAVING = """
@@ -140,6 +141,9 @@ class CobblerTranslatedDistribution:
    def __init__(self,cobbler_api,from_db):
        if from_db.has_key("id") and from_db["id"] < 0:
            return
+       if cobbler_api.distros().find(from_db["name"]):
+           # do not reclobber, or we'll erase the tree info!
+           return
        new_item = cobbler_api.new_distro()
        new_item.set_name(from_db["name"])
        new_item.set_kernel(from_db["kernel"])
@@ -164,7 +168,16 @@ class CobblerTranslatedProfile:
            
        vf_config = config_data.Config().get()
 
-       new_item = cobbler_api.new_profile()
+       # if the cobbler profile object already exists, allow
+       # for editing of the object rather than recreating it.
+       # this allows some degree of control from within cobbler.
+
+       found = cobbler_api.profiles().find(from_db["name"])
+       if found is None:
+           new_item = cobbler_api.new_profile()
+       else:
+           new_item = found
+
        new_item.set_name(from_db["name"])
        
        distribution_id = from_db["distribution_id"]
@@ -184,22 +197,23 @@ class CobblerTranslatedProfile:
 
        new_item.set_kickstart("/var/lib/virt-factory/kick-fc6.ks")
 
-       # the repositories that this profile will use vary by architecture.  For now
-       # import only extras/updates and assume the distribution is FC-6.  The repos 
-       # to be imported are defined in the service configuration file and must match
-       # by name... I expect some (minor) pain in this when we support FC6/FC7 simultaneously.
-       # --mpd
+       # the repositories that this profile will use vary by architecture.  Let's not
+       # set these here and if someone wants to add associations in cobbler then they
+       # can do so.
 
+       #  OBSOLETE --left here in case we decide to do this again
+       #
+       #if distrib.data["architecture"] == "x86":
+       #    # not supporting update mirroring at this time in development, but can re-enable later.
+       #    # namely turned off due to time it takes to sync.
+       #    # repos.append('fc6i386updates')
+       #    repos.append('fc6i386extras')
+       #if distrib.data["architecture"] == "x86_64":
+       #    # repos.append('fc6x86_64updates')
+       #    repos.append('fc6x86_64extras')
+       #
+       
        repos = ['vf_repo']
-       if distrib.data["architecture"] == "x86":
-           # not supporting update mirroring at this time in development, but can re-enable later.
-           # namely turned off due to time it takes to sync.
-           # repos.append('fc6i386updates')
-           repos.append('fc6i386extras')
-       if distrib.data["architecture"] == "x86_64":
-           # repos.append('fc6x86_64updates')
-           repos.append('fc6x86_64extras')
-
        new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):
@@ -213,7 +227,7 @@ class CobblerTranslatedProfile:
        if from_db.has_key("virt_ram"):
            virt_ram  = from_db["virt_ram"]
        if from_db.has_key("virt_type"):
-           virt_ram  = from_db["virt_type"]
+           virt_type  = from_db["virt_type"]
 
        new_item.set_virt_file_size(virt_size)
        new_item.set_virt_ram(virt_ram)
@@ -239,21 +253,26 @@ class CobblerTranslatedProfile:
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
 
+       # FIXME: OBSOLETE: the following should have been set by the import
+       # and is therefore totally removable.
+       #
        # Calculate the kickstart tree location from the distro.
-       distribution_name = distrib.data["name"]
-       cobbler_distro = cobbler_api.distros().find(distribution_name)
-       if cobbler_distro is None:
-           assert("no cobbler distro named %s" % distribution_name)
-       kernel_path = cobbler_distro.kernel
-       print kernel_path
-       tree_path = kernel_path.split("/")[0:-3]
-       print tree_path
-       tree_path = "/".join(tree_path)
-       print tree_path
-       tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
-       ks_meta["tree"] = tree_url 
- 
+       #distribution_name = distrib.data["name"]
+       #cobbler_distro = cobbler_api.distros().find(distribution_name)
+       #if cobbler_distro is None:
+       #    assert("no cobbler distro named %s" % distribution_name)
+       #kernel_path = cobbler_distro.kernel
+       #print kernel_path
+       #tree_path = kernel_path.split("/")[0:-3]
+       #print tree_path
+       #tree_path = "/".join(tree_path)
+       #print tree_path
+       #tree_url = tree_path.replace("/var/www/cobbler/ks_mirror","http://%s/cblr/ks_mirror" % vf_config["this_server"]["address"])
+
+       # ks_meta["tree"] = tree_url 
+       
        new_item.set_ksmeta(ks_meta)
+
        print "ADDING PROFILE: ", new_item.printable()      
        cobbler_api.profiles().add(new_item, with_copy=True)
 
@@ -540,9 +559,17 @@ class Provisioning(web_svc.AuthWebSvc):
         # read the config entry to find out cobbler's mirror locations
         for mirror_name in vf_config["mirrors"]:
 
-           mirror_url = vf_config["mirrors"][mirror_name]
+           mirror_cfg = vf_config["mirrors"][mirror_name]
+           mirror_url = mirror_cfg[0]
+           mirror_remote = mirror_cfg[1]
 
-           print MIRROR_INFO % (mirror_name, mirror_url)
+           
+
+           # see if we can't use an external filer
+           if mirror_remote == "":
+               mirror_remote = None # have to actually mirror it
+
+           print MIRROR_INFO % (mirror_name, mirror_url, mirror_remote)
 
 
            # run the cobbler mirror import
@@ -550,7 +577,7 @@ class Provisioning(web_svc.AuthWebSvc):
            # to detect rsync failures such as mirrors that are shut down
            # but don't have any files available.
 
-           cobbler_api.import_tree(mirror_url,mirror_name)
+           cobbler_api.import_tree(mirror_url,mirror_name,mirror_remote)
 
            print MIRROR_EXITED
 

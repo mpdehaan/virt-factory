@@ -26,6 +26,7 @@ import socket
 import os
 import os.path
 import traceback
+import subprocess
 
 from busrpc.rpc import lookup_service
 from busrpc.crypto import CertManager
@@ -71,6 +72,59 @@ class Register(object):
         if not self.token:
             self.token = self.server.user_login(username, password)[1]['data']
     
+    def fix_profile_name(self,name):
+        """
+        When the user specifies a profile like "Container" or "Test1" without giving
+        the full name like "Test1::FC-6-xen-i386" convert automatically based on arch
+        and distro.
+        """
+
+        if name.find("::") != -1:
+            return name
+
+        output = subprocess.Popen("rpm --whatprovides -q redhat-release",
+            shell=True,
+            stdout=subprocess.PIPE
+        ).communicate()[0]
+        
+        (release, rest) = output.split("-release-")
+        (major, minorbits) = rest.split("-",1)
+        release = release.lower()        
+
+        if release == "fedora":
+           if major <= 6:
+               distro = "FC-%s" % major
+           else:
+               distro = "F-%s" % major
+        elif release.find("centos"):
+           distro = "Centos-%s" % major
+        else:
+           distro = "RHEL-%s" % major
+
+        output = subprocess.Popen("uname -r",
+            shell = True,
+            stdout = subprocess.PIPE,
+        ).communicate()[0]
+
+        if output.find("xen") != -1:
+            distro = distro + "-xen"
+
+        output = subprocess.Popen("arch",
+           shell = True,
+           stdout = subprocess.PIPE,
+        ).communicate()[0]
+
+        if output.find("x86_64") != -1:
+           distro = distro + "-x86_64"
+        elif output.find("ia64") != -1:
+           distro = distro + "-ia64"
+        else:
+           distro = distro + "-i386"
+
+        name = "%s::%s" % (name,distro)
+        print "- Registering to profile: %s" % name
+        return name
+
     def register(self, hostname, ip, mac, profile_name, virtual):
         # should return a machine_id, maybe more
         self.logger.info("--------------------")
@@ -86,6 +140,7 @@ class Register(object):
             profile_name = ""
         if mac is None:
             mac = "00:00:00:00:00:00"
+
         try:
             rc = self.server.register_system(self.token, hostname, ip, mac, profile_name, virtual)
         except TypeError:
@@ -138,7 +193,6 @@ class Register(object):
         else:
             self.login(username, password)
 
- 
         try:
             rc = self.register(self.net_info['hostname'], self.net_info['ipaddr'], self.net_info['hwaddr'], profile_name, virtual)
         except socket.error:
@@ -214,7 +268,8 @@ def main(argv):
     if server_url is None:
         print _("must specify --serverurl, ex: http://foo.example.com:5150")
         sys.exit(1)
-    
+   
+ 
     if regtoken is None:
         if username is None:
            print _("must specify --token or --username and --password")
@@ -224,6 +279,7 @@ def main(argv):
            sys.exit(1)        
 
     reg_obj = Register(server_url)
+    profile_name = reg_obj.fix_profile_name(profile_name)
     return_status = reg_obj.register_system(regtoken, username, password, profile_name, virtual)
     sys.exit(return_status)
 

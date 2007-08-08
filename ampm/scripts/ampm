@@ -4,9 +4,9 @@
 import sys
 import distutils.sysconfig
 
-sys.path.append("%s/virt-factory" % distutils.sysconfig.get_python_lib())
+sys.path.insert(0, "%s/virt-factory/ampm" % distutils.sysconfig.get_python_lib())
 
-from ampm import ampm_cli
+from client import ampm_cli
 if __name__ == "__main__":
 
     ampm_cli.main()
