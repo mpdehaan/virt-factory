@@ -256,7 +256,11 @@ class CobblerTranslatedProfile:
 
         
        # user will have to create vf_repo manually ATM
-       ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\nxen\nkernel-xen\n" 
+       if distribution_name.find("xen") != -1:
+           ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\nxen\nkernel-xen\n" 
+       else:
+           ks_meta["node_common_packages"] = "koan\npuppet\nvirt-factory-nodes\nvirt-factory-register\n" 
+
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
