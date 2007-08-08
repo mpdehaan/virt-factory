@@ -207,9 +207,11 @@ class CobblerTranslatedProfile:
        # and not a production issue.
 
        def repos_append(repos, name):
-           if cobbler_api.repos().find(name):
+           if cobbler_api.repos().find(name) is not None:
                print "- adding repository link: %s" % name
                repos.append(name)
+           else:
+               print "- repo not linked to profile, since it was not found: %s" % name
 
        # the repositories that this profile will use vary by architecture.  Let's not
        # set these here and if someone wants to add associations in cobbler then they
