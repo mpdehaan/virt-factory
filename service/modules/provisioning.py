@@ -130,9 +130,13 @@ class CobblerTranslatedRepo:
        new_item = cobbler_api.new_repo()
        new_item.set_name(name)
        new_item.set_mirror(url)
-       if name.find("extras") != -1:
-          # don't pull in all of extras
-          new_item.set_rpm_list(vf_config["extras_rpms"])
+       if name.find("-lite") != -1:
+          # don't pull in all content, just the packages we care about
+          # NOTE: is this appropriate for all cases?  Not really.  So
+          # if the list is blank, pull in everything so people have
+          # a way to turn it off.
+          if len(vf_config["extras_rpms"]) != 0:
+              new_item.set_rpm_list(vf_config["extras_rpms"])
        cobbler_api.repos().add(new_item)
 
 #--------------------------------------------------------------------
@@ -201,19 +205,18 @@ class CobblerTranslatedProfile:
        # set these here and if someone wants to add associations in cobbler then they
        # can do so.
 
-       #  OBSOLETE --left here in case we decide to do this again
-       #
-       #if distrib.data["architecture"] == "x86":
-       #    # not supporting update mirroring at this time in development, but can re-enable later.
-       #    # namely turned off due to time it takes to sync.
-       #    # repos.append('fc6i386updates')
-       #    repos.append('fc6i386extras')
-       #if distrib.data["architecture"] == "x86_64":
-       #    # repos.append('fc6x86_64updates')
-       #    repos.append('fc6x86_64extras')
-       #
-       
-       repos = ['vf_repo']
+       repos = []
+
+       (dname, dver) = distribution_name.split("-",2)
+       dver.replace("-","")    
+
+       if from_db["arch"] == "x86_64":
+           repos.append('%s-%s-x86_64-updates-lite' % (dname, dver))
+           repos.append('%s-%s-x86_64-vf_repo' % (dname,dver))
+       else:
+           repos.append('%s-%s-i386-updates-lite' % (dname, dver))
+           repos.append('%s-%s-i386-vf_repo' % (dname, dver))
+ 
        new_item.set_repos(repos)
 
        if from_db.has_key("kernel_options"):

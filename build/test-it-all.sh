@@ -244,7 +244,7 @@ setup_vf_server()
     # FIXME: this path shouldn't be hardcoded
     get_fedora_release
     ARCH=`uname -p`
-    VF_REPO="http://$REMOTE_HOST/$URL_PATH/repo/f$FEDORA_RELEASE/devel/$ARCH"
+    VF_REPO="http://$REMOTE_HOST/$URL_PATH"
     cp settings settings.testing
     export HN VF_REPO
     perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" settings.testing

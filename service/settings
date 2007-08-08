@@ -4,7 +4,10 @@ databases:
 logs:
     service: /var/log/virt-factory/svclog
 repos:
-    vf_repo: 'http://virt-factory.et.redhat.com/download/repo/fc7/stable/i386/'
+    f7-i386-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/fc7/stable/i386/'
+    f7-x86_64-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/fc7/stable/x86_64/'
+    f7-i386-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/i386/'
+    f7-x86_64-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/x86_64/'
 mirrors:
     FC-7: [ '/media/dvdiso', '']
 this_server:
