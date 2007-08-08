@@ -116,6 +116,9 @@ class QpidServerTransport(QpidTransport, ServerTransport):
         self.callback = None
         self.max_workers = workers
         self.is_stopped = False
+        self.closing_lock = threading.RLock()
+        self.poll_done = False
+        self.write_done = False
         self.pending_calls = qpid.queue.Queue()
         self.pending_sends = qpid.queue.Queue()
         QpidTransport.__init__(self, host, port, user, password, vhost)
@@ -134,6 +137,13 @@ class QpidServerTransport(QpidTransport, ServerTransport):
     def stop(self):
         self.is_stopped = True
 
+    def shutdown_if_done(self):
+        # delete queues
+        # delete exchanges
+        if (self.poll_done and self.write_done):
+            qpid_util.delete_queue(self, queue_name=self.queue_name)
+            #qpid_util.delete_exchange(self, exchange_name=self.exchange_name)
+
     def send_message(self, to, message):
         self.pending_sends.put((to, message))
 
@@ -143,10 +153,16 @@ class QpidServerTransport(QpidTransport, ServerTransport):
     def _write(self):
         while not self.is_stopped:
             try:
-                to, message = self.pending_sends.get(timeout = 30)
+                to, message = self.pending_sends.get(timeout=15)
                 QpidTransport.send_message(self, to, message)
             except qpid.queue.Empty:
                 pass
+        try:
+            self.closing_lock.acquire()
+            self.write_done = True
+            self.shutdown_if_done()
+        finally:
+            self.closing_lock.release()
 
     def _dispatch(self):
         while not self.is_stopped:
@@ -157,14 +173,19 @@ class QpidServerTransport(QpidTransport, ServerTransport):
                     self.send_message(addr, reply)
             except TypeError, e:
                 print e
-                
 
     def _poll(self):
         while not self.is_stopped:
             try:
-                msg = self.incoming_queue.get(timeout=30)
+                msg = self.incoming_queue.get(timeout=15)
                 qpid_util.ack_message(self, message=msg)                
                 self.pending_calls.put(msg.content.body)
             except qpid.queue.Empty:
                 pass
 
+        try:
+            self.closing_lock.acquire()
+            self.poll_done = True
+            self.shutdown_if_done()
+        finally:
+            self.closing_lock.release()

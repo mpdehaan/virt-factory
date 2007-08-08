@@ -28,7 +28,11 @@ def _create_instance(config, full_class_name):
 
 class RPCDispatcher(object):
 
-    def __init__(self, config, register_with_bridge = True, server_host = None):
+    def __init__(self, config, register_with_bridge = True, server_host = None, is_bridge_server=None):
+        if is_bridge_server == None:
+            self.is_bridge_server=not register_with_bridge
+        else:
+            self.is_bridge_server = is_bridge_server
         self.instances = {}
         self.hostname = socket.gethostname()
         if (server_host == None):
@@ -38,7 +42,7 @@ class RPCDispatcher(object):
         self.name = config.server_name
         certdir = config.get_value('busrpc.crypto.certdir')
         pwd = config.get_value('busrpc.crypto.password')
-        if register_with_bridge:
+        if not self.is_bridge_server:
             self.transport = busrpc.qpid_transport.QpidServerTransport(self.hostname + "!" + self.name, host=self.server_host)
         else:
             self.transport = busrpc.qpid_transport.QpidServerTransport(self.name, host=self.server_host)
@@ -48,7 +52,10 @@ class RPCDispatcher(object):
         self.instance_method_cache = {}
         self.cert_mgr = CertManager(certdir, self.hostname)
         self.client_transport = self.transport.clone()
-        self.bridge = busrpc.rpc.lookup_service('bridge', self.client_transport, cert_mgr=self.cert_mgr)
+        if register_with_bridge:
+            self.bridge = busrpc.rpc.lookup_service('bridge', self.client_transport, cert_mgr=self.cert_mgr)
+        else:
+            self.bridge = None
         for name in config.instances.iterkeys():
             instance = config.instances[name]
             self.add_instance(name, _create_instance(config, instance))

@@ -45,7 +45,7 @@ class Server:
         #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
         cm = None
     
-        self.rpc_interface = lookup_service("rpc", transport, host=host, cert_mgr=cm)
+        self.rpc_interface = lookup_service("rpc", transport, host=host, server_name="busrpc.virt-factory", cert_mgr=cm, use_bridge=False)
         if self.rpc_interface == None:
             print "Lookup failed :("
             sys.exit(-1)    

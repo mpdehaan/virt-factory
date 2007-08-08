@@ -107,17 +107,25 @@ def build_proxy(service_handle, transport, cert_mgr=None):
     hostname, server, service = service_handle.split('!')
     return RPCProxy(hostname + "!" + server, service, transport, cert_mgr=cert_mgr)
 
-def lookup_service(name, transport, cert_mgr=None, host=None):
+def lookup_service(name, transport, cert_mgr=None, host=None, server_name = None, use_bridge=False):
     if transport == None:
         transport = qpid_transport.QpidTransport()
         transport.connect()
-    bridge = busrpc.rpc.RPCProxy("busrpc.Bridge", "bridge", transport, cert_mgr=cert_mgr)
     retval = None
-    if name == "bridge":
-        retval = bridge
-    else:
+    if use_bridge:
+        bridge = busrpc.rpc.RPCProxy("busrpc.Bridge", "bridge", transport, cert_mgr=cert_mgr)
+        if name == "bridge":
+            return bridge
         service_handle = bridge.lookup_service(name, host)
-        if not service_handle == None:
-            retval = build_proxy(service_handle, transport, cert_mgr=cert_mgr)
+    else:
+        service_handle = get_handle(name, host, server_name)
+        
+    if not service_handle == None:
+        retval = build_proxy(service_handle, transport, cert_mgr=cert_mgr)
     return retval
     
+def get_handle(service, hostname, server):
+    if not hostname == None and not server == None:
+        return hostname + "!" + server + "!" + service
+    else:
+        return None
