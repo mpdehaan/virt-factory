@@ -90,10 +90,7 @@ class Bridge(object):
                         server = reg_server
                         hostname = host
                         break
-        if not hostname == None and not server == None:
-            return hostname + "!" + server + "!" + service
-        else:
-            return None
+        return get_handle(service, hostname, server)
                 
     def _verify_registration(service_name):
         try:
@@ -105,7 +102,7 @@ class Bridge(object):
                 return False
         finally:
             self.registration_lock.release()
-
+            
 def start_bridge(config_path):
     config = DeploymentConfig(config_path)
     dispatcher = RPCDispatcher(config, register_with_bridge=False)

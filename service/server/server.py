@@ -184,12 +184,12 @@ def serve(websvc):
      server.register_instance(websvc)
      server.serve_forever()
 
-def serve_qpid(config_path, register_with_bridge=True):
+def serve_qpid(config_path, register_with_bridge=False, is_bridge_server=False):
      """
      Code for starting the QPID RPC service. 
      """
      config = DeploymentConfig(config_path)
-     dispatcher = RPCDispatcher(config, register_with_bridge)
+     dispatcher = RPCDispatcher(config, register_with_bridge, is_bridge_server=is_bridge_server)
      
      try:
          dispatcher.start()
@@ -207,41 +207,30 @@ def main(argv):
     Start things up.
     """
 
-    if "bridge" in sys.argv or "--bridge" in sys.argv:
+    websvc = XmlRpcInterface()
+
+    for arg in sys.argv:
+        if arg == "import" or arg == "--import":
+            prov_obj = provisioning.Provisioning()
+            prov_obj.init(None, {})
+            return
+        elif arg == "sync" or arg == "--sync":
+            prov_obj = provisioning.Provisioning()
+            prov_obj.sync(None, {}) # just for testing
+            return
+    if "qpid" in sys.argv or "--qpid" in sys.argv:
         if "daemon" in sys.argv or "--daemon" in sys.argv:
-            utils.daemonize("/var/run/vf_server_bridge.pid")
-            serve_qpid("/etc/virt-factory/qpid-bridge.conf", register_with_bridge=False)
+            utils.daemonize("/var/run/vf_server_qpid.pid")
         else:
             print "serving...\n"
-            # daemonize only if --daemonize, because I forget to type "debug" -- MPD
-            serve_qpid("/etc/virt-factory/qpid-bridge.conf", register_with_bridge=False)
+        serve_qpid("/etc/virt-factory/qpid.conf")
     else:
-        websvc = XmlRpcInterface()
-    
-        for arg in sys.argv:
-            if arg == "import" or arg == "--import":
-                prov_obj = provisioning.Provisioning()
-                prov_obj.init(None, {})
-                return
-            elif arg == "sync" or arg == "--sync":
-                prov_obj = provisioning.Provisioning()
-                prov_obj.sync(None, {}) # just for testing
-                return
-        if "qpid" in sys.argv or "--qpid" in sys.argv:
-            if "daemon" in sys.argv or "--daemon" in sys.argv:
-                utils.daemonize("/var/run/vf_server_qpid.pid")
-                serve_qpid("/etc/virt-factory/qpid.conf")
-            else:
-                print "serving...\n"
-                # daemonize only if --daemonize, because I forget to type "debug" -- MPD
-                serve_qpid("/etc/virt-factory/qpid.conf")
-        elif "daemon" in sys.argv or "--daemon" in sys.argv:
+        if "daemon" in sys.argv or "--daemon" in sys.argv:
             utils.daemonize("/var/run/vf_server.pid")
-            serve(websvc)
         else:
             print "serving...\n"
             # daemonize only if --daemonize, because I forget to type "debug" -- MPD
-            serve(websvc)
+        serve(websvc)
        
 # FIXME: upgrades?  database upgrade logic would be nice to have here, as would general creation (?)
 # FIXME: command line way to add a distro would be nice to have in the future, rsync import is a bit heavy handed.

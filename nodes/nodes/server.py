@@ -152,7 +152,7 @@ def serve_qpid(config_path):
      server_file = open("/etc/sysconfig/virt-factory/server","r")
      server_host = server_file.read()
      server_file.close()
-     dispatcher = RPCDispatcher(config, server_host=server_host)
+     dispatcher = RPCDispatcher(config, server_host=server_host, register_with_bridge=False, is_bridge_server=False)
      
      try:
          dispatcher.start()
@@ -170,10 +170,9 @@ def main(argv):
      
     if "--daemon" in sys.argv:
         utils.daemonize("/var/run/vf_node_server.pid")
-        serve_qpid("/etc/virt-factory-nodes/qpid.conf")
     else:
         print _("serving...\n")
-        serve_qpid("/etc/virt-factory-nodes/qpid.conf")
+    serve_qpid("/etc/virt-factory-nodes/qpid.conf")
 
 
 if __name__ == "__main__":

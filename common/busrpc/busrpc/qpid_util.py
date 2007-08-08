@@ -10,27 +10,30 @@ def declare_exchange(caller, channel_id=1,exchange_name='',
                      create=False, auto_remove=False,
                      exchange_type='direct'):
     channel = caller.channel(channel_id)
-    create = not create
     channel.exchange_declare(exchange=exchange_name, type=exchange_type,
-                                 passive=create, auto_delete=auto_remove)
+                                 passive=not create, auto_delete=auto_remove)
+
+def delete_exchange(caller, channel_id=1,exchange_name=''):
+    channel = caller.channel(channel_id)
+    channel.exchange_delete(exchange=exchange_name)
 
 def declare_queue(caller, channel_id=1, queue_name='',
                   create=False, auto_remove=False,
                   exclusive_use=False):
     channel = caller.channel(channel_id)
-    create = not create
-    msg = channel.queue_declare(queue=queue_name, passive=create,
+    msg = channel.queue_declare(queue=queue_name, passive=not create,
                                 exclusive=exclusive_use, auto_delete=auto_remove)
-    if not msg == None and len(msg.frame.args) > 0:
-        return msg.frame.args[0]
-    else:
-        return None
+    return msg.queue
         
 def bind_queue(caller, channel_id=1, queue_name='',
                exchange_name='', routing_key_name=''):
     channel = caller.channel(channel_id)
     channel.queue_bind(queue=queue_name, exchange=exchange_name,
                        routing_key=routing_key_name)
+
+def delete_queue(caller, channel_id=1,queue_name=''):
+    channel = caller.channel(channel_id)
+    channel.queue_delete(queue=queue_name)
 
 def register_consumer(caller, channel_id=1, queue_name='', exclusive_use=False, ack=True):
     channel = caller.channel(channel_id)
