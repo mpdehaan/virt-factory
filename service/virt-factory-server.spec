@@ -23,7 +23,6 @@ Requires: postgresql-server
 Requires: python-migrate
 Requires: python-busrpc
 Requires: qpidd
-Requires: qemu
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
