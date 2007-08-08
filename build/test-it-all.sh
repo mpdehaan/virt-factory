@@ -166,10 +166,10 @@ check_out_code()
 
 remove_virtual_machine()
 {
-    virsh $VIRSH_CONNECTION 00_16_3E_00_00_00
-    virsh $VIRSH_CONNECTION 00_16_3E_00_00_01
-    virsh $VIRSH_CONNECTION 00_16_3E_00_00_02
-    virsh $VIRSH_CONNECTION 00_16_3E_00_00_03
+    virsh $VIRSH_CONNECTION destroy 00_16_3E_00_00_00
+    virsh $VIRSH_CONNECTION destroy 00_16_3E_00_00_01
+    virsh $VIRSH_CONNECTION destroy 00_16_3E_00_00_02
+    virsh $VIRSH_CONNECTION destroy 00_16_3E_00_00_03
     virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_00
     virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_01
     virsh $VIRSH_CONNECTION undefine 00_16_3E_00_00_02
