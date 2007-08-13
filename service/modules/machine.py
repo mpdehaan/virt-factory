@@ -243,13 +243,16 @@ class Machine(web_svc.AuthWebSvc):
 
         this_object = self.get(token,{ "id" : args["id" ] })
         this_object = this_object.data
-
         try:
             # the WUI should filter this out but lets be safe anyway
-            if this_object["is_container"] != codes.MACHINE_IS_CONTAINER:
+            if this_object["profile"]["is_container"] != codes.MACHINE_IS_CONTAINER:
                 # cannot install any virt types on this machine
                 return codes.success([])
 
+            print "profile: ", this_object["profile"]
+            print "virt_type: ", this_object["profile"]["virt_type"]
+            print "distribution: ", this_object["profile"]["distribution"]
+            print "arch: ", this_object["profile"]["distribution"]["architecture"]
             need_virt = this_object["profile"]["virt_type"]
             need_arch = this_object["profile"]["distribution"]["architecture"]
         except KeyError, e:
