@@ -12,6 +12,7 @@ Group: Applications/System
 Requires: python >= 2.3
 Requires: puppet
 Requires: python-busrpc
+Requires: m2crypto
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildArch: noarch
 Url: http://virt-factory.et.redhat.com
