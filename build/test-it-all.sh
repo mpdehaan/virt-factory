@@ -181,7 +181,7 @@ remove_all_packages()
     rm /etc/virt-factory/db/exists
     yum remove -y python-migrate virt-factory-server virt-factory-wui puppet puppet-server virt-factory-register \
 		  virt-factory-nodes koan cobbler rubygem-mongrel rubygem-rails postgresql-server \
-		  python-psycopg2 postgresql-python python-sqlalchemy amqp python-qpid qpidd qpidc
+		  python-psycopg2 postgresql-python python-sqlalchemy amqp python-qpid qpidd qpidc virt-factory-ampm
     echo $?
 }
 
@@ -189,7 +189,7 @@ remove_all_packages()
 # packages needed for the virt-factory server itself
 install_server_packages()
 {
-    yum install -y virt-factory-server  virt-factory-wui puppet puppet-server cobbler
+    yum install -y virt-factory-server  virt-factory-wui virt-factory-ampm puppet puppet-server cobbler 
 }
 
 
@@ -197,7 +197,7 @@ install_server_packages()
 # note, for this test, the machine running this script will install the server and the client code
 install_client_packages()
 {
-    yum install -y virt-factory-nodes virt-factory-register koan puppet 
+    yum install -y virt-factory-nodes virt-factory-register virt-factory-ampm koan puppet 
     echo $?
 }
 
@@ -364,6 +364,30 @@ test_nodecomm()
     fi
 }
 
+create_ampm_config()
+{
+FOO <<EOF
+[server]
+url=htpp://127.0.0.1/vf
+[user]
+user=admin
+password=fedora
+
+EOF
+
+echo $FOO > ~/.ampm_config
+}
+
+
+test_ampm()
+{
+    msg "Testing ampm"
+    create_ampm_config
+    /usr/bin/ampm list machines
+    /usr/bin/ampm list status
+    /usr/bin/ampm list deployments
+
+}
 
 # commandline parsing
 while [ $# -gt 0 ]
@@ -581,3 +605,7 @@ if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
     msg "Running a virtual system deployment"
     deploy_a_system
 fi
+
+
+test_ampm
+
