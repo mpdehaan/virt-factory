@@ -366,7 +366,7 @@ test_nodecomm()
 
 create_ampm_config()
 {
-FOO <<EOF
+cat <<EOF
 [server]
 url=htpp://127.0.0.1/vf
 [user]
@@ -375,14 +375,13 @@ password=fedora
 
 EOF
 
-echo $FOO > ~/.ampm_config
 }
 
 
 test_ampm()
 {
     msg "Testing ampm"
-    create_ampm_config
+    create_ampm_config > ~/.ampm_config
     /usr/bin/ampm list machines
     /usr/bin/ampm list status
     /usr/bin/ampm list deployments
