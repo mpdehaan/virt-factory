@@ -370,7 +370,7 @@ cat <<EOF
 [server]
 url=htpp://127.0.0.1/vf
 [user]
-user=admin
+username=admin
 password=fedora
 
 EOF
