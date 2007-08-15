@@ -368,7 +368,7 @@ create_ampm_config()
 {
 cat <<EOF
 [server]
-url=htpp://127.0.0.1/vf
+url=http://127.0.0.1/vf
 [user]
 username=admin
 password=fedora
