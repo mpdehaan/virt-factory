@@ -1,3 +1,4 @@
+<%= javascript_include_tag 'prototype' %>
       <% @page_title = @operation.capitalize() + " a Guest" %>
       <% @primary = "deployment" %>
       <% @secondary = " edit" %>
@@ -19,17 +20,24 @@
          </TR>
          <TR>
             <TD><%= _("Profile") %></TD>
-            <TD><%= if @operation == "add"
-	                f.select :profile_id, @profiles
-	            else
- 	                @item.profile.name if @item.profile
-                    end %>
-             </TD>
+            <TD>
+               <div id="profile_id_container">
+                  <%= if @operation == "add"
+                          render(:partial => "profile_list" , :object => @profiles)
+	              else
+ 	                  @item.profile.name if @item.profile
+                      end %>
+               </div>
+            </TD>
          </TR>
          <TR>
             <TD><%= _("Puppet Class Node Overrides (Optional)") %></TD>
             <TD><%= f.text_field :puppet_node_diff %></TD>
          </TR>
+      <%= observe_field("form_machine_id",
+         :frequency => 0.25,
+         :url => { :action => :get_valid_profiles }, 
+         :with => "machine_id") %>
          <% if @operation == "edit" %>
          <TR>
             <TD><%= _("MAC Address") %></TD>

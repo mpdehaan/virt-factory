@@ -41,13 +41,19 @@ class DeploymentController < AbstractObjectController
        # the mapping of the profile that is installed on a baremetal machine (the domu), deployments
        # are virtual only.
 
-       @profiles = []
-       ManagedObject.retrieve_all(Profile, get_login).each do |profile|
-           @profiles << [profile.name, profile.id] unless profile.id < 0 or profile.valid_targets == PROFILE_IS_BAREMETAL
-       end
-       @profiles.reject! { |foo| foo.nil? }
+       get_valid_profiles
+    end
 
-   end
+    def get_valid_profiles
+       id_param = params[:machine_id]
+       @profiles = []
+       if !id_param.nil? and (id_param.to_i > 0)
+           obj = ManagedObject.retrieve(Machine, get_login, id_param.to_i)
+           @profiles = obj.get_profile_choices().collect { |x| [x["name"], x["id"]] }
+           @profiles.each { |x| print "profile: ", x, "\n" }
+       end
+       @profiles.insert(0,EMPTY_ENTRY) if @profiles.empty?
+    end
 
     def pause
         obj = ManagedObject.retrieve(Deployment, get_login, params[:id])
