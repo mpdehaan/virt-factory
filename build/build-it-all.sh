@@ -7,7 +7,7 @@ FC6_PKGS=""
 if [ "$FEDORA_RELEASE" == "6" ] ; then
     FC6_PKGS=" contrib-fc6"
 fi
-VF_PKGS="common/busrpc register nodes service wui contrib$FC6_PKGS"
+VF_PKGS="common/busrpc ampm register nodes service wui contrib$FC6_PKGS"
 COBBLER_PKGS="cobbler koan"
 
 

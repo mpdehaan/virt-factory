@@ -243,10 +243,9 @@ class Machine(web_svc.AuthWebSvc):
 
         this_object = self.get(token,{ "id" : args["id" ] })
         this_object = this_object.data
-
         try:
             # the WUI should filter this out but lets be safe anyway
-            if this_object["is_container"] != codes.MACHINE_IS_CONTAINER:
+            if this_object["profile"]["is_container"] != codes.MACHINE_IS_CONTAINER:
                 # cannot install any virt types on this machine
                 return codes.success([])
 
