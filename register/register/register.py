@@ -62,8 +62,12 @@ class Register(object):
         self.server_host = self.server_host.split(':')[0]
         self.logger = logger.Logger().logger
         self.net_info = machine_info.get_netinfo(self.server_url)
+        self.my_hostname = self.net_info['hostname']
+        self.my_interface = self.net_info['interface'] 
+        self.my_mac = self.net_info['hwaddr']
         self.logger.info(self.net_info)
-        self.server = Server(client=self.net_info['hostname'], host=self.server_host)
+
+        self.server = Server(client=self.my_hostname, host=self.server_host)
         self.token = None
 
     # assume username/password exist, so no user creation race conditions to avoid
@@ -187,11 +191,92 @@ class Register(object):
         file.write("PUPPET_SERVER=%s\n" % server)
         file.close()
 
-    def register_system(self, regtoken, username, password, profile_name, virtual):
+    def fix_network_bridging(self):
+
+        """
+        For virtual systems the target interface used for communication
+        with the server must be a bridge and not a physical interface.
+        If it is NOT a bridge, fix it.  Otherwise we can't install
+        virtual nodes. 
+        """
+
+        # first, see if a configuration file for the chosen interface
+        # exists.  If not, this is bad, and we must quit now.
+
+        filename = "/etc/sysconfig/network-scripts/ifcfg-%s" % self.my_interface
+        if not os.path.exists(filename):
+           self.logger.info("Missing config file: %s" % filename)
+           sys.exit(1)
+
+        intf = self.my_interface
+
+        # now check to see if the configuration seems to specify that the
+        # given interface is /already/ a bridge. If so, we're happy,
+        # and can continue.
+        interface_spec = open(filename, "r")
+        interface_data = interface_spec.read()
+        interface_spec.close()
+
+        cmd = subprocess.Popen("/sbin/ifconfig", shell=True, stdout=subprocess.PIPE)
+        data = cmd.communicate()[0]
+        if data.find("xenbr0") != -1:
+            self.logger.info("- Looks like you have a xenbr0, assuming ok...")
+            return
+
+        if interface_data.find("Bridge") != -1:
+            # life is good
+            self.logger.info("- It looks like you already have a Bridge, assuming ok...")
+
+            return
+        else:
+            # we have to make a new network bridge and tell the current
+            # interface to use that bridge, the user will want to restart
+            # the network but we'll be doing this from kickstart most
+            # of the time so it's totally unneccessary.  Something to
+            # document, at worst...
+              
+            self.logger.info("- %s will no longer be a physical device" % intf)
+
+            filename2 = "/etc/sysconfig/network-scripts/ifcfg-p%s" % intf
+            self.logger.info("- new physical device: p%s" % intf)
+            # write the new physical config
+            physical_file = open(filename2,"w+")
+            physical_file.write("TYPE=Ethernet\n")
+            physical_file.write("HWADDR=%s\n" % self.my_mac.upper())
+            physical_file.write("DEVICE=p%s\n" % intf)
+            physical_file.write("BRIDGE=%s\n" % intf)
+            physical_file.write("ONBOOT=yes\n")
+
+            self.logger.info("- new network bridge: %s" % intf)
+            # write the new bridge config
+            bridge_file = open(filename,"w+")
+            bridge_file.write("DEVICE=%s\n" % intf)
+            bridge_file.write("ONBOOT=yes\n")
+            bridge_file.write("TYPE=Bridge\n")
+            bridge_file.write("BOOTPROTO=dhcp\n")
+
+            self.logger.info("- /sbin/service network restart or reboot to apply changes")
+
+            # all good
+            return
+
+    def register_system(self, regtoken, username, password, profile_name, virtual, bridge_config_ok):
         if regtoken:
             self.token = regtoken
         else:
             self.login(username, password)
+
+        if not virtual and bridge_config_ok:
+
+            # this may possibly be a virtual host (we aren't sure)
+            # but if so we'll need a network bridge.  If not, it will
+            # not hurt anything (unless possibly the admin already had
+            # bridging configured).  Too many corner cases so let's
+            # deal with that when we come to it.  we want this to be
+            # as easy to set up as possible.
+
+            print "- warning: reconfiguring networking as needed"
+            self.fix_network_bridging()
 
         try:
             rc = self.register(self.net_info['hostname'], self.net_info['ipaddr'], self.net_info['hwaddr'], profile_name, virtual)
@@ -218,12 +303,13 @@ def showHelp():
 
 def main(argv):
 
-    regtoken   = "UNSET"
-    username   = None
-    password   = None
-    server_url = None
-    profile_name = ""
-    virtual      = False
+    regtoken         = "UNSET"
+    username         = None
+    password         = None
+    server_url       = None
+    profile_name     = ""
+    virtual          = False
+    bridge_config_ok = False
 
     # ensure we have somewhere to save parameters to, the node daemon will want
     # to know them later.
@@ -232,14 +318,15 @@ def main(argv):
         os.makedirs("/etc/sysconfig/virt-factory")
 
     try:
-        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:v", [
+        opts, args = getopt.getopt(argv[1:], "ht:u:p:s:P:vB", [
             "help", 
             "token=", 
             "username=",
             "password=", 
             "serverurl=",
             "profilename=",
-            "virtual"
+            "virtual",
+            "allow-bridge-config"
         ])
     except getopt.error, e:
         print _("Error parsing command list arguments: %s") % e
@@ -264,6 +351,8 @@ def main(argv):
             profile_name = val
         if opt in ["-v", "--virtual"]:
             virtual = True
+        if opt in ["-n", "--allow-bridge-config"]:
+            bridge_config_ok = True
 
     if server_url is None:
         print _("must specify --serverurl, ex: http://foo.example.com:5150")
@@ -280,7 +369,7 @@ def main(argv):
 
     reg_obj = Register(server_url)
     profile_name = reg_obj.fix_profile_name(profile_name)
-    return_status = reg_obj.register_system(regtoken, username, password, profile_name, virtual)
+    return_status = reg_obj.register_system(regtoken, username, password, profile_name, virtual, bridge_config_ok)
     sys.exit(return_status)
 
 
