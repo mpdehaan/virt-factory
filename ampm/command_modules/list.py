@@ -43,7 +43,7 @@ class List(object):
         except IndexError:
             raise
 
-        if mode not in ["machines", "deployments", "status"]:
+        if mode not in ["machines", "deployments", "status", "profiles"]:
             # raise error?
             print "incorrect mode"
 
@@ -55,6 +55,9 @@ class List(object):
 
         if mode == "status":
             self.list_status()
+
+        if mode == "profiles":
+            self.list_profiles()
 
     def list_machines(self):
         (retcode, data) = self.api.machine_list()
@@ -82,3 +85,19 @@ class List(object):
             if deployment['id'] == -1:
                 continue
             print "%s:    %s" % (deployment['display_name'], deployment['state'])
+
+    def list_profiles(self):
+        (retcode, data) = self.api.profile_list()
+        if self.verbose > 2:
+            pprint.pprint(data)
+        for profile in data['data']:
+            if profile['id'] == -1:
+                continue
+            if self.verbose < 1:
+                print "%s %s %s" % (profile['name'], profile['version'], profile['distribution']['name'])
+            if self.verbose >= 1:
+                print "%s %s %s %s %s %s" % (profile['name'], profile['version'],
+                                             profile['distribution']['name'], profile['virt_storage_size'],
+                                             profile['virt_ram'],  profile['valid_targets'])
+#        pprint.pprint(data)
+

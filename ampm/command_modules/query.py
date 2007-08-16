@@ -32,6 +32,7 @@ class Query(object):
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
             # FIXME: error handling
+            raise
 
 
         for (opt, val) in opts:
@@ -42,7 +43,7 @@ class Query(object):
             if opt in ["--container"]:
                 self.query_container(deployment=val)
             if opt in ["--profile"]:
-                self.query_profile(deployment=val)
+                self.query_profile(profile_name=val)
 
 #        try:
 #            mode = args[0]
@@ -56,24 +57,29 @@ class Query(object):
             # we could try to figure out the local deployment name and use
             # that here FIXME
             print "need a deployment name"
-        (retcode, data) = self.api.deployment_get_by_mac_address(deployment=deployment)
+        (retcode, data) = self.api.deployment_get_by_mac(deployment=deployment)
         if self.verbose > 2:
             pprint.pprint(data)
 
         print data['data'][0]['machine']['hostname']
 
 
-    def query_profile(self, deployment=None):
+    def query_profile(self, profile_name=None):
         # FIXME, refactor this so we're not duping so much stuff
-        if deployment is None:
+        if profile_name is None:
             # we could try to figure out the local deployment name and use
             # that here FIXME
             print "need a deployment name"
-        (retcode, data) = self.api.deployment_get_by_mac_address(deployment=deployment)
-        if self.verbose > 2:
-            pprint.pprint(data)
-
-        profile_id = data['data'][0]['profile_id']
+        profile_id = None
+        (retcode, data) = self.api.profile_list()
+        for profile in data['data']:
+            if profile['id'] == -1:
+                continue
+            if profile['name'] == profile_name:
+                profile_id = profile['id']
+        
         (retcode, data)  = self.api.profile_get(id=profile_id)
-        print data['data']['name']
+        print "%s %s %s %s %s %s %s" % (profile['name'], profile['version'],
+                                        profile['distribution']['name'], profile['virt_storage_size'],
+                                        profile['virt_ram'],  profile['valid_targets'], profile['puppet_classes'])
         

@@ -9,7 +9,8 @@ class Deployment(base_module.BaseModule):
         self.token = token
         self.server = server
         base_module.BaseModule.__init__(self)
-        self.methods = ["deployment_list", "deployment_get", "deployment_add"]
+        self.methods = ["deployment_list", "deployment_get",
+                        "deployment_add", "deployment_get_by_mac"]
 
     def deployment_list(self):
         return self.server.deployment_list(self.token,{})
