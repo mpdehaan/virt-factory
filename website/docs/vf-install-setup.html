@@ -119,6 +119,8 @@ edit <tt>/etc/sysconfig/virt-factory-wui/server</tt> to point to the XMLRPC serv
    /sbin/service start vf-node-server
 </blockquote>
 <p>Now that system show up as managed in the Virt-Factory management server web interface. You are now ready (assuming you just configured it as a "Container" machine, to deploy virtualized systems running specific profiles.</p>
+<p>
+NOTE:  If you are intending for the system to host virtual instances, you should run vf_register with the additional flag "--allow-bridge-config" or set up a virtual network bridge yourself, as alluded to in the manpage for "koan".  It's much easier if you let vf_register do it for you, and for PXE configurations (bare metal installs) this is the default.  For bare-metal appliances this is not needed, nor is it currently needed for Xen virtualization types because xend creates it's own bridge.  qemu/KVM does not.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 <a name="viewprofiles">
 <h3>Viewing Imported Profiles</h3>
