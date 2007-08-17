@@ -265,14 +265,17 @@ class CobblerTranslatedProfile:
        ks_meta["node_virt_packages"] = ""
        ks_meta["node_bare_packages"] = ""
 
+       ks_meta["network_param"]        = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
            # qemu won't be installed for Xen but it's ok if that command fails...
            # we do want to make sure libvirt is started though
            ks_meta["extra_post_magic"]     = "/sbin/chkconfig 345 qemu on\n" + "/sbin/chkconfig 345 libvirtd on\n"
-            
+           ks_meta["network_param"]        = "--allow-bridge-config"     
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME
        ks_meta["token_param"]          = "--profile=%s" % from_db["name"]
+       
+
        ks_meta["server_param"] = "--server=http://%s:5150" % vf_config["this_server"]["address"] 
        ks_meta["server_name"] = vf_config["this_server"]["address"] 
 
