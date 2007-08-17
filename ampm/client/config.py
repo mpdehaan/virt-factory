@@ -11,9 +11,7 @@ class AmpmConfig(ConfigParser.SafeConfigParser):
         ConfigParser.SafeConfigParser.__init__(self, defaults)
 
     def load(self):
-        print "loading config"
         filename = os.path.expanduser("~/.ampm_config")
-        print os.access(filename, os.R_OK)
         if os.access(filename, os.R_OK):
             self.readfp(open(filename))
         else:
