@@ -13,6 +13,7 @@ def run(args):
     command = List(args)
 
 
+
 class List(object):
     def __init__(self, args):
         self.api = ampmlib.Api(url="http://127.0.0.1:5150",
@@ -20,6 +21,9 @@ class List(object):
                                password="fedora")
         self.verbose = 0
         self.__parse_args(args)
+
+    def print_help(self):
+        print "valid modes are machines, deployments, status, profiles"
 
     def __parse_args(self, args):
 
@@ -34,7 +38,8 @@ class List(object):
 
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
-                print_help()
+                self.print_help()
+                return
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
 
