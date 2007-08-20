@@ -64,7 +64,7 @@ $node_bare_packages
 
 %post
 /usr/sbin/ntpdate -u $server_name
-/usr/bin/vf_register $server_param $token_param
+/usr/bin/vf_register $server_param $token_param $network_param
 /sbin/chkconfig --level 345 puppet on
 /sbin/chkconfig --level 345 virt-factory-node-server on
 $yum_config_stanza

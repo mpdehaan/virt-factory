@@ -63,11 +63,22 @@ def findHostByRoute(server_url, proxy_url=None):
 def get_netinfo(server_url, proxy_url=None):
     machine_data = read_network(server_url, proxy_url)
     net_interfaces = read_network_interfaces()
+    
+    print "-- DEBUG(FIXME): %s" % net_interfaces
 
     ip_addr = machine_data['ipaddr']
     hwaddr = get_hwaddr_for_route(ip_addr, net_interfaces)
 
-    return {'ipaddr': ip_addr, 'hwaddr':hwaddr, 'hostname': machine_data['hostname']}
+    found_intf = None
+    for x in net_interfaces.keys():
+        if (type(net_interfaces[x]) == dict) and net_interfaces[x].get('ipaddr','MISSING') == ip_addr:
+            found_intf = x
+            break
+
+    if not found_intf:
+        raise "Unable to find interface for %s" % ip_addr
+
+    return {'ipaddr': ip_addr, 'hwaddr':hwaddr, 'hostname': machine_data['hostname'], 'interface' : found_intf}
 
 def get_hwaddr_for_route(ip_addr, net_interfaces):
     for intf in net_interfaces.keys():

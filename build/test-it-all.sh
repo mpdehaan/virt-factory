@@ -382,9 +382,28 @@ test_ampm()
 {
     msg "Testing ampm"
     create_ampm_config > ~/.ampm_config
+    msg "ampm list machines"
     /usr/bin/ampm list machines
+
+    msg "ampm list status"
     /usr/bin/ampm list status
+    
+    msg "ampm list deployments"
     /usr/bin/ampm list deployments
+
+    msg "ampm list profiles"
+    /usr/bin/ampm list profiles
+
+    msg "ampm list -v profiles"
+    /usr/bin/ampm list -v profiles
+
+    msg "ampm query <profiles>"
+    for i in `/usr/bin/ampm list profiles | cut -f1 -d' '`
+    do
+	/usr/bin/ampm query --profile $i
+    done
+    
+
 
 }
 

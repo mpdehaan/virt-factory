@@ -13,6 +13,7 @@ def run(args):
     command = List(args)
 
 
+
 class List(object):
     def __init__(self, args):
         self.api = ampmlib.Api(url="http://127.0.0.1:5150",
@@ -20,6 +21,9 @@ class List(object):
                                password="fedora")
         self.verbose = 0
         self.__parse_args(args)
+
+    def print_help(self):
+        print "valid modes are machines, deployments, status, profiles"
 
     def __parse_args(self, args):
 
@@ -34,7 +38,8 @@ class List(object):
 
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
-                print_help()
+                self.print_help()
+                return
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
 
@@ -43,7 +48,7 @@ class List(object):
         except IndexError:
             raise
 
-        if mode not in ["machines", "deployments", "status"]:
+        if mode not in ["machines", "deployments", "status", "profiles"]:
             # raise error?
             print "incorrect mode"
 
@@ -55,6 +60,9 @@ class List(object):
 
         if mode == "status":
             self.list_status()
+
+        if mode == "profiles":
+            self.list_profiles()
 
     def list_machines(self):
         (retcode, data) = self.api.machine_list()
@@ -82,3 +90,19 @@ class List(object):
             if deployment['id'] == -1:
                 continue
             print "%s:    %s" % (deployment['display_name'], deployment['state'])
+
+    def list_profiles(self):
+        (retcode, data) = self.api.profile_list()
+        if self.verbose > 2:
+            pprint.pprint(data)
+        for profile in data['data']:
+            if profile['id'] == -1:
+                continue
+            if self.verbose < 1:
+                print "%s %s %s" % (profile['name'], profile['version'], profile['distribution']['name'])
+            if self.verbose >= 1:
+                print "%s %s %s %s %s %s" % (profile['name'], profile['version'],
+                                             profile['distribution']['name'], profile['virt_storage_size'],
+                                             profile['virt_ram'],  profile['valid_targets'])
+#        pprint.pprint(data)
+
