@@ -23,7 +23,11 @@ import os
 import threading
 import time
 import traceback
+import socket
 
+from busrpc.rpc import lookup_service
+from busrpc.crypto import CertManager
+import busrpc.qpid_transport
 
 class WebSvc(object):
     def __init__(self):
@@ -32,17 +36,49 @@ class WebSvc(object):
         config_result = config_obj.get()
         self.config = config_result
         self.__init_log()
-        
+        self.logger.info("getting details...")
+        self.__target = self.__get_file_data("/etc/sysconfig/virt-factory/server")
+        self.logger.info("server: %s" % self.__target)
+        self.__source = socket.gethostname()
+        self.logger.info("client: %s" % self.__source)
+
+        # FIXME: disabling until hang can be removed
+        # FIXME: this part should be Singletonized (TM)
+
+        #self.logger.info("connecting to QPID...")
+        #self.server = Server(client=self.__source, host=self.__target)
+        #self.logger.info("connected")
+
+    def __get_file_data(self, fname):
+        fileh = open(fname, "r")
+        data = fileh.read()
+        fileh.close()
+        return data.strip()
+
     def __init_log(self):
         log = logger.Logger()
         self.logger = log.logger
-    
-    def register_rpc(self, handlers):
-        for meth in self.methods:
-            handlers[meth] = self.methods[meth]
-
 
 class AuthWebSvc(WebSvc):
     def __init__(self):
         WebSvc.__init__(self)
 
+# this class is for AMQP communication to the parent server
+# borrowed from vf_register's source
+
+class Server:
+    def __init__(self, client=None, host=None):
+        transport = busrpc.qpid_transport.QpidTransport(host=host)
+        transport.connect()
+
+        # no crypto for now
+        #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
+        cm = None
+
+        self.rpc_interface = lookup_service("rpc", transport, host=host, server_name="busrpc.virt-factory", cert_mgr=cm, use_bridge=False)
+        if self.rpc_interface == None:
+            print "Lookup failed :("
+            sys.exit(-1)
+
+    def __getattr__(self, name):
+        return self.rpc_interface.__getattr__(name)

@@ -243,18 +243,20 @@ class Deployment(web_svc.AuthWebSvc):
             
         self.edit(token, args)
     
-    # FIXME: unused except possibly by registration? 
-    def set_state(self, token, args, status_code):
-        session = db.open_session()
-        try:
-            deployment = db.Deployment.get(session, args['id'])
-            deployment.state = status_code
-            session.save(deployment)
-            session.flush()
-            self.cobbler_sync(deployment.get_hash())
-            return success()
-        finally:
-            session.close()
+    # FIXME: unused except possibly by registration?
+    # FIXME: figure out if it does, as the node daemon doesn't know id's
+    # and this can probably be removed
+    #def set_state(self, token, args, status_code):
+    #    session = db.open_session()
+    #    try:
+    #        deployment = db.Deployment.get(session, args['id'])
+    #        deployment.state = status_code
+    #        session.save(deployment)
+    #        session.flush()
+    #        self.cobbler_sync(deployment.get_hash())
+    #        return success()
+    #    finally:
+    #        session.close()
 
     def delete(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
@@ -369,6 +371,33 @@ class Deployment(web_svc.AuthWebSvc):
          })
 
 
+    def set_state(self, token, args):
+        """
+        FIXME: authentication details TBA.
+        requires: mac_address, state
+        """
+
+        required = ('mac_address','state')
+        FieldValidator(args).verify_required(required)
+        
+        which = get_by_mac_address(self,token,args)
+        if which.error_code != 0:
+           raise InvalidArguments(comment="missing item")
+        id = which.data["id"] 
+
+        session = db.open_session()
+        # BOOKMARK 
+        deployment = db.Deployment.get(session, { "id" : id })
+        results = self.expand(deployment)
+
+        self.logger.info("your deployment is: %s" % results)
+        results["state"] = args["state"]
+        self.edit(token, results)
+
+        return success(results)
+
+
+
     def get_by_mac_address(self, token, args):
         """
         """
@@ -450,41 +479,41 @@ class Deployment(web_svc.AuthWebSvc):
         finally:
             session.close()
 
-
+    # NOTE: this function removed because we want async state updates
     def refresh(self, token, get_results):
          """
          Most all node actions are out of band (scheduled) but we need
          the current state when loading the edit page
          """
 
-         dargs = get_results
-
-         self.logger.info("refresh request for: %s" % get_results)
-         this_host = socket.gethostname()
-         cmd = [
-            "/usr/bin/vf_nodecomm",
-            this_host,
-            dargs["machine"]["hostname"],
-            this_host,
-            "virt_status",
-            dargs["mac_address"]
-         ]
-         p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-         data = p1.communicate()[0]
-         lines = data.split("\n")
-         self.logger.info("output = %s" % data)
-         for line in lines:
-             if line.find("STATE=running") != -1:
-                dargs["state"] = "running"
-                return self.edit(token, dargs)
-             elif line.find("STATE=paused") != -1:
-                dargs["state"] = "paused"
-                return self.edit(token, dargs)
-             elif line.find("STATE=off") != -1:
-                dargs["state"] = "off"
-                return self.edit(token, dargs)
-         self.logger.info("no match")
-         return success()  # FIXME: should this be failure?        
+         #dargs = get_results
+ 
+         #self.logger.info("refresh request for: %s" % get_results)
+         #this_host = socket.gethostname()
+         #cmd = [
+         #   "/usr/bin/vf_nodecomm",
+         #   this_host,
+         #   dargs["machine"]["hostname"],
+         #   this_host,
+         #   "virt_status",
+         #   dargs["mac_address"]
+         #]
+         #p1 = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+         #data = p1.communicate()[0]
+         #lines = data.split("\n")
+         #self.logger.info("output = %s" % data)
+         #for line in lines:
+         #    if line.find("STATE=running") != -1:
+         #       dargs["state"] = "running"
+         #       return self.edit(token, dargs)
+         #    elif line.find("STATE=paused") != -1:
+         #       dargs["state"] = "paused"
+         #       return self.edit(token, dargs)
+         #    elif line.find("STATE=off") != -1:
+         #       dargs["state"] = "off"
+         #       return self.edit(token, dargs)
+         #self.logger.info("no match")
+         #return success()  # FIXME: should this be failure?        
 
         
     def get(self, token, args):
