@@ -52,7 +52,8 @@ class WebSvc(object):
             self.server = Server(client=self.__source, host=self.__target)
             self.logger.info("connected")
             self.server_initialized = True
-            
+        return self.server           
+ 
     def __get_file_data(self, fname):
         fileh = open(fname, "r")
         data = fileh.read()

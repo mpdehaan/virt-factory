@@ -47,6 +47,9 @@ class Virt(web_svc.WebSvc):
         """
         Constructor.  Register methods and make them available.
         """
+
+        # basic constructor stuff
+        web_svc.WebSvc.__init__(self)
  
         # get the server 
         fd = open("/etc/sysconfig/virt-factory/server")
@@ -76,8 +79,10 @@ class Virt(web_svc.WebSvc):
            # decent assumption.
 
            if output.find("xen") != -1:
+              self.logger.info("trying xen connection")
               self.conn = libvirt.open(None)  
            else:
+              self.logger.info("trying qemu connection")
               self.conn = libvirt.open("qemu:///system")
 
            if not self.conn:
@@ -86,9 +91,12 @@ class Virt(web_svc.WebSvc):
            # FIXME: No Xen for you ... what about trying qemu KVM?
            # look at newer koan sources for detection and prereq 
            # validation code.
+           self.logger.error("unable to find hypervisor")
            self.conn = None 
 
-        web_svc.WebSvc.__init__(self)
+        if self.conn:
+            self.logger.info("VMs at start: %s" % self.find_vm(-1))
+
 
     #=======================================================================
    
@@ -121,8 +129,14 @@ class Virt(web_svc.WebSvc):
 
     def find_vm(self, mac_address):
 
+        """ 
+        Extra bonus feature: mac_address = -1 returns a list of everything
+        """
+
         # name we use
-        needle = mac_address.replace(":","_").upper()
+        collector = []
+        if mac_address != -1:
+            needle = mac_address.replace(":","_").upper()
 
         ids = self.conn.listDomainsID()
         for domain in ids:
@@ -130,8 +144,14 @@ class Virt(web_svc.WebSvc):
                 domain = self.conn.lookupByID(domain)
             except libvirt.libvirtError, lve:
                 raise virtException(comment="libvirt go boom: %s" % repr(lve))          
-            if domain.name() == needle:
-                return domain
+            if mac_address!= -1:
+                if domain.name() == needle:
+                    return domain
+            else:
+                collector.append(domain)
+
+        if mac_address == -1:
+            return collector
 
         raise VirtException(comment="virtual machine %s not found" % needle)
     
@@ -265,23 +285,5 @@ class Virt(web_svc.WebSvc):
 
 methods = Virt()
 register_rpc = methods.register_rpc
-
-if __name__ == "__main__":
-    # development testing only
-    virt = Virt()
-
-    # start a virtual system
-    TEST = "00:16:3E:05:29:26"
-    
-    virt.create(TEST)
-    virt.shutdown(TEST)
-    virt.create(TEST)
-    virt.pause(TEST)
-    virt.unpause(TEST)
-    virt.shutdown(TEST)
-    virt.create(TEST)
-    virt.destroy(TEST)
-
-
 
 
