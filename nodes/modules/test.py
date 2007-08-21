@@ -10,7 +10,8 @@ class Test(web_svc.WebSvc):
     def __init__(self):
         self.methods = {
             "test_add": self.add,
-            "test_blippy": self.blippy
+            "test_blippy": self.blippy,
+            "test_qpid": self.qpid
         }
         web_svc.WebSvc.__init__(self)
 
@@ -20,7 +21,12 @@ class Test(web_svc.WebSvc):
     def blippy(self, foo):
         fh = open("/tmp/blippy","w+")
         fh.close()
-        return success(foo) 
+        return success(foo)
+
+    def qpid(self, puppet_node):
+        self.init_qpid()
+        info = self.server.puppet_node_info("UNSET", puppet_node)
+        return success(info)
 
 methods = Test()
 register_rpc = methods.register_rpc

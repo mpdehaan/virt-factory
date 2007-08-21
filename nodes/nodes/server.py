@@ -125,7 +125,8 @@ class VfApiMethod:
             rc = e
         except:
             self.rpc_interface.logger.debug("Not a virt-factory specific exception")
-            rc = self.__log_exc()
+            self.__log_exc()
+            rc = UncaughtException(traceback=traceback.format_exc())
             #raise
         rc = rc.to_datastruct()
         self.rpc_interface.logger.debug("Return code for %s: %s" % (self.__name, rc))

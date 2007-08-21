@@ -41,14 +41,18 @@ class WebSvc(object):
         self.logger.info("server: %s" % self.__target)
         self.__source = socket.gethostname()
         self.logger.info("client: %s" % self.__source)
-
+        self.server_initialized = False
+        
         # FIXME: disabling until hang can be removed
         # FIXME: this part should be Singletonized (TM)
 
-        #self.logger.info("connecting to QPID...")
-        #self.server = Server(client=self.__source, host=self.__target)
-        #self.logger.info("connected")
-
+    def init_qpid(self):
+        if not self.server_initialized:
+            self.logger.info("connecting to QPID...")
+            self.server = Server(client=self.__source, host=self.__target)
+            self.logger.info("connected")
+            self.server_initialized = True
+            
     def __get_file_data(self, fname):
         fileh = open(fname, "r")
         data = fileh.read()
@@ -58,6 +62,10 @@ class WebSvc(object):
     def __init_log(self):
         log = logger.Logger()
         self.logger = log.logger
+
+    def register_rpc(self, handlers):
+        for meth in self.methods:
+            handlers[meth] = self.methods[meth]
 
 class AuthWebSvc(WebSvc):
     def __init__(self):
@@ -74,7 +82,6 @@ class Server:
         # no crypto for now
         #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
         cm = None
-
         self.rpc_interface = lookup_service("rpc", transport, host=host, server_name="busrpc.virt-factory", cert_mgr=cm, use_bridge=False)
         if self.rpc_interface == None:
             print "Lookup failed :("
