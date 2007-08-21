@@ -111,6 +111,7 @@ class VfApiMethod:
         self.rpc_interface.logger.info("Exception occured: %s" % t )
         self.rpc_interface.logger.info("Exception value: %s" % v)
         self.rpc_interface.logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+        return v
 
     def __call__(self, *args):
         if self.__name == "call":
@@ -124,8 +125,7 @@ class VfApiMethod:
             rc = e
         except:
             self.rpc_interface.logger.debug("Not a virt-factory specific exception")
-            self.__log_exc()
-            rc = e
+            rc = self.__log_exc()
             #raise
         rc = rc.to_datastruct()
         self.rpc_interface.logger.debug("Return code for %s: %s" % (self.__name, rc))
