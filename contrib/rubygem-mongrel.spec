@@ -8,18 +8,18 @@ Summary: A small fast HTTP library and server
 Name: rubygem-%{gemname}
 
 Version: 1.0.1
-Release: 2%{?dist}
+Release: 3%{?dist}
 Group: Development/Libraries
 License: GPLv2+ or Ruby
 URL: http://mongrel.rubyforge.org
 Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
+Patch0: remove-cgi-multipart-eof-fix-dep.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
 BuildRequires: ruby-devel
 Requires: rubygem(daemons) >= 1.0.3
 Requires: rubygem(fastthread) >= 0.6.2
 Requires: rubygem(gem_plugin) >= 0.2.2
-Requires: rubygem(cgi_multipart_eof_fix) >= 1.0.0
 BuildRequires: rubygems
 Provides: rubygem(%{gemname}) = %{version}
 
@@ -46,6 +46,7 @@ mkdir -p %{buildroot}/%{_bindir}
 mv %{buildroot}%{gemdir}/bin/* %{buildroot}/%{_bindir}
 rmdir %{buildroot}%{gemdir}/bin
 find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
+patch -p0 -d %{buildroot} < %{PATCH0}
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -61,6 +62,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Thu Aug 23 2007 Scott Seago <dlutter@redhat.com> - 1.0.1-3
+- Removed requirement for rubygem(cgi_multipart_eof_fix)
+- Patched source to work without cgi_multipart_eof_fix
+
 * Fri Aug  3 2007 David Lutterkort <dlutter@redhat.com> - 1.0.1-2
 - Updated to latest Fedora guidelines
 - BR ruby-devel
