@@ -59,26 +59,35 @@ class Virt(web_svc.WebSvc):
         }
         
         self.logger.debug("acquiring connection to hypervisor")
-        try:
-	   self.conn = virt_utils.get_conn()
-        except:
+        #try:
+	self.conn = virt_utils.VirtFactoryLibvirtConnection()
+
+
+        # NOTE: this is only temporary (FIXME: restore exception handling)
+
+        #except:
            # FIXME: No Xen for you ... what about trying qemu KVM?
            # look at newer koan sources for detection and prereq 
            # validation code.
-           self.logger.error("unable to find hypervisor")
-           self.conn = None 
+
+          
+
+        #   self.logger.error("unable to find hypervisor")
+        #   self.conn = None 
 
         if self.conn:
-           self.logger.info("VMs at start: %s" % virt_utils.find_vm(conn,-1))
+           self.logger.info("VMs at start: %s" % self.conn.find_vm(-1))
 
-
-    #=======================================================================
+# =====================================================================
    
     def install(self, target_name, system=True):
 
         """
         Install a new virt system by way of a named cobbler profile.
         """
+
+        if self.conn is None:
+            raise VirtException(comment="no connection")
 
         if not os.path.exists("/usr/bin/koan"):
             raise VirtException(comment="no /usr/bin/koan")
@@ -102,7 +111,10 @@ class Virt(web_svc.WebSvc):
     #=======================================================================
 
     def find_vm(self, mac_address):
-        return virt_utils.find_vm(self.conn, mac_address)
+        # FIXME: should not be a reason to duplicate this here?
+        if self.conn is None:
+            raise VirtException(comment="no connection")
+        return self.conn.find_vm(mac_address)
     
     #=======================================================================
    
@@ -111,7 +123,7 @@ class Virt(web_svc.WebSvc):
         Make the machine with the given mac_address stop running.
         Whatever that takes.
         """
-        virt_utils.shutdown(self.conn,mac_address)
+        self.conn.shutdown(mac_address)
         return success()        
 
     #=======================================================================
@@ -121,7 +133,7 @@ class Virt(web_svc.WebSvc):
         """
         Pause the machine with the given mac_address.
         """
-        virt_utils.suspend(self.conn, mac_address)
+        self.conn.suspend(mac_address)
         return success()
 
     #=======================================================================
@@ -132,7 +144,7 @@ class Virt(web_svc.WebSvc):
         Unpause the machine with the given mac_address.
         """
 
-        virt_utils.resume(self.conn, mac_address)
+        self.conn.resume(mac_address)
         return success()
 
     #=======================================================================
@@ -142,7 +154,7 @@ class Virt(web_svc.WebSvc):
         """
         Start the machine via the given mac address. 
         """
-        virt_utils.create(self.conn, mac_address)
+        self.conn.create(mac_address)
         return success()
  
     # ======================================================================
@@ -153,7 +165,7 @@ class Virt(web_svc.WebSvc):
         Pull the virtual power from the virtual domain, giving it virtually no
         time to virtually shut down.
         """
-        virt_utils.destroy(self.conn, mac_address)
+        self.conn.destroy(mac_address)
         return success()
 
 
@@ -166,7 +178,7 @@ class Virt(web_svc.WebSvc):
         by deleting the disk image and it's configuration file.
         """
 
-        virt_utils.undefine(self.conn, mac_address)
+        self.conn.undefine(mac_address)
         return success()
 
     #=======================================================================
@@ -177,7 +189,7 @@ class Virt(web_svc.WebSvc):
         Return a state suitable for server consumption.  Aka, codes.py values, not XM output.
         """
         
-        return success("STATE=%s" % self.get_status(self.conn,mac_address))
+        return success("STATE=%s" % self.conn.get_status(mac_address))
 
 
 methods = Virt()

@@ -35,71 +35,82 @@ VIRT_STATE_NAME_MAP = {
 }
 
 
+class VirtFactoryLibvirtConnection():
 
-def get_conn(self):
-
-
-    cmd = subprocess.Popen("uname -r", shell=True, stdout=subprocess.PIPE)
-    output = cmd.communicate()[0]
-
-    if output.find("xen") != -1:
-        conn = libvirt.open(None)
-    else:
-        conn = libvirt.open("qemu:///system")
-
-    if not self.conn:
-        raise VirtException(comment="hypervisor connection failure")
-
-    return conn
+    def __init__(self):
 
 
+        cmd = subprocess.Popen("uname -r", shell=True, stdout=subprocess.PIPE)
+        output = cmd.communicate()[0]
 
-def find_vm(conn, mac_address):
-    """
-    Extra bonus feature: mac_address = -1 returns a list of everything
-    """
-
-    # name we use
-    collector = []
-    if mac_address != -1:
-        needle = mac_address.replace(":","_").upper()
-
-    ids = conn.listDomainsID()
-    for domain in ids:
-        try:
-            domain = conn.lookupByID(domain)
-        except libvirt.libvirtError, lve:
-            raise virtException(comment="libvirt go boom: %s" % repr(lve))   
-        if mac_address!= -1:
-            if domain.name() == needle:
-                return domain
+        if output.find("xen") != -1:
+            conn = libvirt.open(None)
         else:
-            collector.append(domain)
+            conn = libvirt.open("qemu:///system")
 
-    if mac_address == -1:
-        return collector
+        if not conn:
+           raise VirtException(comment="hypervisor connection failure")
 
-    raise VirtException(comment="virtual machine %s not found" % needle)
+        self.conn = conn
 
-def shutdown(conn, mac_address):
-    return conn.find_vm(mac_address).shutdown()
+    def find_vm(self, mac_address=-1):
+        """
+        Extra bonus feature: mac_address = -1 returns a list of everything
+        """
+        conn = self.conn
 
-def pause(conn, mac_address):
-    return conn.find_vm(mac_address).suspend()
+        # name we use
+        if mac_address != -1:
+            needle = mac_address.replace(":","_").upper()
 
-def unpause(conn, mac_address):
-    return conn.find_vm(mac_address).resume()
+        vms = []
 
-def create(conn, mac_address):
-    return conn.find_vm(mac_address).create()
+        # this block of code borrowed from virt-manager:
+        # get working domain's name
+        ids = conn.listDomainsID();
+        for id in ids:
+            vm = conn.lookupByID(id)
+            vms.append(vm)
+        # get defined domain
+        names = conn.listDefinedDomains()
+        for name in names:
+            vm = conn.lookupByName(name)
+            vms.append(vm)
+
+        if mac_address == -1:
+            return vms
+
+        for vm in vms:
+            if vm.name() == needle:
+                return vm
+
+        raise VirtException(comment="virtual machine %s not found" % needle)
+
+    def shutdown(self, mac_address):
+        return self.find_vm(mac_address).shutdown()
+
+    def pause(self, mac_address):
+        return suspend(self.conn,mac_address)
+
+    def unpause(self, mac_address):
+        return resume(self.conn,mac_address)
+
+    def suspend(self, mac_address):
+        return self.find_vm(mac_address).suspend()
+
+    def resume(self, mac_address):
+        return self.find_vm(mac_address).resume()
+
+    def create(self, mac_address):
+        return self.find_vm(mac_address).create()
     
-def destroy(conn, mac_address):
-    return conn.find_vm(mac_address).destroy()
+    def destroy(self, mac_address):
+        return self.find_vm(mac_address).destroy()
 
-def define(conn, mac_address):
-    return conn.find_vm(mac_address).undefine()
+    def undefine(self, mac_address):
+        return self.find_vm(mac_address).undefine()
    
-def get_status(conn, mac_address):
-    state = find_vm(conn, mac_address).info()[1]
-    return VIRT_STATE_NAME_MAP.get(state,"unknown")
+    def get_status(self, mac_address):
+        state = self.find_vm(mac_address).info()[1]
+        return VIRT_STATE_NAME_MAP.get(state,"unknown")
 
