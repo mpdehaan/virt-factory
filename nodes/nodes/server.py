@@ -36,6 +36,7 @@ import module_loader
 import utils
 import virt_utils
 import amqp_utils
+import time
 
 from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig
