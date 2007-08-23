@@ -8,7 +8,7 @@
 Summary: Optimized replacement for thread.rb primitives
 Name: rubygem-%{gemname}
 
-Version: 0.6.4.1
+Version: 1.0
 Release: 1%{?dist}
 Group: Development/Languages
 License: GPLv2+ or Ruby
@@ -48,5 +48,8 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Thu Aug 23 2007  <sseago@redhat.com> - 1.0-1
+- Updated gem to Version 1.0
+
 * Tue Mar  6 2007  <sseago@redhat.com> - 0.6.4.1-1
 - Initial packaging.
