@@ -53,7 +53,7 @@ class VirtFactoryLibvirtConnection():
 
         self.conn = conn
 
-    def find_vm(self, mac_address=-1):
+    def find_vm(self, mac_address):
         """
         Extra bonus feature: mac_address = -1 returns a list of everything
         """
