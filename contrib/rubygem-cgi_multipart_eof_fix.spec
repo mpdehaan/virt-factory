@@ -6,7 +6,7 @@
 Summary: Fix an exploitable bug in CGI multipart parsing
 Name: rubygem-%{gemname}
 
-Version: 2.1
+Version: 2.3
 Release: 1%{?dist}
 Group: Development/Libraries
 License: AFL
@@ -45,6 +45,9 @@ rm -rf %{buildroot}
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Thu Aug 23 2007  <sseago@redhat.com> - 2.3-1
+- Updated gem to Version 2.3
+
 * Tue Mar  6 2007  <sseago@redhat.com> - 2.1-1
 - Initial packaging.
 

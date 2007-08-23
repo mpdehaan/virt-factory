@@ -6,7 +6,7 @@
 Summary: A toolkit to create and control daemons in different ways
 Name: rubygem-%{gemname}
 
-Version: 1.0.5
+Version: 1.0.7
 Release: 1%{?dist}
 Group: Development/Languages
 License: GPLv2+ or Ruby
@@ -52,5 +52,8 @@ gem install --local --install-dir %{buildroot}%{gemdir} \
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Thu Aug 23 2007  <sseago@redhat.com> - 1.0.7-1
+- Updated gem to Version 1.0.7
+
 * Tue Mar  6 2007  <sseago@redhat.com> - 1.0.5-1
 - Initial packaging.
