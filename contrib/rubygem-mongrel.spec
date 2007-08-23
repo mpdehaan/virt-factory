@@ -8,13 +8,14 @@ Summary: A small fast HTTP library and server
 Name: rubygem-%{gemname}
 
 Version: 1.0.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Development/Libraries
 License: GPLv2+ or Ruby
 URL: http://mongrel.rubyforge.org
 Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
+BuildRequires: ruby-devel
 Requires: rubygem(daemons) >= 1.0.3
 Requires: rubygem(fastthread) >= 0.6.2
 Requires: rubygem(gem_plugin) >= 0.2.2
@@ -60,6 +61,10 @@ find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Fri Aug  3 2007 David Lutterkort <dlutter@redhat.com> - 1.0.1-2
+- Updated to latest Fedora guidelines
+- BR ruby-devel
+
 * Tue Mar  6 2007  <sseago@redhat.com> - 1.0.1-1
 - Initial packaging.
 
