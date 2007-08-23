@@ -38,7 +38,9 @@ def load_modules(module_path=module_file_path, blacklist=None):
                 continue
             mods[modname] = blip
         except ImportError, e:
+            # shouldn't this be fatal?
             print e
+            raise
 
     return mods
 
