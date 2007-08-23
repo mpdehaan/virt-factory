@@ -9,15 +9,17 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args):
-    command = Create(args)
+def run(args, api):
+    command = Create(args, api)
 
 
 class Create(object):
-    def __init__(self, args):
+    def __init__(self, args, api=None):
         self.api = ampmlib.Api(url="http://127.0.0.1:5150",
                                username="admin",
                                password="fedora")
+        if api:
+            self.api = api
         self.verbose = 0
         self.__parse_args(args)
 

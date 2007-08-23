@@ -32,6 +32,8 @@ api = ampmlib.Api(url=cfg.get("server", "url"),
 from command_modules import list
 from command_modules import query
 from command_modules import create
+from command_modules import delete
+
 
 def print_help():
     print "== This is a useless help string blurb =="
@@ -64,20 +66,25 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query", "create"]:
+    if mode not in ["help", "list", "query", "create", "delete"]:
         print_help()
         sys.exit()
 
     modeargs = args[args.index(mode)+1:]
     
     if mode == "list":
-        list.run(modeargs)
+        list.run(modeargs, api=api)
 
     if mode == "query":
-        query.run(modeargs)
+        query.run(modeargs, api=api)
 
     if mode == "create":
-        create.run(modeargs)
+        create.run(modeargs, api=api)
+
+    if mode == "delete":
+        delete.run(modeargs, api=api)
+
+        
 if __name__ == "__main__":
     main()
 

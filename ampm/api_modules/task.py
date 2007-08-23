@@ -8,10 +8,12 @@ class Task(base_module.BaseModule):
         self.token = token
         self.server = server
         base_module.BaseModule.__init__(self)
-        self.methods = ["task_list",]
+        self.methods = ["task_list","task_delete"]
 
     def task_list(self):
         return self.server.task_list(self.token, {})
 
+    def task_delete(self, task_id):
+        return self.server.task_delete(self.token, {'id':task_id})
 
 api_class = Task

@@ -8,8 +8,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args):
-    command = Delete(args)
+def run(args, api):
+    command = Delete(args, api)
 
 
 class Delete(object):
