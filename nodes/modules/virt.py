@@ -97,15 +97,6 @@ class Virt(web_svc.WebSvc):
             raise VirtException(comment="koan returned %d" % rc)
  
     #=======================================================================
-
-    def find_vm(self, mac_address):
-        # FIXME: should not be a reason to duplicate this here?
-        self.get_conn()
-        if self.conn is None:
-            raise VirtException(comment="no connection")
-        return self.conn.find_vm(mac_address)
-    
-    #=======================================================================
    
     def shutdown(self, mac_address):
         """

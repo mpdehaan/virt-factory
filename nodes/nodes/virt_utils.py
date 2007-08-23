@@ -109,7 +109,11 @@ class VirtFactoryLibvirtConnection():
 
     def undefine(self, mac_address):
         return self.find_vm(mac_address).undefine()
-   
+
+    def get_status2(self, vm):
+        state = vm.info()[1]
+        return VIRT_STATE_NAME_MAP.get(state,"unknown")  
+ 
     def get_status(self, mac_address):
         state = self.find_vm(mac_address).info()[1]
         return VIRT_STATE_NAME_MAP.get(state,"unknown")

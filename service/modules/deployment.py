@@ -390,8 +390,8 @@ class Deployment(web_svc.AuthWebSvc):
         deployment = db.Deployment.get(session, { "id" : id })
         results = self.expand(deployment)
 
-        self.logger.info("your deployment is: %s" % results)
         results["state"] = args["state"]
+        self.logger.info("setting deployment status: %s" % results)
         self.edit(token, results)
 
         return success(results)

@@ -28,7 +28,7 @@ import socket
 from busrpc.rpc import lookup_service
 from busrpc.crypto import CertManager
 import busrpc.qpid_transport
-
+import config_data
 
 class VirtFactoryAmqpConnection():
 
@@ -55,4 +55,22 @@ class VirtFactoryAmqpConnection():
         return data.strip()
    
     
+# this class is for AMQP communication to the parent server
+# borrowed from vf_register's source
+
+class Server:
+    def __init__(self, client=None, host=None):
+        transport = busrpc.qpid_transport.QpidTransport(host=host)
+        transport.connect()
+
+        # no crypto for now
+        #cm = CertManager('/var/lib/virt-factory/qpidcert', client)
+        cm = None
+        self.rpc_interface = lookup_service("rpc", transport, host=host, server_name="busrpc.virt-factory", cert_mgr=cm, use_bridge=False)
+        if self.rpc_interface == None:
+            print "Lookup failed :("
+            sys.exit(-1)
+
+    def __getattr__(self, name):
+        return self.rpc_interface.__getattr__(name)
 
