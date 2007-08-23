@@ -19,24 +19,13 @@ import os
 import subprocess
 import libvirt
 
-# db values, do not translate!
-VIRT_STATE_NAME_MAP = {
-   0 : "running",
-   1 : "running",
-   2 : "running",
-   3 : "paused",
-   4 : "shutdown",
-   5 : "shutdown",
-   6 : "crashed"
-}
-
 if __name__ == "__main__":
    sys.path.append("../")
 
 from nodes.codes import *
+from nodes import virt_utils as virt_utils
 from modules import web_svc
 
-#XM_BIN = "/usr/sbin/xm"
 
 class Virt(web_svc.WebSvc):
     
@@ -47,9 +36,10 @@ class Virt(web_svc.WebSvc):
         """
         Constructor.  Register methods and make them available.
         """
-
+        
         # basic constructor stuff
         web_svc.WebSvc.__init__(self)
+        self.logger.debug("finishing initialization of virt module...")
  
         # get the server 
         fd = open("/etc/sysconfig/virt-factory/server")
@@ -67,26 +57,10 @@ class Virt(web_svc.WebSvc):
             "virt_delete"   : self.undefine,
             "virt_status"   : self.get_status,
         }
-
-        cmd = subprocess.Popen("uname -r", shell=True, stdout=subprocess.PIPE)
-        output = cmd.communicate()[0]
-
+        
+        self.logger.debug("acquiring connection to hypervisor")
         try:
-
-           # this connection string stuff is a hack though we can fix
-           # it later when more virt types come along.  Right now VF assumes
-           # a given host hosts only one type of virt and that should be a 
-           # decent assumption.
-
-           if output.find("xen") != -1:
-              self.logger.info("trying xen connection")
-              self.conn = libvirt.open(None)  
-           else:
-              self.logger.info("trying qemu connection")
-              self.conn = libvirt.open("qemu:///system")
-
-           if not self.conn:
-              raise VirtException(comment="Xen connection failure")
+	   self.conn = virt_utils.get_conn()
         except:
            # FIXME: No Xen for you ... what about trying qemu KVM?
            # look at newer koan sources for detection and prereq 
@@ -95,7 +69,7 @@ class Virt(web_svc.WebSvc):
            self.conn = None 
 
         if self.conn:
-            self.logger.info("VMs at start: %s" % self.find_vm(-1))
+           self.logger.info("VMs at start: %s" % virt_utils.find_vm(conn,-1))
 
 
     #=======================================================================
@@ -128,42 +102,16 @@ class Virt(web_svc.WebSvc):
     #=======================================================================
 
     def find_vm(self, mac_address):
-
-        """ 
-        Extra bonus feature: mac_address = -1 returns a list of everything
-        """
-
-        # name we use
-        collector = []
-        if mac_address != -1:
-            needle = mac_address.replace(":","_").upper()
-
-        ids = self.conn.listDomainsID()
-        for domain in ids:
-            try:
-                domain = self.conn.lookupByID(domain)
-            except libvirt.libvirtError, lve:
-                raise virtException(comment="libvirt go boom: %s" % repr(lve))          
-            if mac_address!= -1:
-                if domain.name() == needle:
-                    return domain
-            else:
-                collector.append(domain)
-
-        if mac_address == -1:
-            return collector
-
-        raise VirtException(comment="virtual machine %s not found" % needle)
+        return virt_utils.find_vm(self.conn, mac_address)
     
     #=======================================================================
    
     def shutdown(self, mac_address):
-
         """
         Make the machine with the given mac_address stop running.
         Whatever that takes.
         """
-        self.find_vm(mac_address).shutdown()
+        virt_utils.shutdown(self.conn,mac_address)
         return success()        
 
     #=======================================================================
@@ -173,7 +121,7 @@ class Virt(web_svc.WebSvc):
         """
         Pause the machine with the given mac_address.
         """
-        self.find_vm(mac_address).suspend()
+        virt_utils.suspend(self.conn, mac_address)
         return success()
 
     #=======================================================================
@@ -184,7 +132,7 @@ class Virt(web_svc.WebSvc):
         Unpause the machine with the given mac_address.
         """
 
-        self.find_vm(mac_address).resume()
+        virt_utils.resume(self.conn, mac_address)
         return success()
 
     #=======================================================================
@@ -194,7 +142,7 @@ class Virt(web_svc.WebSvc):
         """
         Start the machine via the given mac address. 
         """
-        self.find_vm(mac_address).create()
+        virt_utils.create(self.conn, mac_address)
         return success()
  
     # ======================================================================
@@ -205,7 +153,7 @@ class Virt(web_svc.WebSvc):
         Pull the virtual power from the virtual domain, giving it virtually no
         time to virtually shut down.
         """
-        self.find_vm(mac_address).destroy()
+        virt_utils.destroy(self.conn, mac_address)
         return success()
 
 
@@ -218,7 +166,7 @@ class Virt(web_svc.WebSvc):
         by deleting the disk image and it's configuration file.
         """
 
-        self.find_vm(mac_address).undefine()
+        virt_utils.undefine(self.conn, mac_address)
         return success()
 
     #=======================================================================
@@ -229,58 +177,7 @@ class Virt(web_svc.WebSvc):
         Return a state suitable for server consumption.  Aka, codes.py values, not XM output.
         """
         
-        # info returns a tuple of things, not documented in the code
-        #  MEMORY = [1]
-        #  STATE  = [0]
-
-        # FIXME: we're invoking this via vf_nodecomm so it's stdout based
-        # and rather messy, hence the STATE=foo in the return to make things
-        # parseable.  When we move to the message bus we should just return
-        # the state directly.
-
-        state = self.find_vm(mac_address).info()[1]
-        self.logger.debug("state: %s" % state)
-        return success("STATE=%s" % VIRT_STATE_NAME_MAP.get(state,"unknown"))
-
-
-    #=======================================================================
-
-#    #def __get_xm_state(self, mac_address):
-#
-#        """
-#
-#        Run xm to get the state portion out of the output.
-#        This will be a width 5 string that may contain:
-#        
-#           p       -- paused
-#           r       -- running
-#           b       -- blocked  (basically running though)
-#           "-----" -- no state (basically running though)
-#        
-#        if not found at all, the domain doesn't at all exist, or it's off.
-#        since we'll know if virtfactory deleted it, assume off.  if needed,
-#        we can later comb the Xen directories to see if a file is still around.
-#
-#        """  
-#
-#        cmd_mac = mac_address.replace(":","_").upper()
-#        output = self.__run_xm("list", None, True)
-#        lines = output.split("\n")
-#        if len(lines) == 1:
-#            print "state --> off"
-#            return "off"
-#        for line in lines[1:]:
-#            try:
-#                (name, id, mem, cpus, state, time) = line.split(None)
-#                if name == cmd_mac:
-#                    print "state --> %s" % state
-#                    return state       
-#            except:
-#                pass
-#        print "state --> off"      
-#        return "off"
-#
-#    #=======================================================================
+        return success("STATE=%s" % self.get_status(self.conn,mac_address))
 
 
 methods = Virt()
