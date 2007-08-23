@@ -4,26 +4,29 @@ import getopt
 import os
 import pprint
 import sys
+import time
 
 from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args):
-    command = List(args)
+def run(args, api):
+    command = List(args,api)
 
 
 
 class List(object):
-    def __init__(self, args):
+    def __init__(self, args, api=None):
         self.api = ampmlib.Api(url="http://127.0.0.1:5150",
                                username="admin",
                                password="fedora")
+        if api:
+            self.api = api
         self.verbose = 0
         self.__parse_args(args)
 
     def print_help(self):
-        print "valid modes are machines, deployments, status, profiles"
+        print "valid modes are hosts, guests, status, profiles, tasks"
 
     def __parse_args(self, args):
 
@@ -48,7 +51,7 @@ class List(object):
         except IndexError:
             raise
 
-        if mode not in ["machines", "deployments", "status", "profiles"]:
+        if mode not in ["hosts", "guests", "status", "profiles", "tasks"]:
             # raise error?
             print "incorrect mode"
 
@@ -63,6 +66,9 @@ class List(object):
 
         if mode == "profiles":
             self.list_profiles()
+
+        if mode == "tasks":
+            self.list_tasks()
 
     def list_machines(self):
         (retcode, data) = self.api.machine_list()
@@ -90,6 +96,22 @@ class List(object):
             if deployment['id'] == -1:
                 continue
             print "%s:    %s" % (deployment['display_name'], deployment['state'])
+
+    def list_tasks(self):
+        (retcode, data) = self.api.task_list()
+        if self.verbose > 2:
+            pprint.pprint(data)
+
+        for task in data['data']:
+            print "%s %s %s %s %s %s" % (task['id'],
+                                         task['action_type'],
+                                         task['user']['username'],
+                                         task['machine']['hostname'],
+                                         task['state'],
+                                         time.asctime(time.localtime(task['time'])))
+                                   
+        
+        
 
     def list_profiles(self):
         (retcode, data) = self.api.profile_list()

@@ -368,7 +368,7 @@ create_ampm_config()
 {
 cat <<EOF
 [server]
-url=http://127.0.0.1/vf
+url=http://127.0.0.1:5150
 [user]
 username=admin
 password=fedora
@@ -382,6 +382,7 @@ test_ampm()
 {
     msg "Testing ampm"
     create_ampm_config > ~/.ampm_config
+
     msg "ampm list machines"
     /usr/bin/ampm list machines
 
@@ -396,6 +397,9 @@ test_ampm()
 
     msg "ampm list -v profiles"
     /usr/bin/ampm list -v profiles
+
+    msg "ampm list tasks"
+    /usr/bin/ampm list tasks
 
     msg "ampm query <profiles>"
     for i in `/usr/bin/ampm list profiles | cut -f1 -d' '`
