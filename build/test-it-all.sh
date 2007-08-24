@@ -368,8 +368,6 @@ test_nodecomm()
 }
 
 
-}
-
 
 test_ampm()
 {
