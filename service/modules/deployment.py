@@ -42,7 +42,7 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_stop": self.shutdown,
                         "deployment_shutdown": self.shutdown,
                         "deployment_destroy": self.destroy,
-                        "deployment_refresh": self.refresh,
+                        "deployment_set_state": self.set_state,
                         "deployment_delete": self.delete,
                         "deployment_list": self.list,
                         "deployment_get": self.get,
@@ -243,21 +243,6 @@ class Deployment(web_svc.AuthWebSvc):
             
         self.edit(token, args)
     
-    # FIXME: unused except possibly by registration?
-    # FIXME: figure out if it does, as the node daemon doesn't know id's
-    # and this can probably be removed
-    #def set_state(self, token, args, status_code):
-    #    session = db.open_session()
-    #    try:
-    #        deployment = db.Deployment.get(session, args['id'])
-    #        deployment.state = status_code
-    #        session.save(deployment)
-    #        session.flush()
-    #        self.cobbler_sync(deployment.get_hash())
-    #        return success()
-    #    finally:
-    #        session.close()
-
     def delete(self, token, args):
         dargs = self.get(token, { "id" : args["id" ]}).data
         self.__set_locked(token, dargs, DEPLOYMENT_STATE_PENDING, True)
@@ -390,8 +375,8 @@ class Deployment(web_svc.AuthWebSvc):
         deployment = db.Deployment.get(session, { "id" : id })
         results = self.expand(deployment)
 
-        self.logger.info("your deployment is: %s" % results)
         results["state"] = args["state"]
+        self.logger.info("setting deployment status: %s" % results)
         self.edit(token, results)
 
         return success(results)

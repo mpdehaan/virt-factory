@@ -18,10 +18,9 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import socket
 
-
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_node_server"
-
+SLEEP_INTERVAL = 15 
 SERVE_ON = (None,None)
 
 # FIXME: this app writes a logfile in /var/log/virt-factory/svclog -- package should use logrotate
@@ -35,6 +34,9 @@ import config_data
 import logger
 import module_loader
 import utils
+import virt_utils
+import amqp_utils
+import time
 
 from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig
@@ -53,6 +55,9 @@ class Singleton(object):
             type._the_instance.init(*args, **kwargs)
         return type._the_instance
 
+def make_logger():
+        return logger.Logger().logger
+
 class XmlRpcInterface(Singleton):
 
     def init(self):
@@ -63,7 +68,7 @@ class XmlRpcInterface(Singleton):
         config_obj = config_data.Config()
         self.config = config_obj.get()
        
-        self.logger = logger.Logger().logger
+        self.logger = make_logger()
 
         self.__setup_handlers()
        
@@ -161,6 +166,52 @@ def serve_qpid(config_path):
          dispatcher.stop()
      print "Exiting..."
 
+def serve_status():
+
+     # serve monitoring status for the current node, and
+     # if applicable, any sub-nodes (guests)
+
+     logger = make_logger()
+
+     # establish upstream qpid connection
+     logger.info("STATUS FORK: init amqp")
+     amqp_conn = amqp_utils.VirtFactoryAmqpConnection()
+     logger.info("STATUS FORK: connect")
+     amqp_conn.connect()
+
+     while True:
+         try:
+             logger.info("STATUS FORK: loop")
+             try:
+                 # reconnect each time to avoid errors
+                 logger.info("STATUS FORK: connect to libvirt")
+                 virt_conn = virt_utils.VirtFactoryLibvirtConnection()
+             except:
+                 logger.info("STATUS FORK: could not connect to libvirt")
+                 continue         
+
+             vms = virt_conn.find_vm(-1)
+             for vm in vms:
+                 status = virt_conn.get_status2(vm)
+                 args = {
+                     "mac_address" : vm.name(),
+                     "state"       : status
+                 }
+                 logger.info("sending status: %s" % args)
+                 amqp_conn.server.deployment_set_state("UNSET", args)
+         
+             time.sleep(SLEEP_INTERVAL)
+         except:
+             (t, v, tb) = sys.exc_info()
+             logger.info("Exception occured: %s" % t )
+             logger.info("Exception value: %s" % v)
+             logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+             # FIXME
+             raise
+
+
+
+
 def main(argv):
     """
     Start things up.
@@ -173,8 +224,14 @@ def main(argv):
         utils.daemonize("/var/run/vf_node_server.pid")
     else:
         print _("serving...\n")
-    serve_qpid("/etc/virt-factory-nodes/qpid.conf")
 
+    pid = os.fork()
+    if pid == 0:
+        serve_qpid("/etc/virt-factory-nodes/qpid.conf")
+    else:
+        # FIXME: should probably sleep to allow AMQP to initialize
+        # in case of conflict???
+        serve_status()
 
 if __name__ == "__main__":
     _("test") # make gettext be quiet when there are no strings
