@@ -198,6 +198,10 @@ def serve_status():
          # under virt-factory's control.  We may want some to stay off.
          # check "details" for this.
 
+         if details.has_key("auto_start") and details["auto_start"] == 0: 
+             # this one is flagged to stay off
+             continue
+
          state = virt_conn.get_status2(vm)
          if state == "shutdown" or state == "crashed":
              vm.create()
