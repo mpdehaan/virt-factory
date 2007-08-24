@@ -397,7 +397,7 @@ class Deployment(web_svc.AuthWebSvc):
             # creation gives uppercase MAC addresses, so be sure
             # we search on the same criteria until the DB search
             # can be made case insensitive.  (FIXME)
-            mac_address = args['mac_address'].upper()
+            mac_address = args['mac_address'].replace("_",":").upper()
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment).limit(limit).offset(offset)
             for machine in query.select_by(mac_address = mac_address):

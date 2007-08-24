@@ -194,7 +194,7 @@ def serve_status():
              for vm in vms:
                  status = virt_conn.get_status2(vm)
                  args = {
-                     "mac_address" : vm.name(),
+                     "mac_address" : vm.name().replace("_",":"),
                      "state"       : status
                  }
                  logger.info("sending status: %s" % args)
