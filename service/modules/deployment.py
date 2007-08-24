@@ -19,6 +19,7 @@ from server.codes import *
 from server import db
 from fieldvalidator import FieldValidator
 
+import time
 import profile
 import machine
 import web_svc
@@ -379,6 +380,10 @@ class Deployment(web_svc.AuthWebSvc):
         results = self.expand(deployment)
 
         results["state"] = args["state"]
+
+        # misnomer: this is the time of the last status update
+        results["last_heartbeat"] = int(time.time())
+  
         self.logger.debug("setting deployment status: %s" % results)
         self.edit(token, results)
 

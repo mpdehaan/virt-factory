@@ -179,6 +179,21 @@ def serve_status():
      logger.info("STATUS FORK: connect")
      amqp_conn.connect()
 
+     # ask server which nodes to start.
+     virt_conn = virt_utils.VirtFactoryLibvirtConnection()
+     vms = virt_conn.find_vm(-1)
+     for vm in vms:
+         name = vm.name().replace("_",":").upper()
+         details = None
+         try:
+             details = amqp_conn.server.deployment_get_by_mac_address(name)
+             print "DETAILS: %s" % details
+         except:
+             # can't figure out to auto start this one...
+             traceback.print_exc()
+             logger.info("unowned vm: %s" % name)
+
+
      all_status = {}
 
      while True:
