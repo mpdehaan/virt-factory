@@ -365,10 +365,13 @@ class Deployment(web_svc.AuthWebSvc):
         required = ('mac_address','state')
         FieldValidator(args).verify_required(required)
         
-        which = get_by_mac_address(self,token,args)
+        which = self.get_by_mac_address(token,args)
+        self.logger.info("set_state on %s to %s" % (args["mac_address"],args["state"]))
         if which.error_code != 0:
-           raise InvalidArguments(comment="missing item")
-        id = which.data["id"] 
+           raise InvalidArgumentsException(comment="missing item")
+        if len(which.data) == 0:
+           raise InvalidArgumentsException(comment="missing item (no %s)" % args["mac_address"]) 
+        id = which.data[0]["id"] 
 
         session = db.open_session()
         # BOOKMARK 
