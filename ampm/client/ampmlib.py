@@ -32,6 +32,7 @@ from api_modules import machine
 from api_modules import deployment
 from api_modules import profile
 from api_modules import task
+from api_modules import user
 
 class Server(xmlrpclib.ServerProxy):
     def __init__(self, url=None):
@@ -77,7 +78,7 @@ class Api(object):
         
 
         # FIXME: auto-dynamafy this module/method stuff
-        for module in [auth, machine, deployment, profile, task]:
+        for module in [auth, machine, deployment, profile, task, user]:
             self.api_classes[module] = module.api_class()
 
         for api_class in self.api_classes.keys():

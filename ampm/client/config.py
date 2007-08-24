@@ -10,6 +10,9 @@ class AmpmConfig(ConfigParser.SafeConfigParser):
     def __init__(self, defaults=None):
         ConfigParser.SafeConfigParser.__init__(self, defaults)
 
+        # I'm not a fan of the configParser default stuff
+        self.set_ampm_defaults()
+
     def load(self):
         filename = os.path.expanduser("~/.ampm_config")
         if os.access(filename, os.R_OK):
@@ -17,7 +20,13 @@ class AmpmConfig(ConfigParser.SafeConfigParser):
         else:
             print "no config file found"
 
-
+    def set_ampm_defaults(self):
+        self.add_section("server")
+        self.add_section("user")
+        self.set("server", "url", "http://127.0.0.1:5150")
+        self.set("user", "username", "admin")
+        self.set("user", "password", "fedora")
+        
 
 
 if __name__ == "__main__":

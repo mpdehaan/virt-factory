@@ -401,12 +401,24 @@ test_ampm()
     msg "ampm list tasks"
     /usr/bin/ampm list tasks
 
+    msg "ampm list users"
+    /usr/bin/ampm list users
+
     msg "ampm query <profiles>"
     for i in `/usr/bin/ampm list profiles | cut -f1 -d' '`
     do
 	/usr/bin/ampm query --profile $i
     done
     
+
+    msg "ampm user add"
+    /usr/bin/ampm add user --username adrian --password foobar --first Adrian --last Likins  --email "alikins@redhat.com" --description "Adrian is awesome"
+    /usr/bin/ampm add user --username test_user --password test1 --first Robert  --last Zimmerman  --email "bob@example.com" --description "shorttimer"
+
+    msg "ampm delete user"
+    test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
+    /usr/bin/ampm delete --user_id $test_user_id
+
 
 
 }

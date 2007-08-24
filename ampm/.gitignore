@@ -1,0 +1,6 @@
+build
+rpms
+*.pyc
+*~
+\#*\#
+MANIFEST

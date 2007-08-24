@@ -20,44 +20,65 @@ import os
 import sys
 
 import config
-cfg = config.AmpmConfig()
+
+defaults = {"server":"http://127.0.0.1:5150",
+            "user": "",
+            "username": "admin",
+            "password": "fedora" }
+
+cfg = config.AmpmConfig(defaults)
 cfg.load()
 
 
-api = ampmlib.Api(url=cfg.get("server", "url"),
-                  username=cfg.get("user", "username"),
-                  password=cfg.get("user", "password"))
 
 
 from command_modules import list
 from command_modules import query
 from command_modules import create
 from command_modules import delete
+from command_modules import add
 
 
 def print_help():
     print "== This is a useless help string blurb =="
     print
 
-
+    
 def main():
 
+    
+    username = cfg.get("user", "username")
+    password = cfg.get("user", "password")
+    server = cfg.get("server", "url")
+    
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hv", [
+        opts, args = getopt.getopt(sys.argv[1:],
+                                   "hvu:p:s:", [
             "help",
             "verbose",
+            "username=",
+            "password=",
+            "server=",
             ])
     except getopt.error, e:
         print _("Error parsing command list arguments: %s") % e
         showHelp() 
         sys.exit(1)
 
-    for (opt, vals) in opts:
+    for (opt, val) in opts:
         if opt in ["-h", "--help"]:
             print_help()
             sys.exit()
         if opt in ["-v", "--verbose"]:
             verbose = 1
+        if opt in ["-u", "--username"]:
+            username = val
+        if opt in ["-p", "--password"]:
+            password = val
+            # munge sys.argv so password doesn't show up in ps, etc listings
+        if opt in ["-s", "--server"]:
+            server = val
+            
 
     try:
         mode = args[0]
@@ -66,11 +87,17 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query", "create", "delete"]:
+    if mode not in ["help", "list", "query", "create", "delete", "add"]:
         print_help()
         sys.exit()
 
     modeargs = args[args.index(mode)+1:]
+
+
+    api = ampmlib.Api(url=server,
+                      username=username,
+                      password=password)
+
     
     if mode == "list":
         list.run(modeargs, api=api)
@@ -83,6 +110,9 @@ def main():
 
     if mode == "delete":
         delete.run(modeargs, api=api)
+
+    if mode == "add":
+        add.run(modeargs, api=api)
 
         
 if __name__ == "__main__":

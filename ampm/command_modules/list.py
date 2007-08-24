@@ -26,7 +26,7 @@ class List(object):
         self.__parse_args(args)
 
     def print_help(self):
-        print "valid modes are hosts, guests, status, profiles, tasks"
+        print "valid modes are hosts, guests, status, profiles, tasks, users"
 
     def __parse_args(self, args):
 
@@ -51,7 +51,7 @@ class List(object):
         except IndexError:
             raise
 
-        if mode not in ["hosts", "guests", "status", "profiles", "tasks"]:
+        if mode not in ["hosts", "guests", "status", "profiles", "tasks", "users"]:
             # raise error?
             print "incorrect mode"
 
@@ -69,6 +69,9 @@ class List(object):
 
         if mode == "tasks":
             self.list_tasks()
+
+        if mode == "users":
+            self.list_users()
 
     def list_machines(self):
         (retcode, data) = self.api.machine_list()
@@ -112,6 +115,17 @@ class List(object):
                                    
         
         
+    def list_users(self):
+        (retcode, data) = self.api.user_list()
+        if self.verbose > 2:
+            pprint.pprint(data)
+
+        for user in data['data']:
+            if user['id'] == -1:
+                continue
+
+            print "%(id)s %(username)s %(email)s %(first)s %(last)s %(description)s" % user 
+
 
     def list_profiles(self):
         (retcode, data) = self.api.profile_list()
