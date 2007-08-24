@@ -417,7 +417,7 @@ test_ampm()
 
     msg "ampm delete user"
     test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
-    /usr/sbin/ampm delete --user_id $test_user_id
+    /usr/bin/ampm delete --user_id $test_user_id
 
 
 
