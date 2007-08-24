@@ -1,0 +1,15 @@
+cookies
+build
+srpms
+rpms
+repos.d
+output
+output_file
+profiles
+tars
+test-it-all.conf
+settings.testing
+*.pyc
+*~
+\#*\#
+
