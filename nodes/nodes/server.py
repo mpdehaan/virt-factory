@@ -20,7 +20,7 @@ import socket
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_node_server"
-SLEEP_INTERVAL = 15 
+SLEEP_INTERVAL = 60 # seconds, TBD: signal to wake up early when needed 
 SERVE_ON = (None,None)
 
 # FIXME: this app writes a logfile in /var/log/virt-factory/svclog -- package should use logrotate
@@ -179,6 +179,8 @@ def serve_status():
      logger.info("STATUS FORK: connect")
      amqp_conn.connect()
 
+     all_status = {}
+
      while True:
          try:
              logger.info("STATUS FORK: loop")
@@ -192,13 +194,28 @@ def serve_status():
 
              vms = virt_conn.find_vm(-1)
              for vm in vms:
+                 send_it = True
                  status = virt_conn.get_status2(vm)
-                 args = {
-                     "mac_address" : vm.name().replace("_",":"),
-                     "state"       : status
-                 }
-                 logger.info("sending status: %s" % args)
-                 amqp_conn.server.deployment_set_state("UNSET", args)
+                 name = vm.name()
+
+                 # only send status when it changes, conserve network
+                 # and keep the logs (if any) quiet
+
+                 if not all_status.has_key(name):
+                     send_it = True
+                 elif all_status[name] != status:
+                     send_it = True
+
+                 if send_it:
+                     all_status[name] = status
+
+                 if send_it:
+                     args = {
+                         "mac_address" : name.replace("_",":"),
+                         "state"       : status
+                     }
+                     logger.info("sending status: %s" % args)
+                     amqp_conn.server.deployment_set_state("UNSET", args)
          
              time.sleep(SLEEP_INTERVAL)
          except:
