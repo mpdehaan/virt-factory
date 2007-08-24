@@ -9,12 +9,12 @@ class User(base_module.BaseModule):
         self.token = token
         self.server = server
         base_module.BaseModule.__init__(self)
-        self.methods = ["user_list", "user_create", "user_delete"]
+        self.methods = ["user_list", "user_add", "user_delete"]
 
     def user_list(self):
         return self.server.user_list(self.token, {})
 
-    def user_create(self, username,
+    def user_add(self, username,
                     password, first,
                     last,description, email, middle=None):
         data = {'username': username,

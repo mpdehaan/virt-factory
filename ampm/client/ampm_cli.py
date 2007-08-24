@@ -33,6 +33,7 @@ from command_modules import list
 from command_modules import query
 from command_modules import create
 from command_modules import delete
+from command_modules import add
 
 
 def print_help():
@@ -66,7 +67,7 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query", "create", "delete"]:
+    if mode not in ["help", "list", "query", "create", "delete", "add"]:
         print_help()
         sys.exit()
 
@@ -83,6 +84,9 @@ def main():
 
     if mode == "delete":
         delete.run(modeargs, api=api)
+
+    if mode == "add":
+        add.run(modeargs, api=api)
 
         
 if __name__ == "__main__":
