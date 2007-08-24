@@ -411,6 +411,15 @@ test_ampm()
     done
     
 
+    msg "ampm user add"
+    /usr/bin/ampm add user --username adrian --password foobar --first Adrian --last Likins  --email "alikins@redhat.com" --description "Adrian is awesome"
+    /usr/bin/ampm add user --username test_user --password test1 --first Robert  --last Zimmerman  --email "bob@example.com" --description "shorttimer"
+
+    msg "ampm delete user"
+    test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
+    /usr/sbin/ampm delete --user_id $test_user_id
+
+
 
 }
 
