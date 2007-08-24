@@ -149,6 +149,9 @@ class Deployment(web_svc.AuthWebSvc):
         args["netboot_enabled"] = 0 # never PXE's
         args["registration_token"] = regtoken.RegToken().generate(token)
 
+        if not args.has_key("auto_start"):
+            args["auto_start"] = 1 
+       
         # cobbler sync must run with a filled in item in the database, so we must commit
         # prior to running cobbler sync
          

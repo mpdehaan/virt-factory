@@ -186,12 +186,21 @@ def serve_status():
          name = vm.name().replace("_",":").upper()
          details = None
          try:
-             details = amqp_conn.server.deployment_get_by_mac_address(name)
+             details = amqp_conn.server.deployment_get_by_mac_address("UNSET",{ "mac_address" : name})
              print "DETAILS: %s" % details
          except:
              # can't figure out to auto start this one...
              traceback.print_exc()
              logger.info("unowned vm: %s" % name)
+
+         # FIXME: check to see if this machine is actually supposed to
+         # be auto-started instead of starting all of them that are
+         # under virt-factory's control.  We may want some to stay off.
+         # check "details" for this.
+
+         state = virt_conn.get_status2(vm)
+         if state == "shutdown" or state == "crashed":
+             vm.create()
 
 
      all_status = {}
