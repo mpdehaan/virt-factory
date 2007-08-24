@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import command_class
+
 import getopt
 import os
 import pprint
@@ -12,18 +14,8 @@ def run(args, api):
     command = Delete(args, api)
 
 
-class Delete(object):
-    def __init__(self, args, api=None):
-        self.api = ampmlib.Api(url="http://127.0.0.1:5150",
-                               username="admin",
-                               password="fedora")
-        if api:
-            self.api = api
-        self.verbose = 0
-        self.__parse_args(args)
-
-    
-    def __parse_args(self, args):
+class Delete(command_class.Command):
+    def _parse_args(self, args):
 
         task_id = None
         profile = None

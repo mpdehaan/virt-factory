@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import command_class
+
 import getopt
 import os
 import pprint
@@ -15,20 +17,11 @@ def run(args, api):
 
 
 
-class List(object):
-    def __init__(self, args, api=None):
-        self.api = ampmlib.Api(url="http://127.0.0.1:5150",
-                               username="admin",
-                               password="fedora")
-        if api:
-            self.api = api
-        self.verbose = 0
-        self.__parse_args(args)
-
+class List(command_class.Command):
     def print_help(self):
         print "valid modes are hosts, guests, status, profiles, tasks, users"
 
-    def __parse_args(self, args):
+    def _parse_args(self, args):
 
         try:
             opts, args = getopt.getopt(args, "hvm",
@@ -55,11 +48,11 @@ class List(object):
             # raise error?
             print "incorrect mode"
 
-        if mode == "machines":
-            self.list_machines()
+        if mode == "hosts":
+            self.list_hosts()
 
-        if mode == "deployments":
-            self.list_deployments()
+        if mode == "guests":
+            self.list_guests()
 
         if mode == "status":
             self.list_status()
@@ -73,7 +66,7 @@ class List(object):
         if mode == "users":
             self.list_users()
 
-    def list_machines(self):
+    def list_hosts(self):
         (retcode, data) = self.api.machine_list()
         if self.verbose > 2:
             pprint.pprint(data)
@@ -82,7 +75,7 @@ class List(object):
                 continue
             print "hostname: %s id: %s profile_name: %s" % (machine['id'], machine['hostname'], machine['profile']['name'])
 
-    def list_deployments(self):
+    def list_guests(self):
         (retcode, data) = self.api.deployment_list()
         if self.verbose > 2:
             pprint.pprint(data)

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import command_class
+
 import getopt
 import os
 import pprint
@@ -13,17 +15,8 @@ def run(args, api):
     command = Query(args, api)
 
 
-class Query(object):
-    def __init__(self, args, api=None):
-        self.api = ampmlib.Api(url="http://127.0.0.1:5150",
-                               username="admin",
-                               password="fedora")
-        if api:
-            self.api = api
-        self.verbose = 0
-        self.__parse_args(args)
-
-    def __parse_args(self, args):
+class Query(command_class.Command):
+    def _parse_args(self, args):
 
         try:
             opts, args = getopt.getopt(args, "hvm",
@@ -79,9 +72,11 @@ class Query(object):
                 continue
             if profile['name'] == profile_name:
                 profile_id = profile['id']
-        
+
         (retcode, data)  = self.api.profile_get(id=profile_id)
-        print "%s %s %s %s %s %s %s" % (profile['name'], profile['version'],
-                                        profile['distribution']['name'], profile['virt_storage_size'],
-                                        profile['virt_ram'],  profile['valid_targets'], profile['puppet_classes'])
+        ret_profile = data['data']
+        print "%s %s %s %s %s %s %s" % (ret_profile['name'], ret_profile['version'],
+                                        ret_profile['distribution']['name'], ret_profile['virt_storage_size'],
+                                        ret_profile['virt_ram'],  ret_profile['valid_targets'],
+                                        ret_profile['puppet_classes'])
         

@@ -90,9 +90,11 @@ DEPLOY_HOST=mdehaan.rdu.redhat.com
 # a deployment will fail.
 DEPLOY_DESTROY=Y
 
+# whether or not we test the ampm commandline client
+TEST_AMPM=Y
+
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
-
 if [ -f "test-it-all.conf" ] ; then
     source test-it-all.conf
 fi
@@ -131,6 +133,7 @@ show_config()
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
     echo "TEST_NODECOMM=$TEST_NODECOMM"
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
+    echo "TEST_AMPM=$TEST_AMPM"
     echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
     echo "ARCH=$ARCH"
     echo "VIRSH_CONNECTION=$VIRSH_CONNECTION"
@@ -364,62 +367,11 @@ test_nodecomm()
     fi
 }
 
-create_ampm_config()
-{
-cat <<EOF
-[server]
-url=http://127.0.0.1:5150
-[user]
-username=admin
-password=fedora
-
-EOF
-
-}
 
 
 test_ampm()
 {
-    msg "Testing ampm"
-    create_ampm_config > ~/.ampm_config
-
-    msg "ampm list machines"
-    /usr/bin/ampm list machines
-
-    msg "ampm list status"
-    /usr/bin/ampm list status
-    
-    msg "ampm list deployments"
-    /usr/bin/ampm list deployments
-
-    msg "ampm list profiles"
-    /usr/bin/ampm list profiles
-
-    msg "ampm list -v profiles"
-    /usr/bin/ampm list -v profiles
-
-    msg "ampm list tasks"
-    /usr/bin/ampm list tasks
-
-    msg "ampm list users"
-    /usr/bin/ampm list users
-
-    msg "ampm query <profiles>"
-    for i in `/usr/bin/ampm list profiles | cut -f1 -d' '`
-    do
-	/usr/bin/ampm query --profile $i
-    done
-    
-
-    msg "ampm user add"
-    /usr/bin/ampm add user --username adrian --password foobar --first Adrian --last Likins  --email "alikins@redhat.com" --description "Adrian is awesome"
-    /usr/bin/ampm add user --username test_user --password test1 --first Robert  --last Zimmerman  --email "bob@example.com" --description "shorttimer"
-
-    msg "ampm delete user"
-    test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
-    /usr/bin/ampm delete --user_id $test_user_id
-
-
+    sh ampm-it-all.sh
 
 }
 
@@ -641,5 +593,8 @@ if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
 fi
 
 
-test_ampm
+if [ "$TEST_AMPM" == "Y" ] ; then
+    msg "Testing ampm"
+    test_ampm
+fi
 

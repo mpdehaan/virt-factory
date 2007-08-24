@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import command_class
+
 import getopt
 import os
 import pprint
@@ -13,17 +15,8 @@ def run(args, api):
     command = Create(args, api)
 
 
-class Create(object):
-    def __init__(self, args, api=None):
-        self.api = ampmlib.Api(url="http://127.0.0.1:5150",
-                               username="admin",
-                               password="fedora")
-        if api:
-            self.api = api
-        self.verbose = 0
-        self.__parse_args(args)
-
-    def __parse_args(self, args):
+class Create(command_class.Command):
+    def _parse_args(self, args):
 
         hostname = None
         profile = None
@@ -34,7 +27,7 @@ class Create(object):
                                        ["help",
                                         "verbose",
                                         "host=",
-                                        "profile="])
+                                        "profile=",])
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
             # FIXME: error handling
