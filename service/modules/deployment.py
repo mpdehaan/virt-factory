@@ -366,7 +366,7 @@ class Deployment(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         
         which = self.get_by_mac_address(token,args)
-        self.logger.info("set_state on %s to %s" % (args["mac_address"],args["state"]))
+        self.logger.debug("set_state on %s to %s" % (args["mac_address"],args["state"]))
         if which.error_code != 0:
            raise InvalidArgumentsException(comment="missing item")
         if len(which.data) == 0:
@@ -379,7 +379,7 @@ class Deployment(web_svc.AuthWebSvc):
         results = self.expand(deployment)
 
         results["state"] = args["state"]
-        self.logger.info("setting deployment status: %s" % results)
+        self.logger.debug("setting deployment status: %s" % results)
         self.edit(token, results)
 
         return success(results)
