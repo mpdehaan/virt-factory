@@ -55,11 +55,11 @@ class List(object):
             # raise error?
             print "incorrect mode"
 
-        if mode == "machines":
+        if mode == "hosts":
             self.list_machines()
 
-        if mode == "deployments":
-            self.list_deployments()
+        if mode == "guests":
+            self.list_guests()
 
         if mode == "status":
             self.list_status()
@@ -82,7 +82,7 @@ class List(object):
                 continue
             print "hostname: %s id: %s profile_name: %s" % (machine['id'], machine['hostname'], machine['profile']['name'])
 
-    def list_deployments(self):
+    def list_guests(self):
         (retcode, data) = self.api.deployment_list()
         if self.verbose > 2:
             pprint.pprint(data)
