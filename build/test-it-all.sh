@@ -401,6 +401,9 @@ test_ampm()
     msg "ampm list tasks"
     /usr/bin/ampm list tasks
 
+    msg "ampm list users"
+    /usr/bin/ampm list users
+
     msg "ampm query <profiles>"
     for i in `/usr/bin/ampm list profiles | cut -f1 -d' '`
     do
