@@ -56,7 +56,7 @@ class List(object):
             print "incorrect mode"
 
         if mode == "hosts":
-            self.list_machines()
+            self.list_hosts()
 
         if mode == "guests":
             self.list_guests()
@@ -73,7 +73,7 @@ class List(object):
         if mode == "users":
             self.list_users()
 
-    def list_machines(self):
+    def list_hosts(self):
         (retcode, data) = self.api.machine_list()
         if self.verbose > 2:
             pprint.pprint(data)
