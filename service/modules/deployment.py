@@ -375,7 +375,7 @@ class Deployment(web_svc.AuthWebSvc):
 
         session = db.open_session()
         # BOOKMARK 
-        deployment = db.Deployment.get(session, { "id" : id })
+        deployment = db.Deployment.get(session, id)
         results = self.expand(deployment)
 
         results["state"] = args["state"]
