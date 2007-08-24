@@ -27,13 +27,15 @@ class Delete(object):
 
         task_id = None
         profile = None
+        user_id = None
         
         try:
             opts, args = getopt.getopt(args, "hvm",
                                        ["help",
                                         "verbose",
                                         "task_id=",
-                                        "profile="])
+                                        "profile=",
+                                        "user_id="])
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
             # FIXME: error handling
@@ -48,12 +50,22 @@ class Delete(object):
                 task_id = val
             if opt in ["--profile"]:
                 profile = val
+            if opt in ["--user_id"]:
+                user_id = val
 
         if task_id is not None:
             self.delete_task(task_id)
 
+        if user_id is not None:
+            self.delete_user(user_id)
+
     def delete_task(self, task_id=None):
         (retcode, data) = self.api.task_delete(task_id)
+        if self.verbose > 2:
+            pprint.pprint(data)
+
+    def delete_user(self, user_id=None):
+        (retcode, data) = self.api.user_delete(user_id)
         if self.verbose > 2:
             pprint.pprint(data)
 
