@@ -90,9 +90,11 @@ DEPLOY_HOST=mdehaan.rdu.redhat.com
 # a deployment will fail.
 DEPLOY_DESTROY=Y
 
+# whether or not we test the ampm commandline client
+TEST_AMPM=Y
+
 # you can put conf stuff in test-it-all.conf 
 # so you don't have to worry about checking in config stuff
-
 if [ -f "test-it-all.conf" ] ; then
     source test-it-all.conf
 fi
@@ -131,6 +133,7 @@ show_config()
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
     echo "TEST_NODECOMM=$TEST_NODECOMM"
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
+    echo "TEST_AMPM=$TEST_AMPM"
     echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
     echo "ARCH=$ARCH"
     echo "VIRSH_CONNECTION=$VIRSH_CONNECTION"
@@ -592,5 +595,8 @@ if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
 fi
 
 
-test_ampm
+if [ "$TEST_AMPM" == "Y" ] ; then
+    msg "Testing ampm"
+    test_ampm
+fi
 

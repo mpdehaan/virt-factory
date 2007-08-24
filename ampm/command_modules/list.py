@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import command_class
+
 import getopt
 import os
 import pprint
@@ -15,20 +17,11 @@ def run(args, api):
 
 
 
-class List(object):
-    def __init__(self, args, api=None):
-        self.api = ampmlib.Api(url="http://127.0.0.1:5150",
-                               username="admin",
-                               password="fedora")
-        if api:
-            self.api = api
-        self.verbose = 0
-        self.__parse_args(args)
-
+class List(command_class.Command):
     def print_help(self):
         print "valid modes are hosts, guests, status, profiles, tasks, users"
 
-    def __parse_args(self, args):
+    def _parse_args(self, args):
 
         try:
             opts, args = getopt.getopt(args, "hvm",
