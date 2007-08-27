@@ -29,14 +29,14 @@
 <a name="requirements">
 <dt>What do I need to run Virt-Factory?</dt>
 </a>
- <dd>Virt-Factory is currently supported on Fedora Core 6. Fedora 7 and Red Hat Enterprise Linux 5 support will be released shortly.
+ <dd>Virt-Factory 0.0.3 is currently supported on Fedora Core 6.  Version 0.0.4 will support Fedora 7 and Red Hat Enterprise Linux 5 support is pending.
  <br />
  <a href="#questions" class="back-to-top">Back to top</a>
 </dd>
 <a name="stability">
 <dt>How stable is Virt-Factory?</dt>
 </a>
- <dd>Virt-Factory is currently an alpha-level project with a fast-paced rate of development.
+ <dd>Virt-Factory is currently an alpha/beta-level project with a fast-paced rate of development.  Released RPMs are expected to work well together, while the source control checkouts are rather bleeding edge.  Bug-reports are welcome.
  <br />
  <a href="#questions" class="back-to-top">Back to top</a>
 </dd>
@@ -83,7 +83,7 @@
 <a name="deployment">
 <dt>How are systems deployed using Virt-Factory?</dt>
 </a>
- <dd>Virt-Factory uses <A HREF="http://cobbler.et.redhat.com">Cobbler</A> as an internal library for provisioning. This means that if you have a datacenter and get new machines "off the truck", you'll be able to walk up to a machine and pick a "profile" for that machine to run, and provision it on the spot from a PXE menu. Virtualization management is there too. However, Virt-Factory takes over a cobbler server completely, so no knowledge of Cobbler or cobbler commands is required. In fact, you can't run Virt-Factory on your existing cobbler server. Sorry :)  In the future, this may be possible.
+ <dd>Virt-Factory uses <A HREF="http://cobbler.et.redhat.com">Cobbler</A> as an internal library for provisioning. This means that if you have a datacenter and get new machines "off the truck", you'll be able to walk up to a machine and pick a "profile" for that machine to run, and provision it on the spot from a PXE menu. Virtualization management is there too. However, Virt-Factory takes over a cobbler server completely, so no knowledge of Cobbler or cobbler commands is required.  It may be possible to run seperate cobbler commands on a virt-factory server, though it would be better to run a seperate cobbler server in addition to virt-factory if you need customization ability.  Just set the next-server setting in DHCP up appropriately if you want to do this.  
  <br />
  <a href="#questions" class="back-to-top">Back to top</a>
 </dd>

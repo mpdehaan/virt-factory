@@ -19,6 +19,7 @@ from server.codes import *
 from server import db
 from fieldvalidator import FieldValidator
 
+import time
 import profile
 import machine
 import web_svc
@@ -148,6 +149,9 @@ class Deployment(web_svc.AuthWebSvc):
         args["netboot_enabled"] = 0 # never PXE's
         args["registration_token"] = regtoken.RegToken().generate(token)
 
+        if not args.has_key("auto_start"):
+            args["auto_start"] = 1 
+       
         # cobbler sync must run with a filled in item in the database, so we must commit
         # prior to running cobbler sync
          
@@ -366,7 +370,7 @@ class Deployment(web_svc.AuthWebSvc):
         FieldValidator(args).verify_required(required)
         
         which = self.get_by_mac_address(token,args)
-        self.logger.info("set_state on %s to %s" % (args["mac_address"],args["state"]))
+        self.logger.debug("set_state on %s to %s" % (args["mac_address"],args["state"]))
         if which.error_code != 0:
            raise InvalidArgumentsException(comment="missing item")
         if len(which.data) == 0:
@@ -375,11 +379,15 @@ class Deployment(web_svc.AuthWebSvc):
 
         session = db.open_session()
         # BOOKMARK 
-        deployment = db.Deployment.get(session, { "id" : id })
+        deployment = db.Deployment.get(session, id)
         results = self.expand(deployment)
 
         results["state"] = args["state"]
-        self.logger.info("setting deployment status: %s" % results)
+
+        # misnomer: this is the time of the last status update
+        results["last_heartbeat"] = int(time.time())
+  
+        self.logger.debug("setting deployment status: %s" % results)
         self.edit(token, results)
 
         return success(results)
@@ -397,7 +405,7 @@ class Deployment(web_svc.AuthWebSvc):
             # creation gives uppercase MAC addresses, so be sure
             # we search on the same criteria until the DB search
             # can be made case insensitive.  (FIXME)
-            mac_address = args['mac_address'].upper()
+            mac_address = args['mac_address'].replace("_",":").upper()
             offset, limit = self.offset_and_limit(args)
             query = session.query(db.Deployment).limit(limit).offset(offset)
             for machine in query.select_by(mac_address = mac_address):

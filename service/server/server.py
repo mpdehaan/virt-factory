@@ -160,7 +160,7 @@ class VfApiMethod:
             # register can
             #   take authtokens or regtokens, so they do there own
             # auth check
-            if self.__name not in ["user_login", "token_check", "register_system", "sign_node_cert" , "puppet_node_info", "deployment_set_state" ]:
+            if self.__name not in ["user_login", "token_check", "register_system", "sign_node_cert" , "puppet_node_info", "deployment_get_by_mac_address", "deployment_set_state" ]:
                 self.auth.token_check(args[0])
             rc = self.__method(*args)
         except VirtFactoryException, e:

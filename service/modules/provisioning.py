@@ -385,15 +385,15 @@ class CobblerTranslatedSystem:
        cobbler_api.deserialize() # load from file! # UNFIXMED
 
        new_item = cobbler_api.new_system()
-       self.logger.info("debugging cobbler profiles")
+       self.logger.debug("debugging cobbler profiles")
        for x in cobbler_api.profiles():
-           self.logger.info("cobbler has a profile: ") 
-           self.logger.info(x)
-           self.logger.info(x.printable())
+           self.logger.debug("cobbler has a profile: ") 
+           self.logger.debug(x)
+           self.logger.debug(x.printable())
       
        new_item.set_name(from_db["mac_address"])
        # FIXME: change back to DEBUG:
-       self.logger.error("cobbler profile name is %s" % profile_name)
+       self.logger.debug("cobbler profile name is %s" % profile_name)
        new_item.set_profile(profile_name)
        # FIXME: do we need to make sure these are stored as spaces and not "None" ?
        
