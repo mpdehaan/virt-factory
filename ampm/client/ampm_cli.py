@@ -37,6 +37,7 @@ from command_modules import query
 from command_modules import create
 from command_modules import delete
 from command_modules import add
+from command_modules import pause
 
 
 def print_help():
@@ -75,7 +76,7 @@ def main():
             username = val
         if opt in ["-p", "--password"]:
             password = val
-            # munge sys.argv so password doesn't show up in ps, etc listings
+            # FIXME: munge sys.argv so password doesn't show up in ps, etc listings
         if opt in ["-s", "--server"]:
             server = val
             
@@ -87,7 +88,7 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query", "create", "delete", "add"]:
+    if mode not in ["help", "list", "query", "create", "delete", "add", "pause"]:
         print_help()
         sys.exit()
 
@@ -113,6 +114,9 @@ def main():
 
     if mode == "add":
         add.run(modeargs, api=api)
+
+    if mode == "pause":
+        pause.run(modeargs, api=api)
 
         
 if __name__ == "__main__":
