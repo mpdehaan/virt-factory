@@ -73,7 +73,8 @@ class List(command_class.Command):
         for machine in data['data']:
             if machine['id'] == -1:
                 continue
-            print "hostname: %s id: %s profile_name: %s" % (machine['id'], machine['hostname'], machine['profile']['name'])
+            print "hostname: %s id: %s profile_name: %s" % (machine.get('hostname','(pending)'), machine['id'],
+                                                            machine['profile']['name'])
 
     def list_guests(self):
         (retcode, data) = self.api.deployment_list()

@@ -9,7 +9,10 @@ class Machine(base_module.BaseModule):
         self.token = token
         self.server = server
         base_module.BaseModule.__init__(self)
-        self.methods = ["machine_list", "machine_get_by_hostname"]
+        self.methods = ["machine_add", "machine_list", "machine_get_by_hostname"]
+
+    def machine_add(self, data):
+        return self.server.machine_add(self.token, data)
 
     def machine_list(self):
         return self.server.machine_list(self.token,{})
