@@ -57,7 +57,7 @@ test_ampm()
     msg "ampm user add"
     /usr/bin/ampm add user --username adrian --password foobar --first Adrian --last Likins  --email "alikins@redhat.com" --description "Adrian is awesome"
     /usr/bin/ampm add user --username test_user --password test1 --first Robert  --last Zimmerman  --email "bob@example.com" --description "shorttimer"
-    /usr/bin/ampm add user --username mdehaan --password llama --first Michael --last Dehaan --email "mdehaan@redhat.com" --description "I like llamas"
+    /usr/bin/ampm add user --username mdehaan --password llama --first Michael --last DeHaan --email "mdehaan@redhat.com" --description "I like llamas"
 
     msg "ampm delete user"
     test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
