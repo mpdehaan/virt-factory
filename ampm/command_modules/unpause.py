@@ -45,14 +45,11 @@ class Unpause(command_class.Command):
                 guests_ids.append(val)
 
 
-        print "gh1"
         guests = args
-        print guests
         if guests == [] and guests_ids == []:
             self.print_help()
             return
 
-        print "gh2"
         for guest in guests:
             (retcode, data) = self.api.deployment_get_by_mac(guest)
             if retcode > 0:

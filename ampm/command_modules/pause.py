@@ -19,14 +19,14 @@ def run(args, api):
 
 class Pause(command_class.Command):
     def print_help(self):
-        print "ampm pause profile_name [--profile_id] <profile_id>"
+        print "ampm pause guest_name [--guest_id] <guest_id>"
 
     def _parse_args(self, args):
         try:
             opts, args = getopt.getopt(args, "hvm",
                                        ["help",
                                         "verbose",
-                                        "profile_id="])
+                                        "guest_id="])
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
             # FIXME: error handling
@@ -40,14 +40,13 @@ class Pause(command_class.Command):
                 return
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
-            if opt in ["--guests_id"]:
+            if opt in ["--guest_id"]:
                 guests_ids.append(val)
 
 
         guests = args
         for guest in guests:
             (retcode, data) = self.api.deployment_get_by_mac(guest)
-            pprint.pprint(data)
             if retcode > 0:
                 self.show_error(retcode, data)
                 continue
