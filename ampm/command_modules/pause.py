@@ -45,11 +45,8 @@ class Pause(command_class.Command):
 
 
         guests = args
-        print guests
         for guest in guests:
-            print "guest", guest
             (retcode, data) = self.api.deployment_get_by_mac(guest)
-            print retcode
             pprint.pprint(data)
             if retcode > 0:
                 self.show_error(retcode, data)
@@ -58,7 +55,6 @@ class Pause(command_class.Command):
                 continue
             guests_ids.append(data['data'][0]['id'])
 
-        print "guests_ids", guests_ids
 
         for guest_id in guests_ids:
            (retcode, data) = self.api.deployment_pause(guest_id)
