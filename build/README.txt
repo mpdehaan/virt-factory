@@ -24,6 +24,13 @@ See https://hosted.fedoraproject.org/projects/cobbler/wiki/VirtNetworkingSetupFo
 for bridge networking setup.
 
 
+you need to apply the patch here:
+https://www.redhat.com/archives/et-mgmt-tools/2007-August/msg00045.html
+to virtinstal if you want anything useful to happen when you do an install
+
+
+
+
 
 httpd
 kvm
