@@ -57,6 +57,7 @@ test_ampm()
     msg "ampm user add"
     /usr/bin/ampm add user --username adrian --password foobar --first Adrian --last Likins  --email "alikins@redhat.com" --description "Adrian is awesome"
     /usr/bin/ampm add user --username test_user --password test1 --first Robert  --last Zimmerman  --email "bob@example.com" --description "shorttimer"
+    /usr/bin/ampm add user --username mdehaan --password llama --first Michael --last Dehaan --email "mdehaan@redhat.com" --description "I like llamas"
 
     msg "ampm delete user"
     test_user_id=`/usr/bin/ampm list users | grep Zimmerman | cut -f1 -d' '` 
@@ -66,6 +67,9 @@ test_ampm()
     msg "testing ampm with a non admin user"
     /usr/bin/ampm --username adrian --password foobar list users
     
+
+    msg "testing ampm with specified server and user"
+    /usr/bin/ampm --server http://127.0.0.1:5150 --username adrian --password foobar list profiles
 
 
 }
