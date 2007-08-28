@@ -1,0 +1,26 @@
+
+--- /usr/lib/python2.5/site-packages/virtinst/DistroManager.py  2007-08-08 11:47:52.000000000 -0400
++++ /tmp/fix.py 2007-08-08 11:48:18.000000000 -0400
+@@ -685,21 +685,21 @@
+            if hvm:
+                type = "hvm"
+            else:
+                type = "linux"
+
+            if arch:
+                osblob += "    <type arch='%s'>%s</type>\n" % (arch, type)
+            else:
+                osblob += "    <type>%s</type>\n" % type
+
+-            if self.install["kernel"]:
++            if install and self.install["kernel"]:
+                osblob += "    <kernel>%s</kernel>\n"   % self.install["kernel"]
+                osblob += "    <initrd>%s</initrd>\n"   % self.install["initrd"]
+                osblob += "    <cmdline>%s</cmdline>\n" % self.install["extraargs"]
+            else:
+                if loader:
+                    osblob += "    <loader>%s</loader>\n" % loader
+
+                if install:
+                    osblob += "    <boot dev='cdrom'/>\n"
+                else: 
