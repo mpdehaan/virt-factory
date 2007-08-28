@@ -83,7 +83,10 @@ class List(command_class.Command):
         for deployment in data['data']:
             if deployment['id'] == -1:
                 continue
-            print "%s" % (deployment['display_name'])
+            print "%s %s %s on host %s" % (deployment.get('hostname', '(unknown)'),
+                                           deployment['mac_address'],
+                                           deployment['profile']['name'],
+                                           deployment['machine'].get('hostname', '(unknown"'))
 
     def list_status(self):
         (retcode, data) = self.api.deployment_list()
@@ -92,7 +95,10 @@ class List(command_class.Command):
         for deployment in data['data']:
             if deployment['id'] == -1:
                 continue
-            print "%s:    %s" % (deployment['display_name'], deployment['state'])
+            print "%s %s %s    %s" % (deployment.get('hostname', '(unknown)'),
+                                      deployment['mac_address'],
+                                      deployment['profile']['name'],
+                                      deployment['state'])
 
     def list_tasks(self):
         (retcode, data) = self.api.task_list()
