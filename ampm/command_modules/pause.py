@@ -32,34 +32,36 @@ class Pause(command_class.Command):
             # FIXME: error handling
 
 
-        profiles = []
-        profile_ids = []
+        guest = []
+        guests_ids = []
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
                 self.print_help()
                 return
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
-            if opt in ["--profile_id"]:
-                profile_ids.append(val)
+            if opt in ["--guests_id"]:
+                guests_ids.append(val)
 
 
-        profiles = args
-        print profiles
-        for profile in profiles:
-            (retcode, data) = self.api.profile_get_by_name(profile)
+        guests = args
+        print guests
+        for guest in guests:
+            print "guest", guest
+            (retcode, data) = self.api.deployment_get_by_mac(guest)
+            print retcode
             pprint.pprint(data)
             if retcode > 0:
                 self.show_error(retcode, data)
                 continue
             if not data:
                 continue
-            profile_ids.append(data['data']['id'])
+            guests_ids.append(data['data'][0]['id'])
 
-        print profile_ids
+        print "guests_ids", guests_ids
 
-        for profile_id in profile_ids:
-           (retcode, data) = self.api.deployment_pause(profile_id)
+        for guest_id in guests_ids:
+           (retcode, data) = self.api.deployment_pause(guest_id)
            if retcode > 0:
                self.show_error(retcode, data)
                continue
