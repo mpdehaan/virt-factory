@@ -18,6 +18,12 @@ use for remote sync
 Firewall needs to let out at least 80, 5150, 2112. easiest just to disable it.
 Turning off selinux wouldn't hurt. 
 
+make sure libvirtd is running
+
+See https://hosted.fedoraproject.org/projects/cobbler/wiki/VirtNetworkingSetupForUseWithKoan
+for bridge networking setup.
+
+
 
 httpd
 kvm
