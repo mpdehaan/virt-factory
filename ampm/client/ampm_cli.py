@@ -39,6 +39,9 @@ from command_modules import create
 from command_modules import delete
 from command_modules import add
 from command_modules import pause
+from command_modules import unpause
+from command_modules import start
+from command_modules import shutdown
 
 
 def print_help(valid_modes):
@@ -54,7 +57,10 @@ def print_help(valid_modes):
     
 def main():
 
-    valid_modes = ["help", "list", "query", "create", "delete", "add", "pause"]
+    valid_modes = ["help", "list", "query",
+                   "create", "delete", "add",
+                   "pause", "unpause", "start",
+                   "shutdown"]
     username = cfg.get("user", "username")
     password = cfg.get("user", "password")
     server = cfg.get("server", "url")
@@ -95,7 +101,6 @@ def main():
         sys.exit()
 
 
-    valid_modes = ["help", "list", "query", "create", "delete", "add", "pause"]
     if mode not in valid_modes:
         print_help(valid_modes)
         sys.exit()
@@ -126,6 +131,14 @@ def main():
     if mode == "pause":
         pause.run(modeargs, api=api)
 
+    if mode == "unpause":
+        unpause.run(modeargs, api=api)
+
+    if mode == "start":
+        start.run(modeargs, api=api)
+
+    if mode == "shutdown":
+        shutdown.run(modeargs, api=api)
         
 if __name__ == "__main__":
     main()
