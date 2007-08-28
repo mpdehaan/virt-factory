@@ -129,6 +129,7 @@ class CobblerTranslatedRepo:
 
        vf_config = config_data.Config().get()
        new_item = cobbler_api.new_repo()
+       new_item.set_local_filename(name)
        new_item.set_name(name)
        new_item.set_mirror(url)
        if name.find("-lite") != -1:
