@@ -194,18 +194,20 @@ class Add(command_class.Command):
         if retcode > 0:
             self.show_error(retcode, data)
 
-        pprint.pprint(data)
+        if self.verbose > 2:
+            pprint.pprint(data)
         if not data:
             return
         
         profile_id = data['data']['id']
 
-        pprint.pprint(host_data)
-
         host_data['profile_id'] = profile_id
         (retcode, data) = self.api.machine_add(host_data)
+        
         if retcode > 0:
             self.show_error(retcode, data)
-        pprint.pprint(data)
+            
+        if self.verbose > 2:
+            pprint.pprint(data)
         
         
