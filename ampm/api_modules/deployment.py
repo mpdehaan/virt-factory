@@ -17,31 +17,31 @@ class Deployment(base_module.BaseModule):
                         "deployment_list"]
                      
 
-    def deployment_pause(self, profile_id):
-        return self.server.deployment_pause(self.token, {'id' : profile_id})
+    def deployment_pause(self,guest_id):
+        return self.server.deployment_pause(self.token, {'id' : guest_id})
 
-    def deployment_unpause(self, profile_id):
-        return self.server.deployment_unpause(self.token, {'id' : profile_id})
+    def deployment_unpause(self, guest_id):
+        return self.server.deployment_unpause(self.token, {'id' : guest_id})
 
-    def deployment_shutdown(self, profile_id):
-        return self.server.deployment_shutdown(self.token, {'id' : profile_id})
+    def deployment_shutdown(self, guest_id):
+        return self.server.deployment_shutdown(self.token, {'id' : guest_id})
 
-    def deployment_destroy(self, profile_id):
-        return self.server.deployment_destroy(self.token, {'id' : profile_id})
+    def deployment_destroy(self, guest_id):
+        return self.server.deployment_destroy(self.token, {'id' : guest_id})
 
-    def deployment_start(self, profile_id):
-        return self.server.deployment_start(self.token, {'id': profile_id})
+    def deployment_start(self, guest_id):
+        return self.server.deployment_start(self.token, {'id': guest_id})
 
     def deployment_list(self):
         return self.server.deployment_list(self.token,{})
 
-    def deployment_get_by_mac(self, deployment):
-        return self.server.deployment_get_by_mac_address(self.token, {'mac_address': deployment})
+    def deployment_get_by_mac(self, guest):
+        return self.server.deployment_get_by_mac_address(self.token, {'mac_address': guest})
 
-    def deployment_get(self, deployment_id):
-        return self.server.deployment_get(self.token, {'id':deployment_id})
+    def deployment_get(self, guest_id):
+        return self.server.deployment_get(self.token, {'id':guest_id})
 
-    def deployment_add(self, machine_id, profile_id, deployment_name=None):
+    def deployment_add(self, machine_id, profile_id, guest_name=None):
         data =  {"machine_id": machine_id,
                  "profile_id": profile_id}
         return self.server.deployment_add(self.token, data)
