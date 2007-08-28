@@ -17,6 +17,7 @@ import ampmlib
 
 import getopt
 import os
+import string
 import sys
 
 import config
@@ -40,14 +41,20 @@ from command_modules import add
 from command_modules import pause
 
 
-def print_help():
-    print "== This is a useless help string blurb =="
-    print
+def print_help(valid_modes):
+    print "global options"
+    print "\t --help, -h"
+    print "\t --verbose, -v"
+    print "\t --server <server url>"
+    print "\t --username <username>"
+    print "\t --passowrd <password>"
+    print "valid modes include:"
+    print "\t %s" % (string.join(valid_modes, ', '))
 
     
 def main():
 
-    
+    valid_modes = ["help", "list", "query", "create", "delete", "add", "pause"]
     username = cfg.get("user", "username")
     password = cfg.get("user", "password")
     server = cfg.get("server", "url")
@@ -63,12 +70,12 @@ def main():
             ])
     except getopt.error, e:
         print _("Error parsing command list arguments: %s") % e
-        showHelp() 
+        print_help(valid_modes)
         sys.exit(1)
 
     for (opt, val) in opts:
         if opt in ["-h", "--help"]:
-            print_help()
+            print_help(valid_modes)
             sys.exit()
         if opt in ["-v", "--verbose"]:
             verbose = 1
@@ -88,8 +95,9 @@ def main():
         sys.exit()
 
 
-    if mode not in ["help", "list", "query", "create", "delete", "add", "pause"]:
-        print_help()
+    valid_modes = ["help", "list", "query", "create", "delete", "add", "pause"]
+    if mode not in valid_modes:
+        print_help(valid_modes)
         sys.exit()
 
     modeargs = args[args.index(mode)+1:]
