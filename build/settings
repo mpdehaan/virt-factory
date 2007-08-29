@@ -1,4 +1,4 @@
---
+---
 databases:
     primary: "postgres://virtfactory:%(password)s@localhost/virtfactory"
 logs:
