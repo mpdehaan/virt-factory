@@ -58,7 +58,7 @@ EOF
 
 %packages
 ntp
-brctl
+bridge_utils
 $node_common_packages
 $node_virt_packages
 $node_bare_packages
