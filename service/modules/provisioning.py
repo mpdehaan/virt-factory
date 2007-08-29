@@ -137,8 +137,12 @@ class CobblerTranslatedRepo:
           # NOTE: is this appropriate for all cases?  Not really.  So
           # if the list is blank, pull in everything so people have
           # a way to turn it off.
-          if len(vf_config["extras_rpms"]) != 0:
-              new_item.set_rpm_list(vf_config["extras_rpms"])
+          if name.find("-updates") != -1:
+              if len(vf_config["extras_rpms"]) != 0:
+                  new_item.set_rpm_list(vf_config["extras_rpms"])
+          if name.find("-core") != -1:
+              if len(vf_config["extras_rpms2"]) != 0:
+                  new_item.set_rpm_list(vf_config["extras_rpms2"])
        cobbler_api.repos().add(new_item)
 
 #--------------------------------------------------------------------
@@ -224,9 +228,11 @@ class CobblerTranslatedProfile:
 
        if distribution_name.find("x86_64") != -1:
            repos_append(repos,'%s-%s-x86_64-updates-lite' % (dname, dver))
+           repos_append(repos,'%s-%s-x86_64-core-lite' % (dname, dver))
            repos_append(repos,'%s-%s-x86_64-vf_repo' % (dname,dver))
        else:
            repos_append(repos,'%s-%s-i386-updates-lite' % (dname, dver))
+           repos_append(repos,'%s-%s-i386-core-lite' % (dname, dver))
            repos_append(repos,'%s-%s-i386-vf_repo' % (dname, dver))
 
        # FIXME: eventual support for nonstandard arches might be useful.

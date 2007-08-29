@@ -1,4 +1,4 @@
----
+--
 databases:
     primary: "postgres://virtfactory:%(password)s@localhost/virtfactory"
 logs:
@@ -8,6 +8,8 @@ repos:
     F-7-x86_64-vf_repo: 'VF_REPO/repo/f7/devel/x86_64/'
     F-7-i386-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/i386/'
     F-7-x86_64-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/x86_64/'
+    F-7-i386-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/i386/'
+    F-7-x86_64-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/x86_64/'
 mirrors:
     F-7: [ '/mnt/engarchive2/released/F-7/GOLD/Fedora/',  '' ]
 this_server:
@@ -19,4 +21,7 @@ extras_rpms:
     - yum-utils
     - puppet
     - facter
+extras_rpms2:
+    - m2crypto
+    - python-simplejson
 loglevel: 'INFO'
