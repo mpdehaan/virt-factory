@@ -4,10 +4,11 @@ databases:
 logs:
     service: /var/log/virt-factory/svclog
 repos:
-    f7-i386-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/f7/stable/i386/'
-    f7-x86_64-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/f7/stable/x86_64/'
-    f7-i386-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/i386/'
-    f7-x86_64-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/x86_64/'
+    F-7-i386-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/f7/stable/i386/'
+    F-7-x86_64-vf_repo: 'http://virt-factory.et.redhat.com/download/repo/f7/stable/x86_64/'
+    F-7-i386-updates-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/updates/7/i386/'
+    F-7-i386-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/i386/os/'
+    F-7-x86_64-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/x86_64/os/'
 mirrors:
     FC-7: [ '/media/dvdiso', '']
 this_server:
@@ -19,4 +20,7 @@ extras_rpms:
     - yum-utils
     - puppet
     - facter
+extras_rpms2:
+    - m2crypto
+    - python-simplejson
 loglevel: 'INFO'
