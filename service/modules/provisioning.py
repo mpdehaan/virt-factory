@@ -270,13 +270,17 @@ class CobblerTranslatedProfile:
 
        # FIXME: currently not used...
        ks_meta["node_virt_packages"] = ""
-       ks_meta["node_bare_packages"] = ""
+
+       if distribution_name.find("xen") != -1:
+           ks_meta["node_bare_packages"] = "libvirt\nxend\n"
+       else:
+           ks_meta["node_bare_packages"] = "libvirt\nqemu\nkvm\n"
 
        ks_meta["network_param"]        = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
            # qemu won't be installed for Xen but it's ok if that command fails...
            # we do want to make sure libvirt is started though
-           ks_meta["extra_post_magic"]     = "/sbin/chkconfig 345 qemu on\n" + "/sbin/chkconfig 345 libvirtd on\n"
+           ks_meta["extra_post_magic"]     = "/sbin/chkconfig 345 qemu on\n" 
            ks_meta["network_param"]        = "--allow-bridge-config"     
 
        ks_meta["cryptpw"]              = "$1$mF86/UHC$WvcIcX2t6crBz2onWxyac." # FIXME

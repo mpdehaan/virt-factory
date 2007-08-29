@@ -58,6 +58,7 @@ EOF
 
 %packages
 ntp
+brctl
 $node_common_packages
 $node_virt_packages
 $node_bare_packages
@@ -65,8 +66,11 @@ $node_bare_packages
 %post
 /usr/sbin/ntpdate -u $server_name
 /usr/bin/vf_register $server_param $token_param $network_param
+# if installed, otherwise it's ok if this fails...
+/sbin/chkconfig --level 345 libvirtd on 
 /sbin/chkconfig --level 345 puppet on
 /sbin/chkconfig --level 345 virt-factory-node-server on
+
 $yum_config_stanza
 $kickstart_done
 
