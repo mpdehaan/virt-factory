@@ -186,7 +186,7 @@ def serve_status():
          name = vm.name().replace("_",":").upper()
          details = None
          try:
-             details = amqp_conn.server.deployment_get_by_mac_address("UNSET",{ "mac_address" : name})
+             (retcode, details) = amqp_conn.server.deployment_get_by_mac_address("UNSET",{ "mac_address" : name})
              print "DETAILS: %s" % details
          except:
              # can't figure out to auto start this one...
@@ -198,7 +198,13 @@ def serve_status():
          # under virt-factory's control.  We may want some to stay off.
          # check "details" for this.
 
-         if details.has_key("auto_start") and details["auto_start"] == 0: 
+         if retcode != 0 or not details.has_key("data"):
+             # error
+             continue
+         if len(details['data']) <= 0:
+             # no results
+             continue
+         if details['data'][0].has_key("auto_start") and details['data'][0]["auto_start"] == 0: 
              # this one is flagged to stay off
              continue
 
