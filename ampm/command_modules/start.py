@@ -2,6 +2,7 @@
 
 
 import command_class
+import guest_cmds
 
 import getopt
 import os
@@ -17,9 +18,8 @@ def run(args, api):
     command = Start(args,api)
 
 
-class Start(command_class.Command):
-    def print_help(self):
-        print "ampm start profile_name [--guest_id] <guest_id>"
+class Start(guest_cmds.GuestCommand):
+    mode_string = "start"
 
     def _parse_args(self, args):
         try:
@@ -33,7 +33,7 @@ class Start(command_class.Command):
 
 
         guest = []
-        guests_ids = []
+        self.guests_ids = []
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
                 self.print_help()
@@ -41,19 +41,14 @@ class Start(command_class.Command):
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
             if opt in ["--guests_id"]:
-                guests_ids.append(val)
+                self.guests_ids.append(val)
 
 
-        guests = args
-        for guest in guests:
-            (retcode, data) = self.api.deployment_get_by_mac(guest)
-            if retcode > 0:
-                self.show_error(retcode, data)
-                continue
-            if not data:
-                continue
-            guests_ids.append(data['data'][0]['id'])
-
+        self.guests = args
+        if self.check_missing_args():
+            return
+        
+        self.find_guest_ids()
 
         for guest_id in guests_ids:
            (retcode, data) = self.api.deployment_start(guest_id)
