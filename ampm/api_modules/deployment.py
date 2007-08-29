@@ -9,11 +9,17 @@ class Deployment(base_module.BaseModule):
         self.token = token
         self.server = server
         base_module.BaseModule.__init__(self)
-        self.methods = ["deployment_list", "deployment_get",
-                        "deployment_add", "deployment_get_by_mac",
-                        "deployment_pause", "deployment_unpause",
-                        "deployment_start", "deployment_stop",
-                        "deployment_shutdown", "deployment_destroy",
+        self.methods = ["deployment_list",
+                        "deployment_get",
+                        "deployment_add",
+                        "deployment_get_by_mac",
+                        "deployment_get_by_hostname",
+                        "deployment_pause",
+                        "deployment_unpause",
+                        "deployment_start",
+                        "deployment_stop",
+                        "deployment_shutdown",
+                        "deployment_destroy",
                         "deployment_list"]
                      
 
@@ -37,6 +43,9 @@ class Deployment(base_module.BaseModule):
 
     def deployment_get_by_mac(self, guest):
         return self.server.deployment_get_by_mac_address(self.token, {'mac_address': guest})
+
+    def deployment_get_by_hostname(self, guest):
+        return self.server.deployment_get_by_hostname(self.token, {'hostname': guest})
 
     def deployment_get(self, guest_id):
         return self.server.deployment_get(self.token, {'id':guest_id})
