@@ -272,9 +272,9 @@ class CobblerTranslatedProfile:
        ks_meta["node_virt_packages"] = ""
 
        if distribution_name.find("xen") != -1:
-           ks_meta["node_bare_packages"] = "libvirt\nxend\n"
+           ks_meta["node_bare_packages"] = "libvirt\npython-virtinst\nxend\n"
        else:
-           ks_meta["node_bare_packages"] = "libvirt\nqemu\nkvm\n"
+           ks_meta["node_bare_packages"] = "libvirt\npython-virtinst\nqemu\nkvm\n"
 
        ks_meta["network_param"]        = ""
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
