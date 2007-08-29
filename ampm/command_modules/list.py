@@ -39,10 +39,15 @@ class List(command_class.Command):
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
 
+        if not args:
+            self.print_help()
+            return
+        
         try:
             mode = args[0]
         except IndexError:
             raise
+        
 
         if mode not in ["hosts", "guests", "status", "profiles", "tasks", "users"]:
             # raise error?
