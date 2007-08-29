@@ -86,7 +86,7 @@ TEST_PROFILE_DEPLOY=Y
 DEPLOY_HOST=mdehaan.rdu.redhat.com
 
 # which profile to deploy in the test deploy
-TEST_PROFILE="Test1::F7-x86_64"
+TEST_PROFILE="Test1::F-7-x86_64"
 
 # whether to attempt to slay and undefine the first virtual
 # machine prior to starting testing, otherwise, testing
