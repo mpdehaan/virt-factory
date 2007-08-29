@@ -85,6 +85,9 @@ TEST_PROFILE_DEPLOY=Y
 # where to deploy?
 DEPLOY_HOST=mdehaan.rdu.redhat.com
 
+# which profile to deploy in the test deploy
+TEST_PROFILE="Test1::F7-x86_64"
+
 # whether to attempt to slay and undefine the first virtual
 # machine prior to starting testing, otherwise, testing
 # a deployment will fail.
@@ -133,6 +136,7 @@ show_config()
     echo "TEST_WEB_STUFF=$TEST_WEB_STUFF"
     echo "TEST_NODECOMM=$TEST_NODECOMM"
     echo "TEST_PROFILE_DEPLOY=$TEST_PROFILE_DEPLOY"
+    echo "TEST_PROFILE=$TEST_PROFILE"
     echo "TEST_AMPM=$TEST_AMPM"
     echo "DEPLOY_DESTROY=$DEPLOY_DESTROY"
     echo "ARCH=$ARCH"
@@ -299,6 +303,8 @@ start_services()
     
     # we need to restart httpd after installing mongrel
     /etc/init.d/httpd restart
+
+    /etc/init.d/libvirtd restart
 }
 
 start_client_services()
@@ -342,7 +348,7 @@ test_web_stuff()
 }
 
 
-deploy_a_system()
+deploy_a_system_web()
 {
 
     # FIXME: this is a bit hardcode at
@@ -351,6 +357,15 @@ deploy_a_system()
     RET_CODE=`curl  -s -w "%{http_code}\n" -L  -b $COOKIES_FILE -c $COOKIES_FILE  -d "form[machine_id]=1&form[profile_id]=2&form[puppet_node_diff]=&submit='Add'" http://$DEPLOY_HOST/vf/deployment/edit_submit`
     echo "Provisioning a system returned $RET_CODE"
 
+
+}
+
+# use ampm to do the test deploy, since it's easier than trying to talk to the wui,
+# which is the whole point of ampm, afterall
+deploy_a_system()
+{
+    msg "Deploying a $TEST_PROFILE on DEPLOY_HOST"
+    /usr/bin/ampm create --host $DEPLOY_HOST --profile "$TEST_PROFILE"
 
 }
 
@@ -587,14 +602,15 @@ if [ "$TEST_NODECOMM" == "Y" ] ; then
     test_nodecomm
 fi
 
-if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
-    msg "Running a virtual system deployment"
-    deploy_a_system
-fi
 
 
 if [ "$TEST_AMPM" == "Y" ] ; then
     msg "Testing ampm"
     test_ampm
+fi
+
+if [ "$TEST_PROFILE_DEPLOY" == "Y" ] ; then
+    msg "Running a virtual system deployment"
+    deploy_a_system
 fi
 
