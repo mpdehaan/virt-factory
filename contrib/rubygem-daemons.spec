@@ -7,9 +7,10 @@ Summary: A toolkit to create and control daemons in different ways
 Name: rubygem-%{gemname}
 
 Version: 1.0.7
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Development/Languages
-License: GPLv2+ or Ruby
+# The entire source code is MIT except daemonize.rb (GPLv2+ or Ruby)
+License: MIT and (GPLv2+ or Ruby)
 URL: http://daemons.rubyforge.org
 Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
@@ -37,14 +38,21 @@ automatic restarting of your processes if they crash.
 mkdir -p %{buildroot}%{gemdir}
 gem install --local --install-dir %{buildroot}%{gemdir} \
             --force --rdoc %{SOURCE0}
+chmod a+x %{buildroot}%{geminstdir}/examples/run/myserver.rb
 
 %clean
 %{__rm} -rf %{buildroot}
 
 %files
 %defattr(-, root, root)
-%{gemdir}/gems/%{gemname}-%{version}/
+%dir %{geminstdir}
 %doc %{gemdir}/doc/%{gemname}-%{version}
+%{geminstdir}/examples/
+%{geminstdir}/lib/
+%{geminstdir}/Rakefile
+%{geminstdir}/setup.rb
+%{geminstdir}/test/
+%doc %{geminstdir}/LICENSE
 %doc %{geminstdir}/README
 %doc %{geminstdir}/Releases
 %doc %{geminstdir}/TODO
@@ -52,6 +60,9 @@ gem install --local --install-dir %{buildroot}%{gemdir} \
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Fri Aug 24 2007  <sseago@redhat.com> - 1.0.7-2
+- rpmlint fixes
+
 * Thu Aug 23 2007  <sseago@redhat.com> - 1.0.7-1
 - Updated gem to Version 1.0.7
 

@@ -7,7 +7,7 @@ Summary: A plugin system based only on rubygems that uses dependencies only
 Name: rubygem-%{gemname}
 
 Version: 0.2.2
-Release: 1%{?dist}
+Release: 2%{?dist}
 Group: Development/Libraries
 License: GPLv2+ or Ruby
 URL: http://mongrel.rubyforge.org
@@ -34,7 +34,6 @@ gem install --local --install-dir %{buildroot}%{gemdir} \
 mkdir -p %{buildroot}/%{_bindir}
 mv %{buildroot}%{gemdir}/bin/* %{buildroot}/%{_bindir}
 rmdir %{buildroot}%{gemdir}/bin
-find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
 
 %clean
 rm -rf %{buildroot}
@@ -42,13 +41,26 @@ rm -rf %{buildroot}
 %files
 %defattr(-, root, root)
 %{_bindir}/gpgen
-%{gemdir}/gems/%{gemname}-%{version}/
+%dir %{geminstdir}
 %doc %{gemdir}/doc/%{gemname}-%{version}
+%{geminstdir}/bin/
+%{geminstdir}/doc/
+%{geminstdir}/lib/
+%{geminstdir}/Rakefile
+%{geminstdir}/resources/
+%{geminstdir}/test/
+%{geminstdir}/tools/
 %doc %{geminstdir}/README
+%doc %{geminstdir}/LICENSE
+%doc %{geminstdir}/COPYING
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
 %changelog
+* Fri Aug 24 2007 Scott Seago <sseago@redhat.com> - 0.2.2-2
+- rpmlint fixes
+- added Ruby >= 1.8.6 Requires
+
 * Tue Mar  6 2007  <sseago@redhat.com> - 0.2.2-1
 - Initial packaging.
 
