@@ -11,11 +11,17 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Create(args, api)
-
+def register(mode_dict):
+    mode_dict[Create.mode_string] = Create
 
 class Create(command_class.Command):
+    mode_string = "create"
+    def print_help(self):
+        print "\t--help, -h"
+        print "\t--verbose, -v"
+        print "\t--host <hostname>           the  host to run the guest on"
+        print "\t--profile <profilename>     the profile to create the guest with"
+    
     def _parse_args(self, args):
 
         hostname = None
@@ -35,7 +41,7 @@ class Create(command_class.Command):
 
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
-                print_help()
+                self.print_help()
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
             if opt in ["--host"]:

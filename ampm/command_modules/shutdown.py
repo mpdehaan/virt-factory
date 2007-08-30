@@ -14,8 +14,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Shutdown(args,api)
+def register(mode_dict):
+    mode_dict[Shutdown.mode_string] = Shutdown
 
 
 class Shutdown(guest_cmds.GuestCommand):

@@ -12,15 +12,19 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Add(args,api)
-
+def register(mode_dict):
+    mode_dict[Add.mode_string] = Add
 
 class Add(command_class.Command):
+    mode_string = "add"
     def print_help(self):
-        print "--username <username> --password <password> --first <first_name"
-        print "     --middle <middle_name> --last <last_name> --email <email address>"
-        print "     --description <desription>"
+        print "\t --username <username>"
+        print "\t --password <password>"
+        print "\t --first <first_name"
+        print "\t --middle <middle_name>"
+        print "\t --last <last_name>"
+        print "\t --email <email address>"
+        print "\t --description <desription>"
 
     def _parse_args(self, args):
 

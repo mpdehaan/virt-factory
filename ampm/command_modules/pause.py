@@ -18,6 +18,9 @@ def run(args, api):
     command = Pause(args,api)
 
 
+def register(modes_dict):
+    modes_dict[Pause.mode_string] = Pause
+
 class Pause(guest_cmds.GuestCommand):
     mode_string = "pause"
     def _parse_args(self, args):

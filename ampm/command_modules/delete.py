@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import command_class
+import guest_cmds
 
 import getopt
 import os
@@ -10,11 +11,19 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Delete(args, api)
+def register(mode_dict):
+    mode_dict[Delete.mode_string] = Delete
 
 
 class Delete(command_class.Command):
+    mode_string = "delete"
+    def print_help(self):
+        print "\t --help, -h"
+        print "\t --verbose, -v"
+        print "\t --task_id <task_id>            delete a task from the task queue"
+#        print "\t --profile <profile>            delete a profile"
+        print "\t --user_id <user_id>            delete a user"
+    
     def _parse_args(self, args):
 
         task_id = None
@@ -35,7 +44,7 @@ class Delete(command_class.Command):
 
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
-                print_help()
+                self.print_help()
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
             if opt in ["--task_id"]:

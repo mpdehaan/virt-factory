@@ -14,9 +14,8 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Start(args,api)
-
+def register(mode_dict):
+    mode_dict[Start.mode_string] = Start
 
 class Start(guest_cmds.GuestCommand):
     mode_string = "start"

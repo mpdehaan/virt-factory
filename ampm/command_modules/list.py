@@ -12,14 +12,16 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = List(args,api)
 
+def register(mode_dict):
+    mode_dict[List.mode_string] = List
+    
 
 
 class List(command_class.Command):
+    mode_string = "list"
     def print_help(self):
-        print "valid modes are hosts, guests, status, profiles, tasks, users"
+        print "\tvalid sub modes are hosts, guests, status, profiles, tasks, users"
 
     def _parse_args(self, args):
 
