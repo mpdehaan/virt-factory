@@ -21,6 +21,7 @@ extras_rpms:
     - yum-utils
     - puppet
     - facter
+    - python-virtinst
 extras_rpms2:
     - m2crypto
     - python-simplejson
