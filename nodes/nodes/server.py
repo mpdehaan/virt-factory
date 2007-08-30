@@ -285,7 +285,7 @@ def main(argv):
         try:
             serve_status()
         except KeyboardInterrupt:
-            os.wait()
+            os.waitpid(pid,0)
         
 
 if __name__ == "__main__":
