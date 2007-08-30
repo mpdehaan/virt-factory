@@ -282,7 +282,11 @@ def main(argv):
     else:
         # FIXME: should probably sleep to allow AMQP to initialize
         # in case of conflict???
-        serve_status()
+        try:
+            serve_status()
+        except KeyboardInterrupt:
+            os.wait()
+        
 
 if __name__ == "__main__":
     _("test") # make gettext be quiet when there are no strings
