@@ -16,6 +16,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 """
 
 import os
+import signal
 import socket
 
 from rhpl.translate import _, N_, textdomain, utf8
@@ -285,6 +286,8 @@ def main(argv):
         try:
             serve_status()
         except KeyboardInterrupt:
+            print "bah!"
+            os.kill(pid, signal.SIGINT)
             os.waitpid(pid,0)
         
 
