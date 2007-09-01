@@ -18,10 +18,11 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 import os
 import signal
 import socket
+import select
 
 from rhpl.translate import _, N_, textdomain, utf8
 I18N_DOMAIN = "vf_node_server"
-SLEEP_INTERVAL = 60 # seconds, TBD: signal to wake up early when needed 
+SLEEP_INTERVAL = 60 * 1000 # 60 seconds to re-poll status if no wakeup call (FIXME: make longer)
 SERVE_ON = (None,None)
 
 # FIXME: this app writes a logfile in /var/log/virt-factory/svclog -- package should use logrotate
@@ -44,7 +45,6 @@ from busrpc.config import DeploymentConfig
 
 MODULE_PATH="modules/"
 modules = module_loader.load_modules(MODULE_PATH)
-print modules
 
 import string
 import traceback
@@ -93,7 +93,6 @@ class XmlRpcInterface(Singleton):
             return VfApiMethod(self, method, self.handlers[method])
         else:
             self.logger.info("Unhandled method call for method: %s " % method)
-            print "Unhandled method call for method: %s " % method
             raise InvalidMethodException
 
     def _dispatch(self, method, params):
@@ -172,12 +171,22 @@ def serve_status():
      # serve monitoring status for the current node, and
      # if applicable, any sub-nodes (guests)
 
+     # FIXME: if libvirt is not installed, we have nothing to do here
+     # and can save resources.  Note that if we start to do other
+     # logging this /must/ change.
+
+     watch_handle = open("/var/lib/virt-factory-nodes/watch","r")
+     poller = select.poll()
+     poller.register(watch_handle)
+
      logger = make_logger()
+     
+     if not os.path.exists("/etc/rc.d/init.d/libvirtd"):
+         logger.info("disabling virt status loop as libvirt is not installed")
+         return
 
      # establish upstream qpid connection
-     logger.info("STATUS FORK: init amqp")
      amqp_conn = amqp_utils.VirtFactoryAmqpConnection()
-     logger.info("STATUS FORK: connect")
      amqp_conn.connect()
 
      # ask server which nodes to start.
@@ -188,11 +197,13 @@ def serve_status():
          details = None
          try:
              (retcode, details) = amqp_conn.server.deployment_get_by_mac_address("UNSET",{ "mac_address" : name})
-             print "DETAILS: %s" % details
          except:
              # can't figure out to auto start this one...
-             traceback.print_exc()
-             logger.info("unowned vm: %s" % name)
+             (t, v, tb) = sys.exc_info()
+             logger.info("Exception occured: %s" % t )
+             logger.info("Exception value: %s" % v)
+             logger.info("Exception info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
+             logger.info("skipping vm auto-start (error): %s" % name)
 
          # FIXME: check to see if this machine is actually supposed to
          # be auto-started instead of starting all of them that are
@@ -201,16 +212,20 @@ def serve_status():
 
          if retcode != 0 or not details.has_key("data"):
              # error
+             logger.info("skipping vm auto-start (error2): %s" % name)
              continue
          if len(details['data']) <= 0:
              # no results
+             logger.info("skipping vm auto-start (error3): %s" % name)
              continue
          if details['data'][0].has_key("auto_start") and details['data'][0]["auto_start"] == 0: 
              # this one is flagged to stay off
+             logger.info("skipping vm auto-start (disabled by user): %s" % name)
              continue
 
          state = virt_conn.get_status2(vm)
          if state == "shutdown" or state == "crashed":
+             logger.info("trying to auto-start vm: %s" % name)
              vm.create()
 
 
@@ -218,13 +233,11 @@ def serve_status():
 
      while True:
          try:
-             logger.info("STATUS FORK: loop")
              try:
                  # reconnect each time to avoid errors
-                 logger.info("STATUS FORK: connect to libvirt")
                  virt_conn = virt_utils.VirtFactoryLibvirtConnection()
              except:
-                 logger.info("STATUS FORK: could not connect to libvirt")
+                 logger.error("libvirt connection failed")
                  continue         
 
              vms = virt_conn.find_vm(-1)
@@ -252,14 +265,19 @@ def serve_status():
                      logger.info("sending status: %s" % args)
                      amqp_conn.server.deployment_set_state("UNSET", args)
          
-             time.sleep(SLEEP_INTERVAL)
+             # FIXME: this currently might not be working.  until then
+             # we will sleep as normal.  
+
+             time.sleep(60)  # don't send status very often
+
+             # rc = poller.poll(SLEEP_INTERVAL, select.POLLIN|select.POLLPRI)
+              
+
          except:
              (t, v, tb) = sys.exc_info()
              logger.info("Exception occured: %s" % t )
              logger.info("Exception value: %s" % v)
              logger.info("Exception Info:\n%s" % string.join(traceback.format_list(traceback.extract_tb(tb))))
-             # FIXME
-             raise
 
 
 
@@ -268,25 +286,25 @@ def main(argv):
     """
     Start things up.
     """
-    
+   
+    # create watch file
+    wf = open("/var/lib/virt-factory-nodes/watch","w+")
+    wf.write("")
+    wf.close()
+ 
     websvc = XmlRpcInterface()
     host = socket.gethostname()
      
     if "--daemon" in sys.argv:
         utils.daemonize("/var/run/vf_node_server.pid")
-    else:
-        print _("serving...\n")
 
     pid = os.fork()
     if pid == 0:
         serve_qpid("/etc/virt-factory-nodes/qpid.conf")
     else:
-        # FIXME: should probably sleep to allow AMQP to initialize
-        # in case of conflict???
         try:
             serve_status()
         except KeyboardInterrupt:
-            print "bah!"
             os.kill(pid, signal.SIGINT)
             os.waitpid(pid,0)
         

@@ -36,6 +36,7 @@ build_rpm()
     echo "======================================"
     echo
     cd $2/$PKG
+    make clean
     make rpms 
     if [ $? != 0 ]; then
 	echo "kaboom building $PKG"
