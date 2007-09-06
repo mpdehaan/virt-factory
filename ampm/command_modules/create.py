@@ -17,6 +17,7 @@ def register(mode_dict):
 class Create(command_class.Command):
     mode_string = "create"
     def print_help(self):
+        print "\tCreate a new guest"
         print "\t--help, -h"
         print "\t--verbose, -v"
         print "\t--host <hostname>           the  host to run the guest on"

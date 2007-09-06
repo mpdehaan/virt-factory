@@ -1,3 +1,4 @@
 include version
+recursive-include test *
 recursive-include po *.po
 recursive-include po *.pot

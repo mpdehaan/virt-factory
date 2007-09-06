@@ -8,14 +8,15 @@ Summary: A small fast HTTP library and server for Ruby apps
 Name: rubygem-%{gemname}
 
 Version: 1.0.1
-Release: 4%{?dist}
+Release: 5%{?dist}
 Group: Development/Libraries
-License: GPLv2+ or Ruby
+# The entire source code is (GPLv2+ or Ruby) except for the code in
+# cgi_multipart_eof_fix-2.3.gem  which is AFL
+License: (GPLv2+ or Ruby) and AFL
 URL: http://mongrel.rubyforge.org
 Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
-Patch0: remove-cgi-multipart-eof-fix-dep.patch
+Source1: http://gems.rubyforge.org/gems/cgi_multipart_eof_fix-2.3.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
-Requires: ruby >= 1.8.6
 Requires: rubygems
 BuildRequires: ruby-devel
 Requires: rubygem(daemons) >= 1.0.3
@@ -38,6 +39,8 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 gem install --local --install-dir %{buildroot}%{gemdir} \
             --force --rdoc %{SOURCE0}
+gem install --local --install-dir %{buildroot}%{gemdir} \
+            --force --rdoc %{SOURCE1}
 install -d -m0755 %{buildroot}%{ruby_sitearch}
 mv %{buildroot}%{geminstdir}/lib/http11.so %{buildroot}%{ruby_sitearch}
 strip %{buildroot}%{ruby_sitearch}/http11.so
@@ -50,7 +53,7 @@ sed 's.#!/usr/local/bin/ruby.#!/usr/bin/env ruby.' -i %{buildroot}%{geminstdir}/
 chmod a+x %{buildroot}%{geminstdir}/examples/webrick_compare.rb 
 chmod a+x %{buildroot}%{geminstdir}/examples/camping/blog.rb 
 chmod a+x %{buildroot}%{geminstdir}/examples/camping/tepee.rb
-patch -p0 -d %{buildroot} < %{PATCH0}
+chmod a+x %{buildroot}%{gemdir}/gems/cgi_multipart_eof_fix-2.3/test/cgi_multipart_eof_fix_test.rb
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -75,7 +78,22 @@ patch -p0 -d %{buildroot} < %{PATCH0}
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
+%dir %{gemdir}/gems/cgi_multipart_eof_fix-2.3/
+%{gemdir}/gems/cgi_multipart_eof_fix-2.3/lib/
+%{gemdir}/gems/cgi_multipart_eof_fix-2.3/test/
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/CHANGELOG
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/LICENSE
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/Manifest
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/README
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/cgi_multipart_eof_fix.gemspec
+%doc %{gemdir}/doc/cgi_multipart_eof_fix-2.3
+%{gemdir}/cache/cgi_multipart_eof_fix-2.3.gem
+%{gemdir}/specifications/cgi_multipart_eof_fix-2.3.gemspec
+
 %changelog
+* Mon Sep  1 2007 Scott Seago <sseago@redhat.com> - 1.0.1-5
+- Include cgi multipart fix
+
 * Fri Aug 24 2007 Scott Seago <sseago@redhat.com> - 1.0.1-4
 - rpmlint fixes
 - added Ruby >= 1.8.6 Requires

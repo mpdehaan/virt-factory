@@ -15,7 +15,7 @@ A commanline client for controling systems deployed with %s
 
 
 if __name__ == "__main__":
- 
+	docspath   = "share/doc/%s-%s/" % (NAME, VERSION) 
         manpath    = "share/man/man1/"
         etcpath    = "/etc/%s" % NAME
         logpath    = "/var/log/%s/" % NAME
@@ -44,6 +44,7 @@ if __name__ == "__main__":
                 data_files = [
 			      (logpath, []),
 			      (logpathdb, []),
+			      (docspath, ["README.txt"]),
 			      ],
                 description = SHORT_DESC,
                 long_description = LONG_DESC

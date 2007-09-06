@@ -373,6 +373,7 @@ test_nodecomm()
 {
     msg "Testing vf_nodecomm to see if basic node stuff is working"
     HN=`hostname`
+    echo /usr/bin/vf_nodecomm $HN $HN $HN test_add 1 2 
     /usr/bin/vf_nodecomm $HN $HN $HN test_add 1 2 
     echo $?
     rm /tmp/blippy
@@ -386,7 +387,7 @@ test_nodecomm()
 
 test_ampm()
 {
-    sh ampm-it-all.sh
+    sh ../ampm/test/ampm-it-all.sh
 
 }
 
