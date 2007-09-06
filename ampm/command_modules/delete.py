@@ -18,6 +18,7 @@ def register(mode_dict):
 class Delete(command_class.Command):
     mode_string = "delete"
     def print_help(self):
+        print "\tDelete a task, profile, or user"
         print "\t --help, -h"
         print "\t --verbose, -v"
         print "\t --task_id <task_id>            delete a task from the task queue"

@@ -18,6 +18,7 @@ def register(mode_dict):
 class Add(command_class.Command):
     mode_string = "add"
     def print_help(self):
+        print "\t Add a new user to virt-factory"
         print "\t --username <username>"
         print "\t --password <password>"
         print "\t --first <first_name"

@@ -19,6 +19,7 @@ def register(mode_dict):
 
 class Unpause(guest_cmds.GuestCommand):
     mode_string = "unpause"
+    blurb = "Unpause a guest"
     
     def _parse_args(self, args):
         try:

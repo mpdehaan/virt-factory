@@ -19,6 +19,7 @@ def register(mode_dict):
 
 class Start(guest_cmds.GuestCommand):
     mode_string = "start"
+    blurb="Start up a guest"
 
     def _parse_args(self, args):
         try:

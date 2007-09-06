@@ -23,6 +23,8 @@ def register(modes_dict):
 
 class Pause(guest_cmds.GuestCommand):
     mode_string = "pause"
+    blurb = "Pause a guest"
+        
     def _parse_args(self, args):
         try:
             opts, args = getopt.getopt(args, "hvm",

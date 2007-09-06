@@ -20,7 +20,8 @@ def register(mode_dict):
 
 class Shutdown(guest_cmds.GuestCommand):
     mode_string = "shutdown"
-
+    blurb="Shutdown a guest"
+    
     def _parse_args(self, args):
         try:
             opts, args = getopt.getopt(args, "hvm",
