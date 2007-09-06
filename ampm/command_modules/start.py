@@ -14,12 +14,12 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Start(args,api)
-
+def register(mode_dict):
+    mode_dict[Start.mode_string] = Start
 
 class Start(guest_cmds.GuestCommand):
     mode_string = "start"
+    blurb="Start up a guest"
 
     def _parse_args(self, args):
         try:
@@ -50,7 +50,7 @@ class Start(guest_cmds.GuestCommand):
         
         self.find_guest_ids()
 
-        for guest_id in guests_ids:
+        for guest_id in self.guests_ids:
            (retcode, data) = self.api.deployment_start(guest_id)
            if retcode > 0:
                self.show_error(retcode, data)

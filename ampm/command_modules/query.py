@@ -11,18 +11,25 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Query(args, api)
-
+def register(mode_dict):
+    mode_dict[Query.mode_string] = Query
 
 class Query(command_class.Command):
+    mode_string = "query"
+    def print_help(self):
+        print "\tQuery a guest for more info about what host or profile a guest is running"
+        print "\t--help, -h"
+        print "\t--verbose, -v"
+        print "\t--host <host>     which host a guest is running on"
+        print "\t--profile <profile>          which profile a guest is running"
+    
     def _parse_args(self, args):
 
         try:
             opts, args = getopt.getopt(args, "hvm",
                                        ["help",
                                         "verbose",
-                                        "container=",
+                                        "host=",
                                         "profile="])
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
@@ -32,11 +39,11 @@ class Query(command_class.Command):
 
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
-                print_help()
+                self.print_help()
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
-            if opt in ["--container"]:
-                self.query_container(deployment=val)
+            if opt in ["--host"]:
+                self.query_host(quest=val)
             if opt in ["--profile"]:
                 self.query_profile(profile_name=val)
 
@@ -46,13 +53,12 @@ class Query(command_class.Command):
 #            raise
 
 
-    def query_container(self, deployment=None):
-        print "bloop"
-        if deployment is None:
+    def query_host(self, guest=None):
+        if guest is None:
             # we could try to figure out the local deployment name and use
             # that here FIXME
-            print "need a deployment name"
-        (retcode, data) = self.api.deployment_get_by_mac(deployment=deployment)
+            print "need a guest name"
+        (retcode, data) = self.api.deployment_get_by_mac(deployment=guest)
         if self.verbose > 2:
             pprint.pprint(data)
 
@@ -64,7 +70,7 @@ class Query(command_class.Command):
         if profile_name is None:
             # we could try to figure out the local deployment name and use
             # that here FIXME
-            print "need a deployment name"
+            print "need a guest name"
         profile_id = None
         (retcode, data) = self.api.profile_list()
         for profile in data['data']:

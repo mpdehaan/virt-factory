@@ -17,6 +17,7 @@ if __name__ == "__main__":
         etcpath  = "/etc/%s" % NAME
         wwwpath  = "/var/www/%s" % NAME
         initpath = "/etc/init.d/"
+        libpath  = "/var/lib/%s-nodes/" % NAME
         logpath  = "/var/log/%s-nodes/" % NAME
 	settingspath = "/etc/%s-nodes/" % NAME
         setup(
@@ -37,7 +38,8 @@ if __name__ == "__main__":
 			    "%s/nodes/yaml" % NAME],
                 data_files = [(settingspath, ["node-settings", "qpid.conf"]),
 			      (initpath, ["init-scripts/virt-factory-node-server"]),
-			      (logpath, [])],
+			      (libpath, []),
+                              (logpath, [])],
                 description = SHORT_DESC,
                 long_description = LONG_DESC
         )

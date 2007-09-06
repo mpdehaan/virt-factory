@@ -12,14 +12,23 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = List(args,api)
 
+def register(mode_dict):
+    mode_dict[List.mode_string] = List
+    
 
 
 class List(command_class.Command):
+    mode_string = "list"
     def print_help(self):
-        print "valid modes are hosts, guests, status, profiles, tasks, users"
+        print "\tList information about virt-factory"
+        print "\tvalid sub modes are hosts, guests, status, profiles, tasks, users"
+        print "\t\t hosts      list machines capabable of running guests"
+        print "\t\t guests     list virtulized guests"
+        print "\t\t status     list status of virtulized guests"
+        print "\t\t profiles   list profiles available for creating guests or hosts"
+        print "\t\t tasks      list tasks that are queued"
+        print "\t\t users      list users"
 
     def _parse_args(self, args):
 

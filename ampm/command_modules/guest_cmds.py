@@ -13,7 +13,9 @@ from client import ampmlib
 
 class GuestCommand(command_class.Command):
     def print_help(self):
-        print "ampm %s guest_name [--guest_id] <guest_id>" % self.mode_string
+        if self.blurb:
+            print "\t%s" % self.blurb
+        print "\tampm %s guest_name [--guest_id] <guest_id>" % self.mode_string
 
     def check_missing_args(self):
         if self.guests == [] and self.guests_ids == []:

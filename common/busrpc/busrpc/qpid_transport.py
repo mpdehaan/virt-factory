@@ -176,6 +176,22 @@ class QpidServerTransport(QpidTransport, ServerTransport):
 
     def _poll(self):
         while not self.is_stopped:
+            if (self.connected):
+                is_closed = self.channel(1).closed
+                if (is_closed):
+                    #print "reopening.."
+                    try:
+                        del self.channels[1]
+                    except KeyError:
+                        pass
+                    self.connected = False
+            if (not self.connected):
+                try:
+                    self.connect()
+                except Exception, e:
+                    #try to connect again next iteration
+                    #print "trying again later ",e
+                    pass
             try:
                 msg = self.incoming_queue.get(timeout=15)
                 qpid_util.ack_message(self, message=msg)                

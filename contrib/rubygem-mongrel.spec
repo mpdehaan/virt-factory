@@ -4,16 +4,18 @@
 %define geminstdir %{gemdir}/gems/%{gemname}-%{version}
 %define ruby_sitearch %(ruby -rrbconfig -e "puts Config::CONFIG['sitearchdir']")
 
-Summary: A small fast HTTP library and server
+Summary: A small fast HTTP library and server for Ruby apps
 Name: rubygem-%{gemname}
 
 Version: 1.0.1
-Release: 3%{?dist}
+Release: 5%{?dist}
 Group: Development/Libraries
-License: GPLv2+ or Ruby
+# The entire source code is (GPLv2+ or Ruby) except for the code in
+# cgi_multipart_eof_fix-2.3.gem  which is AFL
+License: (GPLv2+ or Ruby) and AFL
 URL: http://mongrel.rubyforge.org
 Source0: http://gems.rubyforge.org/gems/%{gemname}-%{version}.gem
-Patch0: remove-cgi-multipart-eof-fix-dep.patch
+Source1: http://gems.rubyforge.org/gems/cgi_multipart_eof_fix-2.3.gem
 BuildRoot: %{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 Requires: rubygems
 BuildRequires: ruby-devel
@@ -37,6 +39,8 @@ rm -rf %{buildroot}
 mkdir -p %{buildroot}%{gemdir}
 gem install --local --install-dir %{buildroot}%{gemdir} \
             --force --rdoc %{SOURCE0}
+gem install --local --install-dir %{buildroot}%{gemdir} \
+            --force --rdoc %{SOURCE1}
 install -d -m0755 %{buildroot}%{ruby_sitearch}
 mv %{buildroot}%{geminstdir}/lib/http11.so %{buildroot}%{ruby_sitearch}
 strip %{buildroot}%{ruby_sitearch}/http11.so
@@ -45,8 +49,11 @@ rm -rf %{buildroot}%{geminstdir}/ext
 mkdir -p %{buildroot}/%{_bindir}
 mv %{buildroot}%{gemdir}/bin/* %{buildroot}/%{_bindir}
 rmdir %{buildroot}%{gemdir}/bin
-find %{buildroot}%{geminstdir}/bin -type f | xargs chmod a+x
-patch -p0 -d %{buildroot} < %{PATCH0}
+sed 's.#!/usr/local/bin/ruby.#!/usr/bin/env ruby.' -i %{buildroot}%{geminstdir}/examples/webrick_compare.rb
+chmod a+x %{buildroot}%{geminstdir}/examples/webrick_compare.rb 
+chmod a+x %{buildroot}%{geminstdir}/examples/camping/blog.rb 
+chmod a+x %{buildroot}%{geminstdir}/examples/camping/tepee.rb
+chmod a+x %{buildroot}%{gemdir}/gems/cgi_multipart_eof_fix-2.3/test/cgi_multipart_eof_fix_test.rb
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -55,14 +62,43 @@ patch -p0 -d %{buildroot} < %{PATCH0}
 %defattr(-, root, root)
 %{_bindir}/mongrel_rails
 %{ruby_sitearch}/http11.so
-%{gemdir}/gems/%{gemname}-%{version}/
+%dir %{geminstdir}
 %doc %{gemdir}/doc/%{gemname}-%{version}
+%{geminstdir}/bin/
+%{geminstdir}/doc/
+%{geminstdir}/examples/
+%{geminstdir}/lib/
+%{geminstdir}/Rakefile
+%{geminstdir}/setup.rb
+%{geminstdir}/test/
+%{geminstdir}/tools/
 %doc %{geminstdir}/README
+%doc %{geminstdir}/LICENSE
+%doc %{geminstdir}/COPYING
 %{gemdir}/cache/%{gemname}-%{version}.gem
 %{gemdir}/specifications/%{gemname}-%{version}.gemspec
 
+%dir %{gemdir}/gems/cgi_multipart_eof_fix-2.3/
+%{gemdir}/gems/cgi_multipart_eof_fix-2.3/lib/
+%{gemdir}/gems/cgi_multipart_eof_fix-2.3/test/
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/CHANGELOG
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/LICENSE
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/Manifest
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/README
+%doc %{gemdir}/gems/cgi_multipart_eof_fix-2.3/cgi_multipart_eof_fix.gemspec
+%doc %{gemdir}/doc/cgi_multipart_eof_fix-2.3
+%{gemdir}/cache/cgi_multipart_eof_fix-2.3.gem
+%{gemdir}/specifications/cgi_multipart_eof_fix-2.3.gemspec
+
 %changelog
-* Thu Aug 23 2007 Scott Seago <dlutter@redhat.com> - 1.0.1-3
+* Mon Sep  1 2007 Scott Seago <sseago@redhat.com> - 1.0.1-5
+- Include cgi multipart fix
+
+* Fri Aug 24 2007 Scott Seago <sseago@redhat.com> - 1.0.1-4
+- rpmlint fixes
+- added Ruby >= 1.8.6 Requires
+
+* Thu Aug 23 2007 Scott Seago <sseago@redhat.com> - 1.0.1-3
 - Removed requirement for rubygem(cgi_multipart_eof_fix)
 - Patched source to work without cgi_multipart_eof_fix
 

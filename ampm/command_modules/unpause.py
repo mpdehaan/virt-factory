@@ -14,12 +14,12 @@ from rhpl.translate import _, N_, textdomain, utf8
 
 from client import ampmlib
 
-def run(args, api):
-    command = Unpause(args,api)
-
+def register(mode_dict):
+    mode_dict[Unpause.mode_string] = Unpause
 
 class Unpause(guest_cmds.GuestCommand):
     mode_string = "unpause"
+    blurb = "Unpause a guest"
     
     def _parse_args(self, args):
         try:

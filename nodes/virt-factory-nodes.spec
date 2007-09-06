@@ -43,6 +43,7 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/nodes/yaml
 %{python_sitelib}/virt-factory/nodes/yaml/*.py*
 %dir /var/log/virt-factory-nodes
+%dir /var/lib/virt-factory-nodes
 
 %post
 /sbin/chkconfig --add virt-factory-node-server

@@ -44,7 +44,7 @@ from command_modules import start
 from command_modules import shutdown
 
 
-def print_help(valid_modes):
+def print_help(mode_dict):
     print "global options"
     print "\t --help, -h"
     print "\t --verbose, -v"
@@ -52,7 +52,11 @@ def print_help(valid_modes):
     print "\t --username <username>"
     print "\t --passowrd <password>"
     print "valid modes include:"
-    print "\t %s" % (string.join(valid_modes, ', '))
+    print "\t %s" % (string.join(mode_dict.keys(), ', '))
+
+    for mode in mode_dict.keys():
+        print "%s:" % mode
+        mode_dict[mode](["--help"], api=None)
 
     
 def main():
@@ -61,6 +65,16 @@ def main():
                    "create", "delete", "add",
                    "pause", "unpause", "start",
                    "shutdown"]
+
+    mode_modules = [list, query, create,
+                    delete, add, pause,
+                    unpause, start, shutdown]
+
+    mode_dict = {}
+    for mode in mode_modules:
+        mode.register(mode_dict)
+
+    
     username = cfg.get("user", "username")
     password = cfg.get("user", "password")
     server = cfg.get("server", "url")
@@ -81,7 +95,7 @@ def main():
 
     for (opt, val) in opts:
         if opt in ["-h", "--help"]:
-            print_help(valid_modes)
+            print_help(mode_dict)
             sys.exit()
         if opt in ["-v", "--verbose"]:
             verbose = 1
@@ -100,9 +114,12 @@ def main():
         print_help()
         sys.exit()
 
+    if mode == "help":
+        print_help( mode_dict)
+        sys.exit()
 
     if mode not in valid_modes:
-        print_help(valid_modes)
+        print_help(mode_dict)
         sys.exit()
 
     modeargs = args[args.index(mode)+1:]
@@ -112,33 +129,36 @@ def main():
                       username=username,
                       password=password)
 
+    # invoke the mode class 
+    mode_dict[mode](modeargs, api=api)
+
     
-    if mode == "list":
-        list.run(modeargs, api=api)
+  #  if mode == "list":
+  #      list.run(modeargs, api=api)
 
-    if mode == "query":
-        query.run(modeargs, api=api)
+#    if mode == "query":
+#        query.run(modeargs, api=api)
 
-    if mode == "create":
-        create.run(modeargs, api=api)
+#    if mode == "create":
+#        create.run(modeargs, api=api)
 
-    if mode == "delete":
-        delete.run(modeargs, api=api)
+#    if mode == "delete":
+#        delete.run(modeargs, api=api)
 
-    if mode == "add":
-        add.run(modeargs, api=api)
+#    if mode == "add":
+#        add.run(modeargs, api=api)
 
-    if mode == "pause":
-        pause.run(modeargs, api=api)
+#    if mode == "pause":
+#        pause.run(modeargs, api=api)
 
-    if mode == "unpause":
-        unpause.run(modeargs, api=api)
+#    if mode == "unpause":
+#        unpause.run(modeargs, api=api)
 
-    if mode == "start":
-        start.run(modeargs, api=api)
+#    if mode == "start":
+#        start.run(modeargs, api=api)
 
-    if mode == "shutdown":
-        shutdown.run(modeargs, api=api)
+#    if mode == "shutdown":
+#        shutdown.run(modeargs, api=api)
         
 if __name__ == "__main__":
     main()

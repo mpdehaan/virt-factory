@@ -18,8 +18,13 @@ def run(args, api):
     command = Pause(args,api)
 
 
+def register(modes_dict):
+    modes_dict[Pause.mode_string] = Pause
+
 class Pause(guest_cmds.GuestCommand):
     mode_string = "pause"
+    blurb = "Pause a guest"
+        
     def _parse_args(self, args):
         try:
             opts, args = getopt.getopt(args, "hvm",
