@@ -1,0 +1,142 @@
+<a name="toc">
+<h2>Virt-Factory Roadmap</h2>
+</a>
+<p>
+Note: this content is intended to change a lot.  Ideas/comments welcome.
+The last released milestone was 0.0.2, which was released on 5/1/2007.  We are currently working on 0.0.3.
+</p>
+
+<h3>Table of Contents</h3>
+<ul id="toc">
+<li><a href="#3">0.0.3</a></li>
+<li><a href="#4">0.0.4</a></li>
+<li><a href="#5">0.0.5</a></li>
+<li><a href="#6">0.0.6</a></li>
+<li><a href="#tbf">Future / To Be Filed</a></li>
+</ul>
+
+<a name="3">
+<h3>0.0.3</h3>
+</a>
+<ul>
+<li>
+Further test infrastructure upgrades
+</li>
+<li>
+ORM usage and move to Postgres (possibly also support MySQL?). Database init scripts also. Migration support. 
+</li>
+<li>
+Work on new cobbler features.
+</li>
+<li>
+Incorporate shinier and better CSS/HTML/artwork
+</li>
+<li>
+Refactor vf_import to use puppet modules
+</li>
+<li>
+Implement basis for localization framework
+</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="4">
+<h3>0.0.4</h3>
+</a>
+<p>
+<ul>
+<li>
+Use busrpc(AMQP) to communicate with nodes
+</li>
+<li>
+Status tracking -- heartbeat from node daemons and associated infrastructure.  async notification of changes to Xen state show up in WUI, use AMQP to do this.
+</li>
+<li>
+Keeping VM's (re)started when host nodes restart.
+</li>
+<li>
+Seperate WUI from central server so they can optionally be installed on seperate machines.
+</li>
+<li>
+Write the command line app ("ampm")
+</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+<a name="5">
+
+<h3>0.0.5</h3>
+</a>
+<p>
+<ul>
+<li>
+Upload and import profiles via the WUI without using vf_import
+</li>
+<li>
+Batch management via tasks and tag selection. (Do X to all machines tagged "foo" and "bar", look at all machines tagged "foo" and "bar", etc). 
+</li>
+<li>
+A per host task view. Slice by hosts, see what each are doing. See what is going on in a specific host when you visit that page for the individual host.
+Tracking of who/what initiated tasks when. (Audit logging). Show this when clicking on the task.
+</li>
+<li>
+Better distro import interface (allow for running this at any time, not just startup).
+</li>
+<li>
+Improve registration of virtual guests so hostnames and MAC data are always up to date.
+Possibly register on each node daemon start?
+</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="6">
+<h3>0.0.6</h3>
+</a>
+<p>
+<ul>
+<li>
+Tag management tools should be able to store the tags required to run a virtual machine, i.e. "lab4 storagepool5 fullvirtcapable" and be able to have a button to click on for a mahcine, that will allow all virtual deployments running on it to move to similarly tagged guests. These should be selected on an individual basis and can be overriden with non-similarly tagged guests as needed. Full Automation will come later.
+</li>
+<li>
+Knowledge of basic storage information needed for migration.
+</li>
+<li>
+Integration with basic monitoring information (something like SPECTRE) needed to develop automated "into the cloud" deployment heuristics. 
+</li>
+</ul>
+</p>
+
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="tbf">
+<h3>Future / To Be Filed</h3>
+</a>
+<p>
+<ul>
+<li>
+Automate cloud deployment and migration based on tags and basic resource availability.
+</li>
+<li>
+Guard against unauthorized registration in the case of PXE (requires Cobbler voodoo).
+</li>
+<li>
+Create more sample profiles -- (should move this up in priority)
+</li>
+<li>
+API cleanup -- create higher level API more suitable for ISVs and sysadmins who want to integrate with VF. It's a bit low-level as it stands now, but workable.
+</li>
+<li>
+Integrated Backup features
+</li>
+<li>
+Make it easy to deploy RHX-type content as virtual appliance apps 
+</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+
+
+
