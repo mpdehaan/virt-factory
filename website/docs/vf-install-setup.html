@@ -30,7 +30,7 @@
 <p>Currently you will need a system running Fedora 7 to most easily install and setup an Virt-Factory management server. </p>
 <p class="note">You may also install an Virt-Factory management server using our <a href="download.php">source tarballs or our git code respository</a>.
 </p>
-<p>You will also need access to one of the <a href="http://mirrors.fedoraproject.org/publiclist/Fedora/7/<">Fedora 7 public rsync mirrors</a> or a DVD ISO of Fedora Core 7 to enable the server to provision new guest systems.</p>
+<p>You will also need access to one of the <a href="http://mirrors.fedoraproject.org/publiclist/Fedora/7/<">Fedora 7 public rsync mirrors</a> or a DVD ISO of Fedora 7 to enable the server to provision new guest systems.</p>
 <h4>For systems registering to the Virt-Factory Management Server:</h4>
 <p>You will want at least one additional system to register to the Virt-Factory management server.  Using virt-factory to install guests on the same machine is possible, however.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
@@ -38,7 +38,7 @@
 <a name="getrpms">
 <h3>Getting the RPMs</h3>
 </a>
-<p>Prebuilt RPMs are available for Fedora Core 7 for both x86 and x86_64. You may configure your system to use this repository by running the following command:</p>
+<p>Prebuilt RPMs are available for Fedora 7 for both x86 and x86_64. You may configure your system to use this repository by running the following command:</p>
 <blockquote>wget http://virt-factory.et.redhat.com/download/repo/virt-factory.repo --output-document=/etc/yum.repos.d/virt-factory.repo</blockquote>
 <p>We will install specific packages from this repository in the steps that follow.</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
@@ -63,9 +63,10 @@
 <h4>Configuring Management Server IP Address</h4>
 <p>In <tt>/etc/virt-factory/settings</tt>, you should also configure the server address ("this_server") at this time. Do not leave it as 127.0.0.1 - replace that value with your server's IP address.</p>
 <h4>Starting Management Server Services</h4>
-<p>Now we're ready to start the puppetmaster service:</p>
+<p>Now we're ready to start the puppetmaster and qpidd services:</p>
 <blockquote>sudo /sbin/service puppetmaster start</blockquote>
-<p>You will probably also want to change the parameters for the puppetmaster, apache, and virt-factory services so they start automatically when the system starts.</p>
+<blockquote>sudo /sbin/service qpidd start</blockquote>
+<p>You will probably also want to change the parameters for the puppetmaster, qpidd, apache, and virt-factory services so they start automatically when the system starts.</p>
 <p class="tip"><strong>Tip:</strong> You might find the following redhat.com Knowledgebase article helpful in configuring these services for automatic startup on boot: <a href="http://kbase.redhat.com/faq/FAQ_43_4407.shtm">Article #4407 - What is an initscript service and how do I start and stop it?</a></p>
 <p>Now, start the virt-factory service:</p>
 <blockquote>sudo vf_server import</blockquote>
@@ -89,7 +90,7 @@ edit <tt>/etc/sysconfig/virt-factory-wui/server</tt> to point to the XMLRPC serv
 <h5>Firewall</h5>
 <p>If you're running iptables you will need to open up access to the ports required for HTTP/HTTPS, the xmlrpc ports for virt-factory-server and cobbler, and the puppetmaster port. <tt>/usr/bin/vf_config_firewall</tt> will open up these ports, although without any local host-specific restrictions.</p>
 <h5>SELinux</h5>
-<p>SELinux needs to grant some permissions for Mongrel, which we use to power the web interface, so run the following as root:</p>
+<p>SELinux needs to grant some permissions so that apache can connect to the Mongrel server, which we use to power the web interface, so run the following as root:</p>
 <p class="tip">setsebool httpd_can_network_connect true</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 <a name="loggingin">
@@ -114,8 +115,8 @@ edit <tt>/etc/sysconfig/virt-factory-wui/server</tt> to point to the XMLRPC serv
 <p class="tip">To check if your system is running a xen kernel, run <tt>uname -a</tt>. In the output of that command, check to make sure the kernel has the string 'xen' in it. If not, you'll need to reboot the system into a xen kernel before attempting to provision guests on it.  Alternatively, you can choose to use KVM -- in this case, don't run the Xen kernel, but install kvm, and qemu.  In either case you will also need python-virtinst.</p>
 <p>Then run the following commands, using one of the already imported profile names:</p>
 <blockquote>yum install virt-factory-nodes<br />
-   vf_register --serverurl=http://www.example.com:5150 --profile=Container<br />
-   /sbin/service start vf-node-server
+   vf_register --serverurl=http://www.example.com --profile=Container<br />
+   /sbin/service start virt-factory-node-server
 </blockquote>
 <p>Now that system show up as managed in the Virt-Factory management server web interface. You are now ready (assuming you just configured it as a "Container" machine, to deploy virtualized systems running specific profiles.</p>
 <p>
@@ -144,7 +145,7 @@ NOTE:  If you are intending for the system to host virtual instances, you should
 <a name="schemadbupgrade">
 <h3>Upgrading the Database and Schema</h3>
 </a>
-<p>Schema upgrades are supported. To upgrade between versions of virt-factory, just install the new version and restart the virt-factory-node-server.
+<p>Schema upgrades are supported. To upgrade between versions of virt-factory, just install the new version and restart virt-factory-server.
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 
 <a name="additionalnotes">
