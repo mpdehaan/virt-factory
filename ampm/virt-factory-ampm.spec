@@ -34,14 +34,12 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %{_bindir}/ampm
 %dir %{python_sitelib}/virt-factory
 %dir %{python_sitelib}/virt-factory/ampm
-#%{python_sitelib}/virt-factory/*.py*
 %dir %{python_sitelib}/virt-factory/ampm/client
 %{python_sitelib}/virt-factory/ampm/client/*.py*
 %dir %{python_sitelib}/virt-factory/ampm/command_modules
 %{python_sitelib}/virt-factory/ampm/command_modules/*.py*
 %dir %{python_sitelib}/virt-factory/ampm/api_modules
 %{python_sitelib}/virt-factory/ampm/api_modules/*.py*
-#%dir /usr/share/virt-factory
 %dir /var/log/virt-factory
 
 
