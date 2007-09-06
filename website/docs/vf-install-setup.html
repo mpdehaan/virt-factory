@@ -89,8 +89,8 @@ edit <tt>/etc/sysconfig/virt-factory-wui/server</tt> to point to the XMLRPC serv
 <h5>Firewall</h5>
 <p>If you're running iptables you will need to open up access to the ports required for HTTP/HTTPS, the xmlrpc ports for virt-factory-server and cobbler, and the puppetmaster port. <tt>/usr/bin/vf_config_firewall</tt> will open up these ports, although without any local host-specific restrictions.</p>
 <h5>SELinux</h5>
-<p>SELinux has a known interference problem with Mongrel, which we use to power the web interface, so in the meantime, SELinux needs to be put into permissive mode. We are currently looking into making this work better with SELinux.</p>
-<p class="tip"><strong>Tip:</strong> The following redhat.com Knowledgebase article has more information on configuring SELinux permissive mode: <a href="http://kbase.redhat.com/faq/FAQ_93_5143.shtm">Article #5143 - How do I enable enforcing or permissive mode for SELinux?</a></p>
+<p>SELinux needs to grant some permissions for Mongrel, which we use to power the web interface, so run the following as root:</p>
+<p class="tip">setsebool httpd_can_network_connect true</p>
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 <a name="loggingin">
 <h3>Logging In</h3>
@@ -144,7 +144,7 @@ NOTE:  If you are intending for the system to host virtual instances, you should
 <a name="schemadbupgrade">
 <h3>Upgrading the Database and Schema</h3>
 </a>
-<p>Schema upgrades are supported if the upgraded distribution contains the vf_upgrade_db script. To upgrade between versions of virt-factory, just install the new version and restart the virt-factory-node-server.
+<p>Schema upgrades are supported. To upgrade between versions of virt-factory, just install the new version and restart the virt-factory-node-server.
 <p><a href="#toc" class="back-to-top">Back to top</a></p>
 
 <a name="additionalnotes">
