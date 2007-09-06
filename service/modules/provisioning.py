@@ -273,6 +273,8 @@ class CobblerTranslatedProfile:
 
 
        ks_meta["network_param"]        = ""
+       ks_meta["node_bare_packages"]   = ""
+
        if from_db.has_key("is_container") and from_db["is_container"] != 0:
            # qemu won't be installed for Xen but it's ok if that command fails...
            # we do want to make sure libvirt is started though
