@@ -41,9 +41,8 @@ test "x$RPM_BUILD_ROOT" != "x" && rm -rf $RPM_BUILD_ROOT
 %dir %{python_sitelib}/virt-factory/ampm/api_modules
 %{python_sitelib}/virt-factory/ampm/api_modules/*.py*
 %dir /var/log/virt-factory
-
-
-
+%docdir /usr/share/doc/virt-factory-%{version}
+/usr/share/doc/virt-factory-%{version}/README.txt
 %preun
 
 %changelog
