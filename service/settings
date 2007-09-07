@@ -10,7 +10,7 @@ repos:
     F-7-i386-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/i386/os/'
     F-7-x86_64-core-lite: 'http://download.fedora.redhat.com/pub/fedora/linux/releases/7/Everything/x86_64/os/'
 mirrors:
-    FC-7: [ '/media/dvdiso', '']
+    F-7: [ '/media/dvdiso', '']
 this_server:
     address: '127.0.0.1'
 extras_rpms:

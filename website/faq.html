@@ -1,0 +1,120 @@
+<a name="questions">
+<h3>Questions</h3>
+</a>
+<ul id="faq">
+<li><a href="#whatis">What is Virt-Factory?</a></li>
+<li><a href="#requiments">What do I need to run Virt-Factory?</a></li>
+<li><a href="stability">How stable is Virt-Factory?</a></li>
+<li><a href="#architecture">What kind of architecture does Virt-Factory have?</a></li>
+<li><a href="#targetuser">Who is the target user of Virt-Factory?</a></li>
+<li><a href="#virtualization">How does Virt-Factory work with virtualization?</a></li>
+<li><a href="#appliances">How does Virt-Factory work with appliances?</a></li>
+<li><a href="#puppet">How does Virt-Factory use puppet?</a></li>
+<li><a href="#deployment">How are systems deployed using Virt-Factory?</a></li>
+<li><a href="#monitoring">What about monitoring?</a></li>
+<li><a href="#roadmap">What about the future roadmap?</a></li>
+<li><a href="#profile-build">How do I build profiles (appliances)?</a></li>
+<li><a href="#contribute">How can I contribute?</a></li>
+</ul>
+
+<h3>Answers</h3>
+
+<a name="whatis">
+<dt>What is Virt-Factory?</dt>
+</a>
+ <dd>Virt-Factory is a set of free and open source system management framework that concentrates on the issues involved in a managing a large number of virtual systems. 
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="requirements">
+<dt>What do I need to run Virt-Factory?</dt>
+</a>
+ <dd>Virt-Factory 0.0.4 is currently supported on Fedora Core 7.  Version 0.0.4 will support Fedora 7 and Red Hat Enterprise Linux 5 support is pending.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="stability">
+<dt>How stable is Virt-Factory?</dt>
+</a>
+ <dd>Virt-Factory is currently an alpha/beta-level project with a fast-paced rate of development.  Released RPMs are expected to work well together, while the source control checkouts are rather bleeding edge.  Bug-reports are welcome.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+<a name="architecture">
+<dt>What kind of architecture does Virt-Factory have?</dt>
+</a>
+ <dd>Virt-Factory provides a central server for managing physical systems (including virtual hosts) and virtual guests. The server exposes an XMLRPC API that is used by the web user interface, and can also be used by custom scripts. On 'managed' systems, a special "node daemon" is installed, which is used to communicate with the central server over secure XMLRPC.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="targetuser">
+<dt>Who is the target user of Virt-Factory?</dt>
+</a>
+ <dd>We are currently targeting developers who want to be involved in new systems management technology as well as system administrators wishing to run a large number of virtual systems or have a key interest in virtualization and system recipes / appliance concepts.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="virtualization">
+<dt>How does Virt-Factory work with virtualization?</dt>
+</a>
+ <dd>Virtualization plays a core role in Virt-Factory and is heavily integrated. The software takes care of the nuts and bolts and can entirely manage your virtualization, though accessing your virtualization via xm and virsh is still supported.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="appliances">
+<dt>How does Virt-Factory work with appliances?</dt>
+</a>
+ <dd>Appliances mean different things to different people.  Our Appliances can be defined purely as metadata ('profiles') rather than binary blobs that are copied around. The metadata describes the requirements for the virtual machine (number of processors, memory etc.), the base system installation (as a kickstart file), and the appliance's 'personality' as a puppet manifest. this makes it possible to distribute (and share!) appliances easily, with minimal bandwidth, and allows endusers to adapt appliances to their needs while still being able to consume appliance updates.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="puppet">
+<dt>How does Virt-Factory use puppet?</dt>
+</a>
+ <dd>Puppet is used as the backend to implement our system recipes. Puppet is used to specify what a particular virtual or bare metal machine should have installed and how it is configured. However, since the puppet information is contained within the profile, it's not required that users of profiles have to understand Puppet. Authors of profiles definitely do though. We'll be working on more tools later, though <A HREF="http://cft.et.redhat.com">CFT</A> is a great starting point.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="deployment">
+<dt>How are systems deployed using Virt-Factory?</dt>
+</a>
+ <dd>Virt-Factory uses <A HREF="http://cobbler.et.redhat.com">Cobbler</A> as an internal library for provisioning. This means that if you have a datacenter and get new machines "off the truck", you'll be able to walk up to a machine and pick a "profile" for that machine to run, and provision it on the spot from a PXE menu. Virtualization management is there too. However, Virt-Factory takes over a cobbler server completely, so no knowledge of Cobbler or cobbler commands is required.  It may be possible to run seperate cobbler commands on a virt-factory server, though it would be better to run a seperate cobbler server in addition to virt-factory if you need customization ability.  Just set the next-server setting in DHCP up appropriately if you want to do this.  
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="monitoring">
+<dt>What about monitoring?</dt>
+</a>
+ <dd>We'll be looking at adding some basic monitoring for our virt needs in a future release, although we're not trying to write any new monitoring frameworks at this point. The first release does not include monitoring, but you are more than welcome to specify monitoring setup in profiles that you deploy.  Monitoring data will eventually be critical to automated management and reporting and is obviously important -- though we do not want to mandate one single monitoring solution.  For instance, a Nagios shop should be able to write profiles to Virt-Factory that include Nagios setup.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="roadmap">
+<dt>What about the future roadmap?</dt>
+</a>
+<dd>We want to break down the walls that currently control server deployment. We would like to be able to support tagging servers and deploying amongst arbitrary criteria, such that one would be able to say "I want 10 web servers on this network and they can run on any boxes with FOO and BAR capabilities". We also want to be more aware of storage configurations and support migrations. Eventually this can lead to more automated network policy management and SLA's -- but that's a ways off. There's lots of info here: <a href="./vf-roadmap.php">Roadmap</a>.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="profile-build">
+<dt>How do I build profiles (appliances)?</dt>
+</a>
+ <dd>Appliances are very simple. They are a tar.gz file in a certain format, with an xml manifest file, and directories for puppet files and manifests. We have documentation on the format (<a href="./vf-profile-format.php">VF Profile Format</a>).
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>
+
+<a name="contribute">
+<dt>How can I contribute?</dt></a>
+ <dd>Everyone is welcome. Share your ideas on the mailing list, ask questions, contribute patches. If you have ideas about appliance deployment and virtualization management, by all means, share them.
+ <br />
+ <a href="#questions" class="back-to-top">Back to top</a>
+</dd>

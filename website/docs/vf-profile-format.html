@@ -1,0 +1,168 @@
+<a name="toc">
+<h2>Virt-Factory Profile Format</h2>
+</a>
+<h3>Table of Contents</h3>
+<ul id="toc">
+<li><a href="#about">About Profiles</a></li>
+<li><a href="#structure">Profile Structure</a></li>
+<li><a href="#xmlstructure">XML Structure</a></li>
+<li><a href="#creating">Creating Profiles (0.3 And Later)</a></li>
+<li><a href="#installing">Installing Profiles (0.3 And Later)</a></li>
+</ul>
+
+<a name="about">
+<h3>About Profiles</h3>
+</a>
+<p>
+Virt-Factory uses a concept of "profiles" to express what a machine should do.
+</p>
+<p>
+The easiest way to look at how profiles are built is to look at the sample profiles at http://virt-factory.et.redhat.com/download/profiles, and crack them open.
+</p>
+<p>
+The main thing about profiles is they have an XML file in a certain format, which specifies the distribution, memory, and other requirements the machine should have.
+</p>
+<p>
+It also bundles with it a list of Puppet (see http://reductivelabs.com) recipes and files which describe the machine configuration. Profile authors have the option of specifying all sorts of configuration in the profiles, or just leaving them fairly minimal.
+</p>
+<p>
+The "Test1" and "Container" profiles are both fairly minimal. This makes the machines pretty much unmanaged by puppet, though if one really wants to make "real" appliances, these profiles would be more feature rich.
+</p>
+<p>
+We'll be posting some more sample profiles as the project rolls along.
+</p>
+<p>
+We keep profiles in the source under the "profiles" directory. 
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="structure">
+<h3>Profile Structure</h3>
+</a>
+<p>
+<p>
+Profiles should be a self-contained tarball with the following directory structure:
+</p>
+<ul>
+    <li>profile.xml -- includes metadata needed for adding to VF database.</li>
+    <li>manifests/profilename.pp -- main puppet manifest for the profile (should include the others)</li>
+    <li>manifests/*.pp -- other puppet manifests, can be named anything</li>
+    <li>files/* -- includes data files referenced by manifests</li>
+    <li>templates/* -- includes templates referenced by manifests</li>
+</ul>
+<p>
+Starting with version 0.0.3, profiles will be distributed as an RPM, with installed file layout similar in structure to the current tarball:
+</p>
+<ul>
+    <li>/var/lib/virt-factory/profiles/PROFILENAME/profile.xml -- includes metadata needed for adding to VF database.</li>
+    <li>/var/lib/virt-factory/profiles/PROFILENAME/manifests/init.pp -- main puppet manifest for the profile (other manifest files could be in this dir if they're included by init.pp)</li>
+    <li>/var/lib/virt-factory/profiles/PROFILENAME/manifests/*.pp -- other puppet manifests, can be named anything</li>
+    <li>/var/lib/virt-factory/profiles/PROFILENAME/files/* -- includes data files referenced by manifests</li>
+    <li>/var/lib/virt-factory/profiles/PROFILENAME/templates/* -- includes templates referenced by manifests</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="xmlstructure">
+<h3>XML Structure</h3>
+</a>
+<p>
+Here's a sample profile.xml:
+</p>
+<p><pre>
+<?xml version='1.0' encoding='utf-8'?>
+<appliance-container>
+  <name>Container</name>
+  <version>1</version>
+  <distribution>var_www_cobbler_ks_mirror_FC-6_GOLD_i386_os_images_pxeboot</distribution>
+  <virt_storage_size>0</virt_storage_size>
+  <virt_ram>0</virt_ram>
+  <kickstart_metadata></kickstart_metadata>
+  <kernel_options></kernel_options>
+  <valid_targets>is_baremetal</valid_targets>
+  <is_container>1</is_container>
+  <puppet_classes>site_settings class1 class2</puppet_classes>
+</appliance-container>
+</pre></p>
+<p>
+Fields are defined as follows:
+</p>
+<ul>
+    <li>name: name of the image</li>
+    <li>version: the version</li>
+    <li>distribution: must match the name of the imported cobbler distribution</li>
+    <li>virt_storage_size: minimum required storage for hosts/guests which use this profile</li>
+    <li>virt_ram: minimum allocated RAM for hosts/guests which use this profile</li>
+    <li>kickstart_metadata: kickstart metadata</li>
+    <li>kernel_options: kernel options</li>
+    <li>valid_targets: whether this profile defines hosts (is_baremetal) or guests (is_virt)</li>
+    <li>is_container: (for hosts only) whether guests may be started on a host running this profile</li>
+    <li>puppet_classes: space-delimited list of puppst classes which will be assigned to nodes running this profile (shoult correspond to those classes defined in the puppet manifest files)</li>
+</ul>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="creating">
+<h3>Creating Profiles (0.3 and Later)</h3>
+</a>
+<p>
+vf_get_profile_stub is a helper script that will generate a profile src/build tree for a single profile. The only required argument is name (--name or -n). Running:
+</p>
+<p>
+vf_gen_profile_stub --name foo
+</p>
+<p>
+will set up the directory structure for a profile with the name "foo". First, a directory foo will be created as a subdirectory of the current working dir. Within this directory will be the following:
+</p>
+<ul>
+    <li>Makefile: to generate the profile xml, run 'make'</li>
+    <li>profile.xml: in the minimal case, the name element will be filled in. The remaining profile.xml elements will be filled in if the optional args to vf_gen_profile_stub are included</li>
+    <li>version: contains 3 space-separated elements. profile name, version, and release -- these are all used by the spec file</li>
+    <li>vf-profile-$profilename.spec: specfile for the profile RPM. Summary, description, and changelog entries must be entered manually</li>
+    <li>manifests: puppet manifest dir. init.pp is included but is blank (except for comments)</li>
+    <li>files: empty directory for puppet files referenced by the manifest</li>
+    <li>templates: empty directory for puppet templates referenced by the manifest</li>
+</ul> 
+<p>
+Additional command line args to vf_gen_profile_stub will fill out the remaining profile.xml fields:
+</p>
+<p>
+usage: vf_gen_profile_stub [options] 
+</p>
+<p><pre>
+options:
+  -h, --help            show this help message and exit
+  -n NAME, --name=NAME  profile name
+  -v VERSION, --version=VERSION
+                        profile version
+  -r RELEASE, --release=RELEASE
+                        profile rpm release
+  -d DISTRIBUTION, --distribution=DISTRIBUTION
+                        profile distribution
+  -s STORAGE, --storage=STORAGE
+                        profile virt storage size
+  -m RAM, --ram=RAM     profile virt ram
+  -k KSMETADATA, --ksmetadata=KSMETADATA
+                        profile kickstart metadata
+  -o KOPTIONS, --koptions=KOPTIONS
+                        profile kernel options
+  -t TARGETS, --targets=TARGETS
+                        Valid target type for the profile (i.e. for virt vs.
+                        baremetal provisioning).
+  -c CONTAINER, --container=CONTAINER
+                        Whether a host running this profile is a valid target
+                        for VM guests.
+  -p PUPPETCLASSES, --puppetclasses=PUPPETCLASSES
+                        profile puppet classes
+</pre></p>
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
+<a name="installing">
+<h3>Installing Profiles (0.3 and Later)</h3>
+</a>
+<p>
+Installing a built profile RPM is simply a matter of installing the RPM. vf_import is run in the rpm %post step. This step may have to be separated with the move to postgres since then vf_import will require a running db.
+</p>
+<p><a href="#toc" class="back-to-top">Back to top</a></p>
+
