@@ -2,6 +2,7 @@ import socket
 
 import busrpc.qpid_transport as qpid_transport
 from busrpc.misc import *
+from busrpc.logger import Logger
 
 class _LocalRPCMethod(object):
 
@@ -14,6 +15,7 @@ class _LocalRPCMethod(object):
         self.cert_mgr = cert_mgr
         self.results = {}
         self.params = {}
+        self.logger = Logger()
 ##         self.partial_encoded_message = encode_partial_rpc_message(self.transport.queue_name,
 ##                                                                   self.namespace,
 ##                                                                   self.method_name,
@@ -53,7 +55,7 @@ class _LocalRPCMethod(object):
                 raw_results = self.send_register_message(encoded_call)
             else:
                 raw_results = self.transport.send_message_wait(self.server, encoded_call)
-            sender, namespace, method, headers, results = decode_rpc_response(raw_results, cert_mgr=self.cert_mgr)
+            sender, namespace, method, headers, results = decode_rpc_response(raw_results, cert_mgr=self.cert_mgr, logger=self.logger)
             if cache_return and headers.has_key('cache_results'):
                 self.results[args] =  results
                 results = self.results[args]
@@ -69,7 +71,7 @@ class _LocalRPCMethod(object):
         raw_results = None
         while registered == False:
             try:
-                print "Registering..."
+                #print "Registering..."
                 raw_results = self.transport.send_message_wait(self.server, encoded_call, timeout=timeout)
                 registered = True
             except qpid_transport.QpidTransportException, e:

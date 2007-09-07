@@ -34,14 +34,16 @@ def _encode_partial_rpc_message(sender, namespace, method, hostname):
                     'ns:', namespace, '\n',
                     'method:', method, '\n'])
 
-def decode_rpc_request(message, cert_mgr=None):
+def decode_rpc_request(message, cert_mgr=None, logger=None):
     was_encrypted = False
     if not cert_mgr == None:
         try:
             message, was_encrypted = cert_mgr.decrypt_message(message)
         except Exception, e:
-            print '[DecodeReq]Decryption failed: %s' % (e)
-        print '[DecodeReq]Decrypted message (%d):\n%s' % (len(message), message)
+            if logger:
+                logger.info('[DecodeReq]Decryption failed: %s' % (e))
+        if logger:
+            logger.info('[DecodeReq]Decrypted message (%d):\n%s' % (len(message), message))
         headers, args = message.split('\n\n')
     else:
         headers, args = message.split('\n\n')
@@ -68,13 +70,14 @@ def decode_rpc_request(message, cert_mgr=None):
     else:
         return None, None, None, None, False
 
-def decode_rpc_response(message, cert_mgr=None):
+def decode_rpc_response(message, cert_mgr=None, logger=None):
     was_encrypted = False
     if not cert_mgr == None:
         try:
             message, was_encrypted = cert_mgr.decrypt_message(message)
         except Exception, e:
-            print '[DecodeResp]Decryption failed: %s' % (e)
+            if logger:
+                logger.info('[DecodeResp]Decryption failed: %s' % (e))
         all_headers, results = message.split('\n\n')
     else:
         all_headers, results = message.split('\n\n')
