@@ -465,8 +465,8 @@ class CobblerTranslatedSystem:
 
 class Provisioning(web_svc.AuthWebSvc):
    def __init__(self):
-      self.methods = {"sync": self.sync,
-                      "init": self.init}
+      self.methods = {"provisioning_sync": self.sync,
+                      "provisioning_init": self.init}
       web_svc.AuthWebSvc.__init__(self)                      
       
 
