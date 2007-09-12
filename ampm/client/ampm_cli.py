@@ -33,15 +33,16 @@ cfg.load()
 
 
 
-from command_modules import list
-from command_modules import query
+from command_modules import add
 from command_modules import create
 from command_modules import delete
-from command_modules import add
+from command_modules import import_repo
+from command_modules import list
 from command_modules import pause
-from command_modules import unpause
-from command_modules import start
+from command_modules import query
 from command_modules import shutdown
+from command_modules import start
+from command_modules import unpause
 
 
 def print_help(mode_dict):
@@ -64,11 +65,11 @@ def main():
     valid_modes = ["help", "list", "query",
                    "create", "delete", "add",
                    "pause", "unpause", "start",
-                   "shutdown"]
+                   "shutdown", "import_repo"]
 
     mode_modules = [list, query, create,
                     delete, add, pause,
-                    unpause, start, shutdown]
+                    unpause, start, shutdown, import_repo]
 
     mode_dict = {}
     for mode in mode_modules:
