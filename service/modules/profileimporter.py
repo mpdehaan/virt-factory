@@ -61,6 +61,35 @@ DISTRIBUTION_ID_TAG = "distribution_id"
 # FIXME: this class needs more comments
 
 class ProfileImporter:
+    def __init__(self, log, module_name=None, force_all=False,
+                 module_dir=PUPPET_FILE_DIR, manifest=PUPPET_SITE_MANIFEST):
+        """
+        create importer object -- source tarball is passed in
+        """
+        if force_all:
+            self.module_names = os.listdir(module_dir)
+            if self.module_names.count(PUPPET_QUEUED_FILE_DIR) > 0:
+                self.module_names.remove(PUPPET_QUEUED_FILE_DIR)
+        elif module_name:
+            self.module_names = [module_name]
+        else:
+            self.module_names = os.listdir(module_dir + "/" + PUPPET_QUEUED_FILE_DIR)
+                
+        self.logger=log
+        self.profile_importers = {}
+        for name in self.module_names:
+            self.profile_importers[name] = OneProfileImporter(name,
+                                                              module_dir,
+                                                              manifest,
+                                                              log)
+                    
+    def run_import(self):
+        for profile in self.profile_importers.values():
+            profile.run_import()
+        prov = provisioning.Provisioning()
+        prov.sync(None, None)
+
+class OneProfileImporter:
    """
    Main class for sm_import tool
    """
@@ -72,7 +101,7 @@ class ProfileImporter:
        self.module_name = module_name
        self.module_dir = module_dir
        self.manifest = manifest
-       self.logger=log.logger
+       self.logger=log
        self.profile = parse(self.module_dir + '/' + self.module_name + "/profile.xml")
 
    def run_import(self):
@@ -274,30 +303,22 @@ def main():
                       help="reload all profiles")
     
     (options, args) = parser.parse_args()
-    profiles = []
-    if len(args) > 1:
-        parser.error("incorrect number of arguments")
-    elif options.force_all:
-        profiles = os.listdir(options.module)
-        if profiles.count(PUPPET_QUEUED_FILE_DIR) > 0:
-            profiles.remove(PUPPET_QUEUED_FILE_DIR)
-    elif len(args) == 0:
-        profiles = os.listdir(options.module + "/" + PUPPET_QUEUED_FILE_DIR)
-    else:
-        profiles = [args[0]]
-
     config_obj = Config()
     config_result = config_obj.get()
     config = config_result
     databases = config['databases']
     url = databases['primary']
     Database(url)
-    log = logger.Logger("/var/log/virt-factory/vf_import.log")
-    for profile in profiles:
-        ProfileImporter(profile, options.module, options.manifest, log).run_import()
-    
-    prov = provisioning.Provisioning()
-    prov.sync(None, None)
+
+    if len(args) > 1:
+        parser.error("incorrect number of arguments")
+        
+    profile_in = None
+    if len(args) == 1:
+        profile_in = args[0]
+    log = logger.Logger("/var/log/virt-factory/vf_import.log").logger
+    ProfileImporter(log, profile_in, options.force_all,
+                    options.module, options.manifest).run_import()
 
 if __name__ == "__main__":
     main()

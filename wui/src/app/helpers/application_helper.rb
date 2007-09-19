@@ -25,6 +25,8 @@ module ApplicationHelper
        <li><strong><%= _("Profiles") %></strong>
 	   <ul>
 	   <li><A HREF="#{app_root}/profile/list"><%= _("View Profiles") %></A></li>
+	   <li><A HREF="#{app_root}/profile/upload"><%= _("Add a Profile via file upload") %></A></li>
+	   <li><A HREF="#{app_root}/profile/url_import"><%= _("Add a Profile via external URL") %></A></li>
 	   </ul>
        </li>
        <li><strong><%= _("Guests") %></strong>
