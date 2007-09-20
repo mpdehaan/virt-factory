@@ -4,6 +4,7 @@ import os
 from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig
 from busrpc.misc import *
+from busrpc.logger import Logger
 
 class Bridge(object):
 
@@ -13,6 +14,7 @@ class Bridge(object):
         self.registration_lock = threading.RLock()
         self.services = {}
         self.services_by_host = {}
+        self.logger = Logger()
 
     def register_service(self, hostname, server, service):
         try:
@@ -27,7 +29,7 @@ class Bridge(object):
             finally:
                 self.registration_lock.release()
         except Exception, e:
-            print e
+            self.logger.log_exc()
             return False
         else:
             return True

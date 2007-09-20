@@ -7,6 +7,7 @@ import busrpc.qpid_transport
 import busrpc.rpc
 from busrpc.crypto import CertManager
 from busrpc.misc import *
+from busrpc.logger import Logger
 
 def _extract_names(full_class_name):
     parts = full_class_name.split(".")
@@ -29,6 +30,7 @@ def _create_instance(config, full_class_name):
 class RPCDispatcher(object):
 
     def __init__(self, config, register_with_bridge = True, server_host = None, is_bridge_server=None):
+        self.logger = Logger()
         if is_bridge_server == None:
             self.is_bridge_server=not register_with_bridge
         else:
@@ -75,8 +77,7 @@ class RPCDispatcher(object):
                 self.bridge.register_service(self.hostname, self.name, namespace)
                 return True
             except Exception, e:
-                print e
-                traceback.print_exc()
+                self.logger.log_exc()
                 return False
         else:
             return True
@@ -91,12 +92,12 @@ class RPCDispatcher(object):
         self.instances.clear()
 
     def dispatch(self, message):
-        sender, hostname, namespace, called_method, encoded_params, was_encrypted = decode_rpc_request(message, cert_mgr=self.cert_mgr)
-        print "Sender: %s, Host: %s, Namespace: %s, Method: %s, Encoded Params: %s" % (sender,
+        sender, hostname, namespace, called_method, encoded_params, was_encrypted = decode_rpc_request(message, cert_mgr=self.cert_mgr, logger=self.logger)
+        self.logger.info("Sender: %s, Host: %s, Namespace: %s, Method: %s, Encoded Params: %s" % (sender,
                                                                                        hostname,
                                                                                        namespace,
                                                                                        called_method,
-                                                                                       encoded_params)
+                                                                                       encoded_params))
         if sender == None or namespace == None:
             return
         cache_key = ''.join([namespace, '.', called_method])
@@ -105,13 +106,12 @@ class RPCDispatcher(object):
             method = self.instance_method_cache[cache_key]
         except KeyError:
             try:
-                print self.instances
                 instance = self.instances[namespace]
                 method = self._resolve_method(instance, called_method)
                 self.instance_method_cache[cache_key] = method
             except KeyError, e:
                 # no namespace match
-                print e
+                self.logger.log_exc()
                 return None, None
         params = decode_object(encoded_params)
         results = method(*params)
@@ -124,7 +124,7 @@ class RPCDispatcher(object):
     def add_instance(self, namespace, instance):
         self.instances[namespace] = instance
         if not self.register(namespace):
-            print "Error during registration!"
+            self.logger.error("Error during registration!")
             self.instances.pop(namespace)
 
     def _resolve_method(self, instance, method_name):

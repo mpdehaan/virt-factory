@@ -14,6 +14,7 @@ import qpid.peer
 from busrpc.transport import Transport, ServerTransport
 from busrpc.crypto import CertManager
 import busrpc.qpid_util as qpid_util
+from busrpc.logger import Logger
 
 class QpidTransportException(Exception):
 
@@ -27,6 +28,7 @@ class QpidTransport(Transport):
 
     def __init__(self, host='localhost', port=5672, user='guest',
                  password='guest', vhost='development'):
+        self.logger = Logger()
         self.nethostname = socket.gethostname()
         self.host = host
         self.port = port
@@ -73,7 +75,7 @@ class QpidTransport(Transport):
                 if tries == 0:
                     raise e
                 else:
-                    print "Trying again..."
+                    self.logger.info("connect: Trying again...")
                     time.sleep(wait_time)
                     wait_time = wait_time + 0.25
                     self.client = qpid.client.Client(self.host, self.port,
@@ -172,7 +174,7 @@ class QpidServerTransport(QpidTransport, ServerTransport):
                 if (addr != None and reply != None):
                     self.send_message(addr, reply)
             except TypeError, e:
-                print e
+                self.logger.print_exc()
 
     def _poll(self):
         while not self.is_stopped:
