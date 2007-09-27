@@ -1,0 +1,18 @@
+      <% @page_title = "Upload A Profile" %>
+      <% @primary = "profile" %>
+      <% @secondary = "upload" %>
+
+      <div id="content-main">
+      <% form_tag({:action=>'upload_submit'}, :multipart => true) do %>
+        <table class='details'>
+           <TR>
+              <TD><%= _("Profile RPM") %></TD>
+              <TD><input type="file" name="rpm_file" /></TD>
+           </TR>
+           <TR>
+              <TD COLSPAN="2"><input type="submit" name="Upload" /></TD>
+           </TR>
+        </TABLE>
+        
+      <% end -%>
+      </div>

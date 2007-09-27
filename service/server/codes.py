@@ -45,6 +45,7 @@ ERR_TASK                   = 13
 ERR_REG_TOKEN_INVALID      = 14
 ERR_REG_TOKEN_EXHAUSTED    = 15
 ERR_PUPPET_NODE_NOT_SIGNED = 16
+ERR_PROFILE_IMPORT         = 17
 
 # architecture field for machines and profiles
 ARCH_X86 = "x86"
@@ -341,6 +342,14 @@ class PuppetNodeNotSignedException(VirtFactoryException):
    due to another puppetca error.
    """
    error_code = ERR_PUPPET_NODE_NOT_SIGNED
+
+class ProfileImportException(VirtFactoryException):
+   """
+   There was an error in importing a profile, either because
+   the profile RPM was not successfully imported or because
+   the import operation itself failed
+   """
+   error_code = ERR_PROFILE_IMPORT
 
 def success(data=None,job_id=None):
    """

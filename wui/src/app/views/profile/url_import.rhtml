@@ -1,0 +1,17 @@
+      <% @page_title = "Import A Profile from URL" %>
+      <% @primary = "profile" %>
+      <% @secondary = "url_import" %>
+
+      <div id="content-main">
+      <% form_for :form, @item, :url => { :action => "url_import_submit" } do |f| %>
+      <table class='details'>
+         <TR>
+            <TD><%= _("Profile package URL") %></TD>
+            <TD><%= f.text_field :profile_url %></TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="go"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>

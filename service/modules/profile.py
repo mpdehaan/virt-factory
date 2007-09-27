@@ -20,11 +20,15 @@ from fieldvalidator import FieldValidator
 import distribution
 import cobbler
 import provisioning
+import profileimporter
 import web_svc
 
+from subprocess import *
 import os
+import tempfile
 import threading
 import traceback
+from xmlrpclib import Binary
 
 
 class Profile(web_svc.AuthWebSvc):
@@ -34,7 +38,10 @@ class Profile(web_svc.AuthWebSvc):
                         "profile_delete": self.delete,
                         "profile_get": self.get,
 			"profile_get_by_name": self.get_by_name,
-                        "profile_list": self.list}
+                        "profile_list": self.list,
+                        "profile_import_installed": self.import_installed_profiles,
+                        "profile_import_from_upload": self.import_from_upload,
+                        "profile_import_from_url": self.import_from_url}
         web_svc.AuthWebSvc.__init__(self)
 
 
@@ -205,6 +212,100 @@ class Profile(web_svc.AuthWebSvc):
         result['distribution'] = profile.distribution.get_hash()
         return result
 
+    def import_from_upload(self, token, args):
+        orig_filename = args["filename"]
+        data = args["file"]
+        data.decode
+        
+        fd, filename = tempfile.mkstemp(orig_filename)
+        try:
+            file=os.fdopen(fd, 'w+b')
+            file.write(data.data)
+            file.close()
+            retval = self.import_profile_internal(token, orig_filename, filename, args["force"])
+        finally:
+            os.remove(filename)
+        return retval
+        
+    def import_from_url(self, token, args):
+        """
+        Import a profile
+        @param token: A security token.
+        @type token: string
+        @param package_url: URL to the RPM for the profile to be installed
+        @type package_url: string
+        @param force: Whether to force install even if the same version of this profile is already installed
+        @type force: boolean
+        @return: 
+        @rtype: 
+        """
+        return self.import_profile_internal(token, args["url"], args["url"], args["force"])
+
+    def import_profile_internal(self, token, visible_name, profile_package, force):
+        """
+        Import a profile
+        @param token: A security token.
+        @type token: string
+        @param visible_name: original filename/url to diplay in error messages
+        @type visible_name: string
+        @param profile_package: URL or pathname to the RPM for the profile to be installed
+        @type profile_package: string
+        @param force: Whether to force install even if the same version of this profile is already installed
+        @type force: boolean
+        @return: 
+        @rtype: 
+        """
+        # RPM must provide vf-profile
+        check_provides_cmd = ['/bin/rpm', '-q', '--provides', '-p', profile_package]
+        cmd_out, error_msg, exit_code = self.run_external_command(check_provides_cmd)
+        if (exit_code != 0):
+            self.logger.error("error in validating RPM " + ' '.join(check_provides_cmd))
+            self.logger.error(error_msg)
+            raise InvalidArgumentsException(comment=error_msg)
+        else:
+            self.logger.info("provides query returned " + ' '.join(cmd_out))
+        found_vf_profile=False
+        for line in cmd_out:
+            if line.strip() == 'vf-profile':
+                found_vf_profile=True
+                break
+        if not found_vf_profile:
+            raise InvalidArgumentsException(comment=visible_name + " does not provide vf-profile")
+        rpm_install_cmd = ['/bin/rpm', '-Uvh', profile_package]
+        if force:
+            rpm_install_cmd.insert(2, "--force")
+        cmd_out, error_msg, exit_code = self.run_external_command(rpm_install_cmd)
+        if (exit_code != 0):
+            self.logger.error("error in installing RPM " + ' '.join(rpm_install_cmd))
+            self.logger.error(error_msg)
+            raise ProfileImportException(comment=error_msg)
+        else:
+            self.logger.info("RPM install returned " + ' '.join(cmd_out))
+        self.import_installed_profiles(token)
+        return success()
+
+    def run_external_command(self, cmdline):
+        pipe = Popen(cmdline, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
+        cmd_out = pipe.stdout.readlines()
+        error_msg = pipe.stderr.read().strip()
+        exit_code = pipe.wait()
+        return cmd_out, error_msg, exit_code
+        
+    def import_installed_profiles(self, token, profile_name=None, force_all=False):
+        """
+        Import currently installed profiles
+        @param token: A security token.
+        @type token: string
+        @param profile_name: The profile to import, if specifying a single profile
+        @type profile_name: string
+        @param force_all: Whether to force re-import of all profiles
+        @type force_all: boolean
+        @return: 
+        @rtype: 
+        @raise SQLException: On database error
+        """
+        profileimporter.ProfileImporter(self.logger, profile_name, force_all).run_import()
+        return success()
 
 methods = Profile()
 register_rpc = methods.register_rpc
