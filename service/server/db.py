@@ -213,7 +213,8 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('state', String(255)),
-            Column('last_heartbeat', Integer)
+            Column('last_heartbeat', Integer),
+            Column('tags', String(4000))
         ))
          
         Database.tables.append(Table('deployments', Database.meta,
@@ -236,7 +237,8 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('auto_start', Integer),
-            Column('last_heartbeat', Integer)
+            Column('last_heartbeat', Integer),
+            Column('tags', String(4000))
         ))
         
         Database.tables.append(Table('regtokens', Database.meta,

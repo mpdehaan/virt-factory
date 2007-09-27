@@ -149,6 +149,9 @@ class ManagedObject
                    new_item = [true,"true"].include?(value) ? true : false
                elsif atype == String
                    new_item = value
+	       # if we start using arrays with non-string types this will need to be enhanced
+               elsif atype == Array
+                   new_item = value
                elsif atype.methods.include?("from_hash")
                    # ManagedObjects result in recursive calls...
                    raise RuntimeError.new(_("No child arguments?")) if not value.is_a?(Hash) 

@@ -21,9 +21,12 @@ from fieldvalidator import FieldValidator
 
 import profile
 import provisioning
+import deployment
 import web_svc
 import regtoken
 from server import config_data
+
+import re
 
 class Machine(web_svc.AuthWebSvc):
     def __init__(self):
@@ -36,7 +39,9 @@ class Machine(web_svc.AuthWebSvc):
                         "machine_get": self.get,
 			"machine_get_by_hostname": self.get_by_hostname,
 			"machine_get_by_mac_address": self.get_by_mac_address,
-                        "machine_get_profile_choices": self.get_profile_choices
+                        "machine_get_profile_choices": self.get_profile_choices,
+                        "machine_get_tags": self.get_current_machine_tags,
+                        "machine_get_all_tags": self.get_all_current_tags
         }
         web_svc.AuthWebSvc.__init__(self)
 
@@ -56,9 +61,13 @@ class Machine(web_svc.AuthWebSvc):
             'processor_count','memory', 'kernel_options', 
             'kickstart_metadata', 'list_group', 'mac_address', 
             'is_container', 'puppet_node_diff', 
-            'netboot_enabled', 'is_locked', 'status', 'last_heartbeat'
+            'netboot_enabled', 'is_locked', 'status',
+            'last_heartbeat', 'tags'
         )
         required = ('profile_id',)
+        if args.has_key('tags') and type(args['tags']) is list:
+            print "tags is a list: ", args['tags']
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -147,8 +156,10 @@ class Machine(web_svc.AuthWebSvc):
              'kickstart_metadata', 'profile_id', 
              'list_group', 'mac_address', 'is_container', 
              'puppet_node_diff', 'netboot_enabled', 'is_locked',
-             'state', 'last_heartbeat'
+             'state', 'last_heartbeat', 'tags'
         )
+        if args.has_key('tags') and type(args['tags']) is list:
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -351,7 +362,28 @@ class Machine(web_svc.AuthWebSvc):
         finally:
             session.close()
 
-            
+
+    def get_current_machine_tags(self, token, args={}):
+        tag_dict={}
+        machines = self.list(None, {})
+        if machines.error_code != 0:
+            return machines
+
+        for machine in machines.data:
+            tag_dict.update(dict.fromkeys(machine["tags"]))
+        return codes.success(tag_dict.keys())
+
+    def get_all_current_tags(self, token, args={}):
+        machine_tags = self.get_current_machine_tags(None)
+        if machine_tags.error_code != 0:
+            return machine_tags
+        deployment_tags = deployment.Deployment().get_current_deployment_tags(None)
+        if deployment_tags.error_code != 0:
+            return deployment_tags
+        tag_dict=dict.fromkeys(machine_tags.data)
+        tag_dict.update(dict.fromkeys(deployment_tags.data))
+        return codes.success(tag_dict.keys())
+        
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)
@@ -360,13 +392,18 @@ class Machine(web_svc.AuthWebSvc):
         # vdr.verify_int(['processor_speed', 'processor_count', 'memory'])
         vdr.verify_printable(
                'kernel_options', 'kickstart_metadata', 'list_group', 
-               'list_group', 'puppet_node_diff')
+               'list_group', 'puppet_node_diff', 'tags')
 
 
     def expand(self, machine):
         result = machine.get_hash()
         result['profile'] = machine.profile.get_hash()
         result['profile']['distribution'] = machine.profile.distribution.get_hash()
+        if result.has_key('tags') and result['tags'] is not None:
+            result['tags'] = re.compile('\s*,\s*').split(result['tags'])
+        else:
+            result['tags'] = []
+
         return result
 
 

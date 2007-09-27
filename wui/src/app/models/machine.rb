@@ -26,7 +26,9 @@ class Machine < ManagedObject
                   :puppet_node_diff => {:type => String},
                   :is_locked => {:type => Integer},
                   :last_heartbeat => {:type => Integer},
-                  :state => {:type => String}
+                  :state => {:type => String},
+                  :tags => {:type => Array},
+                  :new_tags => {:type => String}
     }
 
     self.set_attrs(ATTR_LIST)
