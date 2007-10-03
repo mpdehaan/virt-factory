@@ -40,8 +40,7 @@ class Machine(web_svc.AuthWebSvc):
 			"machine_get_by_hostname": self.get_by_hostname,
 			"machine_get_by_mac_address": self.get_by_mac_address,
                         "machine_get_profile_choices": self.get_profile_choices,
-                        "machine_get_tags": self.get_current_machine_tags,
-                        "machine_get_all_tags": self.get_all_current_tags
+                        "machine_get_by_tag": self.get_by_tag
         }
         web_svc.AuthWebSvc.__init__(self)
 
@@ -288,7 +287,6 @@ class Machine(web_svc.AuthWebSvc):
         finally:
             session.close()
 
-
     def get_by_regtoken(self, token, args):
         # FIXME: this code is currently non-operational in VF 0.0.3 and later
         # this code can be pruned if regtoken functional is needed and
@@ -363,27 +361,27 @@ class Machine(web_svc.AuthWebSvc):
             session.close()
 
 
-    def get_current_machine_tags(self, token, args={}):
-        tag_dict={}
+    def get_by_tag(self, token, args):
+        """
+        Return a list of all machines tagged with the given tag
+        """
+        required = ('tag',)
+        FieldValidator(args).verify_required(required)
+        in_tag = args['tag']
         machines = self.list(None, {})
         if machines.error_code != 0:
             return machines
 
+        result = []
         for machine in machines.data:
-            tag_dict.update(dict.fromkeys(machine["tags"]))
-        return codes.success(tag_dict.keys())
+            tags = machine["tags"]
+            if tags is not None:
+                for tag in tags:
+                    if in_tag.strip() == tag.strip():
+                        result.append(machine)
+                        break
+        return codes.success(result)
 
-    def get_all_current_tags(self, token, args={}):
-        machine_tags = self.get_current_machine_tags(None)
-        if machine_tags.error_code != 0:
-            return machine_tags
-        deployment_tags = deployment.Deployment().get_current_deployment_tags(None)
-        if deployment_tags.error_code != 0:
-            return deployment_tags
-        tag_dict=dict.fromkeys(machine_tags.data)
-        tag_dict.update(dict.fromkeys(deployment_tags.data))
-        return codes.success(tag_dict.keys())
-        
     def validate(self, args, required):
         vdr = FieldValidator(args)
         vdr.verify_required(required)

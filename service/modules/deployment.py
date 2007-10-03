@@ -50,8 +50,7 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_get": self.get,
 			"deployment_get_by_mac_address": self.get_by_mac_address,
 			"deployment_get_by_hostname": self.get_by_hostname,
-                        "deployment_get_tags": self.get_current_deployment_tags,
-                        "deployment_get_all_tags": self.get_all_current_tags}
+                        "deployment_get_by_tag": self.get_by_tag}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -562,27 +561,27 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
-    def get_current_deployment_tags(self, token, args={}):
-        tag_dict={}
+    def get_by_tag(self, token, args):
+        """
+        Return a list of all deployments tagged with the given tag
+        """
+        required = ('tag',)
+        FieldValidator(args).verify_required(required)
+        in_tag = args['tag']
         deployments = self.list(None, {})
         if deployments.error_code != 0:
             return deployments
 
+        result = []
         for deployment in deployments.data:
-            tag_dict.update(dict.fromkeys(deployment["tags"]))
-        return success(tag_dict.keys())
+            tags = deployment["tags"]
+            if tags is not None:
+                for tag in tags:
+                    if in_tag.strip() == tag.strip():
+                        result.append(deployment)
+                        break
+        return codes.success(result)
 
-    def get_all_current_tags(self, token, args={}):
-        deployment_tags = self.get_current_deployment_tags(None)
-        if deployment_tags.error_code != 0:
-            return deployment_tags
-        machine_tags = machine.Machine().get_current_machine_tags(None)
-        if machine_tags.error_code != 0:
-            return machine_tags
-        tag_dict=dict.fromkeys(deployment_tags.data)
-        tag_dict.update(dict.fromkeys(machine_tags.data))
-        return success(tag_dict.keys())
-        
     def expand(self, deployment):
         result = deployment.get_hash()
         result['machine'] = deployment.machine.get_hash()

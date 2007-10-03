@@ -31,7 +31,7 @@ class MachineController < AbstractObjectController
 
         #get list of current tags from virt-factory
         begin
-            @tags = ManagedObject.call_server("machine_get_all_tags", get_login, {})
+            @tags = ManagedObject.call_server("tag_get_names", get_login, {})
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
         end
