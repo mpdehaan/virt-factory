@@ -26,11 +26,12 @@ class Task(web_svc.AuthWebSvc):
        Constructor.  Add methods that we want registered.
        """       
        self.methods = {
-           "task_add"    : self.add,
-           "task_edit"   : self.edit,
-           "task_list"   : self.list,
-           "task_get"    : self.get,
-           "task_delete" : self.delete
+           "task_add"        : self.add,
+           "task_add_by_tag" : self.add_by_tag,
+           "task_edit"       : self.edit,
+           "task_list"       : self.list,
+           "task_get"        : self.get,
+           "task_delete"     : self.delete
            }
        web_svc.AuthWebSvc.__init__(self)
    
@@ -64,6 +65,41 @@ class Task(web_svc.AuthWebSvc):
             return success(task.id)
         finally:
             session.close()
+
+
+    def add_by_tag(self, token, args):
+        """
+        Create a task by tag. A separate task will be added
+        for each deployment with this tag
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of task attributes.
+            - user_id
+            - action_type
+            - tag
+            - state
+        @type args: dict
+        @raise SQLException: On database error
+        """
+        optional = ()
+        required = ('user_id', 'action_type', 'tag', 'state')
+        validator = FieldValidator(args)
+        validator.verify_required(required)
+        validator.verify_enum('state', VALID_TASK_STATES)
+        validator.verify_enum('action_type', VALID_TASK_OPERATIONS)
+        deployments = deployment.Deployment().get_by_tag(None, args)
+        if deployments.error_code != 0:
+            return deployments
+        
+        result = []
+        for deployment in deployments.data:
+            args["deployment_id"]=deployment["id"]
+            args["machine_id"]=deployment["machine_id"]
+            id = self.add(None, args)
+            if id.error_code != 0:
+                return id
+            result.append(id.data)
+        return success(id)
 
 
     def edit(self, token, args):

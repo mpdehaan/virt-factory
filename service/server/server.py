@@ -44,6 +44,7 @@ from modules import registration
 from modules import user
 from modules import regtoken
 from modules import puppet
+from modules import tag
 
 from busrpc.services import RPCDispatcher
 from busrpc.config import DeploymentConfig
@@ -97,7 +98,8 @@ class XmlRpcInterface(Singleton):
                   profile, deployment,
                   distribution,config,
                   provisioning, registration,
-                  authentication, task, regtoken, puppet,]:
+                  authentication, task,
+                  regtoken, puppet, tag,]:
             x.register_rpc(self.handlers)
             self.logger.debug("adding %s" % x)
 

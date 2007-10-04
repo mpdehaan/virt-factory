@@ -1,0 +1,33 @@
+      <% @page_title = "View Tags" %>
+      <% @primary = "tag" %>
+      <% @secondary = "list" %>
+     
+      <div id="content-main">
+      <table class='listing'>
+         <thead>
+            <th><%= _("Name") %></th>
+            <th><%= _("Hosts") %></th>
+            <th><%= _("Guests") %></th>
+            <th colspan="2" class="col-last"><%= _("Actions") %></th>
+         </thead>
+      <%# FIXME: this may be a result of what objects are being sent over from Python. %>
+      <%# FIXME: web svc should return a hash not a list %>
+      <% @items.each do |item| %>
+         <TR class="<%= cycle('odd','even') %>">
+             
+             <TD> <%= item.name %> </TD>
+             <TD>
+                 <% item.machines.each do |machine| %>
+                     <%= machine.hostname %> (<%= machine.mac_address %>)<br/>
+                 <% end %>
+             </TD>
+             <TD>
+                 <% item.deployments.each do |deployment| %>
+                     <%= deployment.hostname %> (<%= deployment.mac_address %>)<br/>
+                 <% end %>
+             </TD>
+         </TR>
+      <% end %>
+      </TABLE>
+      </div>
+

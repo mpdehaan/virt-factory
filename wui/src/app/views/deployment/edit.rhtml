@@ -51,6 +51,27 @@
                 -->
          </TR>
          <% end %>
+         <% if @operation == "edit" %>
+             <TR>
+                <TD><%= _("Current Tags") %></TD>
+                <TD>
+                    <% @item.tags.each do |tag| %>
+                        <%= tag %><br/>
+                    <% end %>
+                </TD>
+             </TR>
+         <% end %>
+         <TR>
+            <TD><%= _("Add/Remove Tags") %></TD>
+            <TD>
+                <%= f.collection_select(:tags,  @tags, :strip, :strip,
+                    {},"multiple"=>'multiple',"size"=>10) %></td>
+            </TD>
+         </TR>
+         <TR>
+            <TD><%= _("New Tags") %></TD>
+            <TD><%= f.text_field :new_tags %></TD>
+         </TR>
          <TR>
             <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ?  _("Edit") : _("Add") %>"></TD>
          </TR>

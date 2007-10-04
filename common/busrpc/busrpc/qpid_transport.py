@@ -174,7 +174,7 @@ class QpidServerTransport(QpidTransport, ServerTransport):
                 if (addr != None and reply != None):
                     self.send_message(addr, reply)
             except TypeError, e:
-                self.logger.print_exc()
+                self.logger.log_exc()
 
     def _poll(self):
         while not self.is_stopped:

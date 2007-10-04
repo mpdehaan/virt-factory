@@ -28,6 +28,7 @@ import regtoken
 import provisioning
 from server import config_data
 
+import re
 import subprocess
 import socket
 import traceback
@@ -48,7 +49,8 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_list": self.list,
                         "deployment_get": self.get,
 			"deployment_get_by_mac_address": self.get_by_mac_address,
-			"deployment_get_by_hostname": self.get_by_hostname}
+			"deployment_get_by_hostname": self.get_by_hostname,
+                        "deployment_get_by_tag": self.get_by_tag}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -117,8 +119,13 @@ class Deployment(web_svc.AuthWebSvc):
                     'mac_address',
                     'netboot_enabled',
                     'puppet_node_diff',
-                    'is_locked','auto_start','last_heartbeat')
+                    'is_locked',
+                    'auto_start',
+                    'last_heartbeat',
+                    'tags')
         self.logger.info(args)
+        if args.has_key('tags') and type(args['tags']) is list:
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -192,12 +199,17 @@ class Deployment(web_svc.AuthWebSvc):
         mac = None
         profilename = None
         required = ('id',)
-        optional = ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
-             'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked', 'last_heartbeat','auto_start')
+        optional = ('machine_id', 'state', 'display_name',
+                    'hostname', 'ip_address', 'registration_token',
+                    'mac_address', 'netboot_enabled', 'puppet_node_diff',
+                    'is_locked', 'last_heartbeat','auto_start', 'tags')
         filter = ('id', 'profile_id')
+        if args.has_key('tags') and type(args['tags']) is list:
+            print "tags is a list: ", args['tags']
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
-        validator.verify_printable('puppet_node_diff')
+        validator.verify_printable('puppet_node_diff', 'tags')
          
         try:
             machine_obj = machine.Machine()
@@ -549,10 +561,35 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
+    def get_by_tag(self, token, args):
+        """
+        Return a list of all deployments tagged with the given tag
+        """
+        required = ('tag',)
+        FieldValidator(args).verify_required(required)
+        in_tag = args['tag']
+        deployments = self.list(None, {})
+        if deployments.error_code != 0:
+            return deployments
+
+        result = []
+        for deployment in deployments.data:
+            tags = deployment["tags"]
+            if tags is not None:
+                for tag in tags:
+                    if in_tag.strip() == tag.strip():
+                        result.append(deployment)
+                        break
+        return codes.success(result)
+
     def expand(self, deployment):
         result = deployment.get_hash()
         result['machine'] = deployment.machine.get_hash()
         result['profile'] = deployment.profile.get_hash()
+        if result.has_key('tags') and result['tags'] is not None:
+            result['tags'] = re.compile('\s*,\s*').split(result['tags'])
+        else:
+            result['tags'] = []
         return result
 
 
