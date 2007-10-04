@@ -93,7 +93,7 @@ class ManagedObject
     def self.retrieve_all(object_class, login, retrieve_nulls = false)
         #print "calling retrieve all for: #{object_class::METHOD_PREFIX}_list\n"
         results = self.call_server("#{object_class::METHOD_PREFIX}_list", login, {})
-        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, login) if !hash.nil? and (retrieve_nulls or hash["id"] >= 0) }
+        results = results.collect {|hash| ManagedObject.from_hash(object_class, hash, login) if !hash.nil? and (retrieve_nulls or hash["id"].class==String or hash["id"] >= 0) }
         results.reject! { |foo| foo.nil? }
         return results
     end
@@ -135,31 +135,13 @@ class ManagedObject
                 # determine the names and types of variables the instance should have
                class_attributes = object_class::ATTR_LIST[key.to_sym]
                # if we don't understand this particular variable, we have a serious problem
-               raise RuntimeError.new(_("class attributes are unknown for #{key}")) if class_attributes.nil?
+               # FIXME removed _("") call to avoid errors
+               #raise RuntimeError.new(_("class attributes are unknown for #{key}")) if class_attributes.nil?
+               raise RuntimeError.new("class attributes are unknown for #{key}") if class_attributes.nil?
              
                # how we vivify the object depends on what type it is
-               atype = class_attributes[:type]
-               if [ Fixnum, Integer ].include?(atype) and value.kind_of?(String)
-                   new_item = value.empty? ? nil : value.to_i()
-               elsif [ Float ].include?(atype) and value.kind_of?(String)
-                   new_item = value.empty? ? nil : value.to_f()
-               elsif [ Fixnum, Integer, Float ].include?(atype) and value.kind_of?(Numeric)
-                   new_item = value
-               elsif atype == Boolean
-                   new_item = [true,"true"].include?(value) ? true : false
-               elsif atype == String
-                   new_item = value
-	       # if we start using arrays with non-string types this will need to be enhanced
-               elsif atype == Array
-                   new_item = value
-               elsif atype.methods.include?("from_hash")
-                   # ManagedObjects result in recursive calls...
-                   raise RuntimeError.new(_("No child arguments?")) if not value.is_a?(Hash) 
-                   new_item = self.from_hash(atype, value, login)
-               else
-                   # we have no idea what to do with this...
-                   raise RuntimeError.new(_("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}"))
-               end
+               new_item = self.convert_value(object_class, class_attributes[:type], key, value, login)
+
                # this data element was processed fine, so create the item
                # this is roughly equivalent to python's setattr
                object_instance.method(key.to_s+"=").call(new_item)
@@ -172,7 +154,35 @@ class ManagedObject
 
     end
 
-    
+    def self.convert_value(object_class, atype, key, value, login)
+        if [ Fixnum, Integer ].include?(atype) and value.kind_of?(String)
+            new_item = value.empty? ? nil : value.to_i()
+        elsif [ Float ].include?(atype) and value.kind_of?(String)
+            new_item = value.empty? ? nil : value.to_f()
+        elsif [ Fixnum, Integer, Float ].include?(atype) and value.kind_of?(Numeric)
+            new_item = value
+        elsif atype == Boolean
+            new_item = [true,"true"].include?(value) ? true : false
+        elsif atype == String
+            new_item = value
+        elsif atype.class == Array and atype[0] == Array
+	    new_item = value.collect do |x| 
+	        self.convert_value(object_class, atype[1], key, x, login)
+            end
+        elsif atype.methods.include?("from_hash")
+            # ManagedObjects result in recursive calls...
+            # FIXME removed _("") call to avoid errors
+            #raise RuntimeError.new(_("No child arguments?")) if not value.is_a?(Hash) 
+            raise RuntimeError.new("No child arguments?") if not value.is_a?(Hash) 
+            new_item = self.from_hash(atype, value, login)
+        else
+            # we have no idea what to do with this...
+            # FIXME removed _("") call to avoid errors
+            #raise RuntimeError.new(_("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}"))
+            raise RuntimeError.new("Model class #{object_class.to_s} load error for #{key} of type #{atype.to_s} and value type #{value.class()}")
+        end
+        return new_item
+    end    
 
     # this function is called when needing to map an object back into something that is usable as XMLRPC
     # arguments, for instance, when editing a form and needing to send down the new values.

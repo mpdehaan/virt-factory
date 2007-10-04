@@ -36,9 +36,10 @@ class Tag(web_svc.AuthWebSvc):
             tags = item["tags"]
             for tag_name in tags:
                 if not tag_dict.has_key(tag_name):
-                    tag_dict[tag_name]={"name": tag_name,
+                    tag_dict[tag_name]={"id": tag_name,
+                                        "name": tag_name,
                                         "machines": [],
-                                        "deployents": [] }
+                                        "deployments": [] }
                 tag_dict[tag_name][module_key].append(item)
         return tag_dict
 
@@ -59,6 +60,9 @@ class Tag(web_svc.AuthWebSvc):
         @rtype: dict
         @raise NoSuchObjectException: On object not found.
         """
+        # also accept id for name to make WUI happy
+        if args.has_key('id') and (not args.has_key('name')):
+            args["name"]=args["id"]
         required = ('name',)
         FieldValidator(args).verify_required(required)
         return success(self.get_tag_dict()[args["name"]])

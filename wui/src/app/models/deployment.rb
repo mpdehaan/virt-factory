@@ -21,7 +21,7 @@ class Deployment < ManagedObject
        :is_locked          => { :type => Integer },
        :auto_start         => { :type => Integer },
        :last_heartbeat     => { :type => Integer },
-       :tags               => {:type => Array},
+       :tags               => {:type => [Array, String]},
        :new_tags           => {:type => String} 
     }
     self.set_attrs(ATTR_LIST)

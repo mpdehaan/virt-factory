@@ -27,7 +27,7 @@ class Machine < ManagedObject
                   :is_locked => {:type => Integer},
                   :last_heartbeat => {:type => Integer},
                   :state => {:type => String},
-                  :tags => {:type => Array},
+                  :tags => {:type => [Array, String]},
                   :new_tags => {:type => String}
     }
 

@@ -40,6 +40,11 @@ module ApplicationHelper
            <li><A HREF="#{app_root}/task/list"><%= _("View Task Queue") %></A></li>
            </ul>
        </li>
+       <li><strong><%= _("Tags") %></strong>
+           <ul>
+           <li><A HREF="#{app_root}/tag/list"><%= _("View Tags") %></A></li>
+           </ul>
+       </li>
        <li><strong><%= _("Users") %></strong>
            <ul>
            <li><A HREF="#{app_root}/user/list"><%= _("View Users") %></A></li>
