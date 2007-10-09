@@ -277,6 +277,7 @@ stop_services()
     /etc/init.d/virt-factory-wui stop
     /etc/init.d/virt-factory-node-server stop
     /etc/init.d/postgresql stop
+    /etc/init.d/qpidd stop
 }
 
 start_services()
