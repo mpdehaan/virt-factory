@@ -40,7 +40,9 @@ class Machine(web_svc.AuthWebSvc):
 			"machine_get_by_hostname": self.get_by_hostname,
 			"machine_get_by_mac_address": self.get_by_mac_address,
                         "machine_get_profile_choices": self.get_profile_choices,
-                        "machine_get_by_tag": self.get_by_tag
+                        "machine_get_by_tag": self.get_by_tag,
+                        "machine_add_tag": self.add_tag,
+                        "machine_remove_tag": self.remove_tag
         }
         web_svc.AuthWebSvc.__init__(self)
 
@@ -286,6 +288,50 @@ class Machine(web_svc.AuthWebSvc):
             return codes.success(results)
         finally:
             session.close()
+
+    def add_tag(self, token, args):
+        """
+        Given  machine id and tag string, apply the tag to the machine
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of machine attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        machine = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = machine["tags"]
+        if not tag in tags:
+            tags.append(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return codes.success()
+
+    def remove_tag(self, token, args):
+        """
+        Given  machine id and tag string, remove the tag from the machine
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of machine attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        machine = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = machine["tags"]
+        if tag in tags:
+            tags.remove(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return codes.success()
 
     def get_by_regtoken(self, token, args):
         # FIXME: this code is currently non-operational in VF 0.0.3 and later

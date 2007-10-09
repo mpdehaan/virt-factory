@@ -24,4 +24,39 @@ class TagController < AbstractObjectController
        Tag
    end
 
+   def edit
+        super
+        @machines = ManagedObject.retrieve_all(Machine, get_login)
+        @deployments = ManagedObject.retrieve_all(Deployment, get_login)
+    end
+
+    def edit_submit
+        machine_ids = params["form"]["machine_ids"]
+        machine_ids = [] if machine_ids.nil?
+        deployment_ids = params["form"]["deployment_ids"]
+        deployment_ids = [] if deployment_ids.nil?
+        super
+    end
+
+    def remove_machine
+        args = { "id" => params[:machine_id], "tag" => params[:id]}
+        begin
+            ManagedObject.call_server("machine_remove_tag", get_login, args)
+        rescue XMLRPCClientException => ex
+            set_flash_on_exception(ex)
+        end
+        redirect_to :action=> "edit", :id => params[:id]
+    end
+
+    def remove_deployment
+        args = { "id" => params[:deployment_id], "tag" => params[:id]}
+        begin
+            ManagedObject.call_server("deployment_remove_tag", get_login, args)
+        rescue XMLRPCClientException => ex
+            set_flash_on_exception(ex)
+        end
+        redirect_to :action=> "edit", :id => params[:id]
+    end
+
+
 end

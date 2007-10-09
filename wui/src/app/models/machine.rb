@@ -46,6 +46,13 @@ class Machine < ManagedObject
         super
     end
 
+    def label
+        "#{self.hostname} (#{self.mac_address})"
+    end
+    def id_str
+        "#{self.id}"
+    end
+
     def get_profile_choices
         ManagedObject.call_server("machine_get_profile_choices", 
                                   self.login, { "id" => id }, id.to_s)
