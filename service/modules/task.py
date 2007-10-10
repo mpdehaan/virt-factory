@@ -26,12 +26,14 @@ class Task(web_svc.AuthWebSvc):
        Constructor.  Add methods that we want registered.
        """       
        self.methods = {
-           "task_add"        : self.add,
-           "task_add_by_tag" : self.add_by_tag,
-           "task_edit"       : self.edit,
-           "task_list"       : self.list,
-           "task_get"        : self.get,
-           "task_delete"     : self.delete
+           "task_add"               : self.add,
+           "task_add_by_tag"        : self.add_by_tag,
+           "task_edit"              : self.edit,
+           "task_list"              : self.list,
+           "task_get"               : self.get,
+           "task_delete"            : self.delete,
+           "task_get_by_machine"    : self.get_by_machine,
+           "task_get_by_deployment" : self.get_by_deployment
            }
        web_svc.AuthWebSvc.__init__(self)
    
@@ -182,6 +184,42 @@ class Task(web_svc.AuthWebSvc):
         finally:
             session.close()
 
+
+    def get_by_machine(self, token, args):
+        """
+        Returns a list of tasks for a given host
+        """
+        required = ('machine_id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            machine_id = args['machine_id']
+            offset, limit = self.offset_and_limit(args)
+            query = session.query(db.Task).limit(limit).offset(offset)
+            for task in query.select_by(machine_id = machine_id):
+                result.append(self.expand(task))
+            return success(result)
+        finally:
+            session.close()
+
+    def get_by_deployment(self, token, args):
+        """
+        Returns a list of tasks for a given guest
+        """
+        required = ('deployment_id',)
+        FieldValidator(args).verify_required(required)
+        session = db.open_session()
+        try:
+            result = []
+            deployment_id = args['deployment_id']
+            offset, limit = self.offset_and_limit(args)
+            query = session.query(db.Task).limit(limit).offset(offset)
+            for task in query.select_by(deployment_id = deployment_id):
+                result.append(self.expand(task))
+            return success(result)
+        finally:
+            session.close()
 
     def get(self, token, args):
         """

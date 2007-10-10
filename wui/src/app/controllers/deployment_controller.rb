@@ -15,6 +15,9 @@ class DeploymentController < AbstractObjectController
         if !params[:id].nil?
             obj = ManagedObject.retrieve(Deployment, get_login, params[:id])
             # obj.refresh() -- do not call this from WUI (at least for now)
+            results = ManagedObject.call_server("task_get_by_deployment", get_login, 
+                                               {"deployment_id"=> params[:id]})
+            @tasks = results.collect {|hash| ManagedObject.from_hash(Task, hash, get_login) }
         end
 
         # do the regular get stuff here.
