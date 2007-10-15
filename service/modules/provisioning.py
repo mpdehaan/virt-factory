@@ -582,6 +582,8 @@ class Provisioning(web_svc.AuthWebSvc):
 
         settings["server"] = vf_config["this_server"]["address"]
         settings["next_server"] = vf_config["this_server"]["address"]
+        settings["default_virt_bridge"] = "virbr0"
+
         # FIXME: load other defaults that the user might want to configure in cobbler
 
         print NOW_SAVING
