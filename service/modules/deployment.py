@@ -50,7 +50,9 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_get": self.get,
 			"deployment_get_by_mac_address": self.get_by_mac_address,
 			"deployment_get_by_hostname": self.get_by_hostname,
-                        "deployment_get_by_tag": self.get_by_tag}
+                        "deployment_get_by_tag": self.get_by_tag,
+                        "deployment_add_tag": self.add_tag,
+                        "deployment_remove_tag": self.remove_tag}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -210,28 +212,37 @@ class Deployment(web_svc.AuthWebSvc):
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff', 'tags')
-         
-        try:
-            machine_obj = machine.Machine()
-            result = machine_obj.get(token, { "id" : args["machine_id"]})
-            mac = result.data["mac_address"]
-        except VirtFactoryException:
-            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-        try:
-            profile_obj = profile.Profile()
-            result = profile_obj.get(token, { "id" : args["profile_id"] })
-            profilename = result.data["name"]
-        except VirtFactoryException:
-            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+        if args.has_key("machine_id"):
+            try:
+                machine_obj = machine.Machine()
+                result = machine_obj.get(token, { "id" : args["machine_id"]})
+                mac = result.data["mac_address"]
+            except VirtFactoryException:
+                raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-        display_name = mac + "/" + profilename
-        args["display_name"] = display_name
+        if args.has_key("profile_id"):
+            try:
+                profile_obj = profile.Profile()
+                result = profile_obj.get(token, { "id" : args["profile_id"] })
+                profilename = result.data["name"]
+            except VirtFactoryException:
+                raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+
         args["netboot_enabled"] = 0 # never PXE's
 
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
+            if args.has_key("machine_id") or args.has_key("profile_id"):
+                if not args.has_key("machine_id"):
+                    mac = deployment["machine"]["mac_address"]
+                if not args.has_key("profile_id"):
+                    profilename=deployment["profile"]["name"]
+                display_name = mac + "/" + profilename
+                args["display_name"] = display_name
+                
+                
             deployment.update(args, filter)
             session.save(deployment)
             session.flush()
@@ -405,6 +416,50 @@ class Deployment(web_svc.AuthWebSvc):
         return success(results)
 
 
+
+    def add_tag(self, token, args):
+        """
+        Given  deployment id and tag string, apply the tag to the deployment
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        deployment = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = deployment["tags"]
+        if not tag in tags:
+            tags.append(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return success()
+
+    def remove_tag(self, token, args):
+        """
+        Given  deployment id and tag string, remove the tag from the deployment
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        deployment = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = deployment["tags"]
+        if tag in tags:
+            tags.remove(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return success()
 
     def get_by_mac_address(self, token, args):
         """
@@ -580,7 +635,7 @@ class Deployment(web_svc.AuthWebSvc):
                     if in_tag.strip() == tag.strip():
                         result.append(deployment)
                         break
-        return codes.success(result)
+        return success(result)
 
     def expand(self, deployment):
         result = deployment.get_hash()

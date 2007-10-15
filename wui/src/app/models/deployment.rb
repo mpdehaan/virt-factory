@@ -39,6 +39,10 @@ class Deployment < ManagedObject
         (machine.nil? ? "no machine" : machine.hostname) + ": " + (profile.nil? ? "no profile" : profile.name)
     end
 
+    def label
+        "#{self.hostname} (#{self.mac_address})"
+    end
+
     def __virt_call(id, op)
         ManagedObject.call_server(op, self.login, { "id" => id }, id.to_s)
     end

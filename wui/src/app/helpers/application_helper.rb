@@ -43,6 +43,7 @@ module ApplicationHelper
        <li><strong><%= _("Tags") %></strong>
            <ul>
            <li><A HREF="#{app_root}/tag/list"><%= _("View Tags") %></A></li>
+           <li><A HREF="#{app_root}/tag/edit"><%= _("Add a Tag") %></A></li>
            </ul>
        </li>
        <li><strong><%= _("Users") %></strong>

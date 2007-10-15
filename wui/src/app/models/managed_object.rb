@@ -51,11 +51,19 @@ class ManagedObject
                    
                     if !instance_variable_get(attr_symbol)
                         id = instance_variable_get(id_symbol) 
-                        if (!id.nil? && id >= 0)
-                           object = ManagedObject.retrieve(metadata[:type], self.login, id) 
-                           instance_variable_set(attr_symbol, object)
+			if id.is_a?(Array)
+                            object = []
+			    id.each do |one_id|
+                               object << ManagedObject.retrieve(metadata[:type], self.login, one_id) 
+                            end
+                            instance_variable_set(attr_symbol, object)
+                        else
+                            if (!id.nil? && id >= 0)
+                               object = ManagedObject.retrieve(metadata[:type], self.login, id) 
+                               instance_variable_set(attr_symbol, object)
+                            end
                         end
-                    end
+                     end
                     return instance_variable_get(attr_symbol)
 
                 end # define_method
@@ -72,7 +80,7 @@ class ManagedObject
     # the backend will ignore the ones it doesn't need or can't change.
 
     def save
-        operation = (@id.nil? ||  @id < 0) ? "add" : "edit"
+        operation = (@id.nil? || (@id.is_a?(Integer) && (@id < 0)) || (@id.is_a?(String) && @id.empty?)) ? "add" : "edit"
         ManagedObject.call_server("#{self.class::METHOD_PREFIX}_#{operation}", 
                                        self.login, self.to_hash, objname)
     end

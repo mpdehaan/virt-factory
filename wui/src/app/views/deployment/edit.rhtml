@@ -93,6 +93,45 @@
       <% end %>
 
       <% end %>
+      <% if @operation == "edit" %>
+        <h2>Tasks for this guest</h2>
+        <% if @tasks.length > 0 %>
+        <table class='listing'>
+           <thead>
+              <th><%= _("User") %></th>
+              <th><%= _("Action") %></th>
+              <th><%= _("Machine") %></th>
+              <th><%= _("Deployment") %></th>
+              <th><%= _("State") %></th>
+              <!-- FIXME: UI should convert to localtime -->
+              <th><%= _("Start Time") %></th>
+           </thead>
+        <% @tasks.each do |item| %>
+           <TR class="<%= cycle('odd','even') %>">
+               <TD> <% if item.get_user().username != "system" %>
+                        <%= link_to item.get_user().username, :controller => "user", :action => "edit", :id => item.user_id %>
+                    <% else %>
+                        system
+                    <% end %>
+               </TD>
+               <TD> <%= item.action_type %> </TD>
+               <TD> <%= link_to !item.get_machine().hostname.nil? ? item.get_machine().hostname : item.get_machine().mac_address, :controller => "machine", :action => "edit", :id => item.machine_id %> </TD>
+               <TD> <% if item.deployment.nil? %>
+                        (N/A)
+                    <% else %>
+                        <%= link_to !item.get_deployment().hostname.nil? ?  item.get_deployment().hostname : _("(Unknown)"), :controller => "deployment", :action => "edit", :id => item.deployment_id %> 
+                    <% end %>
+               </TD>
+               <TD> <%= item.state %> </TD>
+               <TD> <%= Time.at(item.time) %> </TD>
+           </TR>
+        <% end %>
+        </TABLE>
+        <% else %>
+           <%= _("There are no scheduled tasks for this guest now.") %>
+        <% end %>
+      <% end %>
+
       </div>
 
       <!-- FIXME: at the bottom of this page, or elsewhere, we need buttons to change the state of the 

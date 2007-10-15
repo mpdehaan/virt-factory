@@ -11,6 +11,9 @@ class MachineController < AbstractObjectController
             obj = ManagedObject.retrieve(Machine, get_login, params[:id])
             # obj.refresh() -- do not call this from WUI (at least for now)
             @profile_choices = obj.get_profile_choices().collect { |x| x["name"] }
+            results = ManagedObject.call_server("task_get_by_machine", get_login, 
+                                               {"machine_id"=> params[:id]})
+            @tasks = results.collect {|hash| ManagedObject.from_hash(Task, hash, get_login) }
         end
 
 

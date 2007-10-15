@@ -413,7 +413,7 @@ class CobblerTranslatedSystem:
        
        kernel_options = ""
        # kickstart_metadata = ""
-       pxe_address = ""
+       ip_address = ""
 
        if from_db.has_key("kernel_options"):
            kernel_options = from_db["kernel_options"]
@@ -431,7 +431,7 @@ class CobblerTranslatedSystem:
        # FIXME: be sure this field name corresponds with the new machine/deployment field
        # once it is added.
        if from_db.has_key("ip_address"):
-           pxe_address = from_db["ip_address"]
+           ip_address = from_db["ip_address"]
 
        if is_virtual:
            # make sure guests get registered as guests, not hosts
@@ -445,8 +445,8 @@ class CobblerTranslatedSystem:
        else:
            new_item.set_netboot_enabled(False)
 
-       if pxe_address != "":
-           new_item.set_pxe_address(pxe_address)
+       if ip_address != "":
+           new_item.set_ip_address(ip_address)
        
        if from_db.has_key("netboot_enabled"):
            new_item.set_netboot_enabled(from_db["netboot_enabled"])

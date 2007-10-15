@@ -26,6 +26,8 @@
                      <%= deployment.hostname %> (<%= deployment.mac_address %>)<br/>
                  <% end %>
              </TD>
+             <TD> <%= link_to "[edit]", :controller => "tag", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "[delete]", :controller => "tag", :action=> "delete", :id=> item.id %></TD>
          </TR>
       <% end %>
       </TABLE>
