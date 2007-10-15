@@ -66,10 +66,13 @@ class Base(object):
             raise NoSuchObjectException(comment=comment)
         return result
     
-    def __list(self, session, offset=0, limit=0):
+    def __list(self, session, offset=0, limit=0, where_args=[]):
         result = []        
         query = session.query(self).offset(offset).limit(limit)
-        result = query.select()
+        if where_args:
+            result = query.filter_by(**where_args).all()
+        else:
+            result = query.select()
         return result
     
     get = classmethod(__get)
@@ -213,7 +216,8 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('state', String(255)),
-            Column('last_heartbeat', Integer)
+            Column('last_heartbeat', Integer),
+            Column('tags', String(4000))
         ))
          
         Database.tables.append(Table('deployments', Database.meta,
@@ -236,7 +240,8 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('auto_start', Integer),
-            Column('last_heartbeat', Integer)
+            Column('last_heartbeat', Integer),
+            Column('tags', String(4000))
         ))
         
         Database.tables.append(Table('regtokens', Database.meta,

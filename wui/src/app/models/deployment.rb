@@ -20,7 +20,9 @@ class Deployment < ManagedObject
        :netboot_enabled    => { :type => Integer },
        :is_locked          => { :type => Integer },
        :auto_start         => { :type => Integer },
-       :last_heartbeat     => { :type => Integer } 
+       :last_heartbeat     => { :type => Integer },
+       :tags               => {:type => [Array, String]},
+       :new_tags           => {:type => String} 
     }
     self.set_attrs(ATTR_LIST)
      
@@ -35,6 +37,10 @@ class Deployment < ManagedObject
         machine = self.get_machine()
         profile = self.get_profile()
         (machine.nil? ? "no machine" : machine.hostname) + ": " + (profile.nil? ? "no profile" : profile.name)
+    end
+
+    def label
+        "#{self.hostname} (#{self.mac_address})"
     end
 
     def __virt_call(id, op)

@@ -14,10 +14,6 @@
             <!-- FIXME: UI should convert to localtime -->
             <th><%= _("Start Time") %></th>
          </thead>
-      <% else %>
-         <%= _("There are no scheduled tasks at this time.") %>
-      <% end %>
-
       <% @items.each do |item| %>
          <TR class="<%= cycle('odd','even') %>">
              <TD> <% if item.get_user().username != "system" %>
@@ -38,10 +34,9 @@
              <TD> <%= Time.at(item.time) %> </TD>
          </TR>
       <% end %>
-
-      <% if @items.length > 0 %>
       </TABLE>
+      <% else %>
+         <%= _("There are no scheduled tasks at this time.") %>
       <% end %>
-
       </div>
 

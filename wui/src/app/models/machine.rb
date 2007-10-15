@@ -26,7 +26,9 @@ class Machine < ManagedObject
                   :puppet_node_diff => {:type => String},
                   :is_locked => {:type => Integer},
                   :last_heartbeat => {:type => Integer},
-                  :state => {:type => String}
+                  :state => {:type => String},
+                  :tags => {:type => [Array, String]},
+                  :new_tags => {:type => String}
     }
 
     self.set_attrs(ATTR_LIST)
@@ -42,6 +44,13 @@ class Machine < ManagedObject
     def save
         self.is_container = self.profile.is_container unless self.profile.nil?
         super
+    end
+
+    def label
+        "#{self.hostname} (#{self.mac_address})"
+    end
+    def id_str
+        "#{self.id}"
     end
 
     def get_profile_choices

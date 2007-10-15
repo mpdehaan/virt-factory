@@ -28,6 +28,7 @@ import regtoken
 import provisioning
 from server import config_data
 
+import re
 import subprocess
 import socket
 import traceback
@@ -48,7 +49,10 @@ class Deployment(web_svc.AuthWebSvc):
                         "deployment_list": self.list,
                         "deployment_get": self.get,
 			"deployment_get_by_mac_address": self.get_by_mac_address,
-			"deployment_get_by_hostname": self.get_by_hostname}
+			"deployment_get_by_hostname": self.get_by_hostname,
+                        "deployment_get_by_tag": self.get_by_tag,
+                        "deployment_add_tag": self.add_tag,
+                        "deployment_remove_tag": self.remove_tag}
 
         web_svc.AuthWebSvc.__init__(self)
 
@@ -117,8 +121,13 @@ class Deployment(web_svc.AuthWebSvc):
                     'mac_address',
                     'netboot_enabled',
                     'puppet_node_diff',
-                    'is_locked','auto_start','last_heartbeat')
+                    'is_locked',
+                    'auto_start',
+                    'last_heartbeat',
+                    'tags')
         self.logger.info(args)
+        if args.has_key('tags') and type(args['tags']) is list:
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -192,34 +201,48 @@ class Deployment(web_svc.AuthWebSvc):
         mac = None
         profilename = None
         required = ('id',)
-        optional = ('machine_id', 'state', 'display_name', 'hostname', 'ip_address', 'registration_token',
-             'mac_address', 'netboot_enabled', 'puppet_node_diff', 'is_locked', 'last_heartbeat','auto_start')
+        optional = ('machine_id', 'state', 'display_name',
+                    'hostname', 'ip_address', 'registration_token',
+                    'mac_address', 'netboot_enabled', 'puppet_node_diff',
+                    'is_locked', 'last_heartbeat','auto_start', 'tags')
         filter = ('id', 'profile_id')
+        if args.has_key('tags') and type(args['tags']) is list:
+            print "tags is a list: ", args['tags']
+            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
-        validator.verify_printable('puppet_node_diff')
-         
-        try:
-            machine_obj = machine.Machine()
-            result = machine_obj.get(token, { "id" : args["machine_id"]})
-            mac = result.data["mac_address"]
-        except VirtFactoryException:
-            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+        validator.verify_printable('puppet_node_diff', 'tags')
 
-        try:
-            profile_obj = profile.Profile()
-            result = profile_obj.get(token, { "id" : args["profile_id"] })
-            profilename = result.data["name"]
-        except VirtFactoryException:
-            raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+        if args.has_key("machine_id"):
+            try:
+                machine_obj = machine.Machine()
+                result = machine_obj.get(token, { "id" : args["machine_id"]})
+                mac = result.data["mac_address"]
+            except VirtFactoryException:
+                raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
 
-        display_name = mac + "/" + profilename
-        args["display_name"] = display_name
+        if args.has_key("profile_id"):
+            try:
+                profile_obj = profile.Profile()
+                result = profile_obj.get(token, { "id" : args["profile_id"] })
+                profilename = result.data["name"]
+            except VirtFactoryException:
+                raise InvalidArgumentsException(invalid_fields={"machine_id":REASON_ID})
+
         args["netboot_enabled"] = 0 # never PXE's
 
         session = db.open_session()
         try:
             deployment = db.Deployment.get(session, args['id'])
+            if args.has_key("machine_id") or args.has_key("profile_id"):
+                if not args.has_key("machine_id"):
+                    mac = deployment["machine"]["mac_address"]
+                if not args.has_key("profile_id"):
+                    profilename=deployment["profile"]["name"]
+                display_name = mac + "/" + profilename
+                args["display_name"] = display_name
+                
+                
             deployment.update(args, filter)
             session.save(deployment)
             session.flush()
@@ -394,6 +417,50 @@ class Deployment(web_svc.AuthWebSvc):
 
 
 
+    def add_tag(self, token, args):
+        """
+        Given  deployment id and tag string, apply the tag to the deployment
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        deployment = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = deployment["tags"]
+        if not tag in tags:
+            tags.append(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return success()
+
+    def remove_tag(self, token, args):
+        """
+        Given  deployment id and tag string, remove the tag from the deployment
+        @param token: A security token.
+        @type token: string
+        @param args: A dictionary of deployment attributes.
+            - id
+            - tag
+        @type args: dict
+        @raise SQLException: On database error
+        @raise NoSuchObjectException: On object not found.
+        """
+        required = ('id', 'tag',)
+        FieldValidator(args).verify_required(required)
+        deployment = self.get(token, {"id": args["id"]}).data
+        tag = args["tag"]
+        tags = deployment["tags"]
+        if tag in tags:
+            tags.remove(tag)
+            self.edit(token, {"id": args["id"], "tags": tags})
+        return success()
+
     def get_by_mac_address(self, token, args):
         """
         """
@@ -549,10 +616,35 @@ class Deployment(web_svc.AuthWebSvc):
             session.close()
 
 
+    def get_by_tag(self, token, args):
+        """
+        Return a list of all deployments tagged with the given tag
+        """
+        required = ('tag',)
+        FieldValidator(args).verify_required(required)
+        in_tag = args['tag']
+        deployments = self.list(None, {})
+        if deployments.error_code != 0:
+            return deployments
+
+        result = []
+        for deployment in deployments.data:
+            tags = deployment["tags"]
+            if tags is not None:
+                for tag in tags:
+                    if in_tag.strip() == tag.strip():
+                        result.append(deployment)
+                        break
+        return success(result)
+
     def expand(self, deployment):
         result = deployment.get_hash()
         result['machine'] = deployment.machine.get_hash()
         result['profile'] = deployment.profile.get_hash()
+        if result.has_key('tags') and result['tags'] is not None:
+            result['tags'] = re.compile('\s*,\s*').split(result['tags'])
+        else:
+            result['tags'] = []
         return result
 
 

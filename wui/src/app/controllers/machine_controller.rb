@@ -10,7 +10,10 @@ class MachineController < AbstractObjectController
         if !params[:id].nil?
             obj = ManagedObject.retrieve(Machine, get_login, params[:id])
             # obj.refresh() -- do not call this from WUI (at least for now)
-          @profile_choices = obj.get_profile_choices().collect { |x| x["name"] }
+            @profile_choices = obj.get_profile_choices().collect { |x| x["name"] }
+            results = ManagedObject.call_server("task_get_by_machine", get_login, 
+                                               {"machine_id"=> params[:id]})
+            @tasks = results.collect {|hash| ManagedObject.from_hash(Task, hash, get_login) }
         end
 
 
@@ -28,8 +31,24 @@ class MachineController < AbstractObjectController
                 @profiles << [profile.name, profile.id] unless profile.valid_targets == PROFILE_IS_VIRT
             end
         end
+
+        #get list of current tags from virt-factory
+        begin
+            @tags = ManagedObject.call_server("tag_get_names", get_login, {})
+        rescue XMLRPCClientException => ex
+            set_flash_on_exception(ex)
+        end
     end
 
+    def edit_submit
+        tags = params["form"]["tags"]
+        tags = [] if tags.nil?
+        new_tags = params["form"]["new_tags"]
+        params["form"]["tags"] = tags + new_tags.strip.split(%r{\s*,\s*})
+        params["form"].delete("new_tags")
+        super
+    end
+        
     def object_class
         Machine
     end

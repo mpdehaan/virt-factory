@@ -1,0 +1,108 @@
+      <% @page_title = @operation.capitalize() + " A Tag" %>
+	<% @primary =  "tag" %>
+	<% @seconardy = "edit" %> 
+
+      <div id="content-main">
+      <% if @operation == "edit" %>
+        <h2> Hosts tagged with <%=@item.name %></h2>
+        <% if @item.machines.length > 0 %>
+          <table class='listing'>
+            <thead>
+              <th><%= _("Hostname") %></th>
+              <th><%= _("Profile") %></th>
+              <th><%= _("Mac Address") %></th>
+              <th colspan="2"><%= _("Actions") %></th>
+            </thead>
+          <% @item.machines.each do |item| %>
+            <% if item.is_locked == 1 %>
+              <TR BGCOLOR="#555555">
+            <% else %>
+              <TR class="<%= cycle('odd','even') %>">
+            <% end %>
+             
+                <TD> <%= item.hostname ? item.hostname : _("(Pending)") %> </TD>
+                <TD> <%= (link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id) if item.profile %></TD>
+                <TD> <%= item.mac_address %> </TD>
+                <TD> <%= item.state       %> </TD>
+                <% if item.is_locked == 1 %>
+                  <TD COLSPAN="2"><%= _("(Locked)") %></TD>
+                <% else %>
+                  <TD> <%= link_to "[edit]", :controller => "machine", :action=> "edit", :id=> item.id %></TD>
+                  <TD> <%= link_to "[remove tag]", :controller => "tag", :action=> "remove_machine", :id=>@item.id, :machine_id=> item.id %></TD>
+                <% end %>
+            </TR>
+          <% end %>
+        </TABLE>
+        <% else %>
+          <%= _("No hosts are tagged with #{@item.name}.") %>
+        <% end %>
+      
+
+
+        <h2> Guests tagged with <%=@item.name %></h2>
+        <% if @item.deployments.length > 0 %>
+          <table class='listing'>
+            <thead>
+              <th><%= _("Host Machine") %></th>
+              <th><%= _("Virtual Hostname") %></th>
+              <th><%= _("IP") %></th>
+              <th><%= _("Mac Address") %></th>
+              <th><%= _("Profile") %></th>
+              <th><%= _("State") %></th>
+              <th colspan="2"><%= _("Actions") %></th>
+            </thead>
+          <% @item.deployments.each do |item| %>
+           <TR class="<%= cycle('odd','even') %>">
+             <TD> <%= link_to item.machine.hostname, :controller => "machine", :action=> "edit", :id=> item.machine.id %></TD>
+             <TD> <%= item.hostname ? item.hostname : "(Unknown)" %> </TD>
+             <TD> <%= item.ip_address ? item.ip_address : "(Unknown)" %> </TD>
+             <TD> <%= item.mac_address ? item.mac_address : "(Unknown)" %> </TD>
+             <TD> <%= link_to item.profile.name, :controller => "profile", :action=> "view", :id=> item.profile.id %></TD>
+             <TD> <%= item.state %> </TD>
+             <TD> <%= link_to "[edit]", :controller => "deployment", :action=> "edit", :id=> item.id %></TD>
+             <TD> <%= link_to "[remove tag]", :controller => "tag", :action=> "remove_deployment", :id=>@item.id, :deployment_id=> item.id %></TD>
+           </TR>
+          <% end %>
+          </TABLE>
+        <% else %>
+          <%= _("No guests are tagged with #{@item.name}.") %>
+        <% end %>
+      <h2> <%= _("Modify this tag") %></h2>
+      <% end %>
+      <br/>
+      <% form_for :form, @item, :url => { :action => "edit_submit" } do |f| %>
+      <%= f.hidden_field :id %>
+      <%= f.hidden_field :name if @operation == "edit" %>
+      <table class='details'>
+         <TR>
+            <TD><%= _("Name") %></TD>
+            <TD><%= if @operation == "add"
+	                f.text_field :name
+	            else
+ 	                @item.name
+                    end %>
+             </TD>
+         </TR>
+         <% if @operation == "edit" %>
+         <% end %>
+         <TR>
+            <TD><%= _("Add/Remove Hosts") %></TD>
+            <TD>
+                <%= f.collection_select(:machine_ids,  @machines, :id, :label,
+                    {},"multiple"=>'multiple',"size"=>10) %></td>
+            </TD>
+         </TR>
+         <TR>
+            <TD><%= _("Add/Remove Guests") %></TD>
+            <TD>
+                <%= f.collection_select(:deployment_ids,  @deployments, :id, :label,
+                    {},"multiple"=>'multiple',"size"=>10) %></td>
+            </TD>
+         </TR>
+         <TR>
+            <TD COLSPAN="2"><input type="submit" value="<%= @operation=="edit" ?  _("Edit") : _("Add") %>"></TD>
+         </TR>
+      </TABLE>
+      <% end %>
+      </div>
+
