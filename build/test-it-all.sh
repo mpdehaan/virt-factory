@@ -262,6 +262,21 @@ setup_vf_server()
     cp -f settings.testing /etc/virt-factory/settings
 }
 
+setup_cobbler()
+{
+    msg "setting up cobbler config"
+
+    HN=`hostname`
+    cp cobbler.settings cobbler.settings.testing
+    export HN
+    perl -p -i -e "s/ADDRESS/\$ENV{'HN'}/g" cobbler.settings.testing
+    cp -f cobbler.settings.testing /var/lib/cobbler/settings
+
+
+}
+
+
+
 setup_puppet()
 {
     # FIXME: can this be removed?
@@ -558,6 +573,11 @@ if [ "$START_SERVICES" == "Y" ] ; then
     start_services
     start_client_services
 fi
+
+
+setup_cobbler
+
+
 
 # This creates the vf_repo as well, though we probably need to create the sample
 # repo somewhere ($REMOTE_HOST?) and set the settings to sync from there to here,

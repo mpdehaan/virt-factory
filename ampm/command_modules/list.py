@@ -35,18 +35,21 @@ class List(command_class.Command):
         try:
             opts, args = getopt.getopt(args, "hvm",
                                        ["help",
-                                        "verbose",])
+                                        "verbose",
+                                        "machine="])
         except getopt.error, e:
             print _("Error parsing list arguments: %s") % e
             # FIXME: error handling
 
-
+        machine = None
         for (opt, val) in opts:
             if opt in ["-h", "--help"]:
                 self.print_help()
                 return
             if opt in ["-v", "--verbose"]:
                 self.verbose = self.verbose + 1
+            if opt in ["--machine"]:
+                machine = val
 
         if not args:
             self.print_help()
@@ -75,7 +78,7 @@ class List(command_class.Command):
             self.list_profiles()
 
         if mode == "tasks":
-            self.list_tasks()
+            self.list_tasks(machine)
 
         if mode == "users":
             self.list_users()
@@ -115,8 +118,20 @@ class List(command_class.Command):
                                                    deployment['machine'].get('hostname', '(unknown"'),     
                                                    deployment['state'])
 
-    def list_tasks(self):
-        (retcode, data) = self.api.task_list()
+    def list_tasks(self, machine=None):
+        where_args = {}
+        if machine:
+            # FIXME: look machine_id
+            (retcode, data) = self.api.machine_get_by_hostname(machine)
+            if self.verbose > 2:
+                pprint.pprint(data)
+            if data['data']:
+                machine_id = data['data'][0]['id']
+                where_args = {'machine_id': machine_id}
+            else:
+                where_args = {"machine_id": -1}
+        
+        (retcode, data) = self.api.task_list(where_args)
         if self.verbose > 2:
             pprint.pprint(data)
 

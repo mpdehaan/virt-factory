@@ -155,7 +155,7 @@ class Task(web_svc.AuthWebSvc):
             session.close()
    
 
-    def list(self, token, args):
+    def list(self, token, args, where_args=None):
         """
         Get all tasks.
         @param token: A security token.
@@ -164,6 +164,7 @@ class Task(web_svc.AuthWebSvc):
         @type args: dict
            - offset (optional)
            - limit (optional)
+           - machine_id (optional)
         @return: A list of tasks.
         @rtype: [dict,]
             - id
@@ -178,7 +179,8 @@ class Task(web_svc.AuthWebSvc):
         try:
             result = []
             offset, limit = self.offset_and_limit(args)
-            for task in db.Task.list(session, offset, limit):
+            for task in db.Task.list(session, offset, limit,
+                                     where_args=where_args):
                 result.append(self.expand(task))
             return success(result)
         finally:

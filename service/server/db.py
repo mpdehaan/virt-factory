@@ -66,10 +66,13 @@ class Base(object):
             raise NoSuchObjectException(comment=comment)
         return result
     
-    def __list(self, session, offset=0, limit=0):
+    def __list(self, session, offset=0, limit=0, where_args=[]):
         result = []        
         query = session.query(self).offset(offset).limit(limit)
-        result = query.select()
+        if where_args:
+            result = query.filter_by(**where_args).all()
+        else:
+            result = query.select()
         return result
     
     get = classmethod(__get)

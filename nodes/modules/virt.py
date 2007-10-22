@@ -86,7 +86,6 @@ class Virt(web_svc.WebSvc):
         koan_args = [
             "/usr/bin/koan",
             "--virt",
-            "--virt-graphics",  # enable VNC
             "--%s=%s" % (target, target_name),
             "--server=%s" % self.server_name
         ]
