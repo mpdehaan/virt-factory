@@ -76,7 +76,7 @@
                 <TD><%= _("Current Tags") %></TD>
                 <TD>
                     <% @item.tags.each do |tag| %>
-                        <%= tag %><br/>
+                        <%= tag.name %><br/>
                     <% end %>
                 </TD>
              </TR>
@@ -84,13 +84,9 @@
          <TR>
             <TD><%= _("Add/Remove Tags") %></TD>
             <TD>
-                <%= f.collection_select(:tags,  @tags, :strip, :strip,
+                <%= f.collection_select(:tag_ids,  @tags, :id, :name,
                     {},"multiple"=>'multiple',"size"=>10) %></td>
             </TD>
-         </TR>
-         <TR>
-            <TD><%= _("New Tags") %></TD>
-            <TD><%= f.text_field :new_tags %></TD>
          </TR>
          <TR>
             <% if @operation == "add" %>

@@ -199,7 +199,15 @@ class ManagedObject
         hash = Hash.new
         self.class::ATTR_LIST.each do |attr, metadata|
             if (newval = self.method(attr).call)
-                if (newval.methods.include?("to_hash"))
+                if (newval.is_a?(Array))
+                    newval = newval.collect do |x|
+                        if (x.methods.include?("to_hash"))
+                            x.to_hash
+                        else
+                            x
+                        end
+                    end
+                elsif (newval.methods.include?("to_hash"))
                     newval = newval.to_hash
                 end
                 hash[attr.to_s] = newval 
@@ -222,7 +230,6 @@ class ManagedObject
 
         # the return signature for a backend API method is usually (rc, hash) where hash contains
         # one or more of the following fields.  See explanation in XMLRPCClientException class.
- 
         (rc, rawdata) = @@server.call(method_name, login, args)
 
         unless rc == ERR_SUCCESS

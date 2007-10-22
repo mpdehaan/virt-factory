@@ -26,6 +26,7 @@ import web_svc
 import task
 import regtoken
 import provisioning
+import tag
 from server import config_data
 
 import re
@@ -124,10 +125,8 @@ class Deployment(web_svc.AuthWebSvc):
                     'is_locked',
                     'auto_start',
                     'last_heartbeat',
-                    'tags')
+                    'tag_ids')
         self.logger.info(args)
-        if args.has_key('tags') and type(args['tags']) is list:
-            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff')
@@ -169,6 +168,9 @@ class Deployment(web_svc.AuthWebSvc):
             deployment = db.Deployment()
             deployment.update(args)
             session.save(deployment)
+            if args.has_key('tag_ids'):
+                setattr(deployment, "tags", tag.Tag().tags_from_ids(session,
+                                                                 args['tag_ids']))
             session.flush()
             self.cobbler_sync(deployment.get_hash())
             args["id"] = deployment.id
@@ -204,11 +206,8 @@ class Deployment(web_svc.AuthWebSvc):
         optional = ('machine_id', 'state', 'display_name',
                     'hostname', 'ip_address', 'registration_token',
                     'mac_address', 'netboot_enabled', 'puppet_node_diff',
-                    'is_locked', 'last_heartbeat','auto_start', 'tags')
+                    'is_locked', 'last_heartbeat','auto_start', 'tag_ids')
         filter = ('id', 'profile_id')
-        if args.has_key('tags') and type(args['tags']) is list:
-            print "tags is a list: ", args['tags']
-            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         validator = FieldValidator(args)
         validator.verify_required(required)
         validator.verify_printable('puppet_node_diff', 'tags')
@@ -245,6 +244,9 @@ class Deployment(web_svc.AuthWebSvc):
                 
             deployment.update(args, filter)
             session.save(deployment)
+            if args.has_key('tag_ids'):
+                setattr(deployment, "tags", tag.Tag().tags_from_ids(session,
+                                                                 args['tag_ids']))
             session.flush()
             self.cobbler_sync(deployment.get_hash())
             return success()
@@ -424,19 +426,19 @@ class Deployment(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of deployment attributes.
             - id
-            - tag
+            - tag_id
         @type args: dict
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id', 'tag',)
+        required = ('id', 'tag_id',)
         FieldValidator(args).verify_required(required)
         deployment = self.get(token, {"id": args["id"]}).data
-        tag = args["tag"]
-        tags = deployment["tags"]
-        if not tag in tags:
-            tags.append(tag)
-            self.edit(token, {"id": args["id"], "tags": tags})
+        tag_id = args["tag_id"]
+        tag_ids = deployment["tag_ids"]
+        if not int(tag_id) in tag_ids:
+            tag_ids.append(int(tag_id))
+            self.edit(token, {"id": args["id"], "tag_ids": tag_ids})
         return success()
 
     def remove_tag(self, token, args):
@@ -446,19 +448,19 @@ class Deployment(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of deployment attributes.
             - id
-            - tag
+            - tag_id
         @type args: dict
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id', 'tag',)
+        required = ('id', 'tag_id',)
         FieldValidator(args).verify_required(required)
         deployment = self.get(token, {"id": args["id"]}).data
-        tag = args["tag"]
-        tags = deployment["tags"]
-        if tag in tags:
-            tags.remove(tag)
-            self.edit(token, {"id": args["id"], "tags": tags})
+        tag_id = args["tag_id"]
+        tag_ids = deployment["tag_ids"]
+        if int(tag_id) in tag_ids:
+            tag_ids.remove(int(tag_id))
+            self.edit(token, {"id": args["id"], "tag_ids": tag_ids})
         return success()
 
     def get_by_mac_address(self, token, args):
@@ -620,31 +622,30 @@ class Deployment(web_svc.AuthWebSvc):
         """
         Return a list of all deployments tagged with the given tag
         """
-        required = ('tag',)
+        required = ('tag_id',)
         FieldValidator(args).verify_required(required)
-        in_tag = args['tag']
-        deployments = self.list(None, {})
-        if deployments.error_code != 0:
-            return deployments
-
-        result = []
-        for deployment in deployments.data:
-            tags = deployment["tags"]
-            if tags is not None:
-                for tag in tags:
-                    if in_tag.strip() == tag.strip():
-                        result.append(deployment)
-                        break
-        return success(result)
+        tag_id = args['tag_id']
+        session = db.open_session()
+        try:
+            name = args['name']
+            deployment_tags = db.Database.table['deployment_tags']
+            deployments = session.query(db.Deployment).select((deployment_tags.c.tag_id==tag_id &
+                                                         deployment_tags.c.deployment_id==db.Deployment.c.id))
+            if deployments:
+                deployments = self.expand(deployments)
+            return codes.success(deployments)
+        finally:
+            session.close()
 
     def expand(self, deployment):
         result = deployment.get_hash()
         result['machine'] = deployment.machine.get_hash()
         result['profile'] = deployment.profile.get_hash()
-        if result.has_key('tags') and result['tags'] is not None:
-            result['tags'] = re.compile('\s*,\s*').split(result['tags'])
-        else:
-            result['tags'] = []
+        result['tags'] = []
+        result['tag_ids'] = []
+        for tag in deployment.tags:
+            result['tags'].append(tag.get_hash())
+            result['tag_ids'].append(tag.id)
         return result
 
 

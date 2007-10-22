@@ -24,6 +24,7 @@ import provisioning
 import deployment
 import web_svc
 import regtoken
+import tag
 from server import config_data
 
 import re
@@ -63,12 +64,9 @@ class Machine(web_svc.AuthWebSvc):
             'kickstart_metadata', 'list_group', 'mac_address', 
             'is_container', 'puppet_node_diff', 
             'netboot_enabled', 'is_locked', 'status',
-            'last_heartbeat', 'tags'
+            'last_heartbeat', 'tag_ids'
         )
         required = ('profile_id',)
-        if args.has_key('tags') and type(args['tags']) is list:
-            print "tags is a list: ", args['tags']
-            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         self.validate(args, required)
         session = db.open_session()
         try:
@@ -77,6 +75,9 @@ class Machine(web_svc.AuthWebSvc):
             machine.registration_token = regtoken.RegToken().generate(token)
             machine.netboot_enabled = 1 # initially, allow PXE, until it registers
             session.save(machine)
+            if args.has_key('tag_ids'):
+                setattr(machine, "tags", tag.Tag().tags_from_ids(session,
+                                                                 args['tag_ids']))
             session.flush()
             if machine.profile_id >= 0:
                 self.cobbler_sync(machine.get_hash()) 
@@ -157,16 +158,17 @@ class Machine(web_svc.AuthWebSvc):
              'kickstart_metadata', 'profile_id', 
              'list_group', 'mac_address', 'is_container', 
              'puppet_node_diff', 'netboot_enabled', 'is_locked',
-             'state', 'last_heartbeat', 'tags'
+             'state', 'last_heartbeat', 'tag_ids'
         )
-        if args.has_key('tags') and type(args['tags']) is list:
-            args['tags'] = ','.join(dict.fromkeys(args['tags']).keys())
         self.validate(args, required)
         session = db.open_session()
         try:
             machine = db.Machine.get(session, args['id'])
             machine.update(args)
             session.save(machine)
+            if args.has_key('tag_ids'):
+                setattr(machine, "tags", tag.Tag().tags_from_ids(session,
+                                                                 args['tag_ids']))
             session.flush()
             if machine.profile_id >= 0:
                 self.cobbler_sync(machine.get_hash())
@@ -296,19 +298,19 @@ class Machine(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of machine attributes.
             - id
-            - tag
+            - tag_id
         @type args: dict
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id', 'tag',)
+        required = ('id', 'tag_id',)
         FieldValidator(args).verify_required(required)
         machine = self.get(token, {"id": args["id"]}).data
-        tag = args["tag"]
-        tags = machine["tags"]
-        if not tag in tags:
-            tags.append(tag)
-            self.edit(token, {"id": args["id"], "tags": tags})
+        tag_id = args["tag_id"]
+        tag_ids = machine["tag_ids"]
+        if not int(tag_id) in tag_ids:
+            tag_ids.append(int(tag_id))
+            self.edit(token, {"id": args["id"], "tag_ids": tag_ids})
         return codes.success()
 
     def remove_tag(self, token, args):
@@ -318,19 +320,19 @@ class Machine(web_svc.AuthWebSvc):
         @type token: string
         @param args: A dictionary of machine attributes.
             - id
-            - tag
+            - tag_id
         @type args: dict
         @raise SQLException: On database error
         @raise NoSuchObjectException: On object not found.
         """
-        required = ('id', 'tag',)
+        required = ('id', 'tag_id',)
         FieldValidator(args).verify_required(required)
         machine = self.get(token, {"id": args["id"]}).data
-        tag = args["tag"]
-        tags = machine["tags"]
-        if tag in tags:
-            tags.remove(tag)
-            self.edit(token, {"id": args["id"], "tags": tags})
+        tag_id = args["tag_id"]
+        tag_ids = machine["tag_ids"]
+        if int(tag_id) in tag_ids:
+            tag_ids.remove(int(tag_id))
+            self.edit(token, {"id": args["id"], "tag_ids": tag_ids})
         return codes.success()
 
     def get_by_regtoken(self, token, args):
@@ -411,22 +413,20 @@ class Machine(web_svc.AuthWebSvc):
         """
         Return a list of all machines tagged with the given tag
         """
-        required = ('tag',)
+        required = ('tag_id',)
         FieldValidator(args).verify_required(required)
-        in_tag = args['tag']
-        machines = self.list(None, {})
-        if machines.error_code != 0:
-            return machines
-
-        result = []
-        for machine in machines.data:
-            tags = machine["tags"]
-            if tags is not None:
-                for tag in tags:
-                    if in_tag.strip() == tag.strip():
-                        result.append(machine)
-                        break
-        return codes.success(result)
+        tag_id = args['tag_id']
+        session = db.open_session()
+        try:
+            name = args['name']
+            machine_tags = db.Database.table['machine_tags']
+            machines = session.query(db.Machine).select((machine_tags.c.tag_id==tag_id &
+                                                         machine_tags.c.machine_id==db.Machine.c.id))
+            if machines:
+                machines = self.expand(machines)
+            return codes.success(machines)
+        finally:
+            session.close()
 
     def validate(self, args, required):
         vdr = FieldValidator(args)
@@ -443,11 +443,11 @@ class Machine(web_svc.AuthWebSvc):
         result = machine.get_hash()
         result['profile'] = machine.profile.get_hash()
         result['profile']['distribution'] = machine.profile.distribution.get_hash()
-        if result.has_key('tags') and result['tags'] is not None:
-            result['tags'] = re.compile('\s*,\s*').split(result['tags'])
-        else:
-            result['tags'] = []
-
+        result['tags'] = []
+        result['tag_ids'] = []
+        for tag in machine.tags:
+            result['tags'].append(tag.get_hash())
+            result['tag_ids'].append(tag.id)
         return result
 
 

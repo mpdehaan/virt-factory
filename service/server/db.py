@@ -94,6 +94,8 @@ class Task(Base):
     pass
 class Event(Base):
     pass
+class Tag(Base):
+    pass
 
 
 
@@ -213,8 +215,7 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('state', String(255)),
-            Column('last_heartbeat', Integer),
-            Column('tags', String(4000))
+            Column('last_heartbeat', Integer)
         ))
          
         Database.tables.append(Table('deployments', Database.meta,
@@ -237,8 +238,7 @@ class Database:
             Column('netboot_enabled', Integer),
             Column('is_locked', Integer),
             Column('auto_start', Integer),
-            Column('last_heartbeat', Integer),
-            Column('tags', String(4000))
+            Column('last_heartbeat', Integer)
         ))
         
         Database.tables.append(Table('regtokens', Database.meta,
@@ -299,6 +299,21 @@ class Database:
             Column('user_comment', String(255))
         ))
     
+        Database.tables.append(Table('tags', Database.meta,
+            Column('id', Integer, Sequence('tagid'), primary_key=True),
+            Column('name', String(255), unique=True)
+        ))
+        
+        Database.tables.append(Table('machine_tags', Database.meta,
+            Column('tag_id', Integer, ForeignKey('tags.id')),
+            Column('machine_id', Integer, ForeignKey('machines.id'))
+        ))
+        
+        Database.tables.append(Table('deployment_tags', Database.meta,
+            Column('tag_id', Integer, ForeignKey('tags.id')),
+            Column('deployment_id', Integer, ForeignKey('deployments.id'))
+        ))
+        
         #
         # provides a static dictionary of tables.
         #
@@ -360,8 +375,12 @@ class Database:
                     'machine' : relation(Machine, lazy=True),
                     'deployment' : relation(Deployment, lazy=True),
                     }),
+            mapper(Tag, Database.table['tags'], extension=Database.ctx.mapper_extension,
+                properties={
+                    'machines' : relation(Machine, secondary=Database.table['machine_tags'], backref='tags'),
+                    'deployments' : relation(Deployment, secondary=Database.table['deployment_tags'], backref='tags'),
+                    }),
         )
-    
     
         #
         # provides a static dictionary of orm classes to mapped

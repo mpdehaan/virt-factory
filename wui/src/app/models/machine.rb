@@ -27,8 +27,9 @@ class Machine < ManagedObject
                   :is_locked => {:type => Integer},
                   :last_heartbeat => {:type => Integer},
                   :state => {:type => String},
-                  :tags => {:type => [Array, String]},
-                  :new_tags => {:type => String}
+                  :tags => {:type => [Array, Tag]},
+                  :tag_ids => {:type => [Array, Integer]}#,
+#                  :new_tags => {:type => String}
     }
 
     self.set_attrs(ATTR_LIST)

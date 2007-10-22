@@ -34,18 +34,14 @@ class MachineController < AbstractObjectController
 
         #get list of current tags from virt-factory
         begin
-            @tags = ManagedObject.call_server("tag_get_names", get_login, {})
+	    @tags = ManagedObject.retrieve_all(Tag, get_login)
         rescue XMLRPCClientException => ex
             set_flash_on_exception(ex)
         end
     end
 
     def edit_submit
-        tags = params["form"]["tags"]
-        tags = [] if tags.nil?
-        new_tags = params["form"]["new_tags"]
-        params["form"]["tags"] = tags + new_tags.strip.split(%r{\s*,\s*})
-        params["form"].delete("new_tags")
+        params["form"]["tag_ids"] = [] if params["form"]["tag_ids"].nil?
         super
     end
         
