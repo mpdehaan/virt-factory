@@ -7,17 +7,17 @@ from datetime import datetime
 meta = BoundMetaData(migrate_engine)
 tables = []
 
-tables.append(Table('tags', Database.meta,
+tables.append(Table('tags', meta,
     Column('id', Integer, Sequence('tagid'), primary_key=True),
     Column('name', String(255), unique=True)
 ))
         
-tables.append(Table('machine_tags', Database.meta,
+tables.append(Table('machine_tags', meta,
     Column('tag_id', Integer, ForeignKey('tags.id')),
     Column('machine_id', Integer, ForeignKey('machines.id'))
 ))
         
-tables.append(Table('deployment_tags', Database.meta,
+tables.append(Table('deployment_tags', meta,
     Column('tag_id', Integer, ForeignKey('tags.id')),
     Column('deployment_id', Integer, ForeignKey('deployments.id'))
 ))
