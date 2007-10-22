@@ -197,6 +197,9 @@ def serve_status():
          details = None
          try:
              (retcode, details) = amqp_conn.server.deployment_get_by_mac_address("UNSET",{ "mac_address" : name})
+         #re-raise these, as that's how the server shuts down
+         except KeyboardInterrupt:
+             raise
          except:
              # can't figure out to auto start this one...
              (t, v, tb) = sys.exc_info()
@@ -236,6 +239,9 @@ def serve_status():
              try:
                  # reconnect each time to avoid errors
                  virt_conn = virt_utils.VirtFactoryLibvirtConnection()
+             #re-raise these, as that's how the server shuts down
+             except KeyboardInterrupt:
+                 raise
              except:
                  logger.error("libvirt connection failed")
                  continue         
@@ -273,6 +279,9 @@ def serve_status():
              # rc = poller.poll(SLEEP_INTERVAL, select.POLLIN|select.POLLPRI)
               
 
+         #re-raise these, as that's how the server shuts down
+         except KeyboardInterrupt:
+             raise
          except:
              (t, v, tb) = sys.exc_info()
              logger.info("Exception occured: %s" % t )
@@ -305,6 +314,7 @@ def main(argv):
         try:
             serve_status()
         except KeyboardInterrupt:
+            print "caught interrupt"
             os.kill(pid, signal.SIGINT)
             os.waitpid(pid,0)
         
