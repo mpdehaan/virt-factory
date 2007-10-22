@@ -5,24 +5,29 @@ from migrate.changeset import *
 from datetime import datetime
 
 meta = BoundMetaData(migrate_engine)
-tables = []  # no new tables
+tables = []
+
+Database.tables.append(Table('tags', Database.meta,
+    Column('id', Integer, Sequence('tagid'), primary_key=True),
+    Column('name', String(255), unique=True)
+))
+        
+Database.tables.append(Table('machine_tags', Database.meta,
+    Column('tag_id', Integer, ForeignKey('tags.id')),
+    Column('machine_id', Integer, ForeignKey('machines.id'))
+))
+        
+Database.tables.append(Table('deployment_tags', Database.meta,
+    Column('tag_id', Integer, ForeignKey('tags.id')),
+    Column('deployment_id', Integer, ForeignKey('deployments.id'))
+))
 
 # provides a static dictionary of tables.
 table = dict([(t.name, t) for t in tables])
 
 
 def get_columns():
-
-    machines_table = sqlalchemy.Table('machines',meta) 
-    deployments_table = sqlalchemy.Table('deployments',meta) 
-    
-    machine_tags_column = Column('tags',String(4000),nullable=True)
-    deployment_tags_column = Column('tags',String(4000),nullable=True)
-
-    return { 
-        machine_tags_column:     machines_table,
-        deployment_tags_column:  deployments_table
-    }
+    return {}
 
 columns = get_columns()
 
